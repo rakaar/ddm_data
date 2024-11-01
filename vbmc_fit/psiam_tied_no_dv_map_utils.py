@@ -1,8 +1,75 @@
 import numpy as np
 import random
 from scipy.special import erf, erfcx
+from numba import jit
 
+def psiam_tied_data_gen_wrapper(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, T_0, theta_E, Z_E, t_stim_arr, t_A_aff, t_E_aff, t_motor, dt):
+    ABL = random.choice(ABL_arr)
+    ILD = random.choice(ILD_arr)
+    t_stim = random.choice(t_stim_arr)
+    
+    
+    choice, rt, is_act = simulate_psiam_tied(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, dt)
+    return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD}
 
+@jit
+def simulate_psiam_tied(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, dt):
+    AI = 0; DV = Z_E; t = 0; dB = dt**0.5
+    
+    chi = 17.37; q_e = 1
+    theta = theta_E * q_e
+    mu = (2*q_e/T_0) * (10**(rate_lambda * ABL/20)) * np.sinh(rate_lambda * ILD/chi)
+    sigma = np.sqrt( (2*(q_e**2)/T_0) * (10**(rate_lambda * ABL/20)) * np.cosh(rate_lambda * ILD/ chi) )
+    
+    is_act = 0
+    while True:
+        if t*dt > t_stim + t_E_aff:
+            DV += mu*dt + sigma*np.random.normal(0, dB)
+        
+        if t*dt > t_A_aff:
+            AI += V_A*dt + np.random.normal(0, dB)
+        
+        t += 1
+        
+        if DV >= theta:
+            choice = +1; RT = t*dt + t_motor
+            break
+        elif DV <= -theta:
+            choice = -1; RT = t*dt + t_motor
+            break
+        
+        if AI >= theta_A:
+            is_act = 1
+            AI_hit_time = t*dt
+            # if t*dt > t_stim - t_motor:
+            while t*dt <= (AI_hit_time + t_E_aff + t_motor):#  u can process evidence till stim plays
+                if t*dt > t_stim + t_E_aff: # Evid accum wil begin only after stim starts and afferent delay
+                    DV += mu*dt + sigma*np.random.normal(0, dB)
+                    if DV >= theta:
+                        DV = theta
+                        break
+                    elif DV <= -theta:
+                        DV = -theta
+                        break
+                t += 1
+            
+            break
+        
+        
+    if is_act == 1:
+        RT = AI_hit_time + t_motor
+        if DV > 0:
+            choice = 1
+        elif DV < 0:
+            choice = -1
+        else: # if DV is 0 because stim has not yet been played, then choose right/left randomly
+            randomly_choose_up = np.random.rand() >= 0.5
+            if randomly_choose_up:
+                choice = 1
+            else:
+                choice = -1       
+    
+    return choice, RT, is_act
 
 
 # Helper functions for PDF and CDF
