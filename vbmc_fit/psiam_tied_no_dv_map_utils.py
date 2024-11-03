@@ -275,6 +275,26 @@ def all_RTs_fit_OPTIM_fn(t_pts, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_
 
     return P_all
 
+def all_RTs_fit_single_t_fn(t, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+
+
+    P_A = rho_A_t_fn(t-t_A_aff-t_motor, V_A, theta_A)
+    C_E = CDF_E_minus_small_t_NORM_fn(t - t_motor - t_stim - t_E_aff, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, 1, K_max) \
+           + CDF_E_minus_small_t_NORM_fn(t - t_motor - t_stim - t_E_aff, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, -1, K_max)
+    
+
+    P_E = rho_E_minus_small_t_NORM_fn(t-t_E_aff-t_stim-t_motor, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, 1, K_max) \
+           + rho_E_minus_small_t_NORM_fn(t-t_E_aff-t_stim-t_motor, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, -1, K_max) \
+            
+    C_A = cum_A_t_fn(t-t_A_aff-t_motor, V_A, theta_A)
+
+    P_all = P_A*(1-C_E) + P_E*(1-C_A)
+
+    return P_all
+
 
 
 def up_RTs_fit_fn(t_pts, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, K_max):
