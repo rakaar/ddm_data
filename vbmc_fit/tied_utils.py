@@ -35,12 +35,6 @@ def simulate_tied_no_norm(ILD, ABL, rate_lambda, theta_E, T_0, t_non_decision, t
             return -1, t*dt + t_non_decision
        
 
-def tied_data_gen_wrapper(ILD_arr, ABL_arr, rate_lambda, theta_E, T_0, t_non_decision, dt):
-    ABL = random.choice(ABL_arr)
-    ILD = random.choice(ILD_arr)
-    
-    choice, rt = simulated_tied_ddm_norm(ILD, ABL, rate_lambda, theta_E, T_0, t_non_decision, dt)
-    return {'choice': choice, 'rt': rt, 'ABL': ABL, 'ILD': ILD}
 
 @jit
 def simulated_tied_ddm_norm(ILD, ABL, rate_lambda, theta_E, T_0, t_non_decision, dt):
