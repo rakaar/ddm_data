@@ -1,30 +1,31 @@
 import numpy as np
 from scipy.special import erf
+import os
 
 import random
 from numba import jit
 
 # simulation part
 
-def psiam_tied_data_gen_wrapper(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff, t_motor, L, \
-                                t_stim_0, t_stim_tau, t_led_0, t_led_tau, new_V_A, iter_num, N_print, dt):
+def psiam_tied_data_gen_wrapper_V_A_change(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff, t_motor, L, \
+                                t_stim_and_led_tuple, new_V_A, iter_num, N_print, dt):
     ABL = random.choice(ABL_arr)
     ILD = random.choice(ILD_arr)
     
-    # t_stim is picked from a distribution
-    t_stim = np.random.exponential(t_stim_tau) + t_stim_0
-    t_led = np.random.exponential(t_led_tau) + t_led_0
+    # random element from t_stim_and_led_tuple
+    t_stim, t_led = t_stim_and_led_tuple[np.random.randint(0, len(t_stim_and_led_tuple))]
+
 
     # print after every N_print iterations
     if iter_num % N_print == 0:
-        print(f'In iter_num: {iter_num}, ABL: {ABL}, ILD: {ILD}, t_stim: {t_stim}')
+        print(f'os id: {os.getpid()}, In iter_num: {iter_num}, ABL: {ABL}, ILD: {ILD}, t_stim: {t_stim}')
 
 
-    choice, rt, is_act = simulate_psiam_tied(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, t_led, new_V_A, dt)
-    return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD, 't_stim': t_stim}
+    choice, rt, is_act = simulate_psiam_tied_V_A_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, t_led, new_V_A, dt)
+    return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD, 't_stim': t_stim, 't_led': t_led}
 
 @jit
-def simulate_psiam_tied(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, t_led , new_V_A, dt):
+def simulate_psiam_tied_V_A_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, t_led , new_V_A, dt):
     AI = 0; DV = Z_E; t = 0; dB = dt**0.5
     
     chi = 17.37; q_e = 1

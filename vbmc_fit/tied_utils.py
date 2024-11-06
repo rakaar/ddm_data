@@ -11,7 +11,7 @@ def tied_data_gen_wrapper(ILD_arr, ABL_arr, rate_lambda, theta_E, T_0, t_non_dec
     if num_iter % N_print == 0:
         print(f"Iter # {num_iter}, ILD: {ILD}, ABL: {ABL}, t_stim: {t_stim}")
     
-    choice, rt = simulated_tied_ddm_norm(ILD, ABL, rate_lambda, theta_E, T_0, t_non_decision, t_stim, dt)
+    choice, rt = simulate_tied_no_norm(ILD, ABL, rate_lambda, theta_E, T_0, t_non_decision, t_stim, dt)
     return {'choice': choice, 'rt': rt, 'ABL': ABL, 'ILD': ILD, 't_stim': t_stim}
 
 @jit
