@@ -25,7 +25,7 @@ def simulate_tied_no_norm(ILD, ABL, rate_lambda, theta_E, T_0, t_non_decision, t
     dB = dt**0.5
 
     while True:
-        if t > t_stim:
+        if t*dt > t_stim:
             DV += mu*dt + sigma*np.random.normal(0, dB)
         t += 1
 

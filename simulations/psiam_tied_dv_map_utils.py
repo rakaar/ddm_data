@@ -15,17 +15,16 @@ def psiam_tied_data_gen_wrapper_V_A_change(V_A, theta_A, ABL_arr, ILD_arr, rate_
     # random element from t_stim_and_led_tuple
     t_stim, t_led = t_stim_and_led_tuple[np.random.randint(0, len(t_stim_and_led_tuple))]
 
-
+    is_LED_trial = np.random.rand() < 1/3
     # print after every N_print iterations
     if iter_num % N_print == 0:
         print(f'os id: {os.getpid()}, In iter_num: {iter_num}, ABL: {ABL}, ILD: {ILD}, t_stim: {t_stim}')
 
-
-    choice, rt, is_act = simulate_psiam_tied_V_A_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, t_led, new_V_A, dt)
-    return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD, 't_stim': t_stim, 't_led': t_led}
+    choice, rt, is_act = simulate_psiam_tied_V_A_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, is_LED_trial, t_led, new_V_A, dt)
+    return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD, 't_stim': t_stim, 't_led': t_led, 'is_LED_trial': is_LED_trial}
 
 @jit
-def simulate_psiam_tied_V_A_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, t_led , new_V_A, dt):
+def simulate_psiam_tied_V_A_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, is_LED_trial, t_led , new_V_A, dt):
     AI = 0; DV = Z_E; t = 0; dB = dt**0.5
     
     chi = 17.37; q_e = 1
@@ -35,7 +34,7 @@ def simulate_psiam_tied_V_A_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, the
     
     is_act = 0
     while True:
-        if t >= t_led:
+        if t*dt >= t_led and is_LED_trial:
             V_A = new_V_A
 
         if t*dt > t_stim + t_E_aff:
