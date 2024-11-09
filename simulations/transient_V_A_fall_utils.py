@@ -7,8 +7,8 @@ from numba import jit
 
 # simulation part
 
-def psiam_tied_data_gen_wrapper_noise_change(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff, t_motor, L, \
-                                t_stim_and_led_tuple, new_noise, iter_num, N_print, dt):
+def psiam_tied_data_gen_trans_V_A(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff, t_motor, L, \
+                                t_stim_and_led_tuple, new_V_A, new_V_A_time_const, iter_num, N_print, dt):
     ABL = random.choice(ABL_arr)
     ILD = random.choice(ILD_arr)
     
@@ -20,11 +20,11 @@ def psiam_tied_data_gen_wrapper_noise_change(V_A, theta_A, ABL_arr, ILD_arr, rat
     if iter_num % N_print == 0:
         print(f'os id: {os.getpid()}, In iter_num: {iter_num}, ABL: {ABL}, ILD: {ILD}, t_stim: {t_stim}')
 
-    choice, rt, is_act = simulate_psiam_tied_noise_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, is_LED_trial, t_led, new_noise, dt)
+    choice, rt, is_act = simulated_tied_V_A_transient(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, is_LED_trial, t_led, new_V_A, new_V_A_time_const, dt)
     return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD, 't_stim': t_stim, 't_led': t_led, 'is_LED_trial': is_LED_trial}
 
 @jit
-def simulate_psiam_tied_noise_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, is_LED_trial, t_led , new_noise, dt):
+def simulated_tied_V_A_transient(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, is_LED_trial, t_led , new_V_A, new_V_A_time_const, dt):
     AI = 0; DV = Z_E; t = 0; dB = dt**0.5
     
     chi = 17.37; q_e = 1
@@ -33,13 +33,9 @@ def simulate_psiam_tied_noise_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, t
     sigma = np.sqrt( (2*(q_e**2)/T_0) * (10**(rate_lambda * ABL/20)) * np.cosh(rate_lambda * ILD/ chi) )
     
     is_act = 0
-
-    if is_LED_trial:
-        new_sigma = np.sqrt(sigma**2 + new_noise)
-
     while True:
         if t*dt >= t_led and is_LED_trial:
-            sigma = new_sigma
+            V_A += (new_V_A - V_A)*np.exp(-(t*dt-t_led)/new_V_A_time_const)
 
         if t*dt > t_stim + t_E_aff:
             DV += mu*dt + sigma*np.random.normal(0, dB)
