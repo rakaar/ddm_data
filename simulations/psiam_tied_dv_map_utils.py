@@ -16,6 +16,7 @@ def psiam_tied_data_gen_wrapper_V_A_change(V_A, theta_A, ABL_arr, ILD_arr, rate_
     t_stim, t_led = t_stim_and_led_tuple[np.random.randint(0, len(t_stim_and_led_tuple))]
 
     is_LED_trial = np.random.rand() < 1/3
+
     # print after every N_print iterations
     if iter_num % N_print == 0:
         print(f'os id: {os.getpid()}, In iter_num: {iter_num}, ABL: {ABL}, ILD: {ILD}, t_stim: {t_stim}')
