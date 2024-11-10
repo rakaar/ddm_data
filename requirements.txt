@@ -24,6 +24,7 @@ llvmlite==0.43.0
 matplotlib==3.9.2
 matplotlib-inline==0.1.7
 nest-asyncio==1.6.0
+numba==0.60.0
 numpy==2.0.2
 packaging==24.1
 pandas==2.2.3
