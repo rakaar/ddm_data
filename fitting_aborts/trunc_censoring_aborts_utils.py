@@ -1,17 +1,6 @@
 import numpy as np
 from scipy.special import erf
 
-def prob_fix_survive_and_hit(t, t_stim_0, t_stim_tau, V_A, theta_A, t_A_aff):
-    if t < t_stim_0:
-        fix_survive = 1
-    else:
-        fix_survive = np.exp(- ( (t - t_stim_0) / t_stim_tau ))
-
-    return fix_survive * rho_A_t_fn(t-t_A_aff, V_A, theta_A)
-
-def prob_fix_not_survive_an_censored_pdf(t, t_stim_0, t_stim_tau, V_A, theta_A, t_A_aff, t_stim):
-    return (1 - cum_A_t_fn(t_stim-t_A_aff, V_A, theta_A))
-
 
 def Phi(x):
     """
