@@ -1,0 +1,87 @@
+# Left truncating and right censoring to fit Abort RTs
+
+The stimulus onset time is varying and has an exponential distribution. We want to find paramters of Proactive process 
+- V_A, theta_A and t_A_delay to fit the aborts. There are two issues:
+1. The abort RT distribution is bi-modal, there is a peak before 0.3 s. Since we don't have a modal for this bi-modal type distribution
+we are truncating the reaction times that are less than 0.3
+2. We also want to match the proportion of aborts(number of aborts/number of trials), not just the shape of the distribution. 
+For this we are censoring the likelihood of reaction times that are after the stimulus onset time. That means, all the reaction times
+after a certain  $t_stim$ have same probability.
+
+% ----- -figure of truncation and censoring ------ 
+
+To address the above 2 issues, we are fitting on RTs such that the reaction times are left truncated before a certain time
+ and right censored after $t_stim$
+
+
+## calculating likelihood when you have data
+
+For a trial
+- If RT is less than T_trunc, then the likelihood is 0
+
+- if a RT is before t_stim, it is an abort, we calculate the likelihood using the PDF of hitting time of Proactive process(call $\rho_A$).
+But since we are truncating RT less than T_trunc, we need to adjust PDF by scaling it up. 
+
+
+
+% ----- figure of truncating increasing likelihood  ------ 
+
+
+Area under the new truncated PDF has to be 1. So, we scale up the PDF by dividing with 1 - CDF(T_trunc)
+
+likelihood of an abort accounted for truncation = PDF(t) / (1 - CDF(T_trunc))
+
+
+- If RT is greater than t_stim, we assign the RT the probability of all samples that come after $t_stim$
+
+Likelihood of a valid trial RT accounting for censorship = 1 - CDF(t_stim)
+
+
+
+# But once you have the parameters obtained from VBMC, we need to test if the histogram of the RTs fits well with the theoretical PDF
+
+There are 2 ways to calculate the theoretical PDF of aborts
+
+1. you know the distribtuon of stimulus onset:
+
+The stimulus onset time distribution (PDF_stim)= 1/ tau * exp( - ( t - t_0 ) / tau )
+Prob that stim survives till time "t" is 1 - prob that stim occured before "t"
+ =  1 - \int_{t_0}^{t} PDF_stim(t) dt = exp( - ( t - t_0 ) / tau )
+
+
+ Prob of an abort at time t = Prob that stim survives till "t" & Prob that Proactive hits the bound
+                             = exp(- (t - t_0) / tau ) * PDF_hitting_single_bound(t)
+
+
+Note that you have account for truncation by dividing 1 - CDF of hitting abort at T_trunc
+
+2. you don't know/want to assume the distribution of stimulus onset:
+
+- Collect all the t_stim from the data
+- for each t_stim, calculate the PDF of hitting abort at time "t"(NOT t_stim) multiplied by if stim survived till t_stim or not (t > t_stim or t < t_stim)
+- Finally take average of all PDFs calculated for each t_stim
+PDF of abort at time (t) = 1/ N \Sigma_{i=1}^{N} PDF_hitting_single_bound(t) * Stim survived till t or not 
+
+
+# Note that once you have calculate the theoretical PDF, you can compare the shape of the histogram, 
+but to check if proportions match
+
+- normalize the histogram of aborts with total number of trials (multiply the histogram with num of aborts/ num of trials)
+- normalize the theoretical PDF with fraction of aborts calculated theoretically. 
+
+The fraction of aborts is calculated theoretically by:
+- For each t_stim, calculate the non-censored probability(account for truncation) = 1 - CDF_of_hitting_single_bound(t_stim)
+- Take average of all the non-censored probabilities calculated for each t_stim
+- If done correctly, the above average should match the fraction of aborts in the data
+
+Fraction of aborts = 1/N \Sigma_{i=1}^{N} 1 - CDF_of_hitting_single_bound(t_stim_i)   
+
+
+
+
+\section{Left and right trunc VS. Left trunc and right censoring}
+Instead of censoring RTs after $t_{stim}$, if we truncate RTs after $t_{stim}$, 
+the credible intervals of the parameters(16th and 84th percentiles of VP samples) are wider because we are reducing the amount of 
+information to the VBMC fit.
+
+% figures of left trunc, right trunc image LTRT.png and left trunc and right censoring LTRC.png side by side
