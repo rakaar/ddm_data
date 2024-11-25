@@ -3,8 +3,6 @@ from scipy.special import erf
 import os
 
 import random
-from numba import jit
-
 # simulation part
 
 def psiam_tied_data_gen_wrapper_V_A_change(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff, t_motor, L, \
@@ -24,7 +22,6 @@ def psiam_tied_data_gen_wrapper_V_A_change(V_A, theta_A, ABL_arr, ILD_arr, rate_
     choice, rt, is_act = simulate_psiam_tied_V_A_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, is_LED_trial, t_led, new_V_A, dt)
     return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD, 't_stim': t_stim, 't_led': t_led, 'is_LED_trial': is_LED_trial}
 
-@jit
 def simulate_psiam_tied_V_A_change(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, is_LED_trial, t_led , new_V_A, dt):
     AI = 0; DV = Z_E; t = 0; dB = dt**0.5
     
