@@ -5,3 +5,4 @@ venv/*
 *.pkl
 .venv/*
 *.eps
+simulations/sbi-logs/*
