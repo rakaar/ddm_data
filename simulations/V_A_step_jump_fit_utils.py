@@ -1,8 +1,7 @@
 import numpy as np
 from scipy.special import erf
-from scipy.integrate import quad
+from scipy.integrate import quad, IntegrationWarning, quad_vec
 import warnings
-from scipy.integrate import quad, IntegrationWarning
 
 def rho_A_t_fn(t, V_A, theta_A):
     """
@@ -110,42 +109,83 @@ def CDF_hit_V_A_change(t, V_A_old, V_A_new, a, t_LED):
         return cum_A_t_fn(t, V_A_old, a)
     else:
         # return cum_A_t_fn(t_LED, V_A_old, a) + quad(P_old_at_x_times_CDF_new_hit, -np.inf, a, args=(t, V_A_old, V_A_new, a, t_LED))[0]
-        # Change low bound in face of warning 
-        try:
-            with warnings.catch_warnings(record=True) as w:
-                warnings.simplefilter("always", IntegrationWarning)
+        # --- shift to numpy trapz
+        a_pts = np.arange(-10, a, 0.01)
+        func_values = np.array([P_old_at_x_times_CDF_new_hit(x, t, V_A_old, V_A_new, a, t_LED) for x in a_pts])
+        integral_result = np.trapz(func_values, a_pts)
+        return cum_A_t_fn(t_LED, V_A_old, a) + integral_result
+        
+        
+        
+        # --- shift to quad_vec that handles sharp discontinuity -----
+        # return cum_A_t_fn(t_LED, V_A_old, a) + quad_vec(P_old_at_x_times_CDF_new_hit, -10, a, args=(t, V_A_old, V_A_new, a, t_LED))[0]
 
-                # First attempt: integrate with lower bound -10
-                integral_result, _ = quad(
-                    P_old_at_x_times_CDF_new_hit,
-                    -10, a,
-                    args=(t, V_A_old, V_A_new, a, t_LED)
-                )
+        # ---------- when warning print params and raise error -----
+        # try:
+        #     with warnings.catch_warnings(record=True) as w:
+        #         warnings.simplefilter("always", IntegrationWarning)
 
-                # Check for warnings in the first attempt
-                if any(issubclass(warning.category, IntegrationWarning) for warning in w):
-                    print('-10 -> 0')                    
-                    # Retry with adjusted lower bound 0
-                    with warnings.catch_warnings(record=True) as w_retry:
-                        warnings.simplefilter("always", IntegrationWarning)
+        #         integral_result_1, _ = quad(
+        #             P_old_at_x_times_CDF_new_hit,
+        #             -10, 0,
+        #             args=(t, V_A_old, V_A_new, a, t_LED)
+        #         )
 
-                        integral_result, _ = quad(
-                            P_old_at_x_times_CDF_new_hit,
-                            0, a,
-                            args=(t, V_A_old, V_A_new, a, t_LED)
-                        )
+        #         integral_result_2, _ = quad(
+        #             P_old_at_x_times_CDF_new_hit,
+        #             0, a,
+        #             args=(t, V_A_old, V_A_new, a, t_LED)
+        #         )
 
-                        # Check for warnings in the second attempt
-                        if any(issubclass(warning.category, IntegrationWarning) for warning in w_retry):
-                            print(f"IntegrationWarning with lower bound 0: Parameters causing issue - "
-                                  f"t={t}, V_A_old={V_A_old}, V_A_new={V_A_new}, a={a}, t_LED={t_LED}")
-                            raise RuntimeError(f"Integration failed even with lower bound 0: "
-                                               f"Parameters - t={t}, V_A_old={V_A_old}, V_A_new={V_A_new}, a={a}, t_LED={t_LED}")
+        #         # Check for warnings in the first attempt
+        #         if any(issubclass(warning.category, IntegrationWarning) for warning in w):
+        #             print(f"IntegrationWarning with lower bound -10: Parameters causing issue - "
+        #                   f"t={t}, V_A_old={V_A_old}, V_A_new={V_A_new}, a={a}, t_LED={t_LED}")
+        #             raise RuntimeError(f"IntegrationWarning at lower bound -10: Parameters - "
+        #                                f"t={t}, V_A_old={V_A_old}, V_A_new={V_A_new}, a={a}, t_LED={t_LED}")
+            
+        #     return cum_A_t_fn(t_LED, V_A_old, a) + integral_result_1 + integral_result_2
 
-                return cum_A_t_fn(t_LED, V_A_old, a) + integral_result
-        except Exception as e:
-            print(f"Error during integration: {e}")
-            raise
+        # except Exception as e_second:
+        #     print(f"Error during integration with lower bound 0: {e_second}")
+        #     raise e_second
+
+        # ---------- Change bound when warns -----
+        # try:
+        #     with warnings.catch_warnings(record=True) as w:
+        #         warnings.simplefilter("always", IntegrationWarning)
+
+        #         # First attempt: integrate with lower bound -10
+        #         integral_result, _ = quad(
+        #             P_old_at_x_times_CDF_new_hit,
+        #             -10, a,
+        #             args=(t, V_A_old, V_A_new, a, t_LED)
+        #         )
+
+        #         # Check for warnings in the first attempt
+        #         if any(issubclass(warning.category, IntegrationWarning) for warning in w):
+        #             print('-10 -> 0')                    
+        #             # Retry with adjusted lower bound 0
+        #             with warnings.catch_warnings(record=True) as w_retry:
+        #                 warnings.simplefilter("always", IntegrationWarning)
+
+        #                 integral_result, _ = quad(
+        #                     P_old_at_x_times_CDF_new_hit,
+        #                     0, a,
+        #                     args=(t, V_A_old, V_A_new, a, t_LED)
+        #                 )
+
+        #                 # Check for warnings in the second attempt
+        #                 if any(issubclass(warning.category, IntegrationWarning) for warning in w_retry):
+        #                     print(f"IntegrationWarning with lower bound 0: Parameters causing issue - "
+        #                           f"t={t}, V_A_old={V_A_old}, V_A_new={V_A_new}, a={a}, t_LED={t_LED}")
+        #                     raise RuntimeError(f"Integration failed even with lower bound 0: "
+        #                                        f"Parameters - t={t}, V_A_old={V_A_old}, V_A_new={V_A_new}, a={a}, t_LED={t_LED}")
+
+        #         return cum_A_t_fn(t_LED, V_A_old, a) + integral_result
+        # except Exception as e:
+        #     print(f"Error during integration: {e}")
+        #     raise
 
         # ---------- Sub integral breaks ----- 
         # try:
