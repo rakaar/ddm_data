@@ -16,6 +16,8 @@ def P_t_x(x, t, v, a):
     """
     Prob that DV = x at time t given v, a 
     """
+    if t <= 0:
+        return 0
     return (1/np.sqrt(2 * (np.pi) * t)) * \
         ( np.exp(-((x - v*t)**2)/(2*t)) - np.exp( 2*v*a - ((x - 2*a - v*t)**2)/(2*t) ) )
 
