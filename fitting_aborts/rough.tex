@@ -1,3 +1,86 @@
+# Important equations and functions
+
+P(\frac{x, t}{v,theta})  =  (1/np.sqrt(2 * (pi) * t)) * \
+        ( exp(-((x - v*t)**2)/(2*t)) - np.exp( 2*v*theta - ((x - 2*theta - v*t)**2)/(2*t) ) )
+
+
+        
+
+# Likelihood for Proactive drift jump at event of LED onset
+
+
+## Terms used: 
+\rho_A(\frac{t}{V, theta}) : Prob that proactive process hits the bound at time t given V and theta
+
+P(x,t) = Prob that proactive process is at "x" at time "t"
+
+CDF_A(\frac{t}{V, theta}) = \int_{0}^{t} \rho_A(\frac{t}{V, theta}) dt
+
+## likelihood 
+When LED onset occurs at $ t_{LED} $, the decision variable could be anywhere between $-\inf$ and \theta. 
+Lets call the Decision variable at time $ t_{LED} $ as x, which could be any value below \theta.
+
+From x, it has to now accumulate evidence with new drift V', and hit the bound which is at distance of \theta - x
+If you are considering the reaction time as "t", then the new drift V' process has to hit \theta - x in time t - t_{LED}
+
+So, Prob of hitting the bound at t, which is greater than t_LED
+ = \int_{-\inf}^{\theta} P(x, t_{LED}) * \rho_A(\frac{t - t_{LED}}{V', \theta - x}) dx
+
+ In short, likelihood can be written as:
+
+ PDF_{\text{V change}}
+ 
+t < t_LED: \rho_A(\frac{t}{V, \theta})
+t > t_LED: \int_{-\inf}^{\theta} P(x, t_{LED}) * \rho_A(\frac{t - t_{LED}}{V', \theta - x}) dx
+
+Another special case is when t_LED is zero, it means from the beginning itself, the process has started with new drift V'
+t_LED == 0 \rho_A(\frac{t}{V', \theta})
+
+
+# Fitting Proactive drift jump at event of LED onset on LED ON data
+
+
+## Changes in model
+- Upon LED onset, the proactive process drift jumps from V to V_', the new drift rate is higher and hence causes the 
+proactive process to hit the bound earlier causing higher abort rate when compared to control trials
+- Left Trunc and Right Censoring: Like in previous case, we want to left truncate the distribution at t_trunc, because we don't have a model for 
+bi-modal distribution of aborts. We want to censor the RTs after t_stim, because we want to match the proportion of aborts.
+
+
+## Left trunc and right censoring likelihood
+t < T_trunc: 0
+t < t_stim and t > T_trunc: PDF_{\text{V change}} / truncation_factor
+t > t_stim: Censoring => (1 - CDF_{\text{V change}}) / truncation_factor
+
+t_stim < T_trunc and t > t_stim: likelihood = 1 (because after t_stim, the area of all RTs is 1)
+t_stim < T_trunc and t < T_trunc: likelihood = 0 (truncation)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Left truncating and right censoring to fit Abort RTs
 
 The stimulus onset time is varying and has an exponential distribution. We want to find paramters of Proactive process 
