@@ -2,6 +2,7 @@ import numpy as np
 from scipy.special import erf
 from scipy.integrate import quad, IntegrationWarning, quad_vec
 import warnings
+from scipy.integrate import trapezoid as trapz
 
 def rho_A_t_fn(t, V_A, theta_A):
     """
@@ -114,7 +115,7 @@ def CDF_hit_V_A_change(t, V_A_old, V_A_new, a, t_LED):
         # --- shift to numpy trapz
         a_pts = np.arange(-10, a, 0.01)
         func_values = np.array([P_old_at_x_times_CDF_new_hit(x, t, V_A_old, V_A_new, a, t_LED) for x in a_pts])
-        integral_result = np.trapz(func_values, a_pts)
+        integral_result = trapz(func_values, a_pts)
         return cum_A_t_fn(t_LED, V_A_old, a) + integral_result
         
         
