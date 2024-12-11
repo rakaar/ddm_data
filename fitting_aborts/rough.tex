@@ -1,5 +1,38 @@
 # Important equations and functions
 
+def rho_A_t_fn(t, V_A, theta_A):
+    """
+    For Proactive process,prob density of t given V_A, theta_A
+    """
+    if t <= 0:
+        return 0
+    return (theta_A*1/np.sqrt(2*np.pi*(t)**3))*np.exp(-0.5 * (V_A**2) * (((t) - (theta_A/V_A))**2)/(t))
+
+
+def cum_A_t_fn(t, V_A, theta_A):
+        """
+        For proactive, calculate cummulative distrn of a time t given V_A, theta_A
+        """
+        if t <= 0:
+        return 0
+
+        term1 = Phi(V_A * ((t) - (theta_A/V_A)) / np.sqrt(t))
+        term2 = np.exp(2 * V_A * theta_A) * Phi(-V_A * ((t) + (theta_A / V_A)) / np.sqrt(t))
+        
+        return term1 + term2
+
+def P_t_x(x, t, v, a):
+    """
+    Prob that DV = x at time t given v, a 
+    """
+    if t <= 0:
+        return 0
+    return (1/np.sqrt(2 * (np.pi) * t)) * \
+        ( np.exp(-((x - v*t)**2)/(2*t)) - np.exp( 2*v*a - ((x - 2*a - v*t)**2)/(2*t) ) )
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Important equations and functions
+
 P(\frac{x, t}{v,theta})  =  (1/np.sqrt(2 * (pi) * t)) * \
         ( exp(-((x - v*t)**2)/(2*t)) - np.exp( 2*v*theta - ((x - 2*theta - v*t)**2)/(2*t) ) )
 
