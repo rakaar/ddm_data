@@ -1,205 +1,49 @@
+# Post LED censoring on LED on aborts data(no truncation)
+
+Terms:
+ \rho_A(t | v,theta,aff) = Prob that single bound proactive(Proactive) process hits bound at time t(the process starts from zero)
+                             given  drift `v`, bound `theta`, proactive delay `aff`
+ \CDF_A(t | v,theta,aff) = CDF of Proactive process hits at bound at t(CDF of above)
  
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# Important equations and functions
-
-def rho_A_t_fn(t, V_A, theta_A):
-    """
-    For Proactive process,prob density of t given V_A, theta_A
-    """
-    if t <= 0:
-        return 0
-    return (theta_A*1/np.sqrt(2*np.pi*(t)**3))*np.exp(-0.5 * (V_A**2) * (((t) - (theta_A/V_A))**2)/(t))
+ P(x,t | v,theta,aff ) = Prob that Decision variable of Proactive process is at x at time 't'
 
 
-def cum_A_t_fn(t, V_A, theta_A):
-        """
-        For proactive, calculate cummulative distrn of a time t given V_A, theta_A
-        """
-        if t <= 0:
-        return 0
-
-        term1 = Phi(V_A * ((t) - (theta_A/V_A)) / np.sqrt(t))
-        term2 = np.exp(2 * V_A * theta_A) * Phi(-V_A * ((t) + (theta_A / V_A)) / np.sqrt(t))
-        
-        return term1 + term2
-
-def P_t_x(x, t, v, a):
-    """
-    Prob that DV = x at time t given v, a 
-    """
-    if t <= 0:
-        return 0
-    return (1/np.sqrt(2 * (np.pi) * t)) * \
-        ( np.exp(-((x - v*t)**2)/(2*t)) - np.exp( 2*v*a - ((x - 2*a - v*t)**2)/(2*t) ) )
-
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# Important equations and functions
-
-P(\frac{x, t}{v,theta})  =  (1/np.sqrt(2 * (pi) * t)) * \
-        ( exp(-((x - v*t)**2)/(2*t)) - np.exp( 2*v*theta - ((x - 2*theta - v*t)**2)/(2*t) ) )
-
-
-        
-
-# Likelihood for Proactive drift jump at event of LED onset
-
-
-## Terms used: 
-\rho_A(\frac{t}{V, theta}) : Prob that proactive process hits the bound at time t given V and theta
-
-P(x,t) = Prob that proactive process is at "x" at time "t"
-
-CDF_A(\frac{t}{V, theta}) = \int_{0}^{t} \rho_A(\frac{t}{V, theta}) dt
-
-## likelihood 
-When LED onset occurs at $ t_{LED} $, the decision variable could be anywhere between $-\inf$ and \theta. 
-Lets call the Decision variable at time $ t_{LED} $ as x, which could be any value below \theta.
-
-From x, it has to now accumulate evidence with new drift V', and hit the bound which is at distance of \theta - x
-If you are considering the reaction time as "t", then the new drift V' process has to hit \theta - x in time t - t_{LED}
-
-So, Prob of hitting the bound at t, which is greater than t_LED
- = \int_{-\inf}^{\theta} P(x, t_{LED}) * \rho_A(\frac{t - t_{LED}}{V', \theta - x}) dx
-
- In short, likelihood can be written as:
-
- PDF_{\text{V change}}
  
-t < t_LED: \rho_A(\frac{t}{V, \theta})
-t > t_LED: \int_{-\inf}^{\theta} P(x, t_{LED}) * \rho_A(\frac{t - t_{LED}}{V', \theta - x}) dx
+# Fitting Parameters Plan
+We fit LED ON and LED OFF abort reaction times with 2 modifications:
+a) In LED ON case, Abort times after LED Onset are censored at `t_LED`
+b) Abort times after stimulus onset are censored at `t_stim`
+
+# Likelihood
+
+if LED ON:
+    if RT < `t_led`
+        Likelihood = \rho_A(t - aff | v,theta,aff) * P(x,t | v,theta,aff)
+    elif RT > `t_led'
+        Likelihood = 1 - \CDF_A(t_led - aff | v,theta,aff)
+
+if LED OFF:
+    if RT < `t_stim`
+        Likelihood = \rho_A(t - aff | v,theta,aff) 
+    elif RT > `t_stim'
+        Likelihood = 1 - \CDF_A(t_stim - aff | v,theta,aff)
+
+
+# Matching fractions
+With the above likelihood, we find drift(which is considered pre-LED drift), theta and aff. To find post-LED drift,
+we match the fraction of aborts between LED onset and stimulus onset in LED ON trials in the LED ON data. For different values of
+new drift, we try to calculate the fraction of aborts and pick the one closest to data's fraction of aborts.
+
+- Calculate number of aborts between LED onset and stimulus onset in LED ON trials and divide by total number of LED ON trials
+- To calculate the fraction of aborts theoretically, 
+ a) Sample t_LED and t_stim from the LED on trials
+ b) For each sampled (t_LED, t_stim), calculate the fraction of aborts between t_LED and t_stim
+
+ if t_led is not zero:
+    fraction of aborts till t_LED = \rho_A(t_LED - aff | v,theta,aff)
+    fraction of aborts till  t_stim = \int_{0}^{t_stim - aff}   \int_{-\inf}^{theta} P(x=x,t=t_LED-aff | v,theta,aff) \rho_A(t - led | V',theta - x,aff) dx dt
+if t_led is zero:
+    fraction of aborts till t_LED = 0
+    fraction of aborts till  t_stim = CDF_A(t_stim - aff | V',theta,aff)
 
-Another special case is when t_LED is zero, it means from the beginning itself, the process has started with new drift V'
-t_LED == 0 \rho_A(\frac{t}{V', \theta})
 
-
-# Fitting Proactive drift jump at event of LED onset on LED ON data
-
-
-## Changes in model
-- Upon LED onset, the proactive process drift jumps from V to V_', the new drift rate is higher and hence causes the 
-proactive process to hit the bound earlier causing higher abort rate when compared to control trials
-- Left Trunc and Right Censoring: Like in previous case, we want to left truncate the distribution at t_trunc, because we don't have a model for 
-bi-modal distribution of aborts. We want to censor the RTs after t_stim, because we want to match the proportion of aborts.
-
-
-## Left trunc and right censoring likelihood
-t < T_trunc: 0
-t < t_stim and t > T_trunc: PDF_{\text{V change}} / truncation_factor
-t > t_stim: Censoring => (1 - CDF_{\text{V change}}) / truncation_factor
-
-t_stim < T_trunc and t > t_stim: likelihood = 1 (because after t_stim, the area of all RTs is 1)
-t_stim < T_trunc and t < T_trunc: likelihood = 0 (truncation)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# Left truncating and right censoring to fit Abort RTs
-
-The stimulus onset time is varying and has an exponential distribution. We want to find paramters of Proactive process 
-- V_A, theta_A and t_A_delay to fit the aborts. There are two issues:
-1. The abort RT distribution is bi-modal, there is a peak before 0.3 s. Since we don't have a modal for this bi-modal type distribution
-we are truncating the reaction times that are less than 0.3
-2. We also want to match the proportion of aborts(number of aborts/number of trials), not just the shape of the distribution. 
-For this we are censoring the likelihood of reaction times that are after the stimulus onset time. That means, all the reaction times
-after a certain  $t_stim$ have same probability.
-
-% ----- -figure of truncation and censoring ------ 
-
-To address the above 2 issues, we are fitting on RTs such that the reaction times are left truncated before a certain time
- and right censored after $t_stim$
-
-
-## calculating likelihood when you have data
-
-For a trial
-- If RT is less than T_trunc, then the likelihood is 0
-
-- if a RT is before t_stim, it is an abort, we calculate the likelihood using the PDF of hitting time of Proactive process(call $\rho_A$).
-But since we are truncating RT less than T_trunc, we need to adjust PDF by scaling it up. 
-
-
-
-% ----- figure of truncating increasing likelihood  ------ 
-
-
-Area under the new truncated PDF has to be 1. So, we scale up the PDF by dividing with 1 - CDF(T_trunc)
-
-likelihood of an abort accounted for truncation = PDF(t) / (1 - CDF(T_trunc))
-
-
-- If RT is greater than t_stim, we assign the RT the probability of all samples that come after $t_stim$
-
-Likelihood of a valid trial RT accounting for censorship = 1 - CDF(t_stim)
-
-
-
-# But once you have the parameters obtained from VBMC, we need to test if the histogram of the RTs fits well with the theoretical PDF
-
-There are 2 ways to calculate the theoretical PDF of aborts
-
-1. you know the distribtuon of stimulus onset:
-
-The stimulus onset time distribution (PDF_stim)= 1/ tau * exp( - ( t - t_0 ) / tau )
-Prob that stim survives till time "t" is 1 - prob that stim occured before "t"
- =  1 - \int_{t_0}^{t} PDF_stim(t) dt = exp( - ( t - t_0 ) / tau )
-
-
- Prob of an abort at time t = Prob that stim survives till "t" & Prob that Proactive hits the bound
-                             = exp(- (t - t_0) / tau ) * PDF_hitting_single_bound(t)
-
-
-Note that you have account for truncation by dividing 1 - CDF of hitting abort at T_trunc
-
-2. you don't know/want to assume the distribution of stimulus onset:
-
-- Collect all the t_stim from the data
-- for each t_stim, calculate the PDF of hitting abort at time "t"(NOT t_stim) multiplied by if stim survived till t_stim or not (t > t_stim or t < t_stim)
-- Finally take average of all PDFs calculated for each t_stim
-PDF of abort at time (t) = 1/ N \Sigma_{i=1}^{N} PDF_hitting_single_bound(t) * Stim survived till t or not 
-
-
-# Note that once you have calculate the theoretical PDF, you can compare the shape of the histogram, 
-but to check if proportions match
-
-- normalize the histogram of aborts with total number of trials (multiply the histogram with num of aborts/ num of trials)
-- normalize the theoretical PDF with fraction of aborts calculated theoretically. 
-
-The fraction of aborts is calculated theoretically by:
-- For each t_stim, calculate the non-censored probability(account for truncation) = 1 - CDF_of_hitting_single_bound(t_stim)
-- Take average of all the non-censored probabilities calculated for each t_stim
-- If done correctly, the above average should match the fraction of aborts in the data
-
-Fraction of aborts = 1/N \Sigma_{i=1}^{N} 1 - CDF_of_hitting_single_bound(t_stim_i)   
-
-
-
-
-\section{Left and right trunc VS. Left trunc and right censoring}
-Instead of censoring RTs after $t_{stim}$, if we truncate RTs after $t_{stim}$, 
-the credible intervals of the parameters(16th and 84th percentiles of VP samples) are wider because we are reducing the amount of 
-information to the VBMC fit.
-
-% figures of left trunc, right trunc image LTRT.png and left trunc and right censoring LTRC.png side by side
