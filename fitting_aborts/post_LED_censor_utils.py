@@ -63,6 +63,9 @@ def PDF_t_v_change(t, t_led, base_v, new_v, theta, aff):
 
 
 def PDF_t_v_change_trunc_adj_fn(t, t_led, base_v, new_v, theta, aff, T_trunc, trunc_factor):
+    """
+    PDF of hitting bound at "t", with truncation adjusted(*before trunc = 0), after trunc divided by truncation factor
+    """
     if t <= T_trunc:
         return 0
     else:
@@ -79,10 +82,16 @@ def CDF_v_change_till_stim_trunc_adj_fn(t_stim, t_led, base_v, new_v, theta, aff
     # return trapz(y, t_pts)
     return quad(PDF_t_v_change_trunc_adj_fn, 0, t_stim - aff, args=(t_led, base_v, new_v, theta, aff, T_trunc, trunc_factor))[0]
 
-def CDF_v_change_till_trunc_fn(T_trunc, t_led, base_v, new_v, theta, aff):
-    # dt = 0.01
-    # t_pts = np.arange(0, T_trunc, dt)
-    # y = [PDF_t_v_change(t, t_led, base_v, new_v, theta, aff) for t in t_pts]
-    # return trapz(y, t_pts)    
 
-    return quad(PDF_t_v_change, 0, T_trunc, args=(t_led, base_v, new_v, theta, aff))[0]
+
+def CDF_rho_times_P_x_t_fn(t, t_led,  base_v, new_v, theta, aff):
+    """
+    CDF of hitting bound at time "t" with drift change at t_LED
+    """
+    if t <= 0:
+        return 0
+    else:
+        if t <= t_led:
+            return cum_A_t_fn(t-aff, base_v, theta)
+        else:
+            return quad(lambda x: P_t_x(x, t_led-aff, base_v, theta) * cum_A_t_fn(t - t_led, new_v, theta - x), -30, theta)[0]
