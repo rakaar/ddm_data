@@ -1,49 +1,55 @@
-# Post LED censoring on LED on aborts data(no truncation)
+# Fitting Aborts with step drift change on LED onset with Post-LED censoring
 
-Terms:
- \rho_A(t | v,theta,aff) = Prob that single bound proactive(Proactive) process hits bound at time t(the process starts from zero)
-                             given  drift `v`, bound `theta`, proactive delay `aff`
- \CDF_A(t | v,theta,aff) = CDF of Proactive process hits at bound at t(CDF of above)
- 
- P(x,t | v,theta,aff ) = Prob that Decision variable of Proactive process is at x at time 't'
-
-
- 
-# Fitting Parameters Plan
-We fit LED ON and LED OFF abort reaction times with 2 modifications:
-a) In LED ON case, Abort times after LED Onset are censored at `t_LED`
-b) Abort times after stimulus onset are censored at `t_stim`
-
-# Likelihood
-
-if LED ON:
-    if RT < `t_led`
-        Likelihood = \rho_A(t - aff | v,theta,aff) * P(x,t | v,theta,aff)
-    elif RT > `t_led'
-        Likelihood = 1 - \CDF_A(t_led - aff | v,theta,aff)
-
-if LED OFF:
-    if RT < `t_stim`
-        Likelihood = \rho_A(t - aff | v,theta,aff) 
-    elif RT > `t_stim'
-        Likelihood = 1 - \CDF_A(t_stim - aff | v,theta,aff)
+## The plan
+The vanilla single bound proactive process fits well the LED off trials in the data. But there is peak in probability of aborts after LED onset.
+We assume the simplest model where the drift increases abruptly once LED turns on. But there is a gap of ~40 ms between LED onset and its effect(shown in red).
+This gap is due to the motor delay - the delay between hitting the bound and recording reaction time due to motor delays.
+But there is another delay - afferent delay, which is the time taken for proactive processs to start after fixation onset.
 
 
-# Matching fractions
-With the above likelihood, we find drift(which is considered pre-LED drift), theta and aff. To find post-LED drift,
-we match the fraction of aborts between LED onset and stimulus onset in LED ON trials in the LED ON data. For different values of
-new drift, we try to calculate the fraction of aborts and pick the one closest to data's fraction of aborts.
+% insert figure of data wrt LED onset
 
-- Calculate number of aborts between LED onset and stimulus onset in LED ON trials and divide by total number of LED ON trials
-- To calculate the fraction of aborts theoretically, 
- a) Sample t_LED and t_stim from the LED on trials
- b) For each sampled (t_LED, t_stim), calculate the fraction of aborts between t_LED and t_stim
+Instead of dealing with likelihood of this new drift change model, we follow this method
+1. Fit only Pre-LED drift, bound and delay with LED off trials and LED on trials before LED onset
+2. The LED on trials after LED onset are censored at LED onset.
+3. Since we don't have a model for peak before 0.3 s, we are truncating the trials before 0.3s.
 
- if t_led is not zero:
-    fraction of aborts till t_LED = \rho_A(t_LED - aff | v,theta,aff)
-    fraction of aborts till  t_stim = \int_{0}^{t_stim - aff}   \int_{-\inf}^{theta} P(x=x,t=t_LED-aff | v,theta,aff) \rho_A(t - led | V',theta - x,aff) dx dt
-if t_led is zero:
-    fraction of aborts till t_LED = 0
-    fraction of aborts till  t_stim = CDF_A(t_stim - aff | V',theta,aff)
+** Note about motor delay and afferent delay:**
+We are not fitting afferent delay and motor delay seperately because for LED off trials, both the delays
+can be merged as one. But for LED on trials, the motor delay is needed seperately to explain the gap between
+LED onset and effect of LED(the 40ms gap). 
 
+## Results:
+1. Fitting Pre-LED drift, bound and delay with LED off trials and LED on trials before LED onset. 
+And censoring LED on trials after LED onset at LED onset with VBMC, we get the following parameters:
+% Insert corner plot
+
+2. We run simulations with drift change at LED onset with different values of drift with motor delay(40ms) 
+and find the most suitable post-LED drift value.
+% Insert drift increase
+
+
+
+## Code:
+Simulator to simulate drift change at LED onset and motor delay
+```python
+dt = 1e-3; dB = np.sqrt(dt)
+def simulate_v_change_pro(sim_params):
+    v = sim_params['v']; theta = sim_params['theta']; new_v = sim_params['new_v']; aff = sim_params['aff'] 
+    t_led = sim_params['t_led'];
+    
+    dv = 0
+    motor_delay = 0.04 
+    t = aff - motor_delay      
+    while True:
+        if t > t_led:
+            v = new_v
+        dv += v*dt + np.random.normal(0, dB)
+        t += dt
+
+        if dv > theta:
+            return t + motor_delay, sim_params
+```
+
+The notebook link - https://github.com/rakaar/ddm_data/blob/main/fitting_aborts/V_A_step_jump_fit_censor_post_LED_real_data.ipynb
 
