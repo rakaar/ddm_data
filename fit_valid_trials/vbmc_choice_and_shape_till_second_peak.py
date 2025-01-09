@@ -97,7 +97,7 @@ def compute_loglike(row, rate_lambda, T_0, theta_E, t_E_aff, Z_E, L):
                                         theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, K_max)[0]
             # norm_factor = quad(up_RTs_fit_single_t_fn, 0, 10, args=(V_A, theta_A, ABL, ILD, rate_lambda, T_0, \
             #                             theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, K_max))[0]
-            t_pts = np.arange(t_stim, T_trunc_second_peak, 0.001)
+            t_pts = np.arange(t_stim, t_stim + T_trunc_second_peak, 0.001)
             likelihood_till_inf = up_RTs_fit_fn(t_pts, V_A, theta_A, ABL, ILD, rate_lambda, T_0, \
                                         theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, K_max)
             norm_factor = trapz(likelihood_till_inf, t_pts) + 1e-10
@@ -110,7 +110,7 @@ def compute_loglike(row, rate_lambda, T_0, theta_E, t_E_aff, Z_E, L):
             # norm_factor = quad(down_RTs_fit_single_t_fn, 0, 10, args=(V_A, theta_A, ABL, ILD, rate_lambda, T_0, \
             #                             theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, K_max))[0]
             
-            t_pts = np.arange(t_stim, T_trunc_second_peak, 0.001)
+            t_pts = np.arange(t_stim, t_stim + T_trunc_second_peak, 0.001)
             likelihood_till_inf = down_RTs_fit_fn(t_pts, V_A, theta_A, ABL, ILD, rate_lambda, T_0, \
                                         theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, K_max)
             norm_factor = trapz(likelihood_till_inf, t_pts) + 1e-10
@@ -239,4 +239,4 @@ vbmc = VBMC(psiam_tied_joint_fn, x_0, lb, ub, plb, pub, options={'display': 'on'
 vp, results = vbmc.optimize()
 
 # %%
-vbmc.save('shape_and_choice_till_second_peak.pkl')
+vbmc.save('shape_and_choice_till_second_peak.pkl', overwrite=True)
