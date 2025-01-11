@@ -74,6 +74,7 @@ t_A_aff
 
 # %%
 T_trunc_right_wrt_stim = 0.21
+T_trunc_left_aborts = 0.3
 
 # %%
 def cum_psiam_tied_fn(t, V_A, theta_A, t_A_aff, t_motor, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_E_aff, K_max):
@@ -97,10 +98,11 @@ def compute_loglike(row, rate_lambda, T_0, theta_E, t_E_aff, Z_E, L):
     
     K_max = 10
     
-    area_under_aborts = cum_A_t_fn(t_stim - t_A_aff - t_motor, V_A, theta_A)
+    trunc_time = max(t_stim, T_trunc_left_aborts)
+    trunc_factor = 1 - cum_A_t_fn(trunc_time - t_A_aff - t_motor, V_A, theta_A) + 1e-10
+
     if rt - t_stim > T_trunc_right_wrt_stim:
-        # area fro T_trunc + t_stim to inf
-        cum_inf = cum_psiam_tied_fn(10, V_A, theta_A, t_A_aff, t_motor, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_E_aff, K_max)
+        cum_inf = 1
         cum_trunc = cum_psiam_tied_fn(T_trunc_right_wrt_stim + t_stim, V_A, theta_A, t_A_aff, t_motor, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_E_aff, K_max)
         likelihood = cum_inf - cum_trunc
     else:
@@ -113,7 +115,7 @@ def compute_loglike(row, rate_lambda, T_0, theta_E, t_E_aff, Z_E, L):
         likelihood = p_a * (1 - c_e) + p_e * (1 - c_a)
         
 
-    likelihood /= (1 - area_under_aborts) + 1e-10
+    likelihood /= trunc_factor
 
     if likelihood <= 0:
         likelihood = 1e-50
@@ -235,7 +237,4 @@ vbmc = VBMC(psiam_tied_joint_fn, x_0, lb, ub, plb, pub, options={'display': 'on'
 vp, results = vbmc.optimize()
 
 # %%
-vbmc.save('shape_only_right_censor.pkl', overwrite=True)
-
-# %% [markdown]
-# # Till HERE PYTHON FILE
+vbmc.save('shape_only.pkl', overwrite=True)
