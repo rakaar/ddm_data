@@ -92,6 +92,12 @@ def psiam_tied_data_gen_wrapper_V4(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, 
     choice, rt, is_act = simulate_psiam_tied_4(V_A, theta_A, ABL, ILD, rate_lambda, T_0, T_0_tau, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, dt)
     return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD, 't_stim': t_stim}
 
+def calc_T_0_t(t, t_stim, t_E_aff, T_0, T_0_tau):
+    Nr0 = 1 / T_0
+    Nr_t = (Nr0*np.exp(-(t - t_stim - t_E_aff)/T_0_tau)) + 1e-10
+    T_0_t = 1/Nr_t
+    return T_0_t
+
 
 def simulate_psiam_tied_4(V_A, theta_A, ABL, ILD, rate_lambda, T_0, T_0_tau, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, dt):
     AI = 0; DV = Z_E; t = t_A_aff; dB = dt**0.5
@@ -103,17 +109,12 @@ def simulate_psiam_tied_4(V_A, theta_A, ABL, ILD, rate_lambda, T_0, T_0_tau, the
     is_act = 0
     while True:
         if t > t_stim + t_E_aff:
-            Nr0 = 1 / T_0
-            Nr_t = Nr0*np.exp(-(t - t_stim)/T_0_tau) + 1e-10
-            T_0 = 1/Nr_t
+            T_0_t = calc_T_0_t(t, t_stim, t_E_aff, T_0, T_0_tau)
             
-            mu = (2*q_e/T_0) * (10**(rate_lambda * ABL/20)) * np.sinh(rate_lambda * ILD/chi)
-            sigma = np.sqrt( (2*(q_e**2)/T_0) * (10**(rate_lambda * ABL/20)) * np.cosh(rate_lambda * ILD/ chi) )
+            mu = (2*q_e/T_0_t) * (10**(rate_lambda * ABL/20)) * np.sinh(rate_lambda * ILD/chi)
+            sigma = np.sqrt( (2*(q_e**2)/T_0_t) * (10**(rate_lambda * ABL/20)) * np.cosh(rate_lambda * ILD/ chi) )
 
-            try:
-                DV += mu * dt + sigma * np.random.normal(0, dB)
-            except:
-                raise ValueError("@@@@@@@@@@@@@@@@@@@@@@@2 mu and sigma are not defined before use. Check the conditions.")
+            DV += mu * dt + sigma * np.random.normal(0, dB)
 
         
         AI += V_A*dt + np.random.normal(0, dB)
@@ -132,12 +133,10 @@ def simulate_psiam_tied_4(V_A, theta_A, ABL, ILD, rate_lambda, T_0, T_0_tau, the
             AI_hit_time = t
             while t <= (AI_hit_time + t_E_aff + t_motor):#  u can process evidence till stim plays
                 if t > t_stim + t_E_aff: # Evid accum wil begin only after stim starts and afferent delay
-                    Nr0 = 1 / T_0
-                    Nr_t = Nr0*np.exp(-(t - t_stim)/T_0_tau) + 1e-10
-                    T_0 = 1/Nr_t
+                    T_0_t = calc_T_0_t(t, t_stim, t_E_aff, T_0, T_0_tau)
                     
-                    mu = (2*q_e/T_0) * (10**(rate_lambda * ABL/20)) * np.sinh(rate_lambda * ILD/chi)
-                    sigma = np.sqrt( (2*(q_e**2)/T_0) * (10**(rate_lambda * ABL/20)) * np.cosh(rate_lambda * ILD/ chi) )
+                    mu = (2*q_e/T_0_t) * (10**(rate_lambda * ABL/20)) * np.sinh(rate_lambda * ILD/chi)
+                    sigma = np.sqrt( (2*(q_e**2)/T_0_t) * (10**(rate_lambda * ABL/20)) * np.cosh(rate_lambda * ILD/ chi) )
 
                     DV += mu*dt + sigma*np.random.normal(0, dB)
 
