@@ -7,8 +7,8 @@ from joblib import Parallel, delayed
 from pyvbmc import VBMC
 import corner
 from psiam_tied_dv_map_utils import rho_A_t_fn, up_RTs_fit_fn, down_RTs_fit_fn, up_RTs_fit_single_t_fn, psiam_tied_data_gen_wrapper, psiam_tied_data_gen_wrapper_V2
-from psiam_tied_dv_map_utils import down_RTs_fit_TRUNC_fn, up_RTs_fit_TRUNC_fn
-from psiam_tied_no_dv_map_utils import cum_A_t_fn
+import sys
+import multiprocessing
 
 
 # %%
@@ -45,6 +45,38 @@ print('ILD:', ILD_arr)
 df_1 = df[ df['LED_trial'] == 0 ]
 df_1 = df_1[ df_1['timed_fix'] > df_1['intended_fix'] ]
 
+# %% [markdown]
+# # remove data points from df_1 for no second peak
+
+
+
+# %%
+bins = np.arange(0, 1, 0.01)
+rt = df_1['timed_fix'] - df_1['intended_fix']
+
+# Create a weight array initialized to 1s
+weights = np.ones_like(rt)
+
+# Identify the bump region between 0.20 and 0.30 s, and down-weight by 0.9
+bump_mask = (rt >= 0.21) & (rt <= 0.33)
+weights[bump_mask] = 0.8
+plt.figure(figsize=(15,8))
+# Plot the original histogram
+plt.hist(rt, bins=bins, color='b', label='Original (weight=1)',
+         density=True, histtype='step')
+
+# Plot the weighted histogram
+plt.hist(rt, bins=bins, color='r', label='Weighted (0.8 in [0.2,0.3])',
+         weights=weights, density=True, histtype='step')
+
+plt.xlabel("Reaction Time (s)")
+plt.ylabel("Density")
+plt.title("Comparison of Original vs. Weighted Histogram")
+plt.legend()
+plt.grid(True)
+plt.xlim(0,1)
+# xticks = np.arange(0,0.4,0.01)
+# plt.xticks(xticks);
 
 
 # %%
@@ -62,6 +94,8 @@ t_motor = 0.04
 t_A_aff = np.mean(vp_sample[:,2]) - t_motor
 # t_A_aff = 0.05 # NOTE: TEMP, to test if negative afferent delay is causing VBMC to not converge
 
+# %%
+t_A_aff
 
 # %% [markdown]
 # # VBMC
@@ -70,7 +104,47 @@ t_A_aff = np.mean(vp_sample[:,2]) - t_motor
 # ## loglike fn
 
 # %%
-T_trunc_aborts = 0.3
+# def compute_loglike(row, rate_lambda, T_0, theta_E, t_E_aff, Z_E, L):
+#     timed_fix = row['timed_fix']
+#     intended_fix = row['intended_fix']
+    
+#     ILD = row['ILD']
+#     ABL = row['ABL']
+#     choice = row['response_poke']
+
+#     rt = timed_fix
+#     t_stim = intended_fix
+    
+#     K_max = 10
+
+#     if choice == 3:
+#         likelihood = up_RTs_fit_fn([rt], V_A, theta_A, ABL, ILD, rate_lambda, T_0, \
+#                                     theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, K_max)[0]
+#     elif choice == 2:
+#         likelihood = down_RTs_fit_fn([rt], V_A, theta_A, ABL, ILD, rate_lambda, T_0,\
+#                                         theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, K_max)[0]
+
+
+#     if rt - t_stim >= 0.21 and rt - t_stim <= 0.33:
+#         likelihood = likelihood * 0.8
+    
+#     if likelihood <= 0:
+#         likelihood = 1e-50
+
+    
+#     return np.log(likelihood)    
+
+
+# def psiam_tied_loglike_fn(params):
+#     rate_lambda, T_0, theta_E, t_E_aff, Z_E, L = params
+
+
+#     all_loglike = Parallel(n_jobs=30)(delayed(compute_loglike)(row, rate_lambda, T_0, theta_E, t_E_aff, Z_E, L)\
+#                                        for _, row in df_1.iterrows() if (row['timed_fix'] > row['intended_fix']) \
+#                                         and (row['response_poke'] in [2,3]))
+
+#     loglike = np.sum(all_loglike)
+#     return loglike
 
 # %%
 def compute_likelihood_and_weight(row, rate_lambda, T_0, theta_E, t_E_aff, Z_E, L):
@@ -255,4 +329,4 @@ vbmc = VBMC(psiam_tied_joint_fn, x_0, lb, ub, plb, pub, options={'display': 'on'
 vp, results = vbmc.optimize()
 
 # %%
-vbmc.save('wt_like.pkl', overwrite=True)
+vbmc.save('WORKS_wt_like.pkl')
