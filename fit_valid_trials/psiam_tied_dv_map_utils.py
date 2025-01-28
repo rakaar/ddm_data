@@ -13,8 +13,8 @@ def psiam_tied_data_gen_wrapper_V2(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, 
     ILD = random.choice(ILD_arr)
     
     # print after every N_print iterations
-    if iter_num % N_print == 0:
-        print(f'In iter_num: {iter_num}, ABL: {ABL}, ILD: {ILD}, t_stim: {t_stim}')
+    # if iter_num % N_print == 0:
+    #     print(f'In iter_num: {iter_num}, ABL: {ABL}, ILD: {ILD}, t_stim: {t_stim}')
 
 
     choice, rt, is_act = simulate_psiam_tied(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, dt)
@@ -439,7 +439,7 @@ def up_RTs_fit_fn(t_pts, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E,
     for i,t in enumerate(t_pts):
         t1 = t - t_motor - t_stim - t_E_aff
         t2 = t - t_stim
-        if t1 < 0:
+        if t1 < 0: 
             t1 = 0
         P_E_plus_cum[i] = CDF_E_minus_small_t_NORM_fn(t2, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max) \
                     - CDF_E_minus_small_t_NORM_fn(t1, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max)

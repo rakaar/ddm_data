@@ -348,3 +348,181 @@ def down_RTs_fit_fn(t_pts, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_
     P_A = np.array(P_A); P_EA_btn_0_1 = np.array(P_EA_btn_0_1); P_E_minus = np.array(P_E_minus); C_A = np.array(C_A)
     P_wrong_unnorm = (P_A*(P_EA_btn_0_1+P_E_minus_cum) + P_E_minus*(1-C_A))
     return P_wrong_unnorm
+
+
+# VEC funcs
+def P_small_t_btn_x1_x2_vectorized(x1, x2, t, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, K_max):
+    """
+    Vectorized version of the P_small_t_btn_x1_x2 function.
+    Computes the integration of P_small(x,t) between x1 and x2 for each t.
+    
+    Parameters:
+    - x1, x2 (float): Integration bounds.
+    - t (float or np.ndarray): Time variable(s).
+    - ABL, ILD, rate_lambda, T_0, theta_E, Z_E (float): Model parameters.
+    - K_max (int): Maximum k value for summation.
+    
+    Returns:
+    - np.ndarray: Integral values corresponding to each t.
+    """
+    t = np.asarray(t, dtype=np.float64)
+    
+    integral = np.zeros_like(t, dtype=np.float64)
+    
+    mask = t > 0
+    
+    if not np.any(mask):
+        # If no t > 0, return the initialized integral (all zeros)
+        return integral
+    
+    t_valid = t[mask]
+    
+    q_e = 1
+    theta = theta_E * q_e
+
+    chi = 17.37
+    mu = theta_E * np.tanh(rate_lambda * ILD / chi)
+    z = (Z_E / theta) + 1.0
+
+    t_theta = T_0 * (theta_E ** 2) * (10 ** (-rate_lambda * ABL / 20)) * (1 / (2 * np.cosh(rate_lambda * ILD / chi)))
+    t_normalized = t_valid / t_theta
+
+    sqrt_t = np.sqrt(t_normalized)
+    sqrt_t = np.where(sqrt_t == 0, 1e-10, sqrt_t)
+    
+    n = np.arange(-K_max, K_max + 1)  # Shape: (2*K_max +1,)
+    
+    exp_term1 = np.exp(4 * mu * n)  # Shape: (2*K_max +1,)
+    exp_term2 = np.exp(2 * mu * (2 * (1 - n) - z))  # Shape: (2*K_max +1,)
+    
+    n = n[:, np.newaxis]  # Shape: (2*K_max +1, 1)
+    
+    phi1_upper = (x2 - (z + 4 * n + mu * t_normalized)) / sqrt_t  # Shape: (2*K_max +1, num_valid_t)
+    phi1_lower = (x1 - (z + 4 * n + mu * t_normalized)) / sqrt_t  # Shape: (2*K_max +1, num_valid_t)
+    
+    Phi_term1 = Phi(phi1_upper) - Phi(phi1_lower)  # Shape: (2*K_max +1, num_valid_t)
+    
+    phi2_upper = (x2 - (-z + 4 * (1 - n) + mu * t_normalized)) / sqrt_t  # Shape: (2*K_max +1, num_valid_t)
+    phi2_lower = (x1 - (-z + 4 * (1 - n) + mu * t_normalized)) / sqrt_t  # Shape: (2*K_max +1, num_valid_t)
+    
+    Phi_term2 = Phi(phi2_upper) - Phi(phi2_lower)  # Shape: (2*K_max +1, num_valid_t)
+    
+    term1 = exp_term1[:, np.newaxis] * Phi_term1  # Shape: (2*K_max +1, num_valid_t)
+    term2 = exp_term2[:, np.newaxis] * Phi_term2  # Shape: (2*K_max +1, num_valid_t)
+    
+    result = np.sum(term1 - term2, axis=0)  # Shape: (num_valid_t,)
+    
+    integral[mask] = result
+    
+    return integral
+
+
+def rho_A_t_fn_vectorized(t, V_A, theta_A):
+    """
+    Vectorized probability density function of t given V_A and theta_A.
+    
+    Parameters:
+    - t (float or np.ndarray): Time variable(s).
+    - V_A (float): Parameter related to velocity or rate.
+    - theta_A (float): Parameter related to shape or scale.
+    
+    Returns:
+    - float or np.ndarray: Probability density value(s).
+    """
+    t = np.asarray(t)
+    
+    rho = np.zeros_like(t, dtype=np.float64)
+    
+    mask = t > 0
+    
+    rho[mask] = (theta_A / np.sqrt(2 * np.pi * (t[mask])**3)) * np.exp(
+        -0.5 * (V_A**2) * (((t[mask]) - (theta_A / V_A))**2) / (t[mask])
+    )
+    
+    return rho
+
+def CDF_E_minus_small_t_NORM_fn_vectorized(t, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max):
+    """
+    Vectorized version of the CDF of hitting the lower bound in normalized time.
+    Utilizes custom phi and M functions.
+
+    Parameters:
+    - t (float or np.ndarray): Time variable(s).
+    - ABL, ILD, rate_lambda, T_0, theta_E, Z_E (float): Model parameters.
+    - bound (int): Bound flag (0 or 1).
+    - K_max (int): Maximum k value for summation.
+
+    Returns:
+    - np.ndarray: CDF values corresponding to each t.
+    """
+    # Convert t to a NumPy array for vectorized operations
+    t = np.asarray(t, dtype=np.float64)
+    
+    # Initialize the CDF result array with zeros
+    CDF = np.zeros_like(t, dtype=np.float64)
+    
+    # Create a boolean mask where t > 0
+    mask = t > 0
+    
+    if not np.any(mask):
+        # If all t <= 0, return the initialized CDF (all zeros)
+        return CDF
+    
+    # Extract only the t values where t > 0 for computation
+    t_valid = t[mask]
+    
+    q_e = 1
+    theta = theta_E * q_e
+
+    chi = 17.37
+    v = theta_E * np.tanh(rate_lambda * ILD / chi)
+    w = (Z_E + theta) / (2 * theta)
+    a = 2
+    if bound == 1:
+        v = -v
+        w = 1 - w
+
+    t_theta = T_0 * (theta_E ** 2) * (10 ** (-rate_lambda * ABL / 20)) * (1 / (2 * np.cosh(rate_lambda * ILD / chi)))
+    t_normalized = t_valid / t_theta
+
+    # Compute the exponential component of the CDF
+    result = np.exp(-v * a * w - ((v ** 2) * t_normalized) / 2)
+
+    # Create the k array
+    k = np.arange(K_max + 1)
+    
+    # Determine even indices
+    is_even = (k % 2 == 0).astype(float)
+    
+    # Compute r_k using broadcasting
+    r_k = k * a + a * np.where(is_even, w, 1 - w)  # Shape: (K_max + 1,)
+    
+    # Compute sqrt(t_normalized) and handle zero to avoid division by zero
+    sqrt_t = np.sqrt(t_normalized)
+    sqrt_t = np.where(sqrt_t == 0, 1e-10, sqrt_t)  # Shape: (num_valid_t,)
+    
+    # Reshape r_k and sqrt_t for broadcasting
+    # r_k: (K_max +1, 1)
+    # sqrt_t: (1, num_valid_t)
+    # This allows broadcasting to compute r_k / sqrt_t for all combinations
+    r_k = r_k[:, np.newaxis]  # Shape: (K_max +1, 1)
+    sqrt_t = sqrt_t[np.newaxis, :]  # Shape: (1, num_valid_t)
+    
+    phi_args = r_k / sqrt_t  # Shape: (K_max +1, num_valid_t)
+    
+    M_args_positive = (r_k - v * t_normalized) / sqrt_t  # Shape: (K_max +1, num_valid_t)
+    M_args_negative = (r_k + v * t_normalized) / sqrt_t  # Shape: (K_max +1, num_valid_t)
+    
+    phi_vals = phi(phi_args)  # Assuming phi is vectorized: Shape: (K_max +1, num_valid_t)
+    M_vals = M(M_args_positive) + M(M_args_negative)  # Assuming M is vectorized
+    
+    sign = (-1) ** k  # Shape: (K_max +1,)
+    sign = sign[:, np.newaxis]  # Shape: (K_max +1, 1)
+    
+    summation = np.sum(sign * phi_vals * M_vals, axis=0)  # Shape: (num_valid_t,)
+    
+    CDF_valid = result * summation  # Shape: (num_valid_t,)
+    
+    CDF[mask] = CDF_valid
+    
+    return CDF

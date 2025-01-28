@@ -348,3 +348,131 @@ def down_RTs_fit_fn(t_pts, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_
     P_A = np.array(P_A); P_EA_btn_0_1 = np.array(P_EA_btn_0_1); P_E_minus = np.array(P_E_minus); C_A = np.array(C_A)
     P_wrong_unnorm = (P_A*(P_EA_btn_0_1+P_E_minus_cum) + P_E_minus*(1-C_A))
     return P_wrong_unnorm
+
+
+# VECTORIZED funcs
+def P_small_t_btn_x1_x2_vectorized(x1, x2, t, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, K_max):
+    """
+    Vectorized version of the P_small_t_btn_x1_x2 function.
+    Computes the integration of P_small(x,t) between x1 and x2.
+    """
+    if t <= 0:
+        return 0
+    
+    q_e = 1
+    theta = theta_E * q_e
+
+    chi = 17.37
+    mu = theta_E * np.tanh(rate_lambda * ILD / chi)
+    z = (Z_E / theta) + 1.0
+
+    # Compute t_theta and normalize t
+    t_theta = T_0 * (theta_E ** 2) * (10 ** (-rate_lambda * ABL / 20)) * (1 / (2 * np.cosh(rate_lambda * ILD / chi)))
+    t_normalized = t / t_theta
+
+    # Compute sqrt(t_normalized)
+    sqrt_t = np.sqrt(t_normalized)
+    
+    # Handle potential division by zero
+    sqrt_t = np.where(sqrt_t == 0, 1e-10, sqrt_t)
+
+    # Create an array of n values from -K_max to K_max inclusive
+    n = np.arange(-K_max, K_max + 1)
+
+    # Compute exponentials for term1 and term2
+    exp_term1 = np.exp(4 * mu * n)
+    exp_term2 = np.exp(2 * mu * (2 * (1 - n) - z))
+
+    # Compute arguments for Phi functions in term1
+    phi1_upper = (x2 - (z + 4 * n + mu * t_normalized)) / sqrt_t
+    phi1_lower = (x1 - (z + 4 * n + mu * t_normalized)) / sqrt_t
+
+    # Compute Phi for term1
+    Phi_term1 = Phi(phi1_upper) - Phi(phi1_lower)
+
+    # Compute arguments for Phi functions in term2
+    phi2_upper = (x2 - (-z + 4 * (1 - n) + mu * t_normalized)) / sqrt_t
+    phi2_lower = (x1 - (-z + 4 * (1 - n) + mu * t_normalized)) / sqrt_t
+
+    # Compute Phi for term2
+    Phi_term2 = Phi(phi2_upper) - Phi(phi2_lower)
+
+    # Compute term1 and term2
+    term1 = exp_term1 * Phi_term1
+    term2 = exp_term2 * Phi_term2
+
+    # Compute the result by summing over all n
+    result = np.sum(term1 - term2)
+
+    return result
+
+
+
+def CDF_E_minus_small_t_NORM_fn_vectorized(t, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max):
+    """
+    Vectorized version of the CDF of hitting the lower bound in normalized time.
+    Utilizes custom phi and M functions.
+    """
+    if t <= 0:
+        return 0
+    
+    q_e = 1
+    theta = theta_E * q_e
+
+    chi = 17.37
+    v = theta_E * np.tanh(rate_lambda * ILD / chi)
+    w = (Z_E + theta) / (2 * theta)
+    a = 2
+    if bound == 1:
+        v = -v
+        w = 1 - w
+
+    t_theta = T_0 * (theta_E ** 2) * (10 ** (-rate_lambda * ABL / 20)) * (1 / (2 * np.cosh(rate_lambda * ILD / chi)))
+    t_normalized = t / t_theta
+
+    result = np.exp(-v * a * w - ((v ** 2) * t_normalized) / 2)
+
+    k = np.arange(K_max + 1)
+
+    is_even = (k % 2 == 0).astype(float)
+    r_k = k * a + a * np.where(is_even, w, 1 - w)
+    sqrt_t = np.sqrt(t_normalized)
+    sqrt_t = np.where(sqrt_t == 0, 1e-10, sqrt_t)
+
+    phi_args = r_k / sqrt_t
+    M_args_positive = (r_k - v * t_normalized) / sqrt_t
+    M_args_negative = (r_k + v * t_normalized) / sqrt_t
+
+    phi_vals = phi(phi_args)
+    M_vals = M(M_args_positive) + M(M_args_negative)
+
+    sign = (-1) ** k
+
+    summation = np.sum(sign * phi_vals * M_vals)
+
+    return result * summation
+
+def up_RTs_fit_VEC_fn(t_pts, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, K_max):
+    """
+    PDF of up RTs array
+    """
+    bound = 1
+
+    P_A = [rho_A_t_fn(t-t_A_aff-t_motor, V_A, theta_A) for t in t_pts]
+    P_EA_btn_1_2 = [P_small_t_btn_x1_x2_vectorized(1, 2, t-t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, K_max) for t in t_pts]
+    P_E_plus_cum = np.zeros(len(t_pts))
+    for i,t in enumerate(t_pts):
+        t1 = t - t_motor - t_stim - t_E_aff
+        t2 = t - t_stim
+        # if t1 < 0:
+        #     t1 = 0
+        P_E_plus_cum[i] = CDF_E_minus_small_t_NORM_fn_vectorized(t2, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max) \
+                    - CDF_E_minus_small_t_NORM_fn_vectorized(t1, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max)
+
+
+    P_E_plus = [rho_E_minus_small_t_NORM_fn(t-t_E_aff-t_stim-t_motor, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max) for t in t_pts]
+    C_A = [cum_A_t_fn(t-t_A_aff-t_motor, V_A, theta_A) for t in t_pts]
+
+    P_A = np.array(P_A); P_EA_btn_1_2 = np.array(P_EA_btn_1_2); P_E_plus = np.array(P_E_plus); C_A = np.array(C_A)
+    P_correct_unnorm = (P_A*(P_EA_btn_1_2 + P_E_plus_cum) + P_E_plus*(1-C_A))
+    return P_correct_unnorm
