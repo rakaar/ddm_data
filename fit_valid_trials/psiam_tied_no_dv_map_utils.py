@@ -1,7 +1,13 @@
 import numpy as np
 import random
 from scipy.special import erf, erfcx
-from numba import jit
+
+def psiam_tied_data_gen_wrapper_no_L_v2(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, dt):
+    ABL = random.choice(ABL_arr)
+    ILD = random.choice(ILD_arr)
+    
+    choice, rt, is_act = simulate_psiam_tied(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, dt)
+    return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD, 't_stim': t_stim}
 
 def psiam_tied_data_gen_wrapper(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, T_0, theta_E, Z_E, t_stim_arr, t_A_aff, t_E_aff, t_motor, dt):
     ABL = random.choice(ABL_arr)
@@ -12,7 +18,6 @@ def psiam_tied_data_gen_wrapper(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, T_0
     choice, rt, is_act = simulate_psiam_tied(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, dt)
     return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD}
 
-@jit
 def simulate_psiam_tied(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, dt):
     AI = 0; DV = Z_E; t = 0; dB = dt**0.5
     
@@ -41,7 +46,6 @@ def simulate_psiam_tied(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, 
         if AI >= theta_A:
             is_act = 1
             AI_hit_time = t*dt
-            # if t*dt > t_stim - t_motor:
             while t*dt <= (AI_hit_time + t_E_aff + t_motor):#  u can process evidence till stim plays
                 if t*dt > t_stim + t_E_aff: # Evid accum wil begin only after stim starts and afferent delay
                     DV += mu*dt + sigma*np.random.normal(0, dB)
@@ -85,6 +89,7 @@ def Phi(x):
 
 def M(x):
     """Mills ratio."""
+    x = np.clip(x, -5, 5)
     return np.sqrt(np.pi / 2) * erfcx(x / np.sqrt(2))
 
 # AI
@@ -513,8 +518,28 @@ def CDF_E_minus_small_t_NORM_fn_vectorized(t, ABL, ILD, rate_lambda, T_0, theta_
     M_args_positive = (r_k - v * t_normalized) / sqrt_t  # Shape: (K_max +1, num_valid_t)
     M_args_negative = (r_k + v * t_normalized) / sqrt_t  # Shape: (K_max +1, num_valid_t)
     
+    assert np.all(np.isfinite(phi_args)), "phi_args contains invalid values"
+    assert np.all(np.isfinite(M_args_positive)), "M_args_positive contains invalid values"
+    assert np.all(np.isfinite(M_args_negative)), "M_args_negative contains invalid values"
+
+       
     phi_vals = phi(phi_args)  # Assuming phi is vectorized: Shape: (K_max +1, num_valid_t)
     M_vals = M(M_args_positive) + M(M_args_negative)  # Assuming M is vectorized
+
+    ### M values are infinitely large for inputs less than -10 ###
+    invalid_M_vals = ~np.isfinite(M_vals)
+    if np.any(invalid_M_vals):
+        print("Invalid M_vals detected:")
+        invalid_indices = np.argwhere(invalid_M_vals)
+        num_to_print = min(2, len(invalid_indices))
+        for i in range(num_to_print):
+            k_idx, t_idx = invalid_indices[i]
+            print(f"M_vals[{k_idx}, {t_idx}] = {M_vals[k_idx, t_idx]}")
+            print(f"M_args_positive[{k_idx}, {t_idx}] = {M_args_positive[k_idx, t_idx]}")
+            print(f"M_args_negative[{k_idx}, {t_idx}] = {M_args_negative[k_idx, t_idx]}")
+            print("---")
+
+    assert np.all(np.isfinite(M_vals)), "M_vals contains invalid values"
     
     sign = (-1) ** k  # Shape: (K_max +1,)
     sign = sign[:, np.newaxis]  # Shape: (K_max +1, 1)
