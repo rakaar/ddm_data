@@ -89,7 +89,7 @@ def Phi(x):
 
 def M(x):
     """Mills ratio."""
-    x = np.clip(x, -5, 5)
+    x = np.clip(x, -20, 20)
     return np.sqrt(np.pi / 2) * erfcx(x / np.sqrt(2))
 
 # AI
