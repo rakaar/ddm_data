@@ -94,7 +94,10 @@ def psiam_tied_data_gen_wrapper_V4(V_A, theta_A, ABL_arr, ILD_arr, rate_lambda, 
 
 def calc_T_0_t(t, t_stim, t_E_aff, T_0, T_0_tau):
     Nr0 = 1 / T_0
-    Nr_t = (Nr0*np.exp(-(t - t_stim - t_E_aff)/T_0_tau)) + 1e-10
+    Nr_t = (Nr0*np.exp(-(t - t_stim - t_E_aff)/T_0_tau))
+    # Nr_t = max(Nr_t, 1e-10)
+    if Nr_t == 0:
+        Nr_t = 1e-10
     T_0_t = 1/Nr_t
     return T_0_t
 
