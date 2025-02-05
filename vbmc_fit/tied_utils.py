@@ -1,5 +1,4 @@
 import numpy as np
-from numba import jit
 import random
 
 def tied_data_gen_wrapper(ILD_arr, ABL_arr, rate_lambda, theta_E, T_0, t_non_decision, t_stim_0, t_stim_scale, num_iter, N_print, dt):
@@ -14,7 +13,7 @@ def tied_data_gen_wrapper(ILD_arr, ABL_arr, rate_lambda, theta_E, T_0, t_non_dec
     choice, rt = simulate_tied_no_norm(ILD, ABL, rate_lambda, theta_E, T_0, t_non_decision, t_stim, dt)
     return {'choice': choice, 'rt': rt, 'ABL': ABL, 'ILD': ILD, 't_stim': t_stim}
 
-@jit
+    
 def simulate_tied_no_norm(ILD, ABL, rate_lambda, theta_E, T_0, t_non_decision, t_stim, dt):
     DV = 0; t = 0
 
