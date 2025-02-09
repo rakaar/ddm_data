@@ -1,55 +1,72 @@
 import numpy as np
 import random
-
+import math
 from scipy.optimize import brentq
 
-def compute_t_scalar(tau, omega, c, c1):
-    def f(t):
-        return (omega * ((1 - np.exp(-t / c)) + c1 * t )) - tau
+# def compute_t_scalar(tau, omega, c, c1):
+#     def f(t):
+#         return (omega * ((1 - np.exp(-t / c)) + c1 * t )) - tau
  
-    # We know that f(0) = -tau. If tau > 0, f(0) is negative.
-    # Since the derivative f'(t)= (omega/c)*exp(-t/c) + c1 is positive,
-    # f is monotonic increasing and f(t) will eventually become positive.
-    # We now find a bracket [t_low, t_high] such that f(t_low) < 0 and f(t_high) > 0.
+#     # We know that f(0) = -tau. If tau > 0, f(0) is negative.
+#     # Since the derivative f'(t)= (omega/c)*exp(-t/c) + c1 is positive,
+#     # f is monotonic increasing and f(t) will eventually become positive.
+#     # We now find a bracket [t_low, t_high] such that f(t_low) < 0 and f(t_high) > 0.
     
-    t_low = 0.0
-    # A first guess for t_high: if c1 is nonzero, start with tau/c1,
-    # otherwise use tau (or a small positive value) to ensure a positive guess.
-    t_high = tau / c1 if c1 != 0 else tau
-    if t_high <= t_low:
-        t_high = t_low + 1.0
+#     t_low = 0.0
+#     # A first guess for t_high: if c1 is nonzero, start with tau/c1,
+#     # otherwise use tau (or a small positive value) to ensure a positive guess.
+#     t_high = tau / c1 if c1 != 0 else tau
+#     if t_high <= t_low:
+#         t_high = t_low + 1.0
 
-    # If f(t_high) is not positive, increase t_high until it is.
-    while f(t_high) <= 0:
-        t_high *= 2
+#     # If f(t_high) is not positive, increase t_high until it is.
+#     while f(t_high) <= 0:
+#         t_high *= 2
 
-    # Now use Brent's method to find the root in [t_low, t_high].
-    t_sol = brentq(f, t_low, t_high)
-    return t_sol
+#     # Now use Brent's method to find the root in [t_low, t_high].
+#     t_sol = brentq(f, t_low, t_high)
+#     return t_sol
 
-def compute_t_from_tau(tau, omega, c, c1):
-    """
-    Numerically solve for t in the equation:
-        tau = omega*(1 - exp(-t/c)) + c1*t
-    for tau. The input tau can be a scalar or a NumPy array.
+# def compute_t_from_tau(tau, omega, c, c1):
+#     """
+#     Numerically solve for t in the equation:
+#         tau = omega*(1 - exp(-t/c)) + c1*t
+#     for tau. The input tau can be a scalar or a NumPy array.
     
-    Returns:
-        t_sol : scalar or NumPy array of solutions.
-    """
-    # Ensure tau is treated as an array.
-    tau_array = np.atleast_1d(tau)
+#     Returns:
+#         t_sol : scalar or NumPy array of solutions.
+#     """
+#     # Ensure tau is treated as an array.
+#     tau_array = np.atleast_1d(tau)
     
-    # Compute solution for each element.
-    t_solutions = np.array([compute_t_scalar(t_i, omega, c, c1) for t_i in tau_array])
+#     # Compute solution for each element.
+#     t_solutions = np.array([compute_t_scalar(t_i, omega, c, c1) for t_i in tau_array])
     
-    # If the original tau was a scalar, return a scalar.
-    return t_solutions[0] if t_solutions.size == 1 else t_solutions
-
-def compute_tau_from_t(t, omega, c, c1):
-    return omega *( ( 1 - np.exp(-t / c) ) + c1 * t)
+#     # If the original tau was a scalar, return a scalar.
+#     return t_solutions[0] if t_solutions.size == 1 else t_solutions
 
 
-def tied_abs_units_decay(ILD_arr, ABL_arr, rate_lambda, theta_E, T_0, t_non_decision, dt, c, c1, max_time=100):
+
+
+def decay_sigmoid_integral(t, gamma, mu_d, sigma_d, alpha):
+    part1 = gamma * (1 - np.exp(-t / gamma))
+
+    log_term_t = np.log(1 + np.exp((t - mu_d) / sigma_d))
+    log_term_0 = np.log(1 + np.exp(- mu_d / sigma_d))
+    part2 = alpha * sigma_d * (log_term_t - log_term_0)
+
+    return part1 + part2
+
+def compute_tau_from_t(t, omega, decay_params):
+    # return omega *( ( 1 - np.exp(-t / c) ) + c1 * t)
+    gamma, mu_d, sigma_d, alpha = (decay_params[k] for k in ["gamma", "mu_d", "sigma_d", "alpha"])
+    return omega * decay_sigmoid_integral(t, gamma, mu_d, sigma_d, alpha)
+
+
+def decay_sigmoid(t, gamma, mu_d, sigma_d, alpha):
+    return np.exp(-t/gamma) +  (alpha / (1 + np.exp(-(t - mu_d) / sigma_d )))
+
+def tied_abs_units_decay(ILD_arr, ABL_arr, rate_lambda, theta_E, T_0, t_non_decision, dt, decay_params, max_time=100):
     ILD = np.random.choice(ILD_arr)
     ABL = np.random.choice(ABL_arr)
 
@@ -61,7 +78,10 @@ def tied_abs_units_decay(ILD_arr, ABL_arr, rate_lambda, theta_E, T_0, t_non_deci
 
     common = (2 / T_0) * (10 ** (rate_lambda * ABL / 20))
     
-    decay = (1/c)*np.exp(-t / c) + c1
+    # decay = (1/c)*np.exp(-t / c) + c1
+    gamma, mu_d, sigma_d, alpha = (decay_params[k] for k in ["gamma", "mu_d", "sigma_d", "alpha"])
+    decay = decay_sigmoid(t, gamma, mu_d, sigma_d, alpha)
+
     mu = common * (rate_lambda * ILD / chi) * decay
     sigma = np.sqrt(common * decay)
     
@@ -79,7 +99,7 @@ def tied_abs_units_decay(ILD_arr, ABL_arr, rate_lambda, theta_E, T_0, t_non_deci
         return {'choice': None, 'rt': np.nan, 'DV': DV}
 
 
-def prob_of_hitting_down_in_norm_units(t, ILD, rate_lambda, theta_E, t_non_decision, omega, c, c1, dtau_by_dt):
+def prob_of_hitting_down_in_norm_units(t, ILD, rate_lambda, theta_E, t_non_decision, omega, decay_params, dtau_by_dt):
     chi = 17.37
     v = theta_E * rate_lambda * ILD / chi
     w = 0.5
@@ -90,7 +110,7 @@ def prob_of_hitting_down_in_norm_units(t, ILD, rate_lambda, theta_E, t_non_decis
     # t /= t_theta
 
     # t in normalized units t - > tau
-    t = compute_tau_from_t(t, omega, c, c1)
+    t = compute_tau_from_t(t, omega, decay_params)
 
     if t <= 0:
         return 0
@@ -138,7 +158,7 @@ def simulated_tied_ddm_norm(ILD, ABL, rate_lambda, theta_E, T_0, t_non_decision,
             return -1, (tau*d_tau)*t_theta + t_non_decision
         
 
-def rho_E_minus_small_t_NORM_TIED_fn(t, ILD, ABL, rate_lambda, theta_E, T_0, t_non_decision, K_max):
+def rho_E_minus_small_t_NORM_TIED_fn(t, ILD, ABL, rate_lambda, theta_E, T_0, t_non_decision, K_max=10):
     """
     in normalized time, PDF of hitting the lower bound
     """
