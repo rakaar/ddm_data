@@ -2,6 +2,8 @@ import numpy as np
 import random
 import math
 from scipy.optimize import brentq
+from scipy.special import erf, erfcx
+
 
 # def compute_t_scalar(tau, omega, c, c1):
 #     def f(t):
@@ -188,3 +190,56 @@ def rho_E_minus_small_t_NORM_TIED_fn(t, ILD, ABL, rate_lambda, theta_E, T_0, t_n
         density = 1e-16
 
     return density/t_theta
+
+def phi(x):
+    """Standard Gaussian function."""
+    return (1 / np.sqrt(2 * np.pi)) * np.exp(-0.5 * x**2)
+
+def Phi(x):
+    """
+    Define the normal cumulative distribution function Φ(x) using erf
+    """
+    return 0.5 * (1 + erf(x / np.sqrt(2)))
+
+def M(x):
+    """Mills ratio."""
+    return np.sqrt(np.pi / 2) * erfcx(x / np.sqrt(2))
+
+def CDF_E_minus_small_t_NORM_fn(t, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max):
+    """
+    In normalized time, CDF of hitting the lower bound.
+    """
+    if t <= 0:
+        return 0
+    
+    q_e = 1
+    theta = theta_E*q_e
+
+    chi = 17.37
+    v = theta_E * np.tanh(rate_lambda * ILD / chi)
+    w = (Z_E + theta)/(2*theta)
+    a = 2
+    if bound == 1:
+        v = -v
+        w = 1 - w
+
+    
+    t_theta = T_0 * (theta_E**2) * (10**(-rate_lambda*ABL/20)) * (1/(2*np.cosh(rate_lambda*ILD/chi)))
+    t /= t_theta
+
+
+    result = np.exp(-v * a * w - (((v**2) * t) / 2))
+
+    summation = 0
+    for k in range(K_max + 1):
+        if k % 2 == 0:  # even k
+            r_k = k * a + a * w
+        else:  # odd k
+            r_k = k * a + a * (1 - w)
+        
+        term1 = phi((r_k) / np.sqrt(t))
+        term2 = M((r_k - v * t) / np.sqrt(t)) + M((r_k + v * t) / np.sqrt(t))
+        
+        summation += ((-1)**k) * term1 * term2
+
+    return (result*summation)
