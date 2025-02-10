@@ -6,8 +6,6 @@ from scipy.special import erf, erfcx
 
 
 
-
-
 def decay_sigmoid_integral(t, gamma, mu_d, sigma_d, alpha):
     part1 = gamma * (1 - np.exp(-t / gamma))
 
