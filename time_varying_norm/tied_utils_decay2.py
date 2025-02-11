@@ -56,7 +56,7 @@ def tied_abs_units_decay(ILD_arr, ABL_arr, rate_lambda, theta_E, T_0, t_non_deci
         choice = +1 if DV[crossing_indices[0]] > theta_E else -1
         return {'choice': choice, 'rt': t_cross + t_non_decision, 'ILD': ILD,  'ABL': ABL}
     else:
-        return {'choice': None, 'rt': np.nan, 'DV': DV}
+        return {'choice': None, 'rt': np.nan}
 
 
 def prob_of_hitting_down_in_norm_units(t, ILD, rate_lambda, theta_E, t_non_decision, omega, decay_params, dtau_by_dt):
