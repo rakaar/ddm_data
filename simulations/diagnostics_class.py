@@ -65,6 +65,26 @@ class Diagnostics:
         
         return all_ILD, abl_rt_dict
 
+    def plot_chrono_median(self):
+        # median rt vs abs ILD for each ABL
+        df = self.data.copy()
+        all_ABL = np.sort(df['ABL'].unique())
+        all_ILD = np.sort(df['ILD'].unique())
+        all_ILD = all_ILD[all_ILD > 0] 
+
+        abl_rt_dict = {}
+
+        for ABL in all_ABL:
+            per_ILD_rt = np.zeros_like(all_ILD)
+            for idx, ILD in enumerate(all_ILD):
+                filtered_df = df[ (df['ABL'] == ABL) \
+                                            & (df['ILD'].isin([ILD, -ILD])) ]
+                mean_rt = (filtered_df['rt'] - filtered_df['t_stim']).replace([np.nan, np.inf, -np.inf], np.nan).dropna().median()
+                per_ILD_rt[idx] = mean_rt
+            abl_rt_dict[ABL] = per_ILD_rt
+        
+        return all_ILD, abl_rt_dict
+
     def plot_quantile(self):
         # 10 - 90 percentiles in steps of 20
         df = self.data.copy()
@@ -98,4 +118,23 @@ class Diagnostics:
             prob_choice_dict[abl] = [sum(filtered_df[filtered_df['ILD'] == ild]['choice'] == 1) / len(filtered_df[filtered_df['ILD'] == ild]) for ild in all_ILD]
 
         return prob_choice_dict
+    
+    def plot_correct_vs_abs_ILD(self):
+        df = self.data.copy()
+        df['abs_ILD'] = np.abs(df['ILD'])
+        
+        prob_correct_dict = {}
+        
+        all_ABL = np.sort(df['ABL'].unique())
+        all_abs_ILD = np.sort(df['abs_ILD'].unique())
+        
+        for abl in all_ABL:
+            filtered_df = df[df['ABL'] == abl]
+            prob_correct_dict[abl] = [
+                filtered_df[filtered_df['abs_ILD'] == abs_ILD]['correct'].mean()
+                for abs_ILD in all_abs_ILD
+            ]
+        
+        return prob_correct_dict
+
 
