@@ -91,7 +91,7 @@ class Diagnostics:
         df['rt_wrt_stim'] = df['rt'] - df['t_stim']
 
         abl_ild_quantiles = {}
-        quantile_levels = [0.3, 0.5, 0.7]
+        quantile_levels = [0.25, 0.5, 0.75]
 
         all_ABL = np.sort(df['ABL'].unique())
         all_ILD = np.sort(df['ILD'].unique())

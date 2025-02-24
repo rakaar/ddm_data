@@ -120,6 +120,91 @@ def cum_A_t_fn(t, V_A, theta_A):
     return term1 + term2
 
 # EA 
+
+def rho_E_minus_small_t_NORM_added_noise_fn(t, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max):
+    """
+    in normalized time, added noise to variance of firing rates to PDF of hitting the lower bound
+    """
+    if t <= 0:
+        return 0
+    
+    omega = (2/T_0) * (10**(rate_lambda*ABL/20))
+    sigma_sq = omega * np.cosh(rate_lambda*ILD/17.37)
+    mu_scaled_factor = sigma_sq / (sigma_sq + noise**2)
+
+    q_e = 1
+    theta = theta_E*q_e 
+
+    chi = 17.37
+    v = theta_E * np.tanh(rate_lambda * ILD / chi) * mu_scaled_factor
+    w = (Z_E + theta)/(2*theta)
+    a = 2
+    if bound == 1:
+        v = -v
+        w = 1 - w
+
+    t_theta = T_0 * (theta_E**2) * (10**(-rate_lambda*ABL/20)) * (1/(2*np.cosh(rate_lambda*ILD/chi)))
+    t /= t_theta
+
+    non_sum_term = (1/a**2)*(a**3/np.sqrt(2*np.pi*t**3))*np.exp(-v*a*w - (v**2 * t)/2)
+    K_max = int(K_max/2)
+    k_vals = np.linspace(-K_max, K_max, 2*K_max + 1)
+    sum_w_term = w + 2*k_vals
+    sum_exp_term = np.exp(-(a**2 * (w + 2*k_vals)**2)/(2*t))
+    sum_result = np.sum(sum_w_term*sum_exp_term)
+
+    
+    density =  non_sum_term * sum_result
+    if density <= 0:
+        density = 1e-16
+
+    return density/t_theta
+
+
+def CDF_E_minus_small_t_NORM_added_noise_fn(t, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max):
+    """
+    In normalized time, CDF of hitting the lower bound.
+    """
+    if t <= 0:
+        return 0
+    
+    omega = (2/T_0) * (10**(rate_lambda*ABL/20))
+    sigma_sq = omega * np.cosh(rate_lambda*ILD/17.37)
+    mu_scaled_factor = sigma_sq / (sigma_sq + noise**2)
+    
+    q_e = 1
+    theta = theta_E*q_e
+
+    chi = 17.37
+    v = theta_E * np.tanh(rate_lambda * ILD / chi) * mu_scaled_factor
+    w = (Z_E + theta)/(2*theta)
+    a = 2
+    if bound == 1:
+        v = -v
+        w = 1 - w
+
+    
+    t_theta = T_0 * (theta_E**2) * (10**(-rate_lambda*ABL/20)) * (1/(2*np.cosh(rate_lambda*ILD/chi)))
+    t /= t_theta
+
+
+    result = np.exp(-v * a * w - (((v**2) * t) / 2))
+
+    summation = 0
+    for k in range(K_max + 1):
+        if k % 2 == 0:  # even k
+            r_k = k * a + a * w
+        else:  # odd k
+            r_k = k * a + a * (1 - w)
+        
+        term1 = phi((r_k) / np.sqrt(t))
+        term2 = M((r_k - v * t) / np.sqrt(t)) + M((r_k + v * t) / np.sqrt(t))
+        
+        summation += ((-1)**k) * term1 * term2
+
+    return (result*summation)
+
+
 def rho_E_minus_small_t_NORM_fn(t, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max):
     """
     in normalized time, PDF of hitting the lower bound
@@ -284,6 +369,27 @@ def all_RTs_fit_OPTIM_fn(t_pts, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_
     P_all = P_A*(1-C_E) + P_E*(1-C_A)
 
     return P_all
+
+def all_RTs_fit_single_t_added_noise_fn(t, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+
+
+    P_A = rho_A_t_fn(t-t_A_aff-t_motor, V_A, theta_A)
+    C_E = CDF_E_minus_small_t_NORM_fn(t - t_motor - t_stim - t_E_aff, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, 1, K_max) \
+           + CDF_E_minus_small_t_NORM_fn(t - t_motor - t_stim - t_E_aff, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, -1, K_max)
+    
+
+    P_E = rho_E_minus_small_t_NORM_fn(t-t_E_aff-t_stim-t_motor, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, 1, K_max) \
+           + rho_E_minus_small_t_NORM_fn(t-t_E_aff-t_stim-t_motor, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, -1, K_max) \
+            
+    C_A = cum_A_t_fn(t-t_A_aff-t_motor, V_A, theta_A)
+
+    P_all = P_A*(1-C_E) + P_E*(1-C_A)
+
+    return P_all
+
 
 def all_RTs_fit_single_t_fn(t, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, K_max):
     """
