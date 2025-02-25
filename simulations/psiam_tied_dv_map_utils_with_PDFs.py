@@ -82,7 +82,7 @@ def PA_with_LEDON_2(t, v, vON, a, tfix, tled, delta_A):
         float: The combined PA pdf value.
     """
     # For a scalar, we choose one branch based on the condition.
-    if (t + tfix) <= tled:
+    if (t + tfix) <= tled + 1e-6:
         # Before LED onset:
         return d_A_RT(v * a, (t - delta_A + tfix) / (a**2)) / (a**2)
     else:
@@ -618,7 +618,6 @@ def all_RTs_fit_OPTIM_V_A_change_added_noise_fn(t, t_LED, V_A, V_A_post_LED, the
     """
     PDF of all RTs array irrespective of choice
     """
-
 
     P_A = PA_with_LEDON_2(t, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff)
     C_E = CDF_E_minus_small_t_NORM_added_noise_fn(t  - t_stim - t_E_aff, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, 1, noise, K_max) \
