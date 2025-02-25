@@ -636,6 +636,104 @@ def all_RTs_fit_OPTIM_V_A_change_added_noise_fn(t, t_LED, V_A, V_A_post_LED, the
 
     return P_all
 
+def P_small_t_btn_x1_x2_added_noise_fn(x1, x2, t, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, noise, K_max):
+    """
+    Integration of P_small(x,t) btn x1 and x2
+    """
+    if t <= 0:
+        return 0
+    
+    chi = 17.37
+    omega = (2/T_0) * (10**(rate_lambda*ABL/20))
+    sigma_sq = omega
+
+    q_e = 1
+    theta = theta_E*q_e
+
+    
+    arg = rate_lambda * ILD / chi
+    mu = ( theta * omega * np.sinh(arg) ) / ( (omega * np.cosh(arg)) + (noise**2) )
+    
+
+    z = (Z_E/theta) + 1.0
+
+    
+    t_theta = (theta**2) / (sigma_sq + noise**2)
+    t /= t_theta
+
+    result = 0
+    
+    sqrt_t = np.sqrt(t)
+    
+    for n in range(-K_max, K_max + 1):
+        term1 = np.exp(4 * mu * n) * (
+            Phi((x2 - (z + 4 * n + mu * t)) / sqrt_t) -
+            Phi((x1 - (z + 4 * n + mu * t)) / sqrt_t)
+        )
+        
+        term2 = np.exp(2 * mu * (2 * (1 - n) - z)) * (
+            Phi((x2 - (-z + 4 * (1 - n) + mu * t)) / sqrt_t) -
+            Phi((x1 - (-z + 4 * (1 - n) + mu * t)) / sqrt_t)
+        )
+        
+        result += term1 - term2
+    
+    return result
+
+
+def up_RTs_fit_OPTIM_V_A_change_added_noise_fn(t, t_LED, V_A, V_A_post_LED, theta_A, ABL, ILD, rate_lambda, T_0, noise, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    bound = 1
+    x1 = 1; x2 = 2
+    t1 = t - t_stim - t_E_aff
+    t2 = t - t_stim
+    
+    P_A = PA_with_LEDON_2(t, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff)
+    P_EA_btn_1_2 = P_small_t_btn_x1_x2_added_noise_fn(x1, x2, t - t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, noise, K_max)
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_added_noise_fn(t2, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max) \
+                    - CDF_E_minus_small_t_NORM_added_noise_fn(t1, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max)
+    
+    
+
+    P_E_plus = rho_E_minus_small_t_NORM_added_noise_fn(t-t_E_aff-t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max)
+    
+    t_pts = np.arange(0, t, 0.001)
+    P_A_LED_change = np.array([PA_with_LEDON_2(i, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff) for i in t_pts])
+    C_A = trapz(P_A_LED_change, t_pts)
+
+    P_up = (P_A*(P_EA_btn_1_2 + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+    return P_up
+
+
+def down_RTs_fit_OPTIM_V_A_change_added_noise_fn(t, t_LED, V_A, V_A_post_LED, theta_A, ABL, ILD, rate_lambda, T_0, noise, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    bound = -1
+    x1 = 0; x2 = 1
+    t1 = t - t_stim - t_E_aff
+    t2 = t - t_stim
+    
+    P_A = PA_with_LEDON_2(t, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff)
+    P_EA_btn_0_1 = P_small_t_btn_x1_x2_added_noise_fn(x1, x2, t - t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, noise, K_max)
+    P_E_minus_cum = CDF_E_minus_small_t_NORM_added_noise_fn(t2, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max) \
+                    - CDF_E_minus_small_t_NORM_added_noise_fn(t1, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max)
+    
+    
+
+    P_E_minus = rho_E_minus_small_t_NORM_added_noise_fn(t-t_E_aff-t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max)
+    
+    t_pts = np.arange(0, t, 0.001)
+    P_A_LED_change = np.array([PA_with_LEDON_2(i, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff) for i in t_pts])
+    C_A = trapz(P_A_LED_change, t_pts)
+
+    P_down = (P_A*(P_EA_btn_0_1 + P_E_minus_cum) + P_E_minus*(1-C_A))
+
+    return P_down
+
 
 
 def up_RTs_fit_TRUNC_fn(t_pts, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, L, K_max, T_trunc):
