@@ -707,6 +707,68 @@ def up_RTs_fit_OPTIM_V_A_change_added_noise_fn(t, t_LED, V_A, V_A_post_LED, thet
 
     return P_up
 
+def up_RTs_fit_OPTIM_V_A_change_added_noise_M3_delGO_fn(t, t_LED, V_A, V_A_post_LED, theta_A, ABL, ILD, rate_lambda, T_0, noise, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, del_go, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    bound = 1
+    t2 = t - t_stim - t_E_aff + del_go
+    t1 = t - t_stim - t_E_aff
+
+    P_A = PA_with_LEDON_2(t, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff)
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_added_noise_fn(t - t_stim - t_E_aff + del_go, ABL, ILD,\
+                                                                         rate_lambda, T_0, theta_E, Z_E, 1, noise, K_max) \
+                             + CDF_E_minus_small_t_NORM_added_noise_fn(t - t_stim - t_E_aff + del_go, ABL, ILD,\
+                                                                         rate_lambda, T_0, theta_E, Z_E, -1, noise, K_max)
+    prob_EA_survives = 1 - prob_EA_hits_either_bound
+    random_readout_if_EA_surives = 0.5 * prob_EA_survives
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_added_noise_fn(t2, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max) \
+                    - CDF_E_minus_small_t_NORM_added_noise_fn(t1, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max)
+    
+    
+
+    P_E_plus = rho_E_minus_small_t_NORM_added_noise_fn(t-t_E_aff-t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max)
+    
+    t_pts = np.arange(0, t, 0.001)
+    P_A_LED_change = np.array([PA_with_LEDON_2(i, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff) for i in t_pts])
+    C_A = trapz(P_A_LED_change, t_pts)
+
+    P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+    return P_up
+
+
+
+def down_RTs_fit_OPTIM_V_A_change_added_noise_M3_delGO_fn(t, t_LED, V_A, V_A_post_LED, theta_A, ABL, ILD, rate_lambda, T_0, noise, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, del_go, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    bound = -1
+    t2 = t - t_stim - t_E_aff + del_go
+    t1 = t - t_stim - t_E_aff
+
+    P_A = PA_with_LEDON_2(t, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff)
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_added_noise_fn(t - t_stim - t_E_aff + del_go, ABL, ILD,\
+                                                                         rate_lambda, T_0, theta_E, Z_E, 1, noise, K_max) \
+                             + CDF_E_minus_small_t_NORM_added_noise_fn(t - t_stim - t_E_aff + del_go, ABL, ILD,\
+                                                                         rate_lambda, T_0, theta_E, Z_E, -1, noise, K_max)
+    prob_EA_survives = 1 - prob_EA_hits_either_bound
+    random_readout_if_EA_surives = 0.5 * prob_EA_survives
+    P_E_minus_cum = CDF_E_minus_small_t_NORM_added_noise_fn(t2, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max) \
+                    - CDF_E_minus_small_t_NORM_added_noise_fn(t1, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max)
+    
+    
+
+    P_E_minus = rho_E_minus_small_t_NORM_added_noise_fn(t-t_E_aff-t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, noise, K_max)
+    
+    t_pts = np.arange(0, t, 0.001)
+    P_A_LED_change = np.array([PA_with_LEDON_2(i, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff) for i in t_pts])
+    C_A = trapz(P_A_LED_change, t_pts)
+
+    P_down = (P_A*(random_readout_if_EA_surives + P_E_minus_cum) + P_E_minus*(1-C_A))
+
+    return P_down
+
 
 def down_RTs_fit_OPTIM_V_A_change_added_noise_fn(t, t_LED, V_A, V_A_post_LED, theta_A, ABL, ILD, rate_lambda, T_0, noise, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, K_max):
     """
