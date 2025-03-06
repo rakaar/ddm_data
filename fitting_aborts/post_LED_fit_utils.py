@@ -107,8 +107,9 @@ def PA_with_LEDON_2_SCALAR(t, v, vON, a, tfix, tled, delta_i, delta_m):
         # Use the scalar version of d_A_RT: note that d_A_RT_SCALAR must be defined.
         result = d_A_RT_SCALAR(v * a, (t - (delta_i + delta_m) + tfix) / (a**2)) / (a**2)
     else:
-        # Use the scalar version of stupid_f_integral: note that stupid_f_integral_SCALAR must be defined.
-        result = stupid_f_integral_SCALAR(v, vON, a, t + tfix - delta_m  - tled, tled + tfix - delta_i )
+        t_clip = np.clip(t + tfix - delta_m - tled, 1e-6, None)
+        tp_clip = np.clip(tled + tfix - delta_i, 1e-6, None)
+        result = stupid_f_integral_SCALAR(v, vON, a, t_clip, tp_clip)
     return result
 
 
@@ -193,14 +194,14 @@ def PA_with_LEDON_2_VEC(t, v, vON, a, tfix, tled, delta_i, delta_m):
     before_led = (t + tfix) <= (tled + 1e-6)
     result[before_led] = d_A_RT_VEC(v * a, (t[before_led] - (delta_i + delta_m) + tfix) / (a**2)) / (a**2)
     
-    # Compute the time difference for the post-LED condition
+    # Compute the time difference for the post-LED condition and clip negatives to 0.001.
     t_post_led = t[~before_led] + tfix - delta_m - tled
-    tp_post_led = tled + tfix - delta_i
-
-    # Mask for valid time points (ensuring t_post_led is non-negative)
-    valid_indices = t_post_led >= 0
+    t_post_led = np.clip(t_post_led, 1e-6, None)  # Clip any value below 0.001 to 0.001
     
-    # Compute only for valid indices
-    result[~before_led][valid_indices] = stupid_f_integral_VEC(v, vON, a, t_post_led[valid_indices], tp_post_led)
+    tp_post_led = tled + tfix - delta_i
+    tp_post_led = np.clip(tp_post_led, 1e-6, None)  # Clip any value below 0.001 to 0.001
+
+    result[~before_led] = stupid_f_integral_VEC(v, vON, a, t_post_led, tp_post_led)
+
 
     return result
