@@ -485,6 +485,17 @@ def prob_x_t_and_hit_up_or_down_analytic(t, ABL, ILD, rate_lambda, T_0, theta_E,
     
     return term1*sum_term
 
+def CDF_RT_fn(t, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, K_max):
+    """
+    CDF of RT, no choice
+    """
+    C_A = cum_A_t_fn(t-t_A_aff-t_motor, V_A, theta_A) 
+    C_E = CDF_E_minus_small_t_NORM_fn(t - t_motor - t_stim - t_E_aff, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, 1, K_max) \
+           + CDF_E_minus_small_t_NORM_fn(t - t_motor - t_stim - t_E_aff, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, -1, K_max)
+
+    return C_A + C_E - C_A*C_E
+    
+
 def all_RTs_fit_OPTIM_fn(t, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, t_A_aff, t_E_aff, t_motor, K_max):
     """
     PDF of all RTs array irrespective of choice
