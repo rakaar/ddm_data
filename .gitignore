@@ -6,3 +6,7 @@ venv/*
 .venv/*
 *.eps
 simulations/sbi-logs/*
+fit_each_condn/each_cond_data/*
+*.pdf
+*.docx
+*.png

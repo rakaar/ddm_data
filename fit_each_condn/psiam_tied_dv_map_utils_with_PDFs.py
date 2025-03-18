@@ -10,6 +10,26 @@ from scipy.integrate import trapezoid as trapz
 # simulation part
 import math
 
+def all_RTs_fit_OPTIM_omega_gamma_PA_CA_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_E_aff, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    t is wrt stim
+    """
+
+    C_E = CDF_E_minus_small_t_NORM_omega_gamma_fn(t - t_E_aff, gamma, omega, 1, K_max) \
+           + CDF_E_minus_small_t_NORM_omega_gamma_fn(t - t_E_aff, gamma, omega, -1, K_max)
+    
+
+    P_E = rho_E_minus_small_t_NORM_omega_gamma_fn(t-t_E_aff, gamma, omega, 1, K_max) \
+           + rho_E_minus_small_t_NORM_omega_gamma_fn(t-t_E_aff, gamma, omega, -1, K_max)
+          
+
+    P_A = np.array(P_A); C_E = np.array(C_E); P_E = np.array(P_E); C_A = np.array(C_A)
+    P_all = P_A*(1-C_E) + P_E*(1-C_A)
+
+    return P_all
+
+
 def d_A_RT(a, t):
     """
     Calculate the standard PA probability density function.
@@ -868,6 +888,63 @@ def up_RTs_fit_OPTIM_V_A_change_gamma_omega_fn(t, t_LED, V_A, V_A_post_LED, thet
     P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
 
     return P_up
+
+
+def up_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_stim, t_E_aff, del_go, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    bound = 1
+    t2 = t - t_E_aff + del_go
+    t1 = t - t_E_aff
+
+    #CDF_E_minus_small_t_NORM_omega_gamma_fn
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, 1, K_max) \
+                             + CDF_E_minus_small_t_NORM_omega_gamma_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, -1, K_max)
+    prob_EA_survives = 1 - prob_EA_hits_either_bound
+    random_readout_if_EA_surives = 0.5 * prob_EA_survives
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_fn(t2, gamma, omega, bound, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_fn(t1, gamma, omega, bound, K_max)
+    
+    
+    # rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max)
+    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_fn(t-t_E_aff, gamma, omega, bound, K_max)
+
+
+    P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+    return P_up
+
+
+def down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_stim, t_E_aff, del_go, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    bound = -1
+    t2 = t - t_E_aff + del_go
+    t1 = t - t_E_aff
+
+    #CDF_E_minus_small_t_NORM_omega_gamma_fn
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, 1, K_max) \
+                             + CDF_E_minus_small_t_NORM_omega_gamma_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, -1, K_max)
+    prob_EA_survives = 1 - prob_EA_hits_either_bound
+    random_readout_if_EA_surives = 0.5 * prob_EA_survives
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_fn(t2, gamma, omega, bound, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_fn(t1, gamma, omega, bound, K_max)
+    
+    
+    # rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max)
+    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_fn(t-t_E_aff, gamma, omega, bound, K_max)
+
+
+    P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+    return P_up
+
 
 def down_RTs_fit_OPTIM_V_A_change_gamma_omega_fn(t, t_LED, V_A, V_A_post_LED, theta_A, gamma, omega, t_stim, t_A_aff, t_E_aff, del_go, K_max):
     """
