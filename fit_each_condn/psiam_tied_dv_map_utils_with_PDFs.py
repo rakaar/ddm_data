@@ -571,6 +571,102 @@ def rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max):
 
     return density/t_theta
 
+# time varying 
+
+def rho_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t, gamma, omega, bound, phi, int_phi, K_max):
+    """
+    in normalized time, PDF of hitting the lower bound with gamma and omega, but time varying evidence
+    """
+    if t <= 0:
+        return 0
+
+    # evidence v
+    v = gamma
+
+    w = 0.5
+    a = 2
+    if bound == 1:
+        v = -v
+        w = 1 - w
+
+    # t_theta = 1 / omega
+    # t /= t_theta
+
+    t = omega * int_phi
+
+    non_sum_term = (1/a**2)*(a**3/np.sqrt(2*np.pi*t**3))*np.exp(-v*a*w - (v**2 * t)/2)
+    K_max = int(K_max/2)
+    k_vals = np.linspace(-K_max, K_max, 2*K_max + 1)
+    sum_w_term = w + 2*k_vals
+    sum_exp_term = np.exp(-(a**2 * (w + 2*k_vals)**2)/(2*t))
+    sum_result = np.sum(sum_w_term*sum_exp_term)
+
+    
+    density =  non_sum_term * sum_result
+    if density <= 0:
+        density = 1e-16
+
+    return density * (omega * phi)
+
+
+def CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t, gamma, omega, bound, integ_phi, K_max):
+    """
+    In normalized time, CDF of hitting the lower bound with gamma and omega, but time varying evidence
+    """
+    if t <= 0:
+        return 0
+
+    # evidence v
+    v = gamma
+
+    w = 0.5
+    a = 2
+    if bound == 1:
+        v = -v
+        w = 1 - w
+
+    # t_theta = 1 / omega
+    # t /= t_theta
+
+    # time normalization
+    t = omega * integ_phi
+
+    # Compute the exponent argument separately
+    exponent_arg = -v * a * w - (((v**2) * t) / 2)
+
+    # # Define safe thresholds for float64
+    # max_safe_exp = np.log(np.finfo(np.float64).max)  # ~709
+    # min_safe_exp = np.log(np.finfo(np.float64).tiny)   # very negative number
+
+    # # if exponent_arg not within range print each value
+    # if exponent_arg > max_safe_exp or exponent_arg < min_safe_exp:
+    #     print(f'lambda = {rate_lambda}, T0 = {T_0}, theta_E = {theta_E}, Z_E = {Z_E}, ABL = {ABL}, ILD = {ILD}')
+    #     print(f'v = {v}, a = {a}, w = {w}, t = {t}, exponent_arg = {exponent_arg}')
+
+
+    # # Clip the exponent argument between the safe minimum and maximum
+    # exponent_arg_clipped = np.clip(exponent_arg, min_safe_exp, max_safe_exp)
+
+    # Now compute the result using the clipped exponent
+    result = np.exp(exponent_arg)
+
+
+    summation = 0
+    for k in range(K_max + 1):
+        if k % 2 == 0:  # even k
+            r_k = k * a + a * w
+        else:  # odd k
+            r_k = k * a + a * (1 - w)
+        
+        term1 = phi((r_k) / np.sqrt(t))
+        term2 = M((r_k - v * t) / np.sqrt(t)) + M((r_k + v * t) / np.sqrt(t))
+        
+        summation += ((-1)**k) * term1 * term2
+
+    return (result*summation)
+
+
+
 ## CDF E with gamma and omega
 def CDF_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max):
     """
@@ -888,7 +984,112 @@ def up_RTs_fit_OPTIM_V_A_change_gamma_omega_fn(t, t_LED, V_A, V_A_post_LED, thet
     P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
 
     return P_up
+##### Functions related to phi(t) - decaying evid over time ############
+def K0(y, h, a, b):
+    # a*sin(2*pi/h*(y-b)) where (y-b)>=0 and (y-b)<h/4, else 0
+    return a * np.sin(2 * np.pi/h * (y - b)) * ((y - b) >= 0) * ((y - b) < h/4)
 
+def K1(y, h, a, b):
+    # (1+a*sin(2*pi/h*(y-b))) for (y-b) in [h/4, h/2)
+    return (1 + a * np.sin(2 * np.pi/h * (y - b))) * ((y - b) >= h/4) * ((y - b) < h/2)
+
+def K2(y, h, a, b):
+    # (1 - a*(y-b)/h * exp(1 - (y-b)/h)) for (y-b)>=0
+    return (1 - a * (y - b) / h * np.exp(1 - (y - b)/h)) * ((y - b) >= 0)
+
+def phi_t_fn(y, h1, a1, b1, h2, a2):
+    # Combination of K0, K1, and K2 functions
+    return K0(y, h1, 1 + a1, b1) + K1(y, h1, a1, b1) + K2(y, h2, a2, b1 + h1/2)
+
+def I0(y, h, a, b):
+    # a*h/pi * sin(pi/h*(y-b))^2 for (y-b)>=0 and (y-b)<=h/4
+    return a * h/np.pi * (np.sin(np.pi/h * (y - b))**2) * ((y - b) >= 0) * ((y - b) <= h/4)
+
+def I1(y, h, a, b):
+    # I0 evaluated at b+h/4 plus extra terms for y in (b+h/4, b+h/2]
+    term1 = I0(b + h/4, h, 1 + a, b)
+    term2 = y - (b + h/4)
+    term3 = a * h/(2 * np.pi) * np.cos(2 * np.pi/h * (y - b))
+    return (term1 + term2 - term3) * ((y - b) > h/4) * ((y - b) <= h/2)
+
+def I2(y, h1, a1, b1, h2, a2, b2):
+    # I1 evaluated at b2 plus extra terms for y > b2
+    term1 = I1(b2, h1, a1, b1)
+    term2 = y - b2
+    # The expression: -a2*h2*(-exp(1-(y-b2)/h2).*((y-b2)/h2+1)+exp(1))
+    term3 = a2 * h2 * (-np.exp(1 - (y - b2)/h2) * ((y - b2)/h2 + 1) + np.exp(1))
+    return (term1 + term2 - term3) * ((y - b2) > 0)
+
+def int_phi_fn(y, h1, a1, b1, h2, a2):
+    # Combination of I0, I1, and I2 functions with b2 = b1+h1/2
+    b2 = b1 + h1/2
+    return I0(y, h1, 1 + a1, b1) + I1(y, h1, a1, b1) + I2(y, h1, a1, b1, h2, a2, b2)
+#############################################################################
+
+#################### Time varying - Up and down  ###################################
+def up_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_time_varying_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, phi_params, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    bound = 1
+    t2 = t - t_E_aff + del_go
+    t1 = t - t_E_aff
+
+    phi_t = phi_t_fn(t, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    int_phi_t = int_phi_fn(t, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    
+
+    #CDF_E_minus_small_t_NORM_omega_gamma_fn
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, 1, int_phi_t, K_max) \
+                             + CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, -1, int_phi_t, K_max)
+    prob_EA_survives = 1 - prob_EA_hits_either_bound
+    random_readout_if_EA_surives = 0.5 * prob_EA_survives
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t2, gamma, omega, bound, int_phi_t, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t1, gamma, omega, bound, int_phi_t, K_max)
+    
+    
+    # rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max)
+    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t-t_E_aff, gamma, omega, bound, phi_t, int_phi_t, K_max)
+
+
+    P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+    return P_up
+
+def down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_time_varying_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, phi_params, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    bound = -1
+    t2 = t - t_E_aff + del_go
+    t1 = t - t_E_aff
+
+    phi_t = phi_t_fn(t, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    int_phi_t = int_phi_fn(t, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    
+
+    #CDF_E_minus_small_t_NORM_omega_gamma_fn
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, 1, int_phi_t, K_max) \
+                             + CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, -1, int_phi_t, K_max)
+    prob_EA_survives = 1 - prob_EA_hits_either_bound
+    random_readout_if_EA_surives = 0.5 * prob_EA_survives
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t2, gamma, omega, bound, int_phi_t, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t1, gamma, omega, bound, int_phi_t, K_max)
+    
+    
+    # rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max)
+    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t-t_E_aff, gamma, omega, bound, phi_t, int_phi_t, K_max)
+
+
+    P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+    return P_up
+
+###########################################################################################################
 
 def up_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_stim, t_E_aff, del_go, K_max):
     """
