@@ -537,6 +537,155 @@ def all_RTs_fit_OPTIM_fn(t, V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z
 
     return P_all
 
+#### rho E gamma and omega and w - starting point ###########
+def rho_E_minus_small_t_NORM_omega_gamma_w_fn(t, gamma, omega, bound, w, K_max):
+    """
+    in normalized time, added noise to variance of firing rates to PDF of hitting the lower bound
+    """
+    if t <= 0:
+        return 0
+
+    # evidence v
+    v = gamma
+
+    a = 2
+    if bound == 1:
+        v = -v
+        w = 1 - w
+
+    t_theta = 1 / omega
+    t /= t_theta
+
+    non_sum_term = (1/a**2)*(a**3/np.sqrt(2*np.pi*t**3))*np.exp(-v*a*w - (v**2 * t)/2)
+    K_max = int(K_max/2)
+    k_vals = np.linspace(-K_max, K_max, 2*K_max + 1)
+    sum_w_term = w + 2*k_vals
+    sum_exp_term = np.exp(-(a**2 * (w + 2*k_vals)**2)/(2*t))
+    sum_result = np.sum(sum_w_term*sum_exp_term)
+
+    
+    density =  non_sum_term * sum_result
+    if density <= 0:
+        density = 1e-16
+
+    return density/t_theta
+
+def CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t, gamma, omega, bound, w, K_max):
+    """
+    In normalized time, CDF of hitting the lower bound.
+    """
+    if t <= 0:
+        return 0
+
+    # evidence v
+    v = gamma
+
+    a = 2
+    if bound == 1:
+        v = -v
+        w = 1 - w
+
+    t_theta = 1 / omega
+    t /= t_theta
+
+    # Compute the exponent argument separately
+    exponent_arg = -v * a * w - (((v**2) * t) / 2)
+
+    # # Define safe thresholds for float64
+    # max_safe_exp = np.log(np.finfo(np.float64).max)  # ~709
+    # min_safe_exp = np.log(np.finfo(np.float64).tiny)   # very negative number
+
+    # # if exponent_arg not within range print each value
+    # if exponent_arg > max_safe_exp or exponent_arg < min_safe_exp:
+    #     print(f'lambda = {rate_lambda}, T0 = {T_0}, theta_E = {theta_E}, Z_E = {Z_E}, ABL = {ABL}, ILD = {ILD}')
+    #     print(f'v = {v}, a = {a}, w = {w}, t = {t}, exponent_arg = {exponent_arg}')
+
+
+    # # Clip the exponent argument between the safe minimum and maximum
+    # exponent_arg_clipped = np.clip(exponent_arg, min_safe_exp, max_safe_exp)
+
+    # Now compute the result using the clipped exponent
+    result = np.exp(exponent_arg)
+
+
+    summation = 0
+    for k in range(K_max + 1):
+        if k % 2 == 0:  # even k
+            r_k = k * a + a * w
+        else:  # odd k
+            r_k = k * a + a * (1 - w)
+        
+        term1 = phi((r_k) / np.sqrt(t))
+        term2 = M((r_k - v * t) / np.sqrt(t)) + M((r_k + v * t) / np.sqrt(t))
+        
+        summation += ((-1)**k) * term1 * term2
+
+    return (result*summation)
+
+def up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_w_fn(t, t_LED, V_A, V_A_post_LED, theta_A, gamma, omega, t_stim, t_A_aff, t_E_aff, del_go, w, bound, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    t2 = t - t_stim - t_E_aff + del_go
+    t1 = t - t_stim - t_E_aff
+
+    P_A = PA_with_LEDON_2(t, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff)
+    #CDF_E_minus_small_t_NORM_omega_gamma_fn
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t - t_stim - t_E_aff + del_go,\
+                                                                         gamma, omega, 1, w, K_max) \
+                             + CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t - t_stim - t_E_aff + del_go,\
+                                                                         gamma, omega, -1, w, K_max)
+    prob_EA_survives = 1 - prob_EA_hits_either_bound
+    random_readout_if_EA_surives = 0.5 * prob_EA_survives
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t2, gamma, omega, bound, w, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t1, gamma, omega, bound, w, K_max)
+    
+    
+    # rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max)
+    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_w_fn(t-t_E_aff-t_stim, gamma, omega, bound, w, K_max)
+    
+    t_pts = np.arange(0, t, 0.001)
+    P_A_LED_change = np.array([PA_with_LEDON_2(i, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff) for i in t_pts])
+    C_A = trapz(P_A_LED_change, t_pts)
+
+    P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+    return P_up
+def up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_w_custom_m3_fn(t, t_LED, V_A, V_A_post_LED, theta_A, gamma, omega, t_stim, t_A_aff, t_E_aff, del_go, w, bound, m3_up_prob, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    t2 = t - t_stim - t_E_aff + del_go
+    t1 = t - t_stim - t_E_aff
+
+    P_A = PA_with_LEDON_2(t, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff)
+    #CDF_E_minus_small_t_NORM_omega_gamma_fn
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t - t_stim - t_E_aff + del_go,\
+                                                                         gamma, omega, 1, w, K_max) \
+                             + CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t - t_stim - t_E_aff + del_go,\
+                                                                         gamma, omega, -1, w, K_max)
+    prob_EA_survives = 1 - prob_EA_hits_either_bound
+    if bound == 1:
+        random_choice_prob = m3_up_prob
+    else:
+        random_choice_prob = 1 - m3_up_prob
+    random_readout_if_EA_surives =  random_choice_prob * prob_EA_survives
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t2, gamma, omega, bound, w, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t1, gamma, omega, bound, w, K_max)
+    
+    
+    # rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max)
+    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_w_fn(t-t_E_aff-t_stim, gamma, omega, bound, w, K_max)
+    
+    t_pts = np.arange(0, t, 0.001)
+    P_A_LED_change = np.array([PA_with_LEDON_2(i, V_A, V_A_post_LED, theta_A, 0, t_LED, t_A_aff) for i in t_pts])
+    C_A = trapz(P_A_LED_change, t_pts)
+
+    P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+    return P_up
+
+
 ### rho E with gamma and omega ###
 def rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max):
     """
@@ -665,7 +814,80 @@ def CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t, gamma, omega, bound,
 
     return (result*summation)
 
+def up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_w_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, w, bound, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    t2 = t - t_E_aff + del_go
+    t1 = t - t_E_aff
 
+    #CDF_E_minus_small_t_NORM_omega_gamma_fn
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, 1, w, K_max) \
+                             + CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, -1, w, K_max)
+    prob_EA_survives = 1 - prob_EA_hits_either_bound
+    random_readout_if_EA_surives = 0.5 * prob_EA_survives
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t2, gamma, omega, bound, w, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t1, gamma, omega, bound, w, K_max)
+    
+    
+    # rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max)
+    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_w_fn(t-t_E_aff, gamma, omega, bound, w, K_max)
+
+
+    P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+    return P_up
+
+def up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_w_wrt_stim_m3_probfn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, w, bound, m3_up_prob, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    t2 = t - t_E_aff + del_go
+    t1 = t - t_E_aff
+
+    #CDF_E_minus_small_t_NORM_omega_gamma_fn
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, 1, w, K_max) \
+                             + CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t - t_E_aff + del_go,\
+                                                                         gamma, omega, -1, w, K_max)
+    prob_EA_survives = 1 - prob_EA_hits_either_bound
+    if bound == 1:
+        random_choice_prob = m3_up_prob
+    else:
+        random_choice_prob = 1 - m3_up_prob
+    random_readout_if_EA_surives = random_choice_prob * prob_EA_survives
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t2, gamma, omega, bound, w, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t1, gamma, omega, bound, w, K_max)
+    
+    
+    # rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max)
+    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_w_fn(t-t_E_aff, gamma, omega, bound, w, K_max)
+
+
+    P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+    return P_up
+
+def all_RTs_fit_OPTIM_omega_gamma_PA_CA_wrt_stim_w_fn(t, P_A, C_A, gamma, omega, t_E_aff, w, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    t is wrt stim
+    """
+
+    C_E = CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t - t_E_aff, gamma, omega, 1, w, K_max) \
+           + CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t - t_E_aff, gamma, omega, -1, w, K_max)
+    
+
+    P_E = rho_E_minus_small_t_NORM_omega_gamma_w_fn(t-t_E_aff, gamma, omega, 1, w, K_max) \
+           + rho_E_minus_small_t_NORM_omega_gamma_w_fn(t-t_E_aff, gamma, omega, -1, w, K_max)
+          
+
+    P_A = np.array(P_A); C_E = np.array(C_E); P_E = np.array(P_E); C_A = np.array(C_A)
+    P_all = P_A*(1-C_E) + P_E*(1-C_A)
+
+    return P_all
 
 ## CDF E with gamma and omega
 def CDF_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max):
