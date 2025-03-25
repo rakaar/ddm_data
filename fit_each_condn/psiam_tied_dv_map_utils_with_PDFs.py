@@ -870,6 +870,34 @@ def up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_w_wrt_stim_m3_probfn
 
     return P_up
 
+### Up or down, but not M3- paper model ############
+# P_small_t_btn_x1_x2_omega_gamma_fn(x1, x2, t, omega, gamma, w, K_max)
+def up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_w_wrt_stim_NOT_m3_probfn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, w, bound, m3_up_prob, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    t2 = t - t_E_aff + del_go
+    t1 = t - t_E_aff
+
+   
+    if bound == 1:
+        x1 = 1; x2 = 2
+    else:
+        x1 = 0; x2 = 1
+
+    P_E_btn = P_small_t_btn_x1_x2_omega_gamma_fn(x1, x2, t + (del_go - t_E_aff), omega, gamma, w, K_max)
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t2, gamma, omega, bound, w, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_w_fn(t1, gamma, omega, bound, w, K_max)
+    
+    
+    # rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max)
+    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_w_fn(t-t_E_aff, gamma, omega, bound, w, K_max)
+
+
+    P_up = (P_A*(P_E_btn + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+    return P_up
+
 def all_RTs_fit_OPTIM_omega_gamma_PA_CA_wrt_stim_w_fn(t, P_A, C_A, gamma, omega, t_E_aff, w, K_max):
     """
     PDF of all RTs array irrespective of choice
@@ -1074,6 +1102,44 @@ def all_RTs_fit_OPTIM_V_A_change_added_noise_fn(t, t_LED, V_A, V_A_post_LED, the
     P_all = P_A*(1-C_E) + P_E*(1-C_A)
 
     return P_all
+
+def P_small_t_btn_x1_x2_omega_gamma_fn(x1, x2, t, omega, gamma, w, K_max):
+    """
+    Integration of P_small(x,t) btn x1 and x2
+    """
+    if t <= 0:
+        return 0
+    
+    
+    mu = gamma
+    
+
+    # z = (Z_E/theta) + 1.0 # 1 is middle point
+    z = w * 2.0 # 0.5 x 2.0 = 1
+
+    
+    t_theta = 1 / omega
+    t /= t_theta
+
+    result = 0
+    
+    sqrt_t = np.sqrt(t)
+    
+    for n in range(-K_max, K_max + 1):
+        term1 = np.exp(4 * mu * n) * (
+            Phi((x2 - (z + 4 * n + mu * t)) / sqrt_t) -
+            Phi((x1 - (z + 4 * n + mu * t)) / sqrt_t)
+        )
+        
+        term2 = np.exp(2 * mu * (2 * (1 - n) - z)) * (
+            Phi((x2 - (-z + 4 * (1 - n) + mu * t)) / sqrt_t) -
+            Phi((x1 - (-z + 4 * (1 - n) + mu * t)) / sqrt_t)
+        )
+        
+        result += term1 - term2
+    
+    return result
+
 
 def P_small_t_btn_x1_x2_added_noise_fn(x1, x2, t, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, noise, K_max):
     """

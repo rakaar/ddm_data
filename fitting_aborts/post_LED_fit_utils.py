@@ -198,7 +198,7 @@ def PA_with_LEDON_2_VEC(t, v, vON, a, tfix, tled, delta_i, delta_m):
     t_post_led = t[~before_led] + tfix - delta_m - tled
     t_post_led = np.clip(t_post_led, 1e-6, None)  # Clip any value below 0.001 to 0.001
     
-    tp_post_led = tled + tfix - delta_i
+    tp_post_led = t[~before_led][0] + tfix - delta_i
     tp_post_led = np.clip(tp_post_led, 1e-6, None)  # Clip any value below 0.001 to 0.001
 
     result[~before_led] = stupid_f_integral_VEC(v, vON, a, t_post_led, tp_post_led)

@@ -79,5 +79,5 @@ def PA_with_LEDON_2_VEC(t, v, vON, a, tfix, tled, delta_A):
     result = np.zeros_like(t)
     before_led = (t + tfix) <= (tled + 1e-6)
     result[before_led] = d_A_RT_VEC(v * a, (t[before_led] - delta_A + tfix) / (a**2)) / (a**2)
-    result[~before_led] = stupid_f_integral_VEC(v, vON, a, t[~before_led] + tfix - tled, tled - delta_A + tfix)
+    result[~before_led] = stupid_f_integral_VEC(v, vON, a, t[~before_led] + tfix - tled, t[~before_led][0] - delta_A + tfix)
     return result
