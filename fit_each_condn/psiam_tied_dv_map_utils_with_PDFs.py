@@ -722,7 +722,7 @@ def rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max):
 
 # time varying 
 
-def rho_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t, gamma, omega, bound, phi, int_phi, K_max):
+def rho_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t, gamma, omega, bound, phi, int_phi, w, K_max):
     """
     in normalized time, PDF of hitting the lower bound with gamma and omega, but time varying evidence
     """
@@ -732,7 +732,6 @@ def rho_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t, gamma, omega, bound,
     # evidence v
     v = gamma
 
-    w = 0.5
     a = 2
     if bound == 1:
         v = -v
@@ -758,7 +757,7 @@ def rho_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t, gamma, omega, bound,
     return density * (omega * phi)
 
 
-def CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t, gamma, omega, bound, integ_phi, K_max):
+def CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t, gamma, omega, bound, integ_phi, w, K_max):
     """
     In normalized time, CDF of hitting the lower bound with gamma and omega, but time varying evidence
     """
@@ -768,7 +767,6 @@ def CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t, gamma, omega, bound,
     # evidence v
     v = gamma
 
-    w = 0.5
     a = 2
     if bound == 1:
         v = -v
@@ -1315,63 +1313,73 @@ def int_phi_fn(y, h1, a1, b1, h2, a2):
 #############################################################################
 
 #################### Time varying - Up and down  ###################################
-def up_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_time_varying_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, phi_params, K_max):
+def up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_time_varying_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, phi_params, w, bound, K_max):
     """
     PDF of all RTs array irrespective of choice
     """
-    bound = 1
     t2 = t - t_E_aff + del_go
     t1 = t - t_E_aff
 
-    phi_t = phi_t_fn(t, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
-    int_phi_t = int_phi_fn(t, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
-    
-
-    #CDF_E_minus_small_t_NORM_omega_gamma_fn
+    int_phi_t_E_g = int_phi_fn(t - t_E_aff + del_go, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    # CDF_E_minus_small_t_NORM_omega_gamma_fn
     prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t - t_E_aff + del_go,\
-                                                                         gamma, omega, 1, int_phi_t, K_max) \
+                                                                         gamma, omega, 1, int_phi_t_E_g, w, K_max) \
                              + CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t - t_E_aff + del_go,\
-                                                                         gamma, omega, -1, int_phi_t, K_max)
+                                                                         gamma, omega, -1, int_phi_t_E_g, w, K_max)
     prob_EA_survives = 1 - prob_EA_hits_either_bound
     random_readout_if_EA_surives = 0.5 * prob_EA_survives
-    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t2, gamma, omega, bound, int_phi_t, K_max) \
-                    - CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t1, gamma, omega, bound, int_phi_t, K_max)
+
+    int_phi_t2 = int_phi_fn(t2, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    int_phi_t1 = int_phi_fn(t1, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t2, gamma, omega, bound, int_phi_t2, w, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t1, gamma, omega, bound, int_phi_t1, w, K_max)
     
     
     # rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max)
-    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t-t_E_aff, gamma, omega, bound, phi_t, int_phi_t, K_max)
+    phi_t_e = phi_t_fn(t - t_E_aff, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    int_phi_t_e = int_phi_fn(t - t_E_aff, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t-t_E_aff, gamma, omega, bound, phi_t_e, int_phi_t_e, w, K_max)
 
 
     P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
 
     return P_up
 
-def down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_time_varying_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, phi_params, K_max):
+def up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_w_time_varying_led_off_fn(t, V_A, theta_A, gamma, omega, t_stim, \
+                                            t_A_aff, t_E_aff, del_go, phi_params, w, bound, K_max):
     """
     PDF of all RTs array irrespective of choice
     """
-    bound = -1
-    t2 = t - t_E_aff + del_go
-    t1 = t - t_E_aff
+    t2 = t - t_stim - t_E_aff + del_go
+    t1 = t - t_stim - t_E_aff
+    t_LED = 100 # so that stupid integral is not used
 
-    phi_t = phi_t_fn(t, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
-    int_phi_t = int_phi_fn(t, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
-    
+    P_A = PA_with_LEDON_2(t, V_A, np.nan, theta_A, 0, t_LED, t_A_aff)
+    int_phi_t_E_g = int_phi_fn(t - t_stim - t_E_aff + del_go, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
 
-    #CDF_E_minus_small_t_NORM_omega_gamma_fn
-    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t - t_E_aff + del_go,\
-                                                                         gamma, omega, 1, int_phi_t, K_max) \
-                             + CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t - t_E_aff + del_go,\
-                                                                         gamma, omega, -1, int_phi_t, K_max)
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t - t_stim - t_E_aff + del_go,\
+                                                                         gamma, omega, 1, int_phi_t_E_g, w, K_max) \
+                             + CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t - t_stim - t_E_aff + del_go,\
+                                                                         gamma, omega, -1, int_phi_t_E_g, w, K_max)
     prob_EA_survives = 1 - prob_EA_hits_either_bound
     random_readout_if_EA_surives = 0.5 * prob_EA_survives
-    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t2, gamma, omega, bound, int_phi_t, K_max) \
-                    - CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t1, gamma, omega, bound, int_phi_t, K_max)
+    
+    # P_E_plus_cum
+    int_phi_t2 = int_phi_fn(t2, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    int_phi_t1 = int_phi_fn(t1, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t2, gamma, omega, bound, int_phi_t2, w, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t1, gamma, omega, bound, int_phi_t1, w, K_max)
     
     
     # rho_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max)
-    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t-t_E_aff, gamma, omega, bound, phi_t, int_phi_t, K_max)
+    phi_t_e = phi_t_fn(t - t_E_aff - t_stim, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+    int_phi_t_e = int_phi_fn(t - t_E_aff - t_stim, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
 
+    P_E_plus = rho_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t-t_E_aff-t_stim, gamma, omega, bound, phi_t_e, int_phi_t_e, w, K_max)
+    
+    t_pts = np.arange(0, t, 0.001)
+    P_A_LED_change = np.array([PA_with_LEDON_2(i, V_A, np.nan, theta_A, 0, t_LED, t_A_aff) for i in t_pts])
+    C_A = trapz(P_A_LED_change, t_pts)
 
     P_up = (P_A*(random_readout_if_EA_surives + P_E_plus_cum) + P_E_plus*(1-C_A))
 
