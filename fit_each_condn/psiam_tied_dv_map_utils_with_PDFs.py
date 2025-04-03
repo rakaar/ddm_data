@@ -938,19 +938,6 @@ def CDF_E_minus_small_t_NORM_omega_gamma_fn(t, gamma, omega, bound, K_max):
     # Compute the exponent argument separately
     exponent_arg = -v * a * w - (((v**2) * t) / 2)
 
-    # # Define safe thresholds for float64
-    # max_safe_exp = np.log(np.finfo(np.float64).max)  # ~709
-    # min_safe_exp = np.log(np.finfo(np.float64).tiny)   # very negative number
-
-    # # if exponent_arg not within range print each value
-    # if exponent_arg > max_safe_exp or exponent_arg < min_safe_exp:
-    #     print(f'lambda = {rate_lambda}, T0 = {T_0}, theta_E = {theta_E}, Z_E = {Z_E}, ABL = {ABL}, ILD = {ILD}')
-    #     print(f'v = {v}, a = {a}, w = {w}, t = {t}, exponent_arg = {exponent_arg}')
-
-
-    # # Clip the exponent argument between the safe minimum and maximum
-    # exponent_arg_clipped = np.clip(exponent_arg, min_safe_exp, max_safe_exp)
-
     # Now compute the result using the clipped exponent
     result = np.exp(exponent_arg)
 
