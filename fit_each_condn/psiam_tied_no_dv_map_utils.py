@@ -103,6 +103,22 @@ def rho_A_t_fn(t, V_A, theta_A):
 
 
 
+def rho_A_t_VEC_fn(t_pts, V_A, theta_A):
+    """
+    For AI, probability density of t given V_A, theta_A
+    Vectorized version for t_pts (NumPy array)
+    """
+    t_pts = np.asarray(t_pts)
+    rho = np.zeros_like(t_pts, dtype=float)
+
+    # Apply the formula only where t > 0
+    valid_idx = t_pts > 0
+    t_valid = t_pts[valid_idx]
+    
+    rho[valid_idx] = (theta_A / np.sqrt(2 * np.pi * t_valid**3)) * \
+        np.exp(-0.5 * (V_A**2) * ((t_valid - theta_A / V_A)**2) / t_valid)
+    
+    return rho
 
 
 
