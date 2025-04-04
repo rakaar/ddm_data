@@ -261,7 +261,7 @@ for cond_ABL in all_ABLs_cond:
         P_A_samples = np.zeros((N_theory, len(t_pts)))
         for idx in range(N_theory):
             t_stim, t_LED = t_stim_and_led_tuple[random_indices[idx]]
-            pdf = rho_A_t_VEC_fn(t_pts - t_stim - t_A_aff, V_A, theta_A)
+            pdf = rho_A_t_VEC_fn(t_pts + t_stim - t_A_aff, V_A, theta_A)
             P_A_samples[idx, :] = pdf
 
         P_A_samples_mean = np.mean(P_A_samples, axis=0)

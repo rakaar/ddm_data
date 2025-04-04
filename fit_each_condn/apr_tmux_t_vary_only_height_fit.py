@@ -1,20 +1,29 @@
 # %%
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
 from joblib import Parallel, delayed
 import pandas as pd
 import random
+from joblib import Parallel, delayed
 from scipy.integrate import trapezoid as trapz
 from pyvbmc import VBMC
 import corner
 from scipy.integrate import cumulative_trapezoid as cumtrapz
-import os
+import pickle
+from types import SimpleNamespace
 import io
 import matplotlib.gridspec as gridspec
+import corner
 
-# %%
-from led_off_gamma_omega_pdf_utils import cum_pro_and_reactive, up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_fn,\
-         rho_A_t_VEC_fn, up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn
+from led_off_gamma_omega_pdf_utils import (
+    cum_pro_and_reactive_time_vary_fn, 
+    up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_w_time_varying_led_off_fn,
+    rho_A_t_VEC_fn,
+    up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_time_varying_fn,
+)
+
 
 # %%
 # repeat_trial, T16, S7
@@ -37,11 +46,11 @@ df['choice'] = df['response_poke'].apply(lambda x: 1 if x == 3 else (-1 if x == 
 # 1 or 0 if the choice was correct or not
 df['correct'] = (df['ILD'] * df['choice']).apply(lambda x: 1 if x > 0 else 0)
 
-
-# %%
 # LED OFF
 df_led_off = df[df['LED_trial'] == 0]
 print(f'len of LED off: {len(df_led_off)}')
+
+
 
 # valid trials
 df_led_off_valid_trials = df_led_off[df_led_off['success'].isin([1,-1])]
@@ -50,6 +59,13 @@ print(f'len of led off valid trials = {len(df_led_off_valid_trials)}')
 # remove trials with RT > 1s
 df_led_off_valid_trials = df_led_off_valid_trials[df_led_off_valid_trials['timed_fix'] - df_led_off_valid_trials['intended_fix'] < 1]
 print(f'len of valid trials < 1s : {len(df_led_off_valid_trials)}')
+
+
+# %%
+# w median = 0.5359773939178702
+# bump width median = 0.24090610767674503
+# dip width median = 0.038433784998534365
+# dip height median =  0.32760753426495454
 
 # %%
 ## VBMC params
@@ -63,27 +79,44 @@ t_A_aff = -0.187
 del_go = 0.13 
 
 # other params
-Z_E = 0
 K_max = 10
 
 # LED Off - no noise
 noise = 0
-t_E_aff = 0.068 # 68 ms
+
+# phi params
+bump_offset = 0
+bump_width = 0.240
+dip_width = 0.038
+dip_height = 0.327
+
+# starting pt
+w = 0.535
 
 # %%
-def compute_loglike_trial(row, gamma, omega):
+def compute_loglike_trial(row, gamma, omega, t_E_aff, w, bump_width, bump_height, dip_width, dip_height):
+    phi_params =  {
+    'h1': bump_width,
+    'a1': bump_height,
+    'b1': bump_offset,
+    'h2': dip_width,
+    'a2': dip_height
+    }
+    phi_params_obj = SimpleNamespace(**phi_params)
+
     # data
     rt = row['timed_fix']
     t_stim = row['intended_fix']
+
     response_poke = row['response_poke']
     
 
-    trunc_factor_p_joint = cum_pro_and_reactive(t_stim + 1, V_A, theta_A, t_A_aff, gamma, omega, t_stim, t_E_aff) - \
-                    cum_pro_and_reactive(t_stim, V_A, theta_A, t_A_aff, gamma, omega, t_stim, t_E_aff)
-
-    choice = 2*response_poke - 5
-    P_joint_rt_choice = up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_fn(rt, V_A, theta_A, gamma, omega, t_stim, t_A_aff, t_E_aff, del_go, choice, K_max)
+    trunc_factor_p_joint = cum_pro_and_reactive_time_vary_fn(t_stim+1, V_A, theta_A, t_A_aff, gamma, omega, t_stim, t_E_aff, w, phi_params_obj) -\
+                                cum_pro_and_reactive_time_vary_fn(t_stim, V_A, theta_A, t_A_aff, gamma, omega, t_stim, t_E_aff, w, phi_params_obj)
     
+    bound_val = 2*response_poke - 5
+    P_joint_rt_choice = up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_w_time_varying_led_off_fn(rt, V_A, theta_A, gamma, omega, t_stim, \
+                                            t_A_aff, t_E_aff, del_go, phi_params_obj, w, bound_val, K_max)
     
     P_joint_rt_choice_trunc = max(P_joint_rt_choice / (trunc_factor_p_joint + 1e-10), 1e-10)
     
@@ -92,10 +125,15 @@ def compute_loglike_trial(row, gamma, omega):
 
     return wt_log_like
 
-
 # %%
-omega_bounds = [0.05, 50]
-omega_plausible_bounds = [0.5, 10]
+omega_bounds = [0.05, 10]
+omega_plausible_bounds = [0.5, 8]
+
+t_E_aff_bounds = [0.035, 0.075]
+t_E_aff_plausible_bounds = [0.04, 0.07]
+
+bump_height_bounds = [0.02, 1]
+bump_height_plausible_bounds = [0.1, 0.5]
 
 # %%
 def trapezoidal_logpdf(x, a, b, c, d):
@@ -120,15 +158,24 @@ def trapezoidal_logpdf(x, a, b, c, d):
     
 
 def vbmc_prior_fn(params):
-    gamma, omega = params
+    gamma, omega, t_E_aff, bump_height = params
+
     gamma_logpdf = trapezoidal_logpdf(gamma, gamma_bounds[0], gamma_plausible_bounds[0], gamma_plausible_bounds[1], gamma_bounds[1])
     omega_logpdf = trapezoidal_logpdf(omega, omega_bounds[0], omega_plausible_bounds[0], omega_plausible_bounds[1], omega_bounds[1])
-    return gamma_logpdf + omega_logpdf
+    t_E_aff_logpdf = trapezoidal_logpdf(t_E_aff, t_E_aff_bounds[0], t_E_aff_plausible_bounds[0], t_E_aff_plausible_bounds[1], t_E_aff_bounds[1])
+    bump_height_logpdf = trapezoidal_logpdf(bump_height, bump_height_bounds[0], bump_height_plausible_bounds[0], bump_height_plausible_bounds[1], bump_height_bounds[1])
+
+    return (
+        gamma_logpdf +
+        omega_logpdf +
+        t_E_aff_logpdf +
+        bump_height_logpdf
+    )
+
 
 # %%
 all_ABLs_cond = [20, 40, 60]
 all_ILDs_cond = [1, -1, 2, -2, 4, -4, 8, -8, 16, -16]
-
 for cond_ABL in all_ABLs_cond:
     for cond_ILD in all_ILDs_cond:
         conditions = {'ABL': [cond_ABL], 'ILD': [cond_ILD]}
@@ -140,9 +187,10 @@ for cond_ABL in all_ABLs_cond:
         ]
 
         def vbmc_loglike_fn(params):
-            gamma, omega = params
+            gamma, omega, t_E_aff, bump_height = params
 
-            all_loglike = Parallel(n_jobs=30)(delayed(compute_loglike_trial)(row, gamma, omega,) \
+            all_loglike = Parallel(n_jobs=30)(delayed(compute_loglike_trial)(row, gamma, omega, t_E_aff, w, \
+                                                                            bump_width, bump_height, dip_width, dip_height) \
                                             for _, row in df_led_off_valid_trials_cond_filtered.iterrows())
             
             return np.sum(all_loglike)
@@ -153,7 +201,6 @@ for cond_ABL in all_ABLs_cond:
 
             return priors + loglike
 
-        
         print(f'++++++++++ ABL = {cond_ABL}, ILD = {cond_ILD} +++++++++++++++++++++')
         if cond_ILD > 0:
             gamma_bounds = [0.001, 5]
@@ -161,41 +208,69 @@ for cond_ABL in all_ABLs_cond:
         elif cond_ILD < 0:
             gamma_bounds = [-5, -0.001]
             gamma_plausible_bounds = [-0.9, -0.09]
-            
 
-        lb = np.array([gamma_bounds[0], omega_bounds[0]])
-        ub = np.array([gamma_bounds[1], omega_bounds[1]])
+        
+        # Add bounds for all parameters
+        lb = np.array([
+            gamma_bounds[0], omega_bounds[0], t_E_aff_bounds[0], bump_height_bounds[0]
+        ])
+        ub = np.array([
+            gamma_bounds[1], omega_bounds[1], t_E_aff_bounds[1], bump_height_bounds[1]
+        ])
 
-        plb = np.array([gamma_plausible_bounds[0], omega_plausible_bounds[0]])
-        pub = np.array([gamma_plausible_bounds[1], omega_plausible_bounds[1]])
+        plb = np.array([
+            gamma_plausible_bounds[0], omega_plausible_bounds[0], t_E_aff_plausible_bounds[0], bump_height_plausible_bounds[0]
+        ])
+        pub = np.array([
+            gamma_plausible_bounds[1], omega_plausible_bounds[1], t_E_aff_plausible_bounds[1], bump_height_plausible_bounds[1]
+        ])
 
         # Initialize with random values within plausible bounds
         np.random.seed(42)
         gamma_0 = np.random.uniform(gamma_plausible_bounds[0], gamma_plausible_bounds[1])
         omega_0 = np.random.uniform(omega_plausible_bounds[0], omega_plausible_bounds[1])
+        t_E_aff_0 = np.random.uniform(t_E_aff_plausible_bounds[0], t_E_aff_plausible_bounds[1])
+        bump_height_0 = np.random.uniform(bump_height_plausible_bounds[0], bump_height_plausible_bounds[1])
 
-        x_0 = np.array([gamma_0, omega_0])
+        x_0 = np.array([
+            gamma_0, omega_0, t_E_aff_0, bump_height_0
+        ])
 
+        # Run VBMC
         vbmc = VBMC(vbmc_joint_fn, x_0, lb, ub, plb, pub, options={'display': 'off'})
         vp, results = vbmc.optimize()
 
-        vbmc.save(f'each_cond_data_apr/t_E_fixed_vbmc_single_condn_ABL_{cond_ABL}_ILD_{cond_ILD}.pkl', overwrite=True)
+        vbmc.save(f'each_cond_data_apr/vbmc_T_vary_only_height_single_condn_ABL_{cond_ABL}_ILD_{cond_ILD}.pkl', overwrite=True)
 
         vp_samples = vp.sample(int(1e5))[0]
 
+        # Extract samples for each parameter
         gamma_samples = vp_samples[:, 0]
         omega_samples = vp_samples[:, 1]
+        t_E_aff_samples = vp_samples[:, 2]
+        bump_height_samples = vp_samples[:, 3]
 
+        # Compute mean estimates
         gamma = gamma_samples.mean()
         omega = omega_samples.mean()
+        t_E_aff = t_E_aff_samples.mean()
+        bump_height = bump_height_samples.mean()
 
+        # Create array for corner plot
+        corner_samples = np.vstack([
+            gamma_samples, omega_samples, t_E_aff_samples, bump_height_samples
+        ]).T
 
-        # plot the corner plot
-        corner_samples = np.vstack([gamma_samples, omega_samples]).T
+        # Compute ranges for plot
         percentiles = np.percentile(corner_samples, [0, 100], axis=0)
-        _ranges = [(percentiles[0, i], percentiles[1, i]) for i in np.arange(corner_samples.shape[1])]
-        param_labels = [ 'gamma', 'omega']
+        _ranges = [(percentiles[0, i], percentiles[1, i]) for i in range(corner_samples.shape[1])]
 
+        # Labels for each parameter
+        param_labels = [
+            'gamma', 'omega', 't_E_aff', 'bump_height'
+        ]
+
+        # Generate corner plot
         fig_corner = corner.corner(
             corner_samples,
             labels=param_labels,
@@ -205,18 +280,13 @@ for cond_ABL in all_ABLs_cond:
             title_fmt=".4f"
         );
 
-        filename = f"t_E_fixed_corner_each_cond_ABL_{cond_ABL}_ILD_{cond_ILD}.png"
+        filename = f"corner_T_vary_only_height_each_cond_ABL_{cond_ABL}_ILD_{cond_ILD}.png"
         save_path = os.path.join("each_cond_data_apr", filename)
-
-
-        # Save the figure
         fig_corner.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close(fig_corner)
 
-        ### Diagnostics
-        # DATA
+        # Diagnostics
         df_led_off = df[df['LED_trial'] == 0]
-
         # < 1s RTs
         df_led_off = df_led_off[df_led_off['timed_fix'] - df_led_off['intended_fix'] < 1]
         # remove truncated aborts
@@ -240,7 +310,16 @@ for cond_ABL in all_ABLs_cond:
             (data_df_led_off_valid['ILD'].isin(conditions['ILD']))
         ]
 
+        ## Diag 1
+        phi_params = {
+            'h1': bump_width,
+            'a1': bump_height,
+            'h2': dip_width,
+            'a2': dip_height,
+            'b1': bump_offset
+        }
 
+        phi_params_obj = SimpleNamespace(**phi_params)
 
         N_theory = int(1e3)
         random_indices = np.random.randint(0, len(t_stim_and_led_tuple), N_theory)
@@ -249,26 +328,28 @@ for cond_ABL in all_ABLs_cond:
         P_A_samples = np.zeros((N_theory, len(t_pts)))
         for idx in range(N_theory):
             t_stim, t_LED = t_stim_and_led_tuple[random_indices[idx]]
-            pdf = rho_A_t_VEC_fn(t_pts + t_stim - t_A_aff, V_A, theta_A)
+            pdf = rho_A_t_VEC_fn(t_pts - t_A_aff + t_stim, V_A, theta_A)
             P_A_samples[idx, :] = pdf
 
         P_A_samples_mean = np.mean(P_A_samples, axis=0)
         C_A_mean = cumtrapz(P_A_samples_mean, t_pts, initial=0)
-
-
+        
         up_wrt_stim = np.zeros_like(t_pts)
         down_wrt_stim = np.zeros_like(t_pts)
         for idx, t in enumerate(t_pts):
             P_A = P_A_samples_mean[idx]
             C_A = C_A_mean[idx]
-            up_wrt_stim[idx] =  up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, 1, K_max)
-            down_wrt_stim[idx] = up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, -1, K_max)
+            
+            up_wrt_stim[idx] = up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_time_varying_fn(t, P_A, C_A, gamma, omega,\
+                                                                                              t_E_aff, del_go, phi_params_obj,\
+                                                                                                  w, 1, K_max)
+            
+            down_wrt_stim[idx] = up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_time_varying_fn(t, P_A, C_A, gamma, omega,\
+                                                                                              t_E_aff, del_go, phi_params_obj,\
+                                                                                                  w, -1, K_max)
 
-        
         bins = np.arange(-1,1,0.02)
         bin_centers = (bins[:-1] + bins[1:]) / 2
-
-
 
         ## data
         data_up = df_led_off_valid_trials_cond_filtered[df_led_off_valid_trials_cond_filtered['choice'] == 1]
@@ -283,6 +364,7 @@ for cond_ABL in all_ABLs_cond:
         frac_up_data = len(data_up) / len(df_led_off_valid_trials_cond_filtered)
         frac_down_data = len(data_down) / len(df_led_off_valid_trials_cond_filtered)
 
+        
         theory_area_up = trapz(up_wrt_stim, t_pts)
         theory_area_down = trapz(down_wrt_stim, t_pts)
 
@@ -293,30 +375,21 @@ for cond_ABL in all_ABLs_cond:
         else:
             accuracy_data_and_theory = [frac_down_data, theory_area_down]
 
-        
-        tacho = np.zeros_like(t_pts)
-        for idx, t in enumerate(t_pts):
-            P_A = P_A_samples_mean[idx]
-            C_A = C_A_mean[idx]
-            P_up = up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, 1, K_max)
-            P_down = up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, -1, K_max)
+       
 
-            if conditions['ILD'][0] > 0:
-                P_rt_c = P_up
-            else:
-                P_rt_c = P_down
-                
-            P_rt = P_up + P_down
+        P_rt = up_wrt_stim + down_wrt_stim
+        if conditions['ILD'][0] > 0:
+            tacho = up_wrt_stim / (P_rt + 1e-10)
+        else:
+            tacho = down_wrt_stim / (P_rt + 1e-10)
 
-            tacho[idx] = P_rt_c / (P_rt + 1e-10)
-
-        
         df_led_off_valid_trials_cond_filtered_copy = df_led_off_valid_trials_cond_filtered.copy()
         df_led_off_valid_trials_cond_filtered_copy.loc[:, 'RT_bin'] = pd.cut(df_led_off_valid_trials_cond_filtered_copy['rt'] - df_led_off_valid_trials_cond_filtered_copy['t_stim'],\
                                                                     bins = bins, include_lowest=True)
         grouped_by_rt_bin = df_led_off_valid_trials_cond_filtered_copy.groupby('RT_bin', observed=False)['correct'].agg(['mean', 'count'])
         grouped_by_rt_bin['bin_mid'] = grouped_by_rt_bin.index.map(lambda x: x.mid)
 
+        ### Plot ###
         FONT_SIZE_LABEL = 22   # for x/y labels
         FONT_SIZE_TICKS = 22   # for x/y tick labels
         FONT_SIZE_TITLE = 22   # for subplot titles
@@ -386,13 +459,13 @@ for cond_ABL in all_ABLs_cond:
         ## 3. Corner
         fig_corner = corner.corner(
             corner_samples,
-            labels=['Γ', 'ω', 'tE'],
+            labels=param_labels,
             show_titles=True,
             quantiles=[0.025, 0.5, 0.975],
             range=_ranges,
-            title_fmt=".4f",
-            title_kwargs={"fontsize": 18}
-        )
+            title_fmt=".4f"
+        );
+
 
         # Adjust subplots to reduce margins around the corner plot.
         # Tweak left, right, bottom, top until the left whitespace is minimized.
@@ -412,8 +485,5 @@ for cond_ABL in all_ABLs_cond:
         ax_corner.axis('off')
         ax_corner.set_title('Corner Plot', fontsize=20, pad=0)
 
-        fname = f'each_cond_data_apr/t_E_fixed_diagnostics_ABL_{cond_ABL}_ILD_{cond_ILD}.png'
+        fname = f'each_cond_data_apr/diagnostics_T_vary_only_height_ABL_{cond_ABL}_ILD_{cond_ILD}.png'
         plt.savefig(fname, dpi=300, bbox_inches="tight")
-
-
-
