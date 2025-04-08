@@ -151,7 +151,7 @@ def rho_E_minus_small_t_NORM_rate_norm_time_varying_fn(
 
     return density * (omega * phi_t)
 
-def CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(
+def CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
         t, bound, ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t, 
         rate_norm_l, is_norm, is_time_vary, K_max):
     """
@@ -248,12 +248,12 @@ def up_or_down_RTs_fit_fn(
 
     # PA wins and random choice due to EA survival
     P_A = rho_A_t_fn(t - t_A_aff, V_A, theta_A)
-    P_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(
+    P_EA_hits_either_bound = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
                                 t - t_stim - t_E_aff + del_go, 1, 
                                 ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t_E_g, rate_norm_l, 
                                 is_norm, is_time_vary, K_max)  \
                                 + \
-                                CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(
+                                CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
                                 t - t_stim - t_E_aff + del_go, -1, 
                                 ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t_E_g, rate_norm_l,
                                 is_norm, is_time_vary, K_max)
@@ -262,12 +262,12 @@ def up_or_down_RTs_fit_fn(
     random_readout_if_EA_survives = 0.5 * P_EA_survives
     
     # PA wins and EA hits later
-    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
                             t2, bound, 
                             ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t2, rate_norm_l, 
                             is_norm, is_time_vary, K_max)  \
-                            + \
-                            CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(
+                            - \
+                            CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
                             t1, bound, 
                             ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t1, rate_norm_l,
                             is_norm, is_time_vary, K_max)
@@ -330,12 +330,12 @@ def up_or_down_RTs_fit_wrt_stim_fn(
         int_phi_t1 = np.nan
 
     # PA wins and random choice due to EA survival
-    P_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(
+    P_EA_hits_either_bound = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
                                 t - t_E_aff + del_go, 1, 
                                 ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t_E_g, rate_norm_l, 
                                 is_norm, is_time_vary, K_max)  \
                                 + \
-                                CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(
+                                CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
                                 t - t_E_aff + del_go, -1, 
                                 ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t_E_g, rate_norm_l,
                                 is_norm, is_time_vary, K_max)
@@ -344,12 +344,12 @@ def up_or_down_RTs_fit_wrt_stim_fn(
     random_readout_if_EA_survives = 0.5 * P_EA_survives
     
     # PA wins and EA hits later
-    P_E_plus_cum = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
                             t2, bound, 
                             ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t2, rate_norm_l, 
                             is_norm, is_time_vary, K_max)  \
-                            + \
-                            CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(
+                            - \
+                            CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
                             t1, bound, 
                             ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t1, rate_norm_l,
                             is_norm, is_time_vary, K_max)
@@ -377,12 +377,12 @@ def cum_pro_and_reactive_time_vary_fn(
                         phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
     else:
         int_phi_t_E = np.nan
-    c_E = CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(
+    c_E = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
                                 t - t_stim - t_E_aff, 1, 
                                 ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t_E, rate_norm_l, 
                                 is_norm, is_time_vary, K_max)  \
                                 + \
-                                CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(
+                                CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
                                 t - t_stim - t_E_aff, -1, 
                                 ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t_E, rate_norm_l,
                                 is_norm, is_time_vary, K_max)
