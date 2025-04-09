@@ -99,6 +99,8 @@ def int_phi_fn(y, h1, a1, b1, h2, a2):
 ###############################################
 def M(x):
     """Mills ratio."""
+    # clip
+    x = np.clip(x, -37, 37)
     return np.sqrt(np.pi / 2) * erfcx(x / np.sqrt(2))
 
 def phi(x):
@@ -116,7 +118,9 @@ def rho_E_minus_small_t_NORM_rate_norm_time_varying_fn(
 
     # evidence v
     chi = 17.37
-    v = rate_lambda * theta_E * ILD / chi
+    # v = rate_lambda * theta_E * ILD / chi # LINEAR
+    # NON linear
+    v = theta_E * np.tanh(rate_lambda * ILD / chi)
 
     w = 0.5 + ( Z_E / (2.0 * theta_E) )
     a = 2
@@ -126,8 +130,11 @@ def rho_E_minus_small_t_NORM_rate_norm_time_varying_fn(
 
     if not is_norm:
         rate_norm_l = 0
-    omega = ( 1/(T0 * (theta_E**2)) ) * (10 ** ( (rate_lambda * (1 - rate_norm_l) * ABL) / 20 ) )
-
+    # omega = ( 1/(T0 * (theta_E**2)) ) * (10 ** ( (rate_lambda * (1 - rate_norm_l) * ABL) / 20 ) )
+    # non linear
+    cosh_ratio = np.cosh(rate_lambda * ILD / chi)/np.cosh(rate_lambda * rate_norm_l * ILD / chi)
+    omega = ( 1/(T0 * (theta_E**2)) ) * (10 ** ( (rate_lambda * (1 - rate_norm_l) * ABL) / 20 ) ) * cosh_ratio
+    
     if not is_time_vary:
         int_phi_t = t
         phi_t = 1
@@ -162,7 +169,10 @@ def CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
 
     # evidence v
     chi = 17.37
-    v = rate_lambda * theta_E * ILD / chi
+    # v = rate_lambda * theta_E * ILD / chi # LINEAR
+    # NON linear
+    v = theta_E * np.tanh(rate_lambda * ILD / chi)
+    
 
     w = 0.5 + ( Z_E / (2.0 * theta_E) )
     a = 2
@@ -172,7 +182,10 @@ def CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
 
     if not is_norm:
         rate_norm_l = 0
-    omega = ( 1/(T0 * (theta_E**2)) ) * (10 ** ( (rate_lambda * (1 - rate_norm_l) * ABL) / 20 ) )
+    # omega = ( 1/(T0 * (theta_E**2)) ) * (10 ** ( (rate_lambda * (1 - rate_norm_l) * ABL) / 20 ) ) # LINEAR
+    # non linear
+    cosh_ratio = np.cosh(rate_lambda * ILD / chi)/np.cosh(rate_lambda * rate_norm_l * ILD / chi)
+    omega = ( 1/(T0 * (theta_E**2)) ) * (10 ** ( (rate_lambda * (1 - rate_norm_l) * ABL) / 20 ) ) * cosh_ratio
 
     if not is_time_vary:
         int_phi_t = t
@@ -193,8 +206,13 @@ def CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
         else:  # odd k
             r_k = k * a + a * (1 - w)
         
+        
         term1 = phi((r_k) / np.sqrt(t))
         term2 = M((r_k - v * t) / np.sqrt(t)) + M((r_k + v * t) / np.sqrt(t))
+        
+        if np.isnan(term2) or np.isinf(term2):
+            print(f'omega = {omega}, T0 = {T0}, theta_E = {theta_E}, rate_lambda = {rate_lambda}')
+            raise ValueError(f'term2 = {term2}, v = {v}, t = {t}, r_k = {r_k}, M(r_k - v*t) = {M((r_k - v * t) / np.sqrt(t))}, M(r_k + v*t) = {M((r_k + v * t) / np.sqrt(t))}')
         
         summation += ((-1)**k) * term1 * term2
 
