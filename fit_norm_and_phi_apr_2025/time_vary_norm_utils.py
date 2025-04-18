@@ -1,7 +1,5 @@
 import numpy as np
 from scipy.special import erf, erfcx
-from torch import Value
-
 
 ###########################################
 ############ Proactive PDFs ##############
