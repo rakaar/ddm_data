@@ -1,0 +1,3 @@
+- Time varying - fit all phi params + norm model:  `vbmc_fit_all_norm_time_vary_all_phi.ipynb`
+- Only Time varying- all phi + delgo: `vbmc_fit_all_NO_norm_time_vary_all_phi_DEL_go.ipynb`
+- Only Time varying - all phi, del go fixed: `vbmc_fit_all_NO_norm_time_vary_all_phi.ipynb`
