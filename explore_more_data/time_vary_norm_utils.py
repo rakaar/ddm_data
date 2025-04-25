@@ -410,3 +410,85 @@ def cum_pro_and_reactive_time_vary_fn(
     
     return c_A + c_E - c_A * c_E
 
+
+### diagnostics ###
+def up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
+        t, bound,
+        P_A, C_A,
+        ABL, ILD, rate_lambda, T0, theta_E, Z_E, t_E_aff, del_go,
+        phi_params, rate_norm_l, 
+        is_norm, is_time_vary, K_max):
+    
+    # t1, t2 - if proactive wins, time range in which EA can hit bound and confirm a choice
+    t1 = max(t - t_E_aff, 1e-6)
+    t2 = max(t - t_E_aff + del_go, 1e-6)
+
+    # phi(t) and its integral for different times
+    if is_time_vary:
+        int_phi_t_E_g = int_phi_fn(max(t - t_E_aff + del_go, 1e-6), phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+
+        phi_t_e = phi_t_fn(max(t - t_E_aff, 1e-6), phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+        int_phi_t_e = int_phi_fn(max(t - t_E_aff, 1e-6), phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+
+        int_phi_t2 = int_phi_fn(t2, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+        int_phi_t1 = int_phi_fn(t1, phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2)
+
+        if int_phi_t_E_g * int_phi_t_e * int_phi_t2 * int_phi_t1 == 0:
+            raise ValueError(
+                f'''
+                t = {t}, t_E_aff = {t_E_aff}
+                t1 = {t1}
+                one of them is zero
+                int_phi_t_E_g = {int_phi_t_E_g}
+                int_phi_t_e = {int_phi_t_e}
+                int_phi_t2 = {int_phi_t2}
+                int_phi_t1 = {int_phi_t1}
+
+                params  = {phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2}
+                '''
+                    
+                )
+    else:
+        int_phi_t_E_g = np.nan
+        
+        phi_t_e = np.nan
+        int_phi_t_e = np.nan
+
+        int_phi_t2 = np.nan
+        int_phi_t1 = np.nan
+
+    # PA wins and random choice due to EA survival
+    P_EA_hits_either_bound = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
+                                t - t_E_aff + del_go, 1, 
+                                ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t_E_g, rate_norm_l, 
+                                is_norm, is_time_vary, K_max)  \
+                                + \
+                                CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
+                                t - t_E_aff + del_go, -1, 
+                                ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t_E_g, rate_norm_l,
+                                is_norm, is_time_vary, K_max)
+    
+    P_EA_survives = 1 - P_EA_hits_either_bound
+    random_readout_if_EA_survives = 0.5 * P_EA_survives
+    
+    # PA wins and EA hits later
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
+                            t2, bound, 
+                            ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t2, rate_norm_l, 
+                            is_norm, is_time_vary, K_max)  \
+                            - \
+                            CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
+                            t1, bound, 
+                            ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t1, rate_norm_l,
+                            is_norm, is_time_vary, K_max)
+    
+
+    # EA wins
+    P_E_plus = rho_E_minus_small_t_NORM_rate_norm_time_varying_fn(
+        t - t_E_aff, bound, ABL, ILD, rate_lambda, T0, theta_E, Z_E, phi_t_e, int_phi_t_e, 
+        rate_norm_l, is_norm, is_time_vary, K_max)
+    
+
+    
+
+    return (P_A*(random_readout_if_EA_survives + P_E_plus_cum) + P_E_plus*(1-C_A))
