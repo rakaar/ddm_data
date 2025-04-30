@@ -24,6 +24,7 @@ from time_vary_norm_utils import up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn
 
 from vbmc_animal_wise_fit_utils import trapezoidal_logpdf
 from animal_wise_config import T_trunc
+from animal_wise_plotting_utils import save_posterior_summary_page, save_corner_plot, plot_abort_diagnostic
 
 from matplotlib.backends.backend_pdf import PdfPages
 
@@ -287,7 +288,6 @@ vanilla_pub = np.array([
 
 ###### End of vanilla tied ###########
 
-
 ###########  Normalized TIED ##############
 def compute_loglike_norm_fn(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, rate_norm_l):
     
@@ -472,7 +472,6 @@ norm_tied_pub = np.array([
 
 
 ######### End of Normalized TIED #############
-
 
 ############# Time vary norm TIED ##############
 def compute_loglike_time_vary_norm_fn(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, rate_norm_l, bump_height, bump_width, dip_height, dip_width):
@@ -823,79 +822,40 @@ for animal_idx in [-1]:
     combined_samples = np.transpose(np.vstack((V_A_samp, theta_A_samp, t_A_aff_samp)))
     param_labels = ['V_A', 'theta_A', 't_A_aff']
     # --- Page: Abort Model Posterior Means ---
-    aborts_loglike = vbmc_aborts_loglike_fn([V_A, theta_A, t_A_aff])
-    fig_text_aborts = plt.figure(figsize=(8.5, 11))
-    fig_text_aborts.clf()
-    fig_text_aborts.text(0.1, 0.9, f"Abort Model - Posterior Means", fontsize=16, weight='bold')
-    text_content_aborts = (
-        f"Batch Name: {batch_name}\n"
-        f"Animal ID: {animal}\n\n"
-        f"V_A        = {V_A:.5f}\n"
-        f"theta_A    = {theta_A:.5f}\n"
-        f"t_A_aff    = {t_A_aff:.5f}\n"
-        f"VBMC ELBO: {results['elbo']:.4f} +/- {results['elbo_sd']:.4f}\n"
-        f"VBMC Message: {results['message']} \n"
-        f"loglike : {aborts_loglike:.4f}"
+    save_posterior_summary_page(
+        pdf_pages=pdf,
+        title=f'Abort Model - Posterior Means ({animal})',
+        posterior_means=pd.Series({'V_A': V_A, 'theta_A': theta_A, 't_A_aff': t_A_aff}),
+        param_labels={'V_A': 'V_A', 'theta_A': 'theta_A', 't_A_aff': 't_A_aff'},
+        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd']},
+        extra_text=f"T_trunc = {T_trunc:.3f}"
     )
-    fig_text_aborts.text(0.1, 0.8, text_content_aborts, fontsize=12, va='top', wrap=True)
-    fig_text_aborts.gca().axis('off')
-    pdf.savefig(fig_text_aborts, bbox_inches='tight')
-    plt.close(fig_text_aborts)
 
-    fig_aborts_corner = corner.corner (combined_samples, labels=param_labels, show_titles=True, title_fmt=".4f" );
-    pdf.savefig(fig_aborts_corner, bbox_inches='tight')
-    plt.close(fig_aborts_corner) # Close the figure so it doesn't display interactively now
+    # --- Page: Abort Model Corner Plot ---
+    save_corner_plot(
+        pdf_pages=pdf,
+        samples=combined_samples,
+        param_labels=param_labels,
+        title=f'Abort Model - Corner Plot ({animal})',
+        truths=[V_A, theta_A, t_A_aff] # Show posterior means as truths
+    )
 
-    ####################################################
-    ########### Abort diagnostics ########################
-    ####################################################
+    # --- Page: Abort Model Diagnostic Plot ---
+    plot_abort_diagnostic(
+        pdf_pages=pdf,
+        df_aborts_animal=df_aborts_animal,
+        df_valid_and_aborts=df_valid_and_aborts, # Use combined df for sampling intended fix times
+        N_theory=N_theory,
+        V_A=V_A,
+        theta_A=theta_A,
+        t_A_aff=t_A_aff,
+        T_trunc=T_trunc,
+        rho_A_t_VEC_fn=rho_A_t_VEC_fn,
+        cum_A_t_fn=cum_A_t_fn,
+        title=f'Abort Model RTD Diagnostic ({animal})'
+    )
 
-    vbmc_aborts_results = {
-        'V_A_samples': V_A_samp,
-        'theta_A_samples': theta_A_samp,
-        't_A_aff_samp': t_A_aff_samp,
-        'message': results['message'],
-        'elbo': results['elbo'],
-        'elbo_sd': results['elbo_sd'],
-        'loglike': aborts_loglike
-    }
-
-
-    t_pts = np.arange(0,1.25, 0.001)
-    t_stim_samples = df_valid_and_aborts.sample(N_theory)['intended_fix']
-    pdf_samples = np.zeros((N_theory, len(t_pts)))
-
-    for i, t_stim in enumerate(t_stim_samples):
-        t_stim_idx = np.searchsorted(t_pts, t_stim)
-        proactive_trunc_idx = np.searchsorted(t_pts, T_trunc)
-        pdf_samples[i, :proactive_trunc_idx] = 0
-        pdf_samples[i, t_stim_idx:] = 0
-        t_btn = t_pts[proactive_trunc_idx:t_stim_idx-1]
-        
-        pdf_samples[i, proactive_trunc_idx:t_stim_idx-1] = rho_A_t_VEC_fn(t_btn - t_A_aff, V_A, theta_A) / (1 - cum_A_t_fn(T_trunc - t_A_aff, V_A, theta_A))
-
-
-
-    fig_aborts_diag = plt.figure(figsize=(10,5))
-    bins = np.arange(0,2,0.01)
-
-    animal_abort_RT = df_aborts_animal['TotalFixTime'].dropna().values
-    animal_abort_RT_trunc = animal_abort_RT[animal_abort_RT > T_trunc]
-
-    df_before_trunc_animal = df_aborts_animal[df_aborts_animal['TotalFixTime'] < T_trunc]
-    N_valid_and_trunc_aborts = len(df_all_trials_animal) - len(df_before_trunc_animal)
-    frac_aborts = len(animal_abort_RT_trunc) / N_valid_and_trunc_aborts
-    aborts_hist, _ = np.histogram(animal_abort_RT_trunc, bins=bins, density=True)
-
-    plt.plot(bins[:-1], aborts_hist * frac_aborts, label='data')
-    plt.xlabel('abort rt')
-    plt.ylabel('density')
-
-    plt.plot(t_pts, np.mean(pdf_samples, axis=0), label='theory')
-    plt.legend()
-    pdf.savefig(fig_aborts_diag, bbox_inches='tight')
-    plt.close(fig_aborts_diag) # Close the figure
-
+    
     ######################################################
     ############### VANILLA TIED MODEL #####################
     ########################################################
@@ -983,28 +943,30 @@ for animal_idx in [-1]:
     print(f"del_go   = {del_go:.5f}")
 
     # --- Page: Vanilla Tied Model Posterior Means ---
-    fig_text_tied = plt.figure(figsize=(8.5, 11))
-    vanilla_tied_loglike = vbmc_vanilla_tied_loglike_fn([rate_lambda, T_0, theta_E, w, t_E_aff, del_go])
-    fig_text_tied.clf()
-    fig_text_tied.text(0.1, 0.9, f"Vanilla Tied Model - Posterior Means", fontsize=16, weight='bold')
-    text_content = (
-        f"Batch Name: {batch_name}\n"
-        f"Animal ID: {animal}\n\n"
-        f"rate_lambda  = {rate_lambda:.5f}\n"
-        f"T_0 (ms)      = {1e3*T_0:.5f}\n"
-        f"theta_E       = {theta_E:.5f}\n"
-        f"w             = {w:.5f}\n"
-        f"Z_E (derived) = {Z_E:.5f}\n"
-        f"t_E_aff (ms)  = {1e3*t_E_aff:.5f}\n"
-        f"del_go        = {del_go:.5f}\n\n"
-        f"VBMC ELBO: {results['elbo']:.4f} +/- {results['elbo_sd']:.4f}\n"
-        f"VBMC Message: {results['message']}\n\n"
-        f"loglike : {vanilla_tied_loglike:.4f}"
+    save_posterior_summary_page(
+        pdf_pages=pdf,
+        title=f'Vanilla Tied Model - Posterior Means ({animal})',
+        posterior_means=pd.Series({
+            'rate_lambda': rate_lambda,
+            'T_0': 1e3*T_0,
+            'theta_E': theta_E,
+            'w': w,
+            'Z_E': Z_E,
+            't_E_aff': 1e3*t_E_aff,
+            'del_go': del_go
+        }),
+        param_labels={
+            'rate_lambda': r'$\lambda$',
+            'T_0': r'$T_0$ (ms)',
+            'theta_E': r'$\theta_E$',
+            'w': r'$w$',
+            'Z_E': r'$Z_E$',
+            't_E_aff': r'$t_E^{aff}$',
+            'del_go': r'$\Delta_{go}$'
+        },
+        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd']},
+        extra_text=f"T_trunc = {T_trunc:.3f}"
     )
-    fig_text_tied.text(0.1, 0.8, text_content, fontsize=12, va='top', wrap=True) # Use wrap=True if message is long
-    fig_text_tied.gca().axis('off')
-    pdf.savefig(fig_text_tied, bbox_inches='tight')
-    plt.close(fig_text_tied)
 
     # Create the corner plot
 
@@ -1025,11 +987,11 @@ for animal_idx in [-1]:
         'message': results['message'],
         'elbo': results['elbo'],
         'elbo_sd': results['elbo_sd'],
-        'loglike': vanilla_tied_loglike
+        'loglike': vbmc_vanilla_tied_loglike_fn([rate_lambda, T_0, theta_E, w, t_E_aff, del_go])
     }
 
     ######################################################
-    ########### Vanilla TIED diagnostics #####################
+    ########### VANILLA TIED diagnostics #####################
     ########################################################
 
     t_stim_samples = df_all_trials_animal['intended_fix'].sample(N_sim, replace=True).values
@@ -1139,7 +1101,7 @@ for animal_idx in [-1]:
                                     is_norm, is_time_vary, K_max) \
                                     - \
                                     cum_pro_and_reactive_time_vary_fn(
-                                    t_stim,T_trunc,
+                                    t_stim, T_trunc,
                                     V_A, theta_A, t_A_aff,
                                     t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
                                     phi_params_obj, rate_norm_l, 
@@ -1413,34 +1375,36 @@ for animal_idx in [-1]:
     print(f"theta_E       = {theta_E:.5f}")
     print(f"Z_E           = {Z_E:.5f}")
     print(f"t_E_aff       = {1e3*t_E_aff:.5f} ms")
-    print(f"del_go   = {del_go:.5f}")
+    print(f"del_go        = {del_go:.5f}")
     print(f"rate_norm_l   = {rate_norm_l:.5f}")
 
     ## Page: Norm TIED posterior means
-    fig_text_norm_tied = plt.figure(figsize=(8.5, 11))
-    norm_tied_loglike = vbmc_norm_tied_loglike_fn([rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l])
-    fig_text_norm_tied.clf()
-    fig_text_norm_tied.text(0.1, 0.9, f"Normalized Tied Model - Posterior Means", fontsize=16, weight='bold')
-    text_content = (
-        f"Batch Name: {batch_name}\n"
-        f"Animal ID: {animal}\n\n"
-        f"rate_lambda  = {rate_lambda:.5f}\n"
-        f"T_0 (ms)      = {1e3*T_0:.5f}\n"
-        f"theta_E       = {theta_E:.5f}\n"
-        f"w             = {w:.5f}\n"
-        f"Z_E (derived) = {Z_E:.5f}\n"
-        f"t_E_aff (ms)  = {1e3*t_E_aff:.5f}\n"
-        f"del_go        = {del_go:.5f}\n\n",
-        f"rate_norm_l   = {rate_norm_l:.5f}\n\n",
-        f"VBMC ELBO: {results['elbo']:.4f} +/- {results['elbo_sd']:.4f}\n"
-        f"VBMC Message: {results['message']}\n\n"
-        f"loglike : {norm_tied_loglike:.4f}"
+    save_posterior_summary_page(
+        pdf_pages=pdf,
+        title=f'Normalized Tied Model - Posterior Means ({animal})',
+        posterior_means=pd.Series({
+            'rate_lambda': rate_lambda,
+            'T_0': 1e3*T_0,
+            'theta_E': theta_E,
+            'w': w,
+            'Z_E': Z_E,
+            't_E_aff': 1e3*t_E_aff,
+            'del_go': del_go,
+            'rate_norm_l': rate_norm_l
+        }),
+        param_labels={
+            'rate_lambda': r'$\lambda$',
+            'T_0': r'$T_0$ (ms)',
+            'theta_E': r'$\theta_E$',
+            'w': r'$w$',
+            'Z_E': r'$Z_E$',
+            't_E_aff': r'$t_E^{aff}$',
+            'del_go': r'$\Delta_{go}$',
+            'rate_norm_l': r'rate_norm'
+        },
+        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd']},
+        extra_text=f"T_trunc = {T_trunc:.3f}"
     )
-    fig_text_norm_tied.text(0.1, 0.8, text_content, fontsize=12, va='top', wrap=True) # Use wrap=True if message is long
-    fig_text_norm_tied.gca().axis('off')
-    pdf.savefig(fig_text_norm_tied, bbox_inches='tight')
-    plt.close(fig_text_norm_tied)
-
 
     pdf.savefig(norm_tied_corner_fig, bbox_inches='tight')
     plt.close(norm_tied_corner_fig)
@@ -1457,7 +1421,7 @@ for animal_idx in [-1]:
         'message': results['message'],
         'elbo': results['elbo'],
         'elbo_sd': results['elbo_sd'],
-        'loglike': norm_tied_loglike
+        'loglike': vbmc_norm_tied_loglike_fn([rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l])
     }
 
     #######################################
@@ -1867,33 +1831,40 @@ for animal_idx in [-1]:
     phi_params_obj = SimpleNamespace(**phi_params)
 
     # Create a summary page for the PDF
-    fig_text_time_vary_norm_tied = plt.figure(figsize=(8.5, 11))
-    time_vary_norm_tied_loglike = vbmc_time_vary_norm_loglike_fn([rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l, bump_height, bump_width, dip_height, dip_width])
-    fig_text_time_vary_norm_tied.clf()
-    fig_text_time_vary_norm_tied.text(0.1, 0.9, f"Time-Varying Normalized Tied Model - Posterior Means", fontsize=16, weight='bold')
-    text_content = (
-        f"Batch Name: {batch_name}\n"
-        f"Animal ID: {animal}\n\n"
-        f"rate_lambda  = {rate_lambda:.5f}\n"
-        f"T_0 (ms)      = {1e3*T_0:.5f}\n"
-        f"theta_E       = {theta_E:.5f}\n"
-        f"w             = {w:.5f}\n"
-        f"Z_E (derived) = {Z_E:.5f}\n"
-        f"t_E_aff (ms)  = {1e3*t_E_aff:.5f}\n"
-        f"del_go        = {del_go:.5f}\n"
-        f"rate_norm_l   = {rate_norm_l:.5f}\n"
-        f"bump_height   = {bump_height:.5f}\n"
-        f"bump_width    = {bump_width:.5f}\n"
-        f"dip_height    = {dip_height:.5f}\n"
-        f"dip_width     = {dip_width:.5f}\n\n"
-        f"VBMC ELBO: {results['elbo']:.4f} +/- {results['elbo_sd']:.4f}\n"
-        f"VBMC Message: {results['message']}\n\n"
-        f"loglike : {time_vary_norm_tied_loglike:.4f}"
+    save_posterior_summary_page(
+        pdf_pages=pdf,
+        title=f'Time-Varying Normalized Tied Model - Posterior Means ({animal})',
+        posterior_means=pd.Series({
+            'rate_lambda': rate_lambda,
+            'T_0': 1e3*T_0,
+            'theta_E': theta_E,
+            'w': w,
+            'Z_E': Z_E,
+            't_E_aff': 1e3*t_E_aff,
+            'del_go': del_go,
+            'rate_norm_l': rate_norm_l,
+            'bump_height': bump_height,
+            'bump_width': bump_width,
+            'dip_height': dip_height,
+            'dip_width': dip_width
+        }),
+        param_labels={
+            'rate_lambda': r'$\lambda$',
+            'T_0': r'$T_0$ (ms)',
+            'theta_E': r'$\theta_E$',
+            'w': r'$w$',
+            'Z_E': r'$Z_E$',
+            't_E_aff': r'$t_E^{aff}$',
+            'del_go': r'$\Delta_{go}$',
+            'rate_norm_l': r'rate_norm',
+            'bump_height': r'bump_height',
+            'bump_width': r'bump_width',
+            'dip_height': r'dip_height',
+            'dip_width': r'dip_width'
+        },
+        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd']},
+        extra_text=f"T_trunc = {T_trunc:.3f}"
     )
-    fig_text_time_vary_norm_tied.text(0.1, 0.8, text_content, fontsize=12, va='top', wrap=True)
-    fig_text_time_vary_norm_tied.gca().axis('off')
-    pdf.savefig(fig_text_time_vary_norm_tied, bbox_inches='tight')
-    plt.close(fig_text_time_vary_norm_tied)
 
     # Save the corner plot to PDF
     pdf.savefig(time_vary_norm_tied_corner_fig, bbox_inches='tight')
@@ -1915,7 +1886,7 @@ for animal_idx in [-1]:
         'message': results['message'],
         'elbo': results['elbo'],
         'elbo_sd': results['elbo_sd'],
-        'loglike': time_vary_norm_tied_loglike
+        'loglike': vbmc_time_vary_norm_loglike_fn([rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l, bump_height, bump_width, dip_height, dip_width])
     }
 
     ### Time vary norm diagnostics ####
@@ -2228,4 +2199,3 @@ for animal_idx in [-1]:
     ### PDF save  ###
     pdf.close()
     print(f"Saved PDF report to {pdf_filename}")
-
