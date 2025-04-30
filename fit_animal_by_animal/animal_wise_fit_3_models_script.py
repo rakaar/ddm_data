@@ -316,6 +316,11 @@ animal = animal_ids[-1]
 df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal]
 df_aborts_animal = df_aborts[df_aborts['animal'] == animal]
 
+######### NOTE: Sake of testing, remove half of trials ############
+df_all_trials_animal = df_all_trials_animal.sample(frac=0.1)
+df_aborts_animal = df_aborts_animal.sample(frac=0.1)
+############ END NOTE ############################################
+
 print(f'Batch: {batch_name},sample animal: {animal}')
 pdf_filename = f'results_{batch_name}_animal_{animal}.pdf'
 pdf = PdfPages(pdf_filename)
@@ -340,13 +345,18 @@ ILD_arr = df_valid_and_aborts['ILD'].unique()
 ILD_arr = np.sort(ILD_arr)
 ABL_arr = np.sort(ABL_arr)
 
+####################################################
+########### Abort Model ##############################
+####################################################
 
 V_A_0 = 1.6
 theta_A_0 = 2.5
 t_A_aff_0 = -0.22
 
 x_0 = np.array([V_A_0, theta_A_0, t_A_aff_0])
+# vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on', 'max_fun_evals': 150 * (2 + 3)})
 vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on'})
+
 vp, results = vbmc.optimize()
 
 # %%
@@ -354,23 +364,6 @@ vp_samples = vp.sample(int(1e6))[0]
 V_A_samp = vp_samples[:,0]
 theta_A_samp = vp_samples[:,1]
 t_A_aff_samp = vp_samples[:,2]
-
-combined_samples = np.transpose(np.vstack((V_A_samp, theta_A_samp, t_A_aff_samp)))
-param_labels = ['V_A', 'theta_A', 't_A_aff']
-fig_aborts_corner = corner.corner (combined_samples, labels=param_labels, show_titles=True, title_fmt=".4f" );
-pdf.savefig(fig_aborts_corner, bbox_inches='tight')
-plt.close(fig_aborts_corner) # Close the figure so it doesn't display interactively now
-
-
-vbmc_aborts_results = {
-    'V_A_samples': V_A_samp,
-    'theta_A_samples': theta_A_samp,
-    't_A_aff_samp': t_A_aff_samp,
-    'message': results['message'],
-    'elbo': results['elbo'],
-    'elbo_sd': results['elbo_sd']
-}
-
 # %%
 V_A = vp_samples[:,0].mean()
 theta_A = vp_samples[:,1].mean()
@@ -381,7 +374,10 @@ print(f'V_A: {V_A}')
 print(f'theta_A: {theta_A}')
 print(f't_A_aff: {t_A_aff}')
 
+combined_samples = np.transpose(np.vstack((V_A_samp, theta_A_samp, t_A_aff_samp)))
+param_labels = ['V_A', 'theta_A', 't_A_aff']
 # --- Page: Abort Model Posterior Means ---
+aborts_loglike = vbmc_aborts_loglike_fn([V_A, theta_A, t_A_aff])
 fig_text_aborts = plt.figure(figsize=(8.5, 11))
 fig_text_aborts.clf()
 fig_text_aborts.text(0.1, 0.9, f"Abort Model - Posterior Means", fontsize=16, weight='bold')
@@ -392,18 +388,31 @@ text_content_aborts = (
     f"theta_A    = {theta_A:.5f}\n"
     f"t_A_aff    = {t_A_aff:.5f}\n"
     f"VBMC ELBO: {results['elbo']:.4f} +/- {results['elbo_sd']:.4f}\n"
-    f"VBMC Message: {results['message']}"
-    f"loglike : {vbmc_aborts_loglike_fn([V_A, theta_A, t_A_aff]):.4f}"
+    f"VBMC Message: {results['message']} \n"
+    f"loglike : {aborts_loglike:.4f}"
 )
 fig_text_aborts.text(0.1, 0.8, text_content_aborts, fontsize=12, va='top', wrap=True)
 fig_text_aborts.gca().axis('off')
 pdf.savefig(fig_text_aborts, bbox_inches='tight')
 plt.close(fig_text_aborts)
-# Optionally, also print to PDF the loglike value if desired (uncomment if needed):
-# loglike_aborts = vbmc_aborts_loglike_fn([V_A, theta_A, t_A_aff])
-# fig_text_aborts.text(0.75, 0.8, f"vbmc_aborts_loglike_fn: {loglike_aborts:.4f}", fontsize=12)
 
-# %%
+fig_aborts_corner = corner.corner (combined_samples, labels=param_labels, show_titles=True, title_fmt=".4f" );
+pdf.savefig(fig_aborts_corner, bbox_inches='tight')
+plt.close(fig_aborts_corner) # Close the figure so it doesn't display interactively now
+
+####################################################
+########### Abort diagnostics ########################
+####################################################
+
+vbmc_aborts_results = {
+    'V_A_samples': V_A_samp,
+    'theta_A_samples': theta_A_samp,
+    't_A_aff_samp': t_A_aff_samp,
+    'message': results['message'],
+    'elbo': results['elbo'],
+    'elbo_sd': results['elbo_sd'],
+    'loglike': aborts_loglike
+}
 
 
 t_pts = np.arange(0,1.25, 0.001)
@@ -441,31 +450,9 @@ plt.legend()
 pdf.savefig(fig_aborts_diag, bbox_inches='tight')
 plt.close(fig_aborts_diag) # Close the figure
 
-
-############### V_A, theta_A and t_A_aff #####################
-# --- Page: Abort Model Posterior Means (Single Point) ---
-# If you want to show the last value from an array, use V_A[-1], etc. If you want the mean, use V_A, etc.
-fig_text_aborts_single = plt.figure(figsize=(8.5, 11))
-fig_text_aborts_single.clf()
-fig_text_aborts_single.text(0.1, 0.9, f"Abort Model - Posterior Means (Single Point)", fontsize=16, weight='bold')
-text_content_aborts_single = (
-    f"Batch Name: {batch_name}\n"
-    f"Animal ID: {animal}\n\n"
-    f"V_A        = {V_A:.5f}\n"
-    f"theta_A    = {theta_A:.5f}\n"
-    f"t_A_aff    = {t_A_aff:.5f}\n"
-    f"vbmc_aborts_loglike_fn: {vbmc_aborts_loglike_fn([V_A, theta_A, t_A_aff]):.4f}"
-)
-fig_text_aborts_single.text(0.1, 0.8, text_content_aborts_single, fontsize=12, va='top', wrap=True)
-fig_text_aborts_single.gca().axis('off')
-pdf.savefig(fig_text_aborts_single, bbox_inches='tight')
-plt.close(fig_text_aborts_single)
-
-
-
-
-
-############### VANILLA TIED #####################
+######################################################
+############### VANILLA TIED MODEL #####################
+########################################################
 
 # %%
 is_norm = False
@@ -479,11 +466,11 @@ df_valid_animal_less_than_1 = df_valid_animal[df_valid_animal['RTwrtStim'] < 1]
 
 
 rate_lambda_0 = 0.17
-T_0_0 = 1.5 * 1e-3
+T_0_0 = 1.4 * 1e-3
 theta_E_0 = 20
 w_0 = 0.51
 t_E_aff_0 = 0.071
-del_go_0 = 0.19
+del_go_0 = 0.13
 
 x_0 = np.array([
     rate_lambda_0,
@@ -519,7 +506,7 @@ param_labels = [
 percentiles = np.percentile(vp_samples, [1, 99], axis=0)
 _ranges = [(percentiles[0, i], percentiles[1, i]) for i in range(vp_samples.shape[1])]
 
-# Create the corner plot
+
 vanilla_tied_corner_fig = corner.corner(
     vp_samples,
     labels=param_labels,
@@ -528,14 +515,8 @@ vanilla_tied_corner_fig = corner.corner(
     range=_ranges,
     title_fmt=".3f"
 )
-
 vanilla_tied_corner_fig.suptitle(f'Vanilla Tied Posterior (Animal: {animal})', y=1.02) # Add a title to the corner plot figure
-pdf.savefig(vanilla_tied_corner_fig, bbox_inches='tight')
-plt.close(vanilla_tied_corner_fig) # Close the figure
-# Convert T_0 back to original units if needed
 vp_samples[:, 1] /= 1e3
-
-plt.show()
 
 # %%
 rate_lambda = vp_samples[:, 0].mean()
@@ -555,8 +536,9 @@ print(f"Z_E           = {Z_E:.5f}")
 print(f"t_E_aff       = {1e3*t_E_aff:.5f} ms")
 print(f"del_go   = {del_go:.5f}")
 
-# --- Page 4: Vanilla Tied Results ---
+# --- Page: Vanilla Tied Model Posterior Means ---
 fig_text_tied = plt.figure(figsize=(8.5, 11))
+vanilla_tied_loglike = vbmc_vanilla_tied_loglike_fn([rate_lambda, T_0, theta_E, w, t_E_aff, del_go])
 fig_text_tied.clf()
 fig_text_tied.text(0.1, 0.9, f"Vanilla Tied Model - Posterior Means", fontsize=16, weight='bold')
 text_content = (
@@ -571,12 +553,23 @@ text_content = (
     f"del_go        = {del_go:.5f}\n\n"
     f"VBMC ELBO: {results['elbo']:.4f} +/- {results['elbo_sd']:.4f}\n"
     f"VBMC Message: {results['message']}\n\n"
-    f"loglike : {vbmc_vanilla_tied_loglike_fn([rate_lambda, T_0, theta_E, w, t_E_aff, del_go]):.4f}"
+    f"loglike : {vanilla_tied_loglike:.4f}"
 )
 fig_text_tied.text(0.1, 0.8, text_content, fontsize=12, va='top', wrap=True) # Use wrap=True if message is long
 fig_text_tied.gca().axis('off')
 pdf.savefig(fig_text_tied, bbox_inches='tight')
 plt.close(fig_text_tied)
+
+# Create the corner plot
+
+pdf.savefig(vanilla_tied_corner_fig, bbox_inches='tight')
+plt.close(vanilla_tied_corner_fig) # Close the figure
+# Convert T_0 back to original units if needed
+
+plt.show()
+
+
+# --- Page 4: Vanilla Tied Results ---
 
 vbmc_vanilla_tied_results = {
     'rate_lambda_samples': vp_samples[:, 0],
@@ -587,10 +580,13 @@ vbmc_vanilla_tied_results = {
     'del_go_samples': vp_samples[:, 5],
     'message': results['message'],
     'elbo': results['elbo'],
-    'elbo_sd': results['elbo_sd']
+    'elbo_sd': results['elbo_sd'],
+    'loglike': vanilla_tied_loglike
 }
-# %%
-# sample t-stim
+
+######################################################
+########### Vanilla TIED diagnostics #####################
+########################################################
 
 t_stim_samples = df_all_trials_animal['intended_fix'].sample(N_sim, replace=True).values
 ABL_samples = df_all_trials_animal['ABL'].sample(N_sim, replace=True).values
@@ -606,7 +602,7 @@ sim_results = Parallel(n_jobs=30)(
     ) for iter_num in tqdm(range(N_sim))
 )
 
-# %%
+
 sim_results_df = pd.DataFrame(sim_results)
 sim_results_df_valid = sim_results_df[
     (sim_results_df['rt'] > sim_results_df['t_stim']) &
@@ -899,11 +895,11 @@ fig_grand_vanilla_tied.suptitle(f'Grand Summary Plots (Animal: {animal})', y=1.0
 pdf.savefig(fig_grand_vanilla_tied, bbox_inches='tight')
 plt.close(fig_grand_vanilla_tied) # Close the figure
 
-# <<< ADD PDF SAVING START >>>
-# --- Page 8: Grand Diagnostic Plots ---
-fig_grand_vanilla_tied.suptitle(f'Grand Summary Plots (Animal: {animal})', y=1.03) # Add overall title
-pdf.savefig(fig_grand_vanilla_tied, bbox_inches='tight')
-plt.close(fig_grand_vanilla_tied) # Close the figure
+############### END Of vanilla tied model #####################
+
+#########################################################
+########## Normalized model ###############################
+########################################################
 
 
 save_dict = {
