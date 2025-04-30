@@ -18,12 +18,6 @@ from scipy.integrate import trapezoid as trapz
 from time_vary_and_norm_simulators import psiam_tied_data_gen_wrapper_rate_norm_fn
 from scipy.integrate import cumulative_trapezoid as cumtrapz
 from time_vary_norm_utils import up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn
-from vbmc_animal_wise_fit_utils import (
-    aborts_lb, aborts_ub, aborts_plb,aborts_pub
-)
-from vbmc_animal_wise_fit_utils import (
-    vanilla_tied_lb, vanilla_tied_ub, vanilla_plb, vanilla_pub
-)
 
 from vbmc_animal_wise_fit_utils import trapezoidal_logpdf
 from animal_wise_config import T_trunc
@@ -39,8 +33,6 @@ N_theory = int(1e3)
 N_sim = int(1e6)
 dt  = 1e-3
 N_print = int(N_sim / 5)
-
-######### Loglike Functions that can't be outside #########
 
 
 ####### Aborts ##############
@@ -98,6 +90,24 @@ def vbmc_prior_abort_fn(params):
 ## joint
 def vbmc_joint_aborts_fn(params):
     return vbmc_prior_abort_fn(params) + vbmc_aborts_loglike_fn(params)
+
+######## BOUNDS ########
+V_A_bounds = [0.1, 10]
+theta_A_bounds = [0.1, 10]
+t_A_aff_bounds = [-5, 0.1]
+
+V_A_plausible_bounds = [0.5, 3]
+theta_A_plausible_bounds = [0.5, 3]
+t_A_aff_plausible_bounds = [-2, 0.06]
+
+## bounds array
+aborts_lb = [V_A_bounds[0], theta_A_bounds[0], t_A_aff_bounds[0]]
+aborts_ub = [V_A_bounds[1], theta_A_bounds[1], t_A_aff_bounds[1]]
+
+aborts_plb = [V_A_plausible_bounds[0], theta_A_plausible_bounds[0], t_A_aff_plausible_bounds[0]]
+aborts_pub = [V_A_plausible_bounds[1], theta_A_plausible_bounds[1], t_A_aff_plausible_bounds[1]]
+
+############ End of aborts #######################
 
 ######### Vanilla TIED ###############
 def compute_loglike_vanilla(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go):
@@ -219,25 +229,6 @@ def vbmc_vanilla_tied_joint_fn(params):
 
     return priors + loglike
 
-######## BOUNDS ########
-V_A_bounds = [0.1, 10]
-theta_A_bounds = [0.1, 10]
-t_A_aff_bounds = [-5, 0.1]
-
-V_A_plausible_bounds = [0.5, 3]
-theta_A_plausible_bounds = [0.5, 3]
-t_A_aff_plausible_bounds = [-2, 0.06]
-
-## bounds array
-aborts_lb = [V_A_bounds[0], theta_A_bounds[0], t_A_aff_bounds[0]]
-aborts_ub = [V_A_bounds[1], theta_A_bounds[1], t_A_aff_bounds[1]]
-
-aborts_plb = [V_A_plausible_bounds[0], theta_A_plausible_bounds[0], t_A_aff_plausible_bounds[0]]
-aborts_pub = [V_A_plausible_bounds[1], theta_A_plausible_bounds[1], t_A_aff_plausible_bounds[1]]
-
-
-
-########## Vanilla TIED ################
 ## bounds
 vanilla_rate_lambda_bounds = [0.01, 1]
 vanilla_T_0_bounds = [0.1e-3, 2.2e-3]
@@ -291,13 +282,7 @@ vanilla_pub = np.array([
     vanilla_del_go_plausible_bounds[1]
 ])
 
-
-
-
-
-
-
-
+###### End of vanilla tied ###########
 
 
 # %%
@@ -396,6 +381,28 @@ print(f'V_A: {V_A}')
 print(f'theta_A: {theta_A}')
 print(f't_A_aff: {t_A_aff}')
 
+# --- Page: Abort Model Posterior Means ---
+fig_text_aborts = plt.figure(figsize=(8.5, 11))
+fig_text_aborts.clf()
+fig_text_aborts.text(0.1, 0.9, f"Abort Model - Posterior Means", fontsize=16, weight='bold')
+text_content_aborts = (
+    f"Batch Name: {batch_name}\n"
+    f"Animal ID: {animal}\n\n"
+    f"V_A        = {V_A:.5f}\n"
+    f"theta_A    = {theta_A:.5f}\n"
+    f"t_A_aff    = {t_A_aff:.5f}\n"
+    f"VBMC ELBO: {results['elbo']:.4f} +/- {results['elbo_sd']:.4f}\n"
+    f"VBMC Message: {results['message']}"
+    f"loglike : {vbmc_aborts_loglike_fn([V_A, theta_A, t_A_aff]):.4f}"
+)
+fig_text_aborts.text(0.1, 0.8, text_content_aborts, fontsize=12, va='top', wrap=True)
+fig_text_aborts.gca().axis('off')
+pdf.savefig(fig_text_aborts, bbox_inches='tight')
+plt.close(fig_text_aborts)
+# Optionally, also print to PDF the loglike value if desired (uncomment if needed):
+# loglike_aborts = vbmc_aborts_loglike_fn([V_A, theta_A, t_A_aff])
+# fig_text_aborts.text(0.75, 0.8, f"vbmc_aborts_loglike_fn: {loglike_aborts:.4f}", fontsize=12)
+
 # %%
 
 
@@ -433,6 +440,26 @@ plt.plot(t_pts, np.mean(pdf_samples, axis=0), label='theory')
 plt.legend()
 pdf.savefig(fig_aborts_diag, bbox_inches='tight')
 plt.close(fig_aborts_diag) # Close the figure
+
+
+############### V_A, theta_A and t_A_aff #####################
+# --- Page: Abort Model Posterior Means (Single Point) ---
+# If you want to show the last value from an array, use V_A[-1], etc. If you want the mean, use V_A, etc.
+fig_text_aborts_single = plt.figure(figsize=(8.5, 11))
+fig_text_aborts_single.clf()
+fig_text_aborts_single.text(0.1, 0.9, f"Abort Model - Posterior Means (Single Point)", fontsize=16, weight='bold')
+text_content_aborts_single = (
+    f"Batch Name: {batch_name}\n"
+    f"Animal ID: {animal}\n\n"
+    f"V_A        = {V_A:.5f}\n"
+    f"theta_A    = {theta_A:.5f}\n"
+    f"t_A_aff    = {t_A_aff:.5f}\n"
+    f"vbmc_aborts_loglike_fn: {vbmc_aborts_loglike_fn([V_A, theta_A, t_A_aff]):.4f}"
+)
+fig_text_aborts_single.text(0.1, 0.8, text_content_aborts_single, fontsize=12, va='top', wrap=True)
+fig_text_aborts_single.gca().axis('off')
+pdf.savefig(fig_text_aborts_single, bbox_inches='tight')
+plt.close(fig_text_aborts_single)
 
 
 
@@ -543,7 +570,8 @@ text_content = (
     f"t_E_aff (ms)  = {1e3*t_E_aff:.5f}\n"
     f"del_go        = {del_go:.5f}\n\n"
     f"VBMC ELBO: {results['elbo']:.4f} +/- {results['elbo_sd']:.4f}\n"
-    f"VBMC Message: {results['message']}"
+    f"VBMC Message: {results['message']}\n\n"
+    f"loglike : {vbmc_vanilla_tied_loglike_fn([rate_lambda, T_0, theta_E, w, t_E_aff, del_go]):.4f}"
 )
 fig_text_tied.text(0.1, 0.8, text_content, fontsize=12, va='top', wrap=True) # Use wrap=True if message is long
 fig_text_tied.gca().axis('off')
