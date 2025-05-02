@@ -1,5 +1,7 @@
 # %%
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # Use the Agg backend which doesn't require tkinter
 import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
 from tqdm.notebook import tqdm
@@ -762,8 +764,8 @@ for animal_idx in [-1]:
     df_aborts_animal = df_aborts[df_aborts['animal'] == animal]
 
     ######### NOTE: Sake of testing, remove half of trials ############
-    # df_all_trials_animal = df_all_trials_animal.sample(frac=0.05)
-    # df_aborts_animal = df_aborts_animal.sample(frac=0.05)
+    df_all_trials_animal = df_all_trials_animal.sample(frac=0.01)
+    df_aborts_animal = df_aborts_animal.sample(frac=0.01)
     ############ END NOTE ############################################
 
     print(f'Batch: {batch_name},sample animal: {animal}')
@@ -799,8 +801,8 @@ for animal_idx in [-1]:
     t_A_aff_0 = -0.22
 
     x_0 = np.array([V_A_0, theta_A_0, t_A_aff_0])
-    vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on', 'max_fun_evals': 150 * (2 + 3)})
-    # vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on'})
+    # vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on', 'max_fun_evals': 200 * (2 + 3)})    
+    vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on'})
 
     vp, results = vbmc.optimize()
 
@@ -821,13 +823,15 @@ for animal_idx in [-1]:
 
     combined_samples = np.transpose(np.vstack((V_A_samp, theta_A_samp, t_A_aff_samp)))
     param_labels = ['V_A', 'theta_A', 't_A_aff']
+    # Calculate log likelihood at the mean parameter values
+    aborts_loglike = vbmc_aborts_loglike_fn([V_A, theta_A, t_A_aff])
     # --- Page: Abort Model Posterior Means ---
     save_posterior_summary_page(
         pdf_pages=pdf,
         title=f'Abort Model - Posterior Means ({animal})',
         posterior_means=pd.Series({'V_A': V_A, 'theta_A': theta_A, 't_A_aff': t_A_aff}),
         param_labels={'V_A': 'V_A', 'theta_A': 'theta_A', 't_A_aff': 't_A_aff'},
-        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd']},
+        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd'], 'loglike': aborts_loglike},
         extra_text=f"T_trunc = {T_trunc:.3f}"
     )
 
@@ -855,7 +859,11 @@ for animal_idx in [-1]:
         title=f'Abort Model RTD Diagnostic ({animal})'
     )
 
-    
+    # Close the PDF file before exiting the loop
+    # pdf.close()
+
+    # break
+
     ######################################################
     ############### VANILLA TIED MODEL #####################
     ########################################################
@@ -942,6 +950,8 @@ for animal_idx in [-1]:
     print(f"t_E_aff       = {1e3*t_E_aff:.5f} ms")
     print(f"del_go   = {del_go:.5f}")
 
+    vanilla_tied_loglike = vbmc_vanilla_tied_loglike_fn([rate_lambda, T_0, theta_E, w, t_E_aff, del_go])
+
     # --- Page: Vanilla Tied Model Posterior Means ---
     save_posterior_summary_page(
         pdf_pages=pdf,
@@ -964,7 +974,7 @@ for animal_idx in [-1]:
             't_E_aff': r'$t_E^{aff}$',
             'del_go': r'$\Delta_{go}$'
         },
-        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd']},
+        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd'], 'loglike': vanilla_tied_loglike},
         extra_text=f"T_trunc = {T_trunc:.3f}"
     )
 
@@ -987,20 +997,28 @@ for animal_idx in [-1]:
         'message': results['message'],
         'elbo': results['elbo'],
         'elbo_sd': results['elbo_sd'],
-        'loglike': vbmc_vanilla_tied_loglike_fn([rate_lambda, T_0, theta_E, w, t_E_aff, del_go])
+        'loglike': vanilla_tied_loglike
     }
 
     ######################################################
     ########### VANILLA TIED diagnostics #####################
     ########################################################
 
+    # Import utility functions from the plotting utilities file
+    from animal_wise_plotting_utils import prepare_simulation_data, calculate_theoretical_curves, plot_rt_distributions, plot_tachometric_curves, plot_grand_summary
+
+    # Set parameters for vanilla tied model
+    rate_norm_l = 0
+    is_norm = False
+    is_time_vary = False
+    phi_params_obj = np.nan
+
+    # Generate samples for simulation
     t_stim_samples = df_all_trials_animal['intended_fix'].sample(N_sim, replace=True).values
     ABL_samples = df_all_trials_animal['ABL'].sample(N_sim, replace=True).values
     ILD_samples = df_all_trials_animal['ILD'].sample(N_sim, replace=True).values
 
-
-    rate_norm_l = 0
-
+    # Run simulations in parallel
     sim_results = Parallel(n_jobs=30)(
         delayed(psiam_tied_data_gen_wrapper_rate_norm_fn)(
             V_A, theta_A, ABL_samples[iter_num], ILD_samples[iter_num], rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff, del_go, 
@@ -1008,298 +1026,39 @@ for animal_idx in [-1]:
         ) for iter_num in tqdm(range(N_sim))
     )
 
-
+    # Convert results to DataFrame and prepare simulation data
     sim_results_df = pd.DataFrame(sim_results)
-    sim_results_df_valid = sim_results_df[
-        (sim_results_df['rt'] > sim_results_df['t_stim']) &
-        (sim_results_df['rt'] - sim_results_df['t_stim'] < 1)
-    ].copy()
-    # sim_results_df_valid.loc[:, 'correct'] = (sim_results_df_valid['ILD'] * sim_results_df_valid['choice']).apply(lambda x: 1 if x > 0 else 0)
-    # ILD == 0, random choice
-    def correct_func(row):
-        if row['ILD'] == 0:
-            return np.random.choice([0, 1])
-        return 1 if row['ILD'] * row['choice'] > 0 else 0
+    sim_df_1, data_df_1 = prepare_simulation_data(sim_results_df, df_valid_animal_less_than_1)
 
-    sim_results_df_valid.loc[:, 'correct'] = sim_results_df_valid.apply(correct_func, axis=1)
-
-    # remove correct column from df_valid_and_aborts
-    df_valid_animal_less_than_1_drop = df_valid_animal_less_than_1.copy().drop(columns=['correct']).copy()
-    df_valid_animal_less_than_1_drop.loc[:,'correct'] = df_valid_animal_less_than_1_drop.apply(correct_func, axis=1)
-    df_valid_animal_less_than_1_renamed = df_valid_animal_less_than_1_drop.rename(columns = {
-        'TotalFixTime': 'rt',
-        'intended_fix': 't_stim',
-        # 'accuracy': 'correct'
-    }).copy()
-
-    sim_df_1 = sim_results_df_valid.copy()
-    data_df_1 = df_valid_animal_less_than_1_renamed.copy()
-
-    # %%
-    # theory
+    # Calculate theoretical curves
     t_pts = np.arange(-1, 2, 0.001)
-    t_stim_samples = df_valid_and_aborts['intended_fix'].sample(N_theory, replace=True).values
+    P_A_mean, C_A_mean, t_stim_samples = calculate_theoretical_curves(
+        df_valid_and_aborts, N_theory, t_pts, t_A_aff, V_A, theta_A, rho_A_t_fn
+    )
 
-    P_A_samples = np.zeros((N_theory, len(t_pts)))
-    for idx, t_stim in enumerate(t_stim_samples):
-        P_A_samples[idx, :] = [rho_A_t_fn(t + t_stim - t_A_aff, V_A, theta_A) for t in t_pts]
+    # Plot RT distributions and get theoretical results for later use
+    theory_results_up_and_down, theory_time_axis, bins, bin_centers = plot_rt_distributions(
+        sim_df_1, data_df_1, ILD_arr, ABL_arr, t_pts, P_A_mean, C_A_mean, 
+        t_stim_samples, V_A, theta_A, t_A_aff, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go,
+        phi_params_obj, rate_norm_l, is_norm, is_time_vary, K_max, T_trunc,
+        cum_pro_and_reactive_time_vary_fn, up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn,
+        animal, pdf, model_name="Vanilla Tied"
+    )
 
-    P_A_mean = np.mean(P_A_samples, axis=0)
-    C_A_mean = cumtrapz(P_A_mean, t_pts, initial=0)
+    # Plot tachometric curves
+    plot_tachometric_curves(
+        sim_df_1, data_df_1, ILD_arr, ABL_arr, theory_results_up_and_down,
+        theory_time_axis, bins, animal, pdf, model_name="Vanilla Tied"
+    )
 
+    # Plot grand summary
+    plot_grand_summary(
+        sim_df_1, data_df_1, ILD_arr, ABL_arr, bins, bin_centers,
+        animal, pdf, model_name="Vanilla Tied"
+    )
 
-    # %%
-    bw = 0.02
-    bins = np.arange(0, 1, bw)
-    bin_centers = bins[:-1] + (0.5 * bw)
-
-
-    n_rows = len(ILD_arr)
-    n_cols = len(ABL_arr)
-    theory_results_up_and_down = {} # Dictionary to store the theory results
-    theory_time_axis = None
-
-    fig_vanilla_tied_rtd, axs = plt.subplots(n_rows, n_cols, figsize=(4 * n_cols, 3 * n_rows), sharey='row')
-
-    for i_idx, ILD in enumerate(ILD_arr):
-        for a_idx, ABL in enumerate(ABL_arr):
-            ax = axs[i_idx, a_idx] if n_rows > 1 else axs[a_idx]
-
-            sim_df_1_ABL_ILD = sim_df_1[(sim_df_1['ABL'] == ABL) & (sim_df_1['ILD'] == ILD)]
-            data_df_1_ABL_ILD = data_df_1[(data_df_1['ABL'] == ABL) & (data_df_1['ILD'] == ILD)]
-
-            sim_up = sim_df_1_ABL_ILD[sim_df_1_ABL_ILD['choice'] == 1]
-            sim_down = sim_df_1_ABL_ILD[sim_df_1_ABL_ILD['choice'] == -1]
-            data_up = data_df_1_ABL_ILD[data_df_1_ABL_ILD['choice'] == 1]
-            data_down = data_df_1_ABL_ILD[data_df_1_ABL_ILD['choice'] == -1]
-
-            sim_up_rt = sim_up['rt'] - sim_up['t_stim']
-            sim_down_rt = sim_down['rt'] - sim_down['t_stim']
-            data_up_rt = data_up['rt'] - data_up['t_stim']
-            data_down_rt = data_down['rt'] - data_down['t_stim']
-
-            sim_up_hist, _ = np.histogram(sim_up_rt, bins=bins, density=True)
-            sim_down_hist, _ = np.histogram(sim_down_rt, bins=bins, density=True)
-            data_up_hist, _ = np.histogram(data_up_rt, bins=bins, density=True)
-            data_down_hist, _ = np.histogram(data_down_rt, bins=bins, density=True)
-
-            # Normalize histograms by proportion of trials
-            sim_up_hist *= len(sim_up) / len(sim_df_1_ABL_ILD)
-            sim_down_hist *= len(sim_down) / len(sim_df_1_ABL_ILD)
-            data_up_hist *= len(data_up) / len(data_df_1_ABL_ILD)
-            data_down_hist *= len(data_down) / len(data_df_1_ABL_ILD)
-
-            # theory
-            trunc_fac_samples = np.zeros((N_theory))
-
-            for idx, t_stim in enumerate(t_stim_samples):
-                trunc_fac_samples[idx] = cum_pro_and_reactive_time_vary_fn(
-                                    t_stim + 1, T_trunc,
-                                    V_A, theta_A, t_A_aff,
-                                    t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
-                                    phi_params_obj, rate_norm_l, 
-                                    is_norm, is_time_vary, K_max) \
-                                    - \
-                                    cum_pro_and_reactive_time_vary_fn(
-                                    t_stim, T_trunc,
-                                    V_A, theta_A, t_A_aff,
-                                    t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
-                                    phi_params_obj, rate_norm_l, 
-                                    is_norm, is_time_vary, K_max) + 1e-10
-            trunc_factor = np.mean(trunc_fac_samples)
-            
-            up_mean = np.array([up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
-                        t, 1,
-                        P_A_mean[i], C_A_mean[i],
-                        ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go,
-                        phi_params_obj, rate_norm_l, 
-                        is_norm, is_time_vary, K_max) for i, t in enumerate(t_pts)])
-            down_mean = np.array([up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
-                    t, -1,
-                    P_A_mean[i], C_A_mean[i],
-                    ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go,
-                    phi_params_obj, rate_norm_l, 
-                    is_norm, is_time_vary, K_max) for i, t in enumerate(t_pts)])
-            
-            mask_0_1      = (t_pts >= 0) & (t_pts <= 1)   # boolean index
-            t_pts_0_1     = t_pts[mask_0_1]               # time vector you already made
-            up_mean_0_1   = up_mean[mask_0_1]
-            down_mean_0_1 = down_mean[mask_0_1]
-            
-            up_theory_mean_norm = up_mean_0_1 / trunc_factor
-            down_theory_mean_norm = down_mean_0_1 / trunc_factor
-
-            theory_results_up_and_down[(ABL, ILD)] = {'up': up_theory_mean_norm.copy(),
-                                        'down': down_theory_mean_norm.copy()}
-            if theory_time_axis is None: # Store time axis only once
-                theory_time_axis = t_pts_0_1.copy()
-
-
-            # Plot
-            ax.plot(bin_centers, data_up_hist, color='b', label='Data' if (i_idx == 0 and a_idx == 0) else "")
-            ax.plot(bin_centers, -data_down_hist, color='b')
-            ax.plot(bin_centers, sim_up_hist, color='r', label='Sim' if (i_idx == 0 and a_idx == 0) else "")
-            ax.plot(bin_centers, -sim_down_hist, color='r')
-
-            ax.plot(t_pts_0_1, up_theory_mean_norm, lw=3, alpha=0.2, color='g')
-            ax.plot(t_pts_0_1, -down_theory_mean_norm, lw=3, alpha=0.2, color='g')
-
-            # Compute fractions
-            data_total = len(data_df_1_ABL_ILD)
-            sim_total = len(sim_df_1_ABL_ILD)
-            data_up_frac = len(data_up) / data_total if data_total else 0
-            data_down_frac = len(data_down) / data_total if data_total else 0
-            sim_up_frac = len(sim_up) / sim_total if sim_total else 0
-            sim_down_frac = len(sim_down) / sim_total if sim_total else 0
-
-            ax.set_title(
-                f"ABL: {ABL}, ILD: {ILD}\n"
-                f"Data,Sim: (+{data_up_frac:.2f},+{sim_up_frac:.2f}), "
-                f"(-{data_down_frac:.2f},-{sim_down_frac:.2f})"
-            )
-            
-            ax.axhline(0, color='k', linewidth=0.5)
-            ax.set_xlim([0, 0.7])
-            if a_idx == 0:
-                ax.set_ylabel("Density (Up / Down flipped)")
-            if i_idx == n_rows - 1:
-                ax.set_xlabel("RT (s)")
-
-    fig_vanilla_tied_rtd.tight_layout()
-    fig_vanilla_tied_rtd.legend(loc='upper right')
-    fig_vanilla_tied_rtd.suptitle(f'RT Distributions (Animal: {animal})', y=1.01) # Add overall title
-    pdf.savefig(fig_vanilla_tied_rtd, bbox_inches='tight')
-    plt.close(fig_vanilla_tied_rtd) # Close the figure
-
-
-
-
-
-    def plot_tacho(df_1):
-        df_1 = df_1.copy()
-        df_1['RT_bin'] = pd.cut(df_1['rt'] - df_1['t_stim'], bins=bins, include_lowest=True)
-        grouped = df_1.groupby('RT_bin', observed=False)['correct'].agg(['mean', 'count'])
-        grouped['bin_mid'] = grouped.index.map(lambda x: x.mid)
-        return grouped['bin_mid'], grouped['mean']
-    # ILD_arr_minus_zero = [x for x in ILD_arr if x != 0]
-
-    n_rows = len(ILD_arr)
-    n_cols = len(ABL_arr)
-
-    # === Define fig2 ===
-    fig_tacho_vanilla_tied, axs = plt.subplots(n_rows, n_cols, figsize=(4 * n_cols, 3 * n_rows), sharey='row')
-
-    for i_idx, ILD in enumerate(ILD_arr):
-        for a_idx, ABL in enumerate(ABL_arr):
-            ax = axs[i_idx, a_idx] if n_rows > 1 else axs[a_idx]
-
-            sim_df_1_ABL_ILD = sim_df_1[(sim_df_1['ABL'] == ABL) & (sim_df_1['ILD'] == ILD)]
-            data_df_1_ABL_ILD = data_df_1[(data_df_1['ABL'] == ABL) & (data_df_1['ILD'] == ILD)]
-
-            sim_tacho_x, sim_tacho_y = plot_tacho(sim_df_1_ABL_ILD)
-            data_tacho_x, data_tacho_y = plot_tacho(data_df_1_ABL_ILD)
-
-            # Plotting
-            ax.plot(data_tacho_x, data_tacho_y, color='b', label='Data' if (i_idx == 0 and a_idx == 0) else "")
-            ax.plot(sim_tacho_x, sim_tacho_y, color='r', label='Sim' if (i_idx == 0 and a_idx == 0) else "")
-
-            up_theory_mean_norm = theory_results_up_and_down[(ABL, ILD)]['up']
-            down_theory_mean_norm = theory_results_up_and_down[(ABL, ILD)]['down']
-            if ILD > 0:
-                ax.plot(t_pts_0_1, up_theory_mean_norm/(up_theory_mean_norm + down_theory_mean_norm), color='g', lw=3, alpha=0.2)
-            elif ILD < 0:
-                ax.plot(t_pts_0_1, down_theory_mean_norm/(up_theory_mean_norm + down_theory_mean_norm), color='g', lw=3, alpha=0.2)
-            else:
-                ax.plot(t_pts_0_1, 0.5*np.ones_like(t_pts_0_1), color='g', lw=3, alpha=0.2)
-
-            ax.set_ylim([0, 1])
-            ax.set_xlim([0, 0.7])
-            ax.set_title(f"ABL: {ABL}, ILD: {ILD}")
-            if a_idx == 0:
-                ax.set_ylabel("P(correct)")
-            if i_idx == n_rows - 1:
-                ax.set_xlabel("RT (s)")
-
-    fig_tacho_vanilla_tied.tight_layout()
-    fig_tacho_vanilla_tied.legend(loc='upper right')
-    fig_tacho_vanilla_tied.suptitle(f'Tachometric Curves (Animal: {animal})', y=1.01) # Add overall title
-    pdf.savefig(fig_tacho_vanilla_tied, bbox_inches='tight')
-    plt.close(fig_tacho_vanilla_tied) # Close the figure
-
-
-    # %%
-    def grand_rtd(df_1):
-        df_1_rt = df_1['rt'] - df_1['t_stim']
-        rt_hist, _ = np.histogram(df_1_rt, bins=bins, density=True)
-        return rt_hist
-
-    def plot_psycho(df_1):
-        prob_choice_dict = {}
-
-        all_ABL = np.sort(df_1['ABL'].unique())
-        all_ILD = np.sort(ILD_arr)
-
-        for abl in all_ABL:
-            filtered_df = df_1[df_1['ABL'] == abl]
-            prob_choice_dict[abl] = [
-                sum(filtered_df[filtered_df['ILD'] == ild]['choice'] == 1) / len(filtered_df[filtered_df['ILD'] == ild])
-                for ild in all_ILD
-            ]
-
-        return prob_choice_dict
-
-    # === Define fig3 ===
-    fig_grand_vanilla_tied, axes = plt.subplots(1, 3, figsize=(15, 4))
-
-    # === Grand RTD ===
-    axes[0].plot(bin_centers, grand_rtd(data_df_1), color='b', label='data')
-    axes[0].plot(bin_centers, grand_rtd(sim_df_1), color='r', label='sim')
-    axes[0].legend()
-    axes[0].set_xlabel('rt wrt stim')
-    axes[0].set_ylabel('density')
-    axes[0].set_title('Grand RTD')
-
-    # === Grand Psychometric ===
-    data_psycho = plot_psycho(data_df_1)
-    sim_psycho = plot_psycho(sim_df_1)
-
-    colors = [
-        '#1f77b4',  # muted blue
-        '#ff7f0e',  # safety orange
-        '#2ca02c',  # muted green
-        '#d62728',  # brick red
-        '#9467bd',  # muted purple
-        '#8dd3c7',  # pale teal
-        '#fdb462',  # burnt orange
-        '#bcbd22',  # golden yellow
-        '#17becf',  # bright blue
-        '#9edae5',  # pale blue-green
-    ]  # Define colors for each ABL
-    for i, ABL in enumerate(ABL_arr):
-        axes[1].plot(ILD_arr, data_psycho[ABL], color=colors[i], label=f'data ABL={ABL}', marker='o', linestyle='None')
-        axes[1].plot(ILD_arr, sim_psycho[ABL], color=colors[i], linestyle='-')
-
-    axes[1].legend()
-    axes[1].set_xlabel('ILD')
-    axes[1].set_ylabel('P(right)')
-    axes[1].set_title('Grand Psychometric')
-
-    # === Grand Tacho ===
-    data_tacho_x, data_tacho_y = plot_tacho(data_df_1)
-    sim_tacho_x, sim_tacho_y = plot_tacho(sim_df_1)
-
-    axes[2].plot(data_tacho_x, data_tacho_y, color='b', label='data')
-    axes[2].plot(sim_tacho_x, sim_tacho_y, color='r', label='sim')
-    axes[2].legend()
-    axes[2].set_xlabel('rt wrt stim')
-    axes[2].set_ylabel('acc')
-    axes[2].set_title('Grand Tacho')
-    axes[2].set_ylim(0.5, 1)
-
-    fig_grand_vanilla_tied.tight_layout()
-    fig_grand_vanilla_tied.suptitle(f'Grand Summary Plots (Animal: {animal})', y=1.03) # Add overall title
-    pdf.savefig(fig_grand_vanilla_tied, bbox_inches='tight')
-    plt.close(fig_grand_vanilla_tied) # Close the figure
+    pdf.close()
+    break
 
     ############### END Of vanilla tied model #####################
 
