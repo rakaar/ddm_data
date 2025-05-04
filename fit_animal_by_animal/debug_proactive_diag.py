@@ -332,3 +332,9 @@ for animal in df_valid_and_aborts['animal'].unique():
     )
     pdf.close()
 
+
+# %% 
+print(results.keys())
+for key in results.keys():
+    print(f'key = {key}')
+    print(results[key].keys())
