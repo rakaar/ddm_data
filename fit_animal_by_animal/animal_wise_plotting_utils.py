@@ -130,15 +130,27 @@ def plot_abort_diagnostic(pdf_pages: PdfPages, df_aborts_animal: pd.DataFrame,
 
     # Plotting
     fig_aborts_diag = plt.figure(figsize=(10, 5))
-    bins = np.arange(0, 2, 0.02)
+    bins = np.arange(0, 2, 0.01)
 
     # Get empirical abort RTs and filter by truncation time
     animal_abort_RT = df_aborts_animal['TotalFixTime'].dropna().values
     animal_abort_RT_trunc = animal_abort_RT[animal_abort_RT > T_trunc]
 
-    # Plot empirical histogram
+    # Plot empirical histogram (scaled by fraction of aborts after truncation)
     if len(animal_abort_RT_trunc) > 0:
-        plt.hist(animal_abort_RT_trunc, bins=bins, density=True, alpha=0.6, label='Data (Aborts > T_trunc)', histtype='step')
+        # Compute N_valid_and_trunc_aborts as in the reference code
+        # Need df_all_trials_animal and df_before_trunc_animal
+        if 'animal' in df_valid_and_aborts.columns:
+            animal_id = df_aborts_animal['animal'].iloc[0] if len(df_aborts_animal) > 0 else None
+            df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal_id]
+        else:
+            df_all_trials_animal = df_valid_and_aborts
+        df_before_trunc_animal = df_aborts_animal[df_aborts_animal['TotalFixTime'] < T_trunc]
+        N_valid_and_trunc_aborts = len(df_all_trials_animal) - len(df_before_trunc_animal)
+        frac_aborts = len(animal_abort_RT_trunc) / N_valid_and_trunc_aborts if N_valid_and_trunc_aborts > 0 else 0
+        aborts_hist, _ = np.histogram(animal_abort_RT_trunc, bins=bins, density=True)
+        # Scale the histogram by frac_aborts
+        plt.plot(bins[:-1], aborts_hist * frac_aborts, label='Data (Aborts > T_trunc)')
     else:
         # Add a note if no data to plot
         plt.text(0.5, 0.5, 'No empirical abort data > T_trunc', 
@@ -155,7 +167,7 @@ def plot_abort_diagnostic(pdf_pages: PdfPages, df_aborts_animal: pd.DataFrame,
     plt.xlim([0, np.max(bins)]) # Limit x-axis to the bin range
     # Add a reasonable upper limit to y-axis if needed, e.g., based on max density
     if len(animal_abort_RT_trunc) > 0:
-        max_density = np.max(np.histogram(animal_abort_RT_trunc, bins=bins, density=True)[0])
+        max_density = np.max(aborts_hist * frac_aborts) if len(aborts_hist) > 0 else 1
         plt.ylim([0, max(np.max(avg_pdf), max_density) * 1.1])
     elif np.any(avg_pdf > 0):
          plt.ylim([0, np.max(avg_pdf) * 1.1])
@@ -521,3 +533,142 @@ def plot_grand_summary(sim_df_1, data_df_1, ILD_arr, ABL_arr, bins, bin_centers,
     plt.close(fig_grand)
 
 
+def render_df_to_pdf(df, title, pdf):
+    """
+    Renders a DataFrame as a formatted table in the PDF document.
+    
+    Args:
+        df: DataFrame to display
+        title: Title for the table page
+        pdf: PdfPages object to save to
+    """
+    fig, ax = plt.subplots(figsize=(min(20, 2 + 0.7 * len(df.columns)), 1.5 + 0.4 * len(df)))
+    ax.axis('off')
+    table = ax.table(cellText=df.values,
+                     colLabels=df.columns,
+                     loc='center',
+                     cellLoc='center',
+                     colLoc='center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.auto_set_column_width(col=list(range(len(df.columns))))
+    plt.title(title, fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    pdf.savefig(fig, bbox_inches='tight')
+    plt.close(fig)
+
+def create_abort_table(abort_results):
+    """
+    Creates a DataFrame table summarizing abort model results.
+    
+    Args:
+        abort_results: Dictionary containing abort model results with parameter samples
+        
+    Returns:
+        DataFrame with formatted abort results or None if no valid data
+    """
+    if not abort_results or not isinstance(abort_results, dict):
+        print("Abort results data not found or invalid.")
+        return None
+
+    data = {'Parameter': [], 'Mean Value': []}
+    scalar_data = {}
+
+    for key, value in abort_results.items():
+        if key.endswith('_samples') or key == 't_A_aff_samp': # Include potential typo
+            param_name = key.replace('_samples', '').replace('_samp', '')
+            if isinstance(value, np.ndarray) and value.size > 0:
+                data['Parameter'].append(param_name)
+                data['Mean Value'].append(np.mean(value))
+            else:
+                data['Parameter'].append(param_name)
+                data['Mean Value'].append('N/A') # Handle non-array or empty
+        elif key in ['elbo', 'elbo_sd', 'loglike']:
+            scalar_data[key] = value
+
+    df = pd.DataFrame(data)
+    # Add scalar values as separate rows
+    for key, value in scalar_data.items():
+         df.loc[len(df)] = [key, value]
+
+    # Add message if exists
+    if 'message' in abort_results:
+         df.loc[len(df)] = ['message', abort_results['message']]
+
+    print("--- Abort Model Results ---")
+    print(df.to_string(index=False))
+    print("\n")
+    return df
+
+def create_tied_table(all_results):
+    """
+    Creates a DataFrame table comparing all tied model results.
+    
+    Args:
+        all_results: Dictionary containing all model results
+        
+    Returns:
+        DataFrame with formatted comparison or None if no valid data
+    """
+    tied_keys = [k for k in all_results.keys() if k.startswith('vbmc_') and k.endswith('_tied_results')]
+    if not tied_keys:
+        print("No tied parameter results found.")
+        return None
+
+    # Collect all unique parameter names (base name without _samples)
+    all_params = set()
+    for key in tied_keys:
+        for param_key in all_results[key].keys():
+            if param_key.endswith('_samples'):
+                all_params.add(param_key.replace('_samples', ''))
+
+    # Use user-specified order
+    desired_order = [
+        'rate_lambda', 'T_0', 'theta_E', 'w', 't_E_aff', 'del_go',
+        'rate_norm_l', 'bump_height', 'bump_width', 'dip_height', 'dip_width'
+    ]
+    # Only keep params that are present
+    present_params = [p for p in desired_order if p in all_params]
+    param_headers = []
+    for p in present_params:
+        if p == 'T_0':
+            param_headers.append('T_0 (ms)')
+        else:
+            param_headers.append(p)
+
+    table_data = {'Model': []}
+    scalar_cols = ['ELBO', 'ELBO SD', 'Log Likelihood']
+    for col in scalar_cols + param_headers:
+        table_data[col] = []
+
+    # Populate table data
+    for key in tied_keys:
+        model_name = key.replace('vbmc_', '').replace('_tied_results', '').replace('_', ' ').title()
+        table_data['Model'].append(model_name)
+        model_results = all_results[key]
+
+        # Add scalar values, rounded
+        for col in ['elbo', 'elbo_sd', 'loglike']:
+            val = model_results.get(col, '-')
+            if isinstance(val, float):
+                table_data[{'elbo': 'ELBO', 'elbo_sd': 'ELBO SD', 'loglike': 'Log Likelihood'}[col]].append(f"{val:.3f}")
+            else:
+                table_data[{'elbo': 'ELBO', 'elbo_sd': 'ELBO SD', 'loglike': 'Log Likelihood'}[col]].append(val)
+
+        # Add parameter means, rounded, and T_0 scaled
+        for i, param in enumerate(present_params):
+            param_key_samples = f"{param}_samples"
+            header = param_headers[i]
+            if param_key_samples in model_results and isinstance(model_results[param_key_samples], np.ndarray):
+                mean_val = np.mean(model_results[param_key_samples])
+                if param == 'T_0':
+                    mean_val = mean_val * 1000  # convert to ms
+                table_data[header].append(f"{mean_val:.3f}")
+            else:
+                table_data[header].append('-')
+
+    df = pd.DataFrame(table_data)
+    print("--- Tied Models Comparison ---")
+    print(df.to_string(index=False))
+    print("\n")
+    return df
