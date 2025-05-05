@@ -66,67 +66,19 @@ def plot_abort_diagnostic(pdf_pages: PdfPages, df_aborts_animal: pd.DataFrame,
                           rho_A_t_VEC_fn, cum_A_t_fn, title: str) -> None:
     """Creates and saves the specific diagnostic plot comparing empirical and theoretical abort RTs."""
     t_pts = np.arange(0, 1.25, 0.001)
-    
-    # Sample intended fixation times from all trials (valid and aborts)
-    # Use .copy() to avoid SettingWithCopyWarning if df_valid_and_aborts is a slice
-    t_stim_samples_df = df_valid_and_aborts.sample(n=N_theory, replace=True).copy()
-    t_stim_samples = t_stim_samples_df['intended_fix'].values 
-
     pdf_samples = np.zeros((N_theory, len(t_pts)))
+
+    t_stim_samples_df = df_valid_and_aborts.sample(n=N_theory, replace=True).copy()
+    t_stim_samples = t_stim_samples_df['intended_fix'].values
 
     for i, t_stim in enumerate(t_stim_samples):
         t_stim_idx = np.searchsorted(t_pts, t_stim)
         proactive_trunc_idx = np.searchsorted(t_pts, T_trunc)
-        
-        # Ensure indices are valid and make sense
-        if proactive_trunc_idx >= t_stim_idx:
-            # If truncation happens at or after intended stim time, PDF is 0
-            continue 
-            
-        pdf_samples[i, :proactive_trunc_idx] = 0 # PDF is zero before truncation
-        pdf_samples[i, t_stim_idx:] = 0 # PDF is zero after intended stim time
-        
-        t_btn = t_pts[proactive_trunc_idx:t_stim_idx] # Time between truncation and stim end
-        if len(t_btn) == 0:
-            continue # Skip if no time points in the interval
-            
-        # Calculate time relative to afferent delay
-        t_rel_aff = t_btn - t_A_aff
-        # Ensure we only calculate for non-negative relative times
-        valid_time_mask = t_rel_aff >= 0
-        if not np.any(valid_time_mask):
-             continue # Skip if no valid times after afferent delay
-        
-        # Calculate the normalization factor (denominator)
-        # Calculate CDF at T_trunc relative to afferent delay
-        t_trunc_rel_aff = T_trunc - t_A_aff
-        if t_trunc_rel_aff < 0:
-             cum_A_at_trunc = 0.0 # CDF is 0 before afferent delay starts
-        else:
-             cum_A_at_trunc = cum_A_t_fn(t_trunc_rel_aff, V_A, theta_A)
-        
-        norm_factor = 1.0 - cum_A_at_trunc
-        if norm_factor <= 1e-9: # Avoid division by zero or very small numbers
-            # If probability of not aborting by T_trunc is near zero, PDF is effectively zero
-            continue 
-
-        # Calculate the PDF for valid relative times
-        rho_vals = rho_A_t_VEC_fn(t_rel_aff[valid_time_mask], V_A, theta_A)
-        
-        # Assign calculated PDF values, dividing by the normalization factor
-        pdf_slice = np.zeros_like(t_btn, dtype=float)
-        pdf_slice[valid_time_mask] = rho_vals / norm_factor
-        
-        # Place the calculated PDF slice into the correct indices
-        pdf_samples[i, proactive_trunc_idx:t_stim_idx] = pdf_slice
-
-    # Average PDF across samples
+        pdf_samples[i, :proactive_trunc_idx] = 0
+        pdf_samples[i, t_stim_idx:] = 0
+        t_btn = t_pts[proactive_trunc_idx:t_stim_idx-1]
+        pdf_samples[i, proactive_trunc_idx:t_stim_idx-1] = rho_A_t_VEC_fn(t_btn - t_A_aff, V_A, theta_A) / (1 - cum_A_t_fn(T_trunc - t_A_aff, V_A, theta_A))
     avg_pdf = np.mean(pdf_samples, axis=0)
-    # Normalize the average PDF so its integral is 1
-    # if np.sum(avg_pdf) > 1e-9:
-    #      avg_pdf = avg_pdf / (np.sum(avg_pdf) * (t_pts[1]-t_pts[0])) # Normalize by integral
-    # else:
-    #      avg_pdf.fill(0)
 
     # Plotting
     fig_aborts_diag = plt.figure(figsize=(10, 5))

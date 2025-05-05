@@ -1,6 +1,8 @@
 # %%
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')  # Use the Agg backend which doesn't require tkinter
 from joblib import Parallel, delayed
 from tqdm.notebook import tqdm
 from scipy.integrate import quad
@@ -756,7 +758,8 @@ df_aborts = df_valid_and_aborts[df_valid_and_aborts['abort_event'] == 3]
 ### Animal selection ###
 animal_ids = df_valid_and_aborts['animal'].unique()
 # animal = animal_ids[-1]
-for animal_idx in [-1]:
+# for animal_idx in [-1]:
+for animal_idx in range(len(animal_ids)):
     animal = animal_ids[animal_idx]
 
     df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal]
@@ -768,7 +771,7 @@ for animal_idx in [-1]:
     ############ END NOTE ############################################
 
     print(f'Batch: {batch_name},sample animal: {animal}')
-    pdf_filename = f'results_{batch_name}_animal_{animal}.pdf'
+    pdf_filename = f'shabby_code_results_{batch_name}_animal_{animal}.pdf'
     pdf = PdfPages(pdf_filename)
 
     # --- Page 1: Batch Name and Animal ID ---
@@ -795,12 +798,12 @@ for animal_idx in [-1]:
     ########### Abort Model ##############################
     ####################################################
 
-    V_A_0 = 1.6
-    theta_A_0 = 2.5
-    t_A_aff_0 = -0.22
+    V_A_0 = 3.3
+    theta_A_0 = 3.8
+    t_A_aff_0 = -0.27
 
     x_0 = np.array([V_A_0, theta_A_0, t_A_aff_0])
-    vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on', 'max_fun_evals': 150 * (2 + 3)})
+    vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on', 'max_fun_evals': 200 * (2 + 3)})
     # vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on'})
 
     vp, results = vbmc.optimize()
@@ -2361,14 +2364,14 @@ for animal_idx in [-1]:
         'vbmc_time_vary_norm_tied_results': vbmc_time_vary_norm_tied_results
     }
     ### pkl file - vbmc samples ###
-    pkl_filename = f'results_{batch_name}_animal_{animal}.pkl'
+    pkl_filename = f'shabby_code_results_{batch_name}_animal_{animal}.pkl'
 
     with open(pkl_filename, 'wb') as f:
         pickle.dump(save_dict, f)
 
-    print(f"Saved results to {pkl_filename}")
+    print(f"Saved results to {pkl_filename}")  # now prefixed with shabby_code_
 
     ### PDF save  ###
     pdf.close()
-    print(f"Saved PDF report to {pdf_filename}")
+    print(f"Saved PDF report to {pdf_filename}")  # now prefixed with shabby_code_
 
