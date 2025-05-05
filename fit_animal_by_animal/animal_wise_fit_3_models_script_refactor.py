@@ -36,7 +36,8 @@ from animal_wise_plotting_utils import prepare_simulation_data, calculate_theore
 
 
 ############3 Params #############
-batch_name = 'Comparable'
+# batch_name = 'Comparable'
+batch_name = 'SD'
 K_max = 10
 
 N_theory = int(1e3)
@@ -742,7 +743,8 @@ exp_df = exp_df[~((exp_df['RTwrtStim'].isna()) & (exp_df['abort_event'] == 3))].
 
 exp_df_batch = exp_df[
     (exp_df['batch_name'] == batch_name) &
-    (exp_df['LED_trial'].isin([np.nan, 0]))
+    (exp_df['LED_trial'].isin([np.nan, 0])) &
+    (exp_df['session_type'].isin([1,7]))
 ].copy()
 
 exp_df_batch['choice'] = exp_df_batch['response_poke'].apply(lambda x: 1 if x == 3 else (-1 if x == 2 else random.choice([1, -1])))
@@ -836,7 +838,7 @@ for animal_idx in range(len(animal_ids)):
         title=f'Abort Model - Posterior Means ({animal})',
         posterior_means=pd.Series({'V_A': V_A, 'theta_A': theta_A, 't_A_aff': t_A_aff}),
         param_labels={'V_A': 'V_A', 'theta_A': 'theta_A', 't_A_aff': 't_A_aff'},
-        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd'], 'loglike': aborts_loglike},
+        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd'], 'loglike': aborts_loglike, 'convergence_status': results.get('convergence_status'), 'r_index': results.get('r_index'), 'success_flag': results.get('success_flag')},
         extra_text=f"T_trunc = {T_trunc:.3f}"
     )
 
@@ -906,7 +908,7 @@ for animal_idx in range(len(animal_ids)):
     ])
 
     # Run VBMC
-    vbmc = VBMC(vbmc_vanilla_tied_joint_fn, x_0, vanilla_tied_lb, vanilla_tied_ub, vanilla_plb, vanilla_pub, options={'display': 'on'})
+    vbmc = VBMC(vbmc_vanilla_tied_joint_fn, x_0, vanilla_tied_lb, vanilla_tied_ub, vanilla_plb, vanilla_pub, options={'display': 'on', 'max_fun_evals': 100 * (2 + 6)})
     vp, results = vbmc.optimize()
 
     # %%
@@ -984,7 +986,7 @@ for animal_idx in range(len(animal_ids)):
             't_E_aff': r'$t_E^{aff}$',
             'del_go': r'$\Delta_{go}$'
         },
-        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd'], 'loglike': vanilla_tied_loglike},
+        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd'], 'loglike': vanilla_tied_loglike, 'convergence_status': results.get('convergence_status'), 'r_index': results.get('r_index'), 'success_flag': results.get('success_flag')},
         extra_text=f"T_trunc = {T_trunc:.3f}"
     )
 
@@ -1093,7 +1095,7 @@ for animal_idx in range(len(animal_ids)):
         rate_norm_l_0
     ])
 
-    vbmc = VBMC(vbmc_norm_tied_joint_fn, x_0, norm_tied_lb, norm_tied_ub, norm_tied_plb, norm_tied_pub, options={'display': 'on'})
+    vbmc = VBMC(vbmc_norm_tied_joint_fn, x_0, norm_tied_lb, norm_tied_ub, norm_tied_plb, norm_tied_pub, options={'display': 'on', 'max_fun_evals': 100 * (2 + 7)})
     vp, results = vbmc.optimize()
 
     vp_samples = vp.sample(int(1e5))[0]
@@ -1163,7 +1165,7 @@ for animal_idx in range(len(animal_ids)):
             'del_go': r'$\Delta_{go}$',
             'rate_norm_l': r'rate_norm'
         },
-        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd'], 'loglike': norm_tied_loglike},
+        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd'], 'loglike': norm_tied_loglike, 'convergence_status': results.get('convergence_status'), 'r_index': results.get('r_index'), 'success_flag': results.get('success_flag')},
         extra_text=f"T_trunc = {T_trunc:.3f}"
     )
 
@@ -1272,7 +1274,7 @@ for animal_idx in range(len(animal_ids)):
         dip_width_0
     ])
 
-    vbmc = VBMC(vbmc_time_vary_norm_joint_fn, x_0, time_vary_norm_tied_lb, time_vary_norm_tied_ub, time_vary_norm_tied_plb, time_vary_norm_tied_pub, options={'display': 'on'})
+    vbmc = VBMC(vbmc_time_vary_norm_joint_fn, x_0, time_vary_norm_tied_lb, time_vary_norm_tied_ub, time_vary_norm_tied_plb, time_vary_norm_tied_pub, options={'display': 'on', 'max_fun_evals': 100 * (2 + 11)})
     vp, results = vbmc.optimize()
 
     #### time vary norm tied model ####
@@ -1375,7 +1377,7 @@ for animal_idx in range(len(animal_ids)):
             'dip_height': r'dip_height',
             'dip_width': r'dip_width'
         },
-        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd'], 'loglike': time_vary_norm_loglike},
+        vbmc_results={'message': results['message'], 'elbo': results['elbo'], 'elbo_sd': results['elbo_sd'], 'loglike': time_vary_norm_loglike, 'convergence_status': results.get('convergence_status'), 'r_index': results.get('r_index'), 'success_flag': results.get('success_flag')},
         extra_text=f"T_trunc = {T_trunc:.3f}"
     )
     pdf.savefig(time_vary_norm_tied_corner_fig, bbox_inches='tight')
