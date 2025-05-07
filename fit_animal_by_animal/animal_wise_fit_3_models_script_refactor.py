@@ -110,8 +110,8 @@ V_A_bounds = [0.1, 10]
 theta_A_bounds = [0.1, 10]
 t_A_aff_bounds = [-5, 0.1]
 
-V_A_plausible_bounds = [0.5, 3]
-theta_A_plausible_bounds = [0.5, 3]
+V_A_plausible_bounds = [0.5, 4]
+theta_A_plausible_bounds = [0.5, 4]
 t_A_aff_plausible_bounds = [-2, 0.06]
 
 ## bounds array
@@ -786,7 +786,13 @@ df_aborts = df_valid_and_aborts[df_valid_and_aborts['abort_event'] == 3]
 animal_ids = df_valid_and_aborts['animal'].unique()
 # animal = animal_ids[-1]
 # for animal_idx in [-1]:
-for animal_idx in range(len(animal_ids)):
+
+
+
+
+# %%
+# for animal_idx in range(len(animal_ids)):
+for animal_idx in [-1]:
     animal = animal_ids[animal_idx]
 
     df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal]
@@ -1045,9 +1051,9 @@ for animal_idx in range(len(animal_ids)):
     phi_params_obj = np.nan
 
     ### Stimulus samples for all 3 TIED models
-    t_stim_samples = df_all_trials_animal['intended_fix'].sample(N_sim, replace=True).values
-    ABL_samples = df_all_trials_animal['ABL'].sample(N_sim, replace=True).values
-    ILD_samples = df_all_trials_animal['ILD'].sample(N_sim, replace=True).values
+    t_stim_samples = df_valid_animal_less_than_1['intended_fix'].sample(N_sim, replace=True).values
+    ABL_samples = df_valid_animal_less_than_1['ABL'].sample(N_sim, replace=True).values
+    ILD_samples = df_valid_animal_less_than_1['ILD'].sample(N_sim, replace=True).values
     
     # P_A and C_A vs t wrt stim for all 3 TIED models
     t_pts = np.arange(-1, 2, 0.001)

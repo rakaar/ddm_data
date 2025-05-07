@@ -1,3 +1,8 @@
+# TODO
+# 1. correlations
+# 2. corr btn input and output
+# 3. check code and see
+
 # %%
 import numpy as np
 import pandas as pd
@@ -28,22 +33,19 @@ for idx, T in enumerate([1]):
         animal_df['is_abort'] = (animal_df['abort_event'] == 3).astype(int)
         animal_df['short_poke'] = ((animal_df['is_abort'] == 1) & (animal_df['TotalFixTime'] < 0.3)).astype(int)
         animal_df['rewarded'] = (animal_df['success'] == 1).astype(int)
-        animal_df['LED_trial'] = animal_df['LED_trial'].fillna(0).astype(int)
+        animal_df['abs_ILD'] = animal_df['ILD'].abs()
+
         animal_df['norm_trial'] = animal_df.groupby('session')['trial'].transform(
             lambda x: (x - x.min()) / (x.max() - x.min() if x.max() > x.min() else 1))
         
         # Robust lagged variable creation using trial numbers within each session
         def add_lagged_column(df, col, k):
-            def get_lagged(session_df):
-                trial_to_val = session_df.set_index('trial')[col]
-                return session_df['trial'].map(lambda t: trial_to_val.get(t - k, np.nan))
-            # Added include_groups=False to fix deprecation warning
-            return df.groupby('session', group_keys=False, include_groups=False).apply(get_lagged)
+            # Use groupby().shift() to create lagged columns efficiently and warning-free
+            return df.groupby('session')[col].shift(k)
 
-        # Removed MT and LED_trial from lagged variables
+        # Removed MT from lagged variables
         # MT was removed to prevent systematic removal of rows where abort_1 = 1
-        # LED_trial was removed because it's constant (always 0) for all animals
-        lagged_vars = ['rewarded', 'is_abort', 'short_poke', 'intended_fix', 'ILD', 'ABL', 'TotalFixTime', 'CNPTime']
+        lagged_vars = ['rewarded', 'is_abort', 'short_poke', 'intended_fix', 'abs_ILD', 'ABL', 'TotalFixTime', 'CNPTime']
         for k in range(1, T + 1):
             for var in lagged_vars:
                 colname = f'{var}_{k}' if var != 'is_abort' else f'abort_{k}'
@@ -51,9 +53,9 @@ for idx, T in enumerate([1]):
                 animal_df[colname] = add_lagged_column(animal_df, base_col, k)
 
         
-        # Updated lag_cols to match the updated lagged_vars list (removed MT and LED_trial)
+        # Updated lag_cols to match the updated lagged_vars list (removed MT)
         lag_cols = [f'{var}_{k}' for k in range(1, T + 1)
-                    for var in ['rewarded', 'abort', 'short_poke', 'intended_fix', 'ILD', 'ABL', 'TotalFixTime', 'CNPTime']]
+                    for var in ['rewarded', 'abort', 'short_poke', 'intended_fix', 'abs_ILD', 'ABL', 'TotalFixTime', 'CNPTime']]
         
         animal_df = animal_df.dropna(subset=lag_cols).reset_index(drop=True)
         animal_df = animal_df[animal_df['is_abort'] == 1].copy()
@@ -71,9 +73,9 @@ for idx, T in enumerate([1]):
         train_df = animal_df[animal_df['session'].isin(train_sessions)].copy()
         test_df = animal_df[animal_df['session'].isin(test_sessions)].copy()
         
-        # Updated predictor_cols to remove MT and LED_trial
+        # Updated predictor_cols to remove MT
         predictor_cols = [f'{var}_{k}' for k in range(1, T + 1)
-                          for var in ['rewarded', 'abort', 'short_poke', 'intended_fix', 'ILD', 'ABL', 'TotalFixTime', 'CNPTime']]
+                          for var in ['rewarded', 'abort', 'short_poke', 'intended_fix', 'abs_ILD', 'ABL', 'TotalFixTime', 'CNPTime']]
         predictor_cols += ['norm_trial']
         
         X_train = train_df[predictor_cols]
@@ -96,7 +98,13 @@ for idx, T in enumerate([1]):
             print(f"Animal {animal} → Dropping highly correlated columns: {high_corr_cols}")
             X_train = X_train.drop(columns=high_corr_cols)
             X_test = X_test.drop(columns=high_corr_cols, errors='ignore')
-            
+
+        # After dropping constant and highly correlated columns, check if X_train is empty
+        if X_train.shape[1] == 0 or X_train.shape[0] == 0:
+            print(f"Animal {animal} → Skipping model fit: no non-constant/correlated predictors remain after filtering.")
+            results.append({'animal': animal, 'train_auc': None, 'test_auc': None})
+            continue
+
         # Always use penalty='l2' with very large C for no regularization (for sklearn compatibility)
         model = LogisticRegression(penalty='l2', C=1e12, solver='lbfgs', max_iter=5000, class_weight='balanced', fit_intercept=True)
         model.fit(X_train, y_train)
@@ -161,23 +169,5 @@ plt.suptitle('Train and Test ROC-AUC per Animal (T=1,2,3)', fontsize=16)
 plt.tight_layout(rect=[0, 0, 1, 0.95])
 plt.show()
 
-# %%
 
 # %%
-# print(X_train[['abort_1', 'short_poke_1', 'LED_trial_1']].value_counts())
-print("\nChecking if an abort is ever followed by another abort, for each animal:")
-
-for animal in all_df['animal'].unique():
-    animal_df = all_df[all_df['animal'] == animal].copy()
-    animal_df = animal_df.sort_values(['session', 'trial'])  # Make sure trials are in order
-    animal_df['is_abort'] = (animal_df['abort_event'] == 3).astype(int)
-    animal_df['abort_prev'] = animal_df.groupby('session')['is_abort'].shift(1)
-
-    # Count cases where both current and previous are aborts
-    consecutive_aborts = ((animal_df['is_abort'] == 1) & (animal_df['abort_prev'] == 1)).sum()
-    total_aborts = (animal_df['is_abort'] == 1).sum()
-
-    print(f"Animal {animal}: {consecutive_aborts} out of {total_aborts} aborts had previous trial as abort.")
-
-    # Optional: Print the indices if you want to see where it happens
-    # print(animal_df[(animal_df['is_abort'] == 1) & (animal_df['abort_prev'] == 1)][['session', 'trial']])
