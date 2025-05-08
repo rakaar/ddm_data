@@ -37,7 +37,7 @@ from animal_wise_plotting_utils import prepare_simulation_data, calculate_theore
 
 ############3 Params #############
 # batch_name = 'Comparable'
-batch_name = 'LED1'
+batch_name = 'LED34'
 K_max = 10
 
 N_theory = int(1e3)
@@ -765,7 +765,8 @@ exp_df.loc[mask_nan & mask_success_neg1 & mask_ild_neg, 'response_poke'] = 3
 exp_df_batch = exp_df[
     (exp_df['batch_name'] == batch_name) &
     (exp_df['LED_trial'].isin([np.nan, 0])) &
-    (exp_df['session_type'].isin([1.]))
+    (exp_df['session_type'].isin([1,2,2.5,3,3.5,4])) &
+    (exp_df['animal'].isin([45,57,59,61,63]))
 ].copy()
 
 # aborts don't have choice, so assign random 
@@ -936,7 +937,7 @@ for animal_idx in range(len(animal_ids)):
     ])
 
     # Run VBMC
-    vbmc = VBMC(vbmc_vanilla_tied_joint_fn, x_0, vanilla_tied_lb, vanilla_tied_ub, vanilla_plb, vanilla_pub, options={'display': 'on', 'max_fun_evals': 100 * (2 + 6)})
+    vbmc = VBMC(vbmc_vanilla_tied_joint_fn, x_0, vanilla_tied_lb, vanilla_tied_ub, vanilla_plb, vanilla_pub, options={'display': 'on', 'max_fun_evals': 200 * (2 + 6)})
     vp, results = vbmc.optimize()
 
     # %%
@@ -1123,7 +1124,7 @@ for animal_idx in range(len(animal_ids)):
         rate_norm_l_0
     ])
 
-    vbmc = VBMC(vbmc_norm_tied_joint_fn, x_0, norm_tied_lb, norm_tied_ub, norm_tied_plb, norm_tied_pub, options={'display': 'on', 'max_fun_evals': 100 * (2 + 7)})
+    vbmc = VBMC(vbmc_norm_tied_joint_fn, x_0, norm_tied_lb, norm_tied_ub, norm_tied_plb, norm_tied_pub, options={'display': 'on', 'max_fun_evals': 200 * (2 + 7)})
     vp, results = vbmc.optimize()
 
     vp_samples = vp.sample(int(1e5))[0]
@@ -1302,7 +1303,7 @@ for animal_idx in range(len(animal_ids)):
         dip_width_0
     ])
 
-    vbmc = VBMC(vbmc_time_vary_norm_joint_fn, x_0, time_vary_norm_tied_lb, time_vary_norm_tied_ub, time_vary_norm_tied_plb, time_vary_norm_tied_pub, options={'display': 'on', 'max_fun_evals': 100 * (2 + 11)})
+    vbmc = VBMC(vbmc_time_vary_norm_joint_fn, x_0, time_vary_norm_tied_lb, time_vary_norm_tied_ub, time_vary_norm_tied_plb, time_vary_norm_tied_pub, options={'display': 'on', 'max_fun_evals': 200 * (2 + 11)})
     vp, results = vbmc.optimize()
 
     #### time vary norm tied model ####
