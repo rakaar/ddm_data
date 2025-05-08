@@ -37,7 +37,7 @@ from animal_wise_plotting_utils import prepare_simulation_data, calculate_theore
 
 ############3 Params #############
 # batch_name = 'Comparable'
-batch_name = 'SD'
+batch_name = 'LED1'
 K_max = 10
 
 N_theory = int(1e3)
@@ -765,7 +765,7 @@ exp_df.loc[mask_nan & mask_success_neg1 & mask_ild_neg, 'response_poke'] = 3
 exp_df_batch = exp_df[
     (exp_df['batch_name'] == batch_name) &
     (exp_df['LED_trial'].isin([np.nan, 0])) &
-    (exp_df['session_type'].isin([1, 7]))
+    (exp_df['session_type'].isin([1.]))
 ].copy()
 
 # aborts don't have choice, so assign random 
@@ -791,8 +791,8 @@ animal_ids = df_valid_and_aborts['animal'].unique()
 
 
 # %%
-# for animal_idx in range(len(animal_ids)):
-for animal_idx in [-1]:
+for animal_idx in range(len(animal_ids)):
+# for animal_idx in [-1]:
     animal = animal_ids[animal_idx]
 
     df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal]
@@ -819,8 +819,8 @@ for animal_idx in [-1]:
 
 
     # find ABL and ILD
-    ABL_arr = df_valid_and_aborts['ABL'].unique()
-    ILD_arr = df_valid_and_aborts['ILD'].unique()
+    ABL_arr = df_all_trials_animal['ABL'].unique()
+    ILD_arr = df_all_trials_animal['ILD'].unique()
 
 
     # sort ILD arr in ascending order
