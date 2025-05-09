@@ -157,7 +157,11 @@ def prepare_simulation_data(sim_results_df, df_valid_animal_less_than_1):
     sim_results_df_valid.loc[:, 'correct'] = sim_results_df_valid.apply(correct_func, axis=1)
     
     # Process data dataframe
-    df_valid_animal_less_than_1_drop = df_valid_animal_less_than_1.copy().drop(columns=['correct']).copy()
+    if 'correct' in df_valid_animal_less_than_1.columns:
+        df_valid_animal_less_than_1_drop = df_valid_animal_less_than_1.copy().drop(columns=['correct']).copy()
+    else:
+        df_valid_animal_less_than_1_drop = df_valid_animal_less_than_1.copy()
+    
     df_valid_animal_less_than_1_drop.loc[:,'correct'] = df_valid_animal_less_than_1_drop.apply(correct_func, axis=1)
     df_valid_animal_less_than_1_renamed = df_valid_animal_less_than_1_drop.rename(columns = {
         'TotalFixTime': 'rt',

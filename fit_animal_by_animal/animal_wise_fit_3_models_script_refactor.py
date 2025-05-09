@@ -36,8 +36,7 @@ from animal_wise_plotting_utils import prepare_simulation_data, calculate_theore
 
 
 ############3 Params #############
-# batch_name = 'Comparable'
-batch_name = 'LED34'
+batch_name = 'LED7'
 K_max = 10
 
 N_theory = int(1e3)
@@ -740,8 +739,13 @@ time_vary_norm_tied_pub = np.array([
 
 # %%
 ### Read csv and get batch data###
-exp_df = pd.read_csv('../outExp.csv')
-
+# outExp.csv
+# exp_df = pd.read_csv('../outExp.csv')
+# out_LED.csv
+exp_df = pd.read_csv('../out_LED.csv')
+exp_df.loc[:, 'RTwrtStim'] = exp_df['timed_fix'] - exp_df['intended_fix']
+exp_df = exp_df.rename(columns={'timed_fix': 'TotalFixTime'})
+# 
 # remove rows where abort happened, and RT is nan
 exp_df = exp_df[~((exp_df['RTwrtStim'].isna()) & (exp_df['abort_event'] == 3))].copy()
 
@@ -763,10 +767,11 @@ exp_df.loc[mask_nan & mask_success_neg1 & mask_ild_pos, 'response_poke'] = 2
 exp_df.loc[mask_nan & mask_success_neg1 & mask_ild_neg, 'response_poke'] = 3
 
 exp_df_batch = exp_df[
-    (exp_df['batch_name'] == batch_name) &
+    # (exp_df['batch_name'] == batch_name) &
     (exp_df['LED_trial'].isin([np.nan, 0])) &
-    (exp_df['session_type'].isin([1,2,2.5,3,3.5,4])) &
-    (exp_df['animal'].isin([45,57,59,61,63]))
+    (exp_df['session_type'].isin([7])) &
+    (exp_df['training_level'].isin([16])) &
+    (exp_df['repeat_trial'].isin([0,2,np.nan]))
 ].copy()
 
 # aborts don't have choice, so assign random 
