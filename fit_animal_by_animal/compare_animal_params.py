@@ -5,21 +5,28 @@ import os
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 
 # Directory containing the results
 RESULTS_DIR = os.path.dirname(__file__)
-PKL_PATTERN = 'results_Comparable_animal_{}.pkl'
+BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED7']
 
-# Find all animal pickle files
-animal_ids = []
+# Find all animal pickle files from all batches
+animal_batch_tuples = []  # List of (batch, animal_number)
+pkl_files = []  # List of (batch, animal_number, filename)
 for fname in os.listdir(RESULTS_DIR):
-    if fname.startswith('results_Comparable_animal_') and fname.endswith('.pkl'):
-        try:
-            animal_id = int(fname.split('_')[-1].replace('.pkl', ''))
-            animal_ids.append(animal_id)
-        except Exception:
-            continue
-animal_ids = sorted(animal_ids)
+    if fname.startswith('results_') and fname.endswith('.pkl'):
+        for batch in BATCHES:
+            prefix = f'results_{batch}_animal_'
+            if fname.startswith(prefix):
+                try:
+                    animal_id = int(fname.split('_')[-1].replace('.pkl', ''))
+                    animal_batch_tuples.append((batch, animal_id))
+                    pkl_files.append((batch, animal_id, fname))
+                except Exception:
+                    continue
+# Sort by batch then animal number
+animal_batch_tuples = sorted(animal_batch_tuples, key=lambda x: (x[0], x[1]))
 
 # Model configs: (model_key, param_keys, param_labels, plot_title)
 model_configs = [
@@ -44,40 +51,41 @@ model_configs = [
 for model_key, param_keys, param_labels, plot_title in model_configs:
     means = {param: [] for param in param_keys}
     stds = {param: [] for param in param_keys}
-    valid_animals = []
-    for animal_id in animal_ids:
-        pkl_path = os.path.join(RESULTS_DIR, PKL_PATTERN.format(animal_id))
+    valid_animals = []  # Will store (batch, animal_id)
+    valid_labels = []   # Will store strings like 'LED7-92'
+    for batch, animal_id in animal_batch_tuples:
+        pkl_fname = f'results_{batch}_animal_{animal_id}.pkl'
+        pkl_path = os.path.join(RESULTS_DIR, pkl_fname)
         if not os.path.exists(pkl_path):
             continue
         with open(pkl_path, 'rb') as f:
             results = pickle.load(f)
         if model_key not in results:
             continue
-        valid_animals.append(animal_id)
+        valid_animals.append((batch, animal_id))
+        valid_labels.append(f'{batch}-{animal_id}')
         for param in param_keys:
             samples = np.asarray(results[model_key][param])
             means[param].append(np.mean(samples))
             stds[param].append(np.std(samples))
 
     # Plot
-    fig, axes = plt.subplots(len(param_keys), 1, figsize=(7, 1.5*len(param_keys)), sharex=False)
-    if len(param_keys) == 1:
-        axes = [axes]
-    for i, param in enumerate(param_keys):
-        ax = axes[i]
-        y_pos = np.arange(len(valid_animals))
-        ax.errorbar(means[param], y_pos, xerr=stds[param], fmt='o', color='k', ecolor='gray', capsize=4)
-        ax.set_yticks(y_pos)
-        ax.set_yticklabels([str(a) for a in valid_animals])
-        ax.set_xlabel(param_labels[i])
-        ax.set_ylabel('Animal')
-        ax.set_title(f'{plot_title}: {param_labels[i]}')
-        ax.axvspan(0, np.max(means[param]+np.array(stds[param])), color='#b7e4c7', alpha=0.2, zorder=-1)
-    plt.tight_layout()
-    outname = f'compare_animals_{model_key}.pdf'
-    plt.savefig(os.path.join(RESULTS_DIR, outname))
+    outname = f'compare_animals_all_batches_{model_key}.pdf'
+    with PdfPages(os.path.join(RESULTS_DIR, outname)) as pdf:
+        for i, param in enumerate(param_keys):
+            fig, ax = plt.subplots(figsize=(7, 6))
+            y_pos = np.arange(len(valid_labels))
+            ax.errorbar(means[param], y_pos, xerr=stds[param], fmt='o', color='k', ecolor='gray', capsize=4)
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(valid_labels)
+            ax.set_xlabel(param_labels[i])
+            ax.set_ylabel('Batch-Animal')
+            ax.set_title(f'{plot_title}: {param_labels[i]}')
+            ax.axvspan(0, np.max(means[param]+np.array(stds[param])), color='#b7e4c7', alpha=0.2, zorder=-1)
+            plt.tight_layout()
+            pdf.savefig(fig)
+            plt.close(fig)
     print(f'Saved: {outname}')
-    plt.close(fig)
 
 # %%
 # elbo, loglike
@@ -97,8 +105,9 @@ all_tied_elbos = []
 all_tied_elbo_sds = []
 all_tied_loglikes = []
 for row, (model_key, _) in enumerate(model_order[1:], 1):
-    for animal_id in animal_ids:
-        pkl_path = os.path.join(RESULTS_DIR, PKL_PATTERN.format(animal_id))
+    for batch, animal_id in animal_batch_tuples:
+        pkl_fname = f'results_{batch}_animal_{animal_id}.pkl'
+        pkl_path = os.path.join(RESULTS_DIR, pkl_fname)
         if not os.path.exists(pkl_path):
             continue
         with open(pkl_path, 'rb') as f:
@@ -123,9 +132,11 @@ for row, (model_key, model_title) in enumerate(model_order):
     elbos = []
     elbo_sds = []
     loglikes = []
-    valid_animals = []
-    for animal_id in animal_ids:
-        pkl_path = os.path.join(RESULTS_DIR, PKL_PATTERN.format(animal_id))
+    valid_animals = []  # (batch, animal_id)
+    valid_labels = []   # e.g. LED7-92
+    for batch, animal_id in animal_batch_tuples:
+        pkl_fname = f'results_{batch}_animal_{animal_id}.pkl'
+        pkl_path = os.path.join(RESULTS_DIR, pkl_fname)
         if not os.path.exists(pkl_path):
             continue
         with open(pkl_path, 'rb') as f:
@@ -135,8 +146,9 @@ for row, (model_key, model_title) in enumerate(model_order):
         elbos.append(results[model_key].get('elbo', np.nan))
         elbo_sds.append(results[model_key].get('elbo_sd', 0.0))
         loglikes.append(results[model_key].get('loglike', np.nan))
-        valid_animals.append(animal_id)
-    x = np.arange(len(valid_animals))
+        valid_animals.append((batch, animal_id))
+        valid_labels.append(f'{batch}-{animal_id}')
+    x = np.arange(len(valid_labels))
     # Get y-limits for aborts (row 0) and use tied_min/tied_max for others
     if row == 0:
         all_vals = np.array(elbos + loglikes)
@@ -154,24 +166,24 @@ for row, (model_key, model_title) in enumerate(model_order):
     ax_elbo = axes[row, 0]
     ax_elbo.bar(x, elbos, yerr=elbo_sds, color='royalblue', alpha=0.8, capsize=6, edgecolor='black')
     ax_elbo.set_ylabel(model_title)
-    ax_elbo.set_title('ELBO vs Animal')
+    ax_elbo.set_title('ELBO vs Batch-Animal')
     ax_elbo.set_xticks(x)
-    ax_elbo.set_xticklabels([str(a) for a in valid_animals])
+    ax_elbo.set_xticklabels(valid_labels, rotation=45, ha='right')
     if row == 3:
-        ax_elbo.set_xlabel('Animal')
+        ax_elbo.set_xlabel('Batch-Animal')
     if min_y is not None and max_y is not None:
         ax_elbo.set_ylim([min_y, max_y])
     # loglike bar plot
     ax_loglike = axes[row, 1]
     ax_loglike.bar(x, loglikes, color='firebrick', alpha=0.8, edgecolor='black')
-    ax_loglike.set_title('Loglike vs Animal')
+    ax_loglike.set_title('Loglike vs Batch-Animal')
     ax_loglike.set_xticks(x)
-    ax_loglike.set_xticklabels([str(a) for a in valid_animals])
+    ax_loglike.set_xticklabels(valid_labels, rotation=45, ha='right')
     if row == 3:
-        ax_loglike.set_xlabel('Animal')
+        ax_loglike.set_xlabel('Batch-Animal')
     if min_y is not None and max_y is not None:
         ax_loglike.set_ylim([min_y, max_y])
 plt.tight_layout()
-plt.savefig(os.path.join(RESULTS_DIR, 'compare_animals_elbo_loglike.pdf'))
-print('Saved: compare_animals_elbo_loglike.pdf')
+plt.savefig(os.path.join(RESULTS_DIR, 'compare_animals_elbo_loglike_all_batches.pdf'))
+print('Saved: compare_animals_elbo_loglike_all_batches.pdf')
 plt.close(fig)
