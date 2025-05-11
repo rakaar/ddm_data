@@ -65,7 +65,7 @@ def plot_abort_diagnostic(pdf_pages: PdfPages, df_aborts_animal: pd.DataFrame,
                           V_A: float, theta_A: float, t_A_aff: float, T_trunc: float, 
                           rho_A_t_VEC_fn, cum_A_t_fn, title: str) -> None:
     """Creates and saves the specific diagnostic plot comparing empirical and theoretical abort RTs."""
-    t_pts = np.arange(0, 1.25, 0.001)
+    t_pts = np.arange(0, 2, 0.001)
     pdf_samples = np.zeros((N_theory, len(t_pts)))
 
     t_stim_samples_df = df_valid_and_aborts.sample(n=N_theory, replace=True).copy()
