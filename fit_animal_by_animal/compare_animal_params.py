@@ -11,6 +11,16 @@ from matplotlib.backends.backend_pdf import PdfPages
 RESULTS_DIR = os.path.dirname(__file__)
 BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED7']
 
+# Define simple, high-contrast colors for each batch
+BATCH_COLORS = {
+    'Comparable': 'red',
+    'SD': '#87CEEB',  # sky blue
+    'LED2': 'green',
+    'LED1': 'orange',
+    'LED34': 'purple',
+    'LED7': 'black',
+}
+
 # Find all animal pickle files from all batches
 animal_batch_tuples = []  # List of (batch, animal_number)
 pkl_files = []  # List of (batch, animal_number, filename)
@@ -53,6 +63,7 @@ for model_key, param_keys, param_labels, plot_title in model_configs:
     stds = {param: [] for param in param_keys}
     valid_animals = []  # Will store (batch, animal_id)
     valid_labels = []   # Will store strings like 'LED7-92'
+    batch_colors = []   # Color for each animal
     for batch, animal_id in animal_batch_tuples:
         pkl_fname = f'results_{batch}_animal_{animal_id}.pkl'
         pkl_path = os.path.join(RESULTS_DIR, pkl_fname)
@@ -64,6 +75,7 @@ for model_key, param_keys, param_labels, plot_title in model_configs:
             continue
         valid_animals.append((batch, animal_id))
         valid_labels.append(f'{batch}-{animal_id}')
+        batch_colors.append(BATCH_COLORS.get(batch, 'gray'))
         for param in param_keys:
             samples = np.asarray(results[model_key][param])
             means[param].append(np.mean(samples))
@@ -75,9 +87,14 @@ for model_key, param_keys, param_labels, plot_title in model_configs:
         for i, param in enumerate(param_keys):
             fig, ax = plt.subplots(figsize=(7, 6))
             y_pos = np.arange(len(valid_labels))
-            ax.errorbar(means[param], y_pos, xerr=stds[param], fmt='o', color='k', ecolor='gray', capsize=4)
+            # Plot each point with its batch color
+            for idx in range(len(valid_labels)):
+                ax.errorbar(means[param][idx], y_pos[idx], xerr=stds[param][idx], fmt='o', color=batch_colors[idx], ecolor=batch_colors[idx], capsize=4)
             ax.set_yticks(y_pos)
             ax.set_yticklabels(valid_labels)
+            # Color y-tick labels by batch
+            for ticklabel, (batch, _) in zip(ax.get_yticklabels(), valid_animals):
+                ticklabel.set_color(BATCH_COLORS.get(batch, 'gray'))
             ax.set_xlabel(param_labels[i])
             ax.set_ylabel('Batch-Animal')
             ax.set_title(f'{plot_title}: {param_labels[i]}')
