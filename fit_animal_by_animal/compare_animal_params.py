@@ -60,10 +60,12 @@ model_configs = [
 
 for model_key, param_keys, param_labels, plot_title in model_configs:
     means = {param: [] for param in param_keys}
-    stds = {param: [] for param in param_keys}
+    ci_lows = {param: [] for param in param_keys}   # 2.5th percentile
+    ci_highs = {param: [] for param in param_keys}  # 97.5th percentile
     valid_animals = []  # Will store (batch, animal_id)
     valid_labels = []   # Will store strings like 'LED7-92'
     batch_colors = []   # Color for each animal
+    # First pass: gather means and 95% CI (nonparametric)
     for batch, animal_id in animal_batch_tuples:
         pkl_fname = f'results_{batch}_animal_{animal_id}.pkl'
         pkl_path = os.path.join(RESULTS_DIR, pkl_fname)
@@ -78,27 +80,36 @@ for model_key, param_keys, param_labels, plot_title in model_configs:
         batch_colors.append(BATCH_COLORS.get(batch, 'gray'))
         for param in param_keys:
             samples = np.asarray(results[model_key][param])
-            means[param].append(np.mean(samples))
-            stds[param].append(np.std(samples))
+            mean = np.mean(samples)
+            ci_lower, ci_upper = np.percentile(samples, [2.5, 97.5])
+            means[param].append(mean)
+            ci_lows[param].append(ci_lower)
+            ci_highs[param].append(ci_upper)
 
-    # Plot
+    from matplotlib.backends.backend_pdf import PdfPages
     outname = f'compare_animals_all_batches_{model_key}.pdf'
     with PdfPages(os.path.join(RESULTS_DIR, outname)) as pdf:
         for i, param in enumerate(param_keys):
+            # Sort by mean value (descending)
+            zipped = list(zip(means[param], ci_lows[param], ci_highs[param], valid_labels, batch_colors, valid_animals))
+            zipped.sort(key=lambda x: x[0], reverse=True)
+            sorted_means, sorted_ci_lows, sorted_ci_highs, sorted_labels, sorted_colors, sorted_animals = zip(*zipped)
+            y_pos = np.arange(len(sorted_labels))
             fig, ax = plt.subplots(figsize=(7, 6))
-            y_pos = np.arange(len(valid_labels))
-            # Plot each point with its batch color
-            for idx in range(len(valid_labels)):
-                ax.errorbar(means[param][idx], y_pos[idx], xerr=stds[param][idx], fmt='o', color=batch_colors[idx], ecolor=batch_colors[idx], capsize=4)
+            for idx in range(len(sorted_labels)):
+                # Plot CI as a horizontal line
+                ax.hlines(y=y_pos[idx], xmin=sorted_ci_lows[idx], xmax=sorted_ci_highs[idx], color=sorted_colors[idx], linewidth=3, alpha=0.7)
+                # Plot mean as a point
+                ax.plot(sorted_means[idx], y_pos[idx], 'o', color=sorted_colors[idx])
             ax.set_yticks(y_pos)
-            ax.set_yticklabels(valid_labels)
+            ax.set_yticklabels(sorted_labels)
             # Color y-tick labels by batch
-            for ticklabel, (batch, _) in zip(ax.get_yticklabels(), valid_animals):
+            for ticklabel, (batch, _) in zip(ax.get_yticklabels(), sorted_animals):
                 ticklabel.set_color(BATCH_COLORS.get(batch, 'gray'))
             ax.set_xlabel(param_labels[i])
             ax.set_ylabel('Batch-Animal')
-            ax.set_title(f'{plot_title}: {param_labels[i]}')
-            ax.axvspan(0, np.max(means[param]+np.array(stds[param])), color='#b7e4c7', alpha=0.2, zorder=-1)
+            ax.set_title(f'{plot_title}: {param_labels[i]} (mean, 95% CI)')
+            ax.axvspan(0, np.max(np.array(sorted_ci_highs)), color='#b7e4c7', alpha=0.2, zorder=-1)
             plt.tight_layout()
             pdf.savefig(fig)
             plt.close(fig)
