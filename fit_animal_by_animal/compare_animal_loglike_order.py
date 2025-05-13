@@ -66,6 +66,10 @@ def format_sci(val):
     mant = val / (10 ** exp) if val != 0 else 0
     return f"{mant:.2f} x 10^{exp}"
 
+def format_label(label, loglike, norm_loglike):
+    # Compose label with sci notation and normalized value (3 decimal places)
+    return f"{label} ({format_sci(loglike)} = {norm_loglike:.3f})" if np.isfinite(norm_loglike) else f"{label} ({format_sci(loglike)})"
+
 for model_key, param_keys, param_labels, plot_title in model_configs:
     means = {param: [] for param in param_keys}
     ci_lows = {param: [] for param in param_keys}   # 2.5th percentile
@@ -119,8 +123,14 @@ for model_key, param_keys, param_labels, plot_title in model_configs:
                 ax.hlines(y=y_pos[idx], xmin=sorted_ci_lows[idx], xmax=sorted_ci_highs[idx], color=sorted_colors[idx], linewidth=3, alpha=0.7)
                 # Plot mean as a point
                 ax.plot(sorted_means[idx], y_pos[idx], 'o', color=sorted_colors[idx])
-            # Compose y-tick labels with loglike in scientific notation
-            yticks_with_loglike = [f"{label} ({format_sci(ll)})" for label, ll in zip(sorted_labels, sorted_loglikes)]
+            # Compose y-tick labels with loglike in scientific notation and normalized value
+            # Normalize by the true maximum loglike (before reversal)
+            if loglikes:
+                max_loglike = np.nanmax(loglikes)
+            else:
+                max_loglike = 1
+            norm_loglikes = [ll/max_loglike if np.isfinite(ll) and max_loglike != 0 else np.nan for ll in sorted_loglikes]
+            yticks_with_loglike = [format_label(label, ll, norm) for label, ll, norm in zip(sorted_labels, sorted_loglikes, norm_loglikes)]
             ax.set_yticks(y_pos)
             ax.set_yticklabels(yticks_with_loglike)
             # Color y-tick labels by batch
@@ -185,9 +195,16 @@ for row, (model_key, model_title) in enumerate(model_order):
     ax_elbo.set_ylabel(model_title)
     ax_elbo.set_title('ELBO vs Batch-Animal (loglike order)')
     ax_elbo.set_xticks(x)
-    # Compose x-tick labels with loglike in scientific notation
-    xticks_with_loglike = [f"{label} ({format_sci(ll)})" for label, ll in zip(sorted_labels, sorted_loglikes)]
+    # Compose x-tick labels with loglike in scientific notation and normalized value
+    # Normalize by the true maximum loglike (before reversal)
+    if loglikes:
+        max_loglike = np.nanmax(loglikes)
+    else:
+        max_loglike = 1
+    norm_loglikes = [ll/max_loglike if np.isfinite(ll) and max_loglike != 0 else np.nan for ll in sorted_loglikes]
+    xticks_with_loglike = [format_label(label, ll, norm) for label, ll, norm in zip(sorted_labels, sorted_loglikes, norm_loglikes)]
     ax_elbo.set_xticklabels(xticks_with_loglike, rotation=45, ha='right')
+
     if row == 3:
         ax_elbo.set_xlabel('Batch-Animal (loglike)')
     # loglike bar plot
