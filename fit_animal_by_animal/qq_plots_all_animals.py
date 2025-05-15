@@ -162,6 +162,7 @@ pdf_path = "line_fit_qq_percentile_per_absILD_all_batches.pdf"
 percentiles = np.arange(5, 100, 10)
 # Minimum reaction time in seconds
 MIN_RT = 0.1  # 100 ms
+MAX_RT = 1
 
 # Dictionary to store fit parameters for each abs_ILD and ABL
 fit_params = {}
@@ -191,7 +192,7 @@ with PdfPages(pdf_path) as pdf:
                 continue
                 
             # Filter for valid reaction times and success values
-            RTwrtStim_pos = abs_ILD_df[(abs_ILD_df['RTwrtStim'] > MIN_RT) & (abs_ILD_df['success'].isin([1,-1]))]
+            RTwrtStim_pos = abs_ILD_df[(abs_ILD_df['RTwrtStim'] >= MIN_RT) & (abs_ILD_df['RTwrtStim'] <= MAX_RT)]
             
             if RTwrtStim_pos.empty:
                 ax.set_visible(False)
@@ -261,7 +262,7 @@ with PdfPages(pdf_path) as pdf:
             # min_val = min(np.min(Q_highest), np.min(all_y_values)) if all_y_values else MIN_RT
             # max_val = max(np.max(Q_highest), np.max(all_y_values)) if all_y_values else 0.4
             min_val = MIN_RT  # Start from minimum RT of 90ms
-            max_val = 0.4
+            max_val = 0.5
             ax.plot([min_val, max_val], [min_val, max_val], 'k--', alpha=0.5)
             
             ax.set_xlabel(f'Percentiles of RTwrtStim (ABL={abl_highest})')
@@ -272,7 +273,7 @@ with PdfPages(pdf_path) as pdf:
             ax.legend(title='ABL', fontsize='small')
             
             # Set fixed x-axis limits as requested
-            ax.set_xlim(0, 0.4)
+            ax.set_xlim(min_val, max_val)
         
         # Set consistent y-axis limits across all plots
         if all_y_values:
@@ -327,19 +328,17 @@ for abl in [20, 40]:  # Print ABL 20 first, then ABL 40
 
 
 # %%
-# Create RTD histograms and scaled RTDs
+# Create RTD histograms and scaled RTDs - KDE
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.stats import gaussian_kde
-
 # Parameters for the RTD plots
 pdf_path = "rtd_and_scaled_rtd_kde.pdf"
-bin_width = 0.01  # 20 ms bins
-max_rt = 1  # Maximum RT to plot (1 second)
-RT_MIN = 0.1  # Minimum RT threshold (90 ms) to exclude anticipatory responses
-bins = np.arange(RT_MIN, max_rt + bin_width, bin_width)
-kde_points = np.linspace(RT_MIN, max_rt, 300)  # Points for KDE evaluation
+bin_width = 0.01  # 10 ms bins
+bins = np.arange(MIN_RT, MAX_RT + bin_width, bin_width)
+# kde_points for KDE evaluation (500 points between MIN_RT and MAX_RT)
+kde_points = np.linspace(MIN_RT, MAX_RT, 500)
 
 with PdfPages(pdf_path) as pdf:
     # Get all unique abs_ILDs across the entire dataset
@@ -371,9 +370,8 @@ with PdfPages(pdf_path) as pdf:
                 
             # Filter for valid reaction times and success values
             # Use RT_MIN to exclude anticipatory responses as suggested
-            RTwrtStim_pos = abs_ILD_df[(abs_ILD_df['RTwrtStim'] >= RT_MIN) & 
-                                       (abs_ILD_df['RTwrtStim'] <= max_rt) & 
-                                       (abs_ILD_df['success'].isin([1,-1]))]
+            RTwrtStim_pos = abs_ILD_df[(abs_ILD_df['RTwrtStim'] >= MIN_RT) & 
+                                       (abs_ILD_df['RTwrtStim'] <= MAX_RT) ]
             
             if RTwrtStim_pos.empty:
                 axes[0, j].set_visible(False)
@@ -462,7 +460,7 @@ with PdfPages(pdf_path) as pdf:
                 axes[0, j].set_ylabel('Density')
                 axes[0, j].legend(fontsize='small', title='Original RTDs')
             
-            axes[0, j].set_xlim(0, max_rt)
+            axes[0, j].set_xlim(0, MAX_RT)
             
             axes[1, j].set_xlabel('RT (s)')
             
@@ -471,7 +469,7 @@ with PdfPages(pdf_path) as pdf:
                 axes[1, j].set_ylabel('Density')
                 axes[1, j].legend(fontsize='small', title='Scaled RTDs')
             
-            axes[1, j].set_xlim(0, max_rt)
+            axes[1, j].set_xlim(0, MAX_RT)
         
         # No combined plot
         
@@ -518,6 +516,187 @@ with PdfPages(pdf_path) as pdf:
         plt.close(fig)
 
 print(f"RTD plots saved to {pdf_path}")
+
+# %%
+# Create RTD histograms and scaled RTDs
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+
+# Parameters for the RTD plots
+pdf_path = "rtd_and_scaled_rtd_histograms.pdf" # Changed filename to reflect histogram usage
+bin_width = 0.02  # 10 ms bins
+bins = np.arange(MIN_RT, MAX_RT + bin_width, bin_width)
+
+with PdfPages(pdf_path) as pdf:
+    # Get all unique abs_ILDs across the entire dataset
+    abs_ILDs = np.sort(merged_valid['abs_ILD'].unique())
+    n_abs_ILDs = len(abs_ILDs)
+    
+    if n_abs_ILDs == 0:
+        print("No valid abs_ILD values found in the dataset.")
+    else:
+        # Create a figure with two rows: original RTDs and scaled RTDs
+        fig, axes = plt.subplots(2, n_abs_ILDs, figsize=(15, 8), squeeze=False)
+        fig.suptitle('Reaction Time Distribution Histograms and Scaled RTD Histograms', fontsize=16)
+        
+        # Colors for different ABLs
+        colors = {20: 'green', 40: 'red', 60: 'blue'}
+        
+        # Store max density for consistent y-axis scaling
+        max_density_original = 0
+        max_density_scaled = 0
+        
+        for j, abs_ILD in enumerate(abs_ILDs):
+            # Get all data for this abs_ILD
+            abs_ILD_df = merged_valid[merged_valid['abs_ILD'] == abs_ILD]
+            
+            if abs_ILD_df.empty:
+                axes[0, j].set_visible(False)
+                axes[1, j].set_visible(False)
+                continue
+                
+            # Filter for valid reaction times
+            RTwrtStim_pos = abs_ILD_df[(abs_ILD_df['RTwrtStim'] >= MIN_RT) & 
+                                       (abs_ILD_df['RTwrtStim'] <= MAX_RT)]
+            
+            if RTwrtStim_pos.empty:
+                axes[0, j].set_visible(False)
+                axes[1, j].set_visible(False)
+                continue
+                
+            ABLs = np.sort(RTwrtStim_pos['ABL'].unique())
+            
+            if len(ABLs) == 0:
+                axes[0, j].set_visible(False)
+                axes[1, j].set_visible(False)
+                continue
+            
+            # Reference ABL (highest)
+            abl_highest = ABLs.max()
+            
+            # Plot original RTDs (top row)
+            for abl in ABLs:
+                rt_data = RTwrtStim_pos[RTwrtStim_pos['ABL'] == abl]['RTwrtStim'].values
+                
+                if len(rt_data) > 1: # Need some data for a meaningful histogram
+                    counts, _, _ = axes[0, j].hist(rt_data, bins=bins, density=True,
+                                                   color=colors.get(abl, 'black'),
+                                                   label=f'ABL {abl}',
+                                                   histtype='step', # 'step' is good for comparing distributions
+                                                   linewidth=1.5)   # Optional: adjust line width
+                    
+                    if counts.size > 0 : # Ensure counts is not empty
+                        max_density_original = max(max_density_original, np.max(counts))
+            
+            # Plot scaled RTDs (bottom row)
+            for abl in ABLs:
+                rt_data_for_abl = RTwrtStim_pos[RTwrtStim_pos['ABL'] == abl]['RTwrtStim'].values
+                current_plot_data = None
+                current_label = ''
+
+                if abl == abl_highest:
+                    if len(rt_data_for_abl) > 1:
+                        current_plot_data = rt_data_for_abl
+                        current_label = f'ABL {abl}'
+                else:
+                    if abs_ILD in fit_params and abl in fit_params[abs_ILD]:
+                        slope = fit_params[abs_ILD][abl]['slope']
+                        intercept = fit_params[abs_ILD][abl]['intercept']
+                        
+                        scaled_rt_data = (rt_data_for_abl - intercept) / slope
+                        
+                        # Optional: Filter scaled data to be within reasonable bounds if desired
+                        # scaled_rt_data = scaled_rt_data[(scaled_rt_data >= MIN_RT) & (scaled_rt_data <= MAX_RT)]
+
+                        if len(scaled_rt_data) > 1:
+                            current_plot_data = scaled_rt_data
+                            current_label = f'ABL {abl} scaled'
+                
+                if current_plot_data is not None and len(current_plot_data) > 1:
+                    counts, _, _ = axes[1, j].hist(current_plot_data, bins=bins, density=True,
+                                                   color=colors.get(abl, 'black'),
+                                                   label=current_label,
+                                                   histtype='step',
+                                                   linewidth=1.5)
+                    if counts.size > 0: # Ensure counts is not empty
+                         max_density_scaled = max(max_density_scaled, np.max(counts))
+
+            # Set titles and labels for original RTDs
+            axes[0, j].set_title(f'|ILD| = {abs_ILD} dB')
+            axes[0, j].set_xlabel('RT (s)')
+            if j == 0:
+                axes[0, j].set_ylabel('Density')
+                axes[0, j].legend(fontsize='small', title='Original RTDs')
+            axes[0, j].set_xlim(0, MAX_RT) # Use MIN_RT as lower x-limit
+            
+            # Set titles and labels for scaled RTDs
+            axes[1, j].set_xlabel('RT (s)')
+            if j == 0:
+                axes[1, j].set_ylabel('Density')
+                axes[1, j].legend(fontsize='small', title='Scaled RTDs')
+            axes[1, j].set_xlim(0, MAX_RT) # Use MIN_RT as lower x-limit
+        
+        # Add R² inset to the bottom right plot of the last abs_ILD
+        # Ensure there is at least one plot visible in the second row for the inset
+        if n_abs_ILDs > 0 and axes[1, -1].get_visible():
+            r2_inset = axes[1, -1].inset_axes([0.65, 0.65, 0.3, 0.3])
+            
+            abs_ild_labels = []
+            r2_values = {}
+            
+            # Check if fit_params is not empty before proceeding
+            if fit_params:
+                for abs_ild_key in sorted(fit_params.keys()):
+                    if abs_ild_key in abs_ILDs: # Optional: only show R2 for ILDs that have plots
+                        abs_ild_labels.append(abs_ild_key)
+                        for abl_key in sorted(fit_params[abs_ild_key].keys()):
+                            if abl_key not in r2_values:
+                                r2_values[abl_key] = []
+                            r2_values[abl_key].append(fit_params[abs_ild_key][abl_key]['r_squared'])
+            
+            if abs_ild_labels and r2_values: # Proceed only if there's data to plot
+                bar_width = 0.2
+                x = np.arange(len(abs_ild_labels))
+                
+                num_abl_groups = len(r2_values)
+                for i, (abl, values) in enumerate(sorted(r2_values.items())):
+                    if len(values) == len(abs_ild_labels):
+                         r2_inset.bar(x + (i - (num_abl_groups -1)/2) * bar_width, values, bar_width, 
+                                     color=colors.get(abl, 'black'), label=f'ABL {abl}')
+                    else:
+                        print(f"Warning: Mismatch in R2 values length for ABL {abl}. Expected {len(abs_ild_labels)}, got {len(values)}. Skipping bar.")
+
+                r2_inset.set_title('R²', fontsize=10)
+                r2_inset.set_ylim(0.99, 1.0)
+                r2_inset.set_xticks(x)
+                r2_inset.set_xticklabels(abs_ild_labels, fontsize=8, rotation=45)
+                r2_inset.tick_params(axis='both', which='major', labelsize=8)
+                if num_abl_groups > 0 : r2_inset.legend(fontsize='xx-small') # Add legend to R2 plot if multiple ABLs
+            else:
+                r2_inset.text(0.5, 0.5, "No R² data", ha='center', va='center', fontsize=8)
+                r2_inset.set_xticks([])
+                r2_inset.set_yticks([])
+        
+        # Set consistent y-axis limits across all plots
+        # Ensure max_density values are greater than 0 before setting ylim
+        for j_idx in range(n_abs_ILDs):
+            if axes[0, j_idx].get_visible():
+                if max_density_original > 0:
+                    axes[0, j_idx].set_ylim(0, max_density_original * 1.1)
+                else:
+                    axes[0, j_idx].set_ylim(0, 1) # Default if no data
+            if axes[1, j_idx].get_visible():
+                if max_density_scaled > 0:
+                    axes[1, j_idx].set_ylim(0, max_density_scaled * 1.1)
+                else:
+                    axes[1, j_idx].set_ylim(0, 1) # Default if no data
+        
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+        pdf.savefig(fig)
+        plt.close(fig)
+
+print(f"RTD histogram plots saved to {pdf_path}")
 
 
 # %%

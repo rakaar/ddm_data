@@ -3,7 +3,7 @@ import pandas as pd
 import random
 
 # List of batches to process (excluding 'Comparable' and any LED.csv)
-batch_names = ['SD', 'LED1', 'LED2', 'LED34']
+batch_names = ['SD', 'LED1', 'LED2', 'LED34', 'Comparable', 'LED6', 'LED7']
 
 # Map batch to file
 batch_file_map = {
@@ -11,6 +11,9 @@ batch_file_map = {
     'LED1': '../outExp.csv',
     'LED2': '../outExp.csv',
     'LED34': '../outExp.csv',
+    'Comparable': '../outExp.csv',
+    'LED6': '../outExp.csv',
+    'LED7': '../out_LED.csv',
 }
 
 # Output directory
@@ -70,6 +73,26 @@ for batch_name in batch_names:
             (exp_df['session_type'].isin([1,2])) &
             (exp_df['animal'].isin(allowed_animals))
         ].copy()
+    elif batch_name =='Comparable':
+        exp_df_batch = exp_df[
+            (exp_df['batch_name'] == batch_name) &
+            ((exp_df['LED_trial'].isin([float('nan'), 0]) | exp_df['LED_trial'].isna())) &
+            (exp_df['session_type'].isin([6]))
+        ].copy()
+    elif batch_name == 'LED6':
+        exp_df_batch = exp_df[
+            (exp_df['batch_name'] == batch_name) &
+            ((exp_df['LED_trial'].isin([float('nan'), 0]) | exp_df['LED_trial'].isna())) &
+            (exp_df['session_type'].isin([1,2,7]))
+        ].copy()      
+    elif batch_name == 'LED7':
+        exp_df_batch = exp_df[
+            ((exp_df['LED_trial'].isin([float('nan'), 0]) | exp_df['LED_trial'].isna())) &
+            (exp_df['session_type'].isin([7])) &
+            (exp_df['training_level'].isin([16])) &
+            (exp_df['repeat_trial'].isin([0,2]) | exp_df['repeat_trial'].isna())
+
+        ].copy()      
     else:
         raise ValueError(f"Unknown batch_name: {batch_name}")
 
