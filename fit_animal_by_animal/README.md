@@ -24,4 +24,7 @@
 ### Quantilies
 - `qq_per_animal_per_batch.py` - Q_ABL - Q_highest vs Q_highest for each animal
 - `quantile_per_ABL_of_each_animal.py`- Quantile of each animal for each ABL
+- `aggregate_qq_diff_across_animals.py` : aggregate Q - Q_60 vs Q_60 and line fit
+- `aggregate_qq_diff_xleq_03.py`  - aggregate Q - Q_60 vs Q_60 and line fit for Q_60 <= 0.3
+
 
