@@ -1,3 +1,4 @@
+# %%
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -97,7 +98,11 @@ for idx, (batch_name, animal, abs_ILD) in enumerate(plot_triplets):
     total_rows = len(RTwrtStim_pos)
     ax.set_title(f'{batch_name} | {animal} | abs(ILD): {abs_ILD} (N={total_rows})', fontsize=10)
     ax.legend(title='ABL', fontsize=7, title_fontsize=8)
+    # Set fixed x and y axis limits and ticks
     ax.set_xlim(0, 0.4)
+    ax.set_xticks(np.arange(0, 0.51, 0.1))
+    ax.set_ylim(-0.05, 0.35)
+    ax.set_yticks(np.arange(-0.05, 0.46, 0.1))
 
 # Hide unused axes
 for i in range(len(plot_triplets), len(axes)):

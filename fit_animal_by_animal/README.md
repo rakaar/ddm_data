@@ -1,4 +1,27 @@
 # Files
+## Data
 - batch_csvs: contains the experimental data for each animal in format of batch_{batch_name}_valid_and_aborts.csv
+
+## Fit animal wise
 - `animal_wise_fit_3_models_script_refactor.py`: Specify batch name and conditions, fit animal data - aborts, TIED + 3 variants
-- 
+- `animal_wise_plotting_utils.py`:  Diagnostics Plotting utils for animal wise fit
+- `time_vary_norm_utils.py`  - Likelihood funcs for animal wise fitting
+
+##  Animal wise exploration of TIED
+
+### Psychometrics
+- `make_all_animals_psycho_single_figure.py` - psychometric of each animal
+- `aggregate_psychometric_by_abl.py` - aggregate psychometric of all animals by ABL 20,40,60
+- `plot_slope_ratios_histograms.py` - slope fit psychometric and variability within ABL vs variability within animals
+
+### Chronometrics
+- `mean_chrono_plot.py` - Chronometric of each animal
+- `aggregate_chrono.py` - Chronometric averaged across animals for ABL 20,40,60
+- `aggregate_chrono_fit_tanh_cfixed.py` - Fit shadlen expression on chronometric of each animal
+- `aggregate_chrono_fit_tanh_cfixed.py` - Fit shadlen expression on mean chronometric of all animals
+- `fit_chrono_tanh_curve_full_formula.py` -  Fit TIED expression on chronometric of each animal
+
+### Quantilies
+- `qq_per_animal_per_batch.py` - Q_ABL - Q_highest vs Q_highest for each animal
+- `quantile_per_ABL_of_each_animal.py`- Quantile of each animal for each ABL
+
