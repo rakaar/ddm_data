@@ -26,6 +26,11 @@ merged_valid['abs_ILD'] = merged_valid['ILD'].abs()
 # Remove ILD 6 and 10
 merged_valid = merged_valid[~merged_valid['abs_ILD'].isin([6, 10])]
 
+#########################################
+########### remove LED2 batch_name ########
+#########################################
+merged_valid = merged_valid[merged_valid['batch_name'] != 'LED2']
+
 # --- Parameters ---
 merged_valid['abs_ILD'] = merged_valid['abs_ILD'].astype(float)
 abs_ILDs = [1., 2., 4., 8., 16.]
