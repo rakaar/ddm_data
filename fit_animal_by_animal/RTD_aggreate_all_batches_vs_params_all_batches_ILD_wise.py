@@ -321,11 +321,11 @@ plt.show()
 
 
 # %%
-N_sim = int(1e5)
+N_sim = int(1e4)
 ILD = 1
 ABL = 40
 N_print = N_sim // 5
-dt = 1e-3
+dt = 1e-4
 rate_norm_l = 0
 is_norm = False
 is_time_vary = False
@@ -349,3 +349,5 @@ plt.hist(sim_rt, bins=np.arange(0, 1, 0.01), density=True, histtype='step', labe
 plt.plot(t_pts_0_1, up_plus_down_mean, label='Theoretical')
 plt.legend()
 plt.show()
+
+# %%
