@@ -351,3 +351,233 @@ plt.legend()
 plt.show()
 
 # %%
+# %% -------- NEW SECTION: Averaged Theoretical and Simulated RTDs for All Animals --------
+# %% -------- NEW SECTION: Calculating Theoretical RTDs from Animal Parameters --------
+
+from types import SimpleNamespace
+from joblib import Parallel, delayed
+from collections import defaultdict
+
+# --- Constants for theoretical RTD calculation ---
+K_MAX = 10                          # Maximum K for series approximation
+RT_WINDOW = 1.0                     # Maximum RT window for PDFs (seconds)
+N_THEORY_SAMPLES = int(1e3)         # Number of t_stim samples for P_A, C_A calculation
+T_PTS = np.arange(-1, 2, 0.001)     # Time points for theoretical PDF calculation
+DT_THEORY = T_PTS[1] - T_PTS[0]     # Time step for integration
+PHI_PARAMS_OBJ = np.nan             # phi_params object (using np.nan as in original code)
+IS_NORM = False                     # Flag for normalization
+IS_TIME_VARY = False                # Flag for time-varying calculation
+RATE_NORM_L = 0.0                   # Rate normalization parameter
+
+# Storage for theoretical RTDs by animal/batch and stimulus
+animal_theoretical_rtds = defaultdict(lambda: defaultdict(list))
+
+print("\n--- Starting calculation of theoretical RTDs for each animal/batch & stimulus ---")
+
+# Loop through each animal/batch and its parameters
+for (animal_id, batch_name), params in tqdm(animal_batch_params_means.items(), desc="Processing Animals/Batches"):
+    # Extract abort parameters for this animal
+    abort_params = params.get('vbmc_aborts_means', {})
+    V_A = abort_params.get('V_A')
+    theta_A = abort_params.get('theta_A')
+    t_A_aff = abort_params.get('t_A_aff')
+    
+    # Extract decision parameters for this animal
+    decision_params = params.get('vbmc_vanilla_tied_means', {})
+    rate_lambda = decision_params.get('rate_lambda')
+    T_0 = decision_params.get('T_0')
+    theta_E = decision_params.get('theta_E')
+    w = decision_params.get('w')
+    t_E_aff = decision_params.get('t_E_aff')
+    del_go = decision_params.get('del_go')
+    
+    # Calculate Z_E from w and theta_E
+    Z_E = (w - 0.5) * 2 * theta_E if w is not None and theta_E is not None else None
+    
+    # Check if we have all required parameters
+    required_params = [V_A, theta_A, t_A_aff, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go]
+    if any(p is None or (isinstance(p, float) and np.isnan(p)) for p in required_params):
+        # Skip this animal if any parameter is missing
+        continue
+    
+    # Calculate P_A, C_A for this animal (averaged over t_stim samples)
+    P_A, C_A, t_stim_samples = calculate_theoretical_curves(
+        rtd_calc_data, N_THEORY_SAMPLES, T_PTS, 
+        t_A_aff, V_A, theta_A, rho_A_t_fn
+    )
+    
+    # Calculate RTDs for each stimulus condition
+    for current_ABL in ABL_TARGETS:
+        for current_ILD in ILD_ACTUAL_TARGETS:
+            stimulus = (current_ABL, current_ILD)
+            
+            # Calculate truncation factor (averaged over t_stim samples)
+            trunc_factors = []
+            for t_stim in t_stim_samples:
+                # Upper integration limit contribution
+                term1 = cum_pro_and_reactive_time_vary_fn(
+                    t_stim + RT_WINDOW,  # t (upper integration limit)
+                    RT_WINDOW,           # truncation window
+                    V_A, theta_A, t_A_aff,
+                    t_stim, current_ABL, current_ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
+                    PHI_PARAMS_OBJ, RATE_NORM_L, IS_NORM, IS_TIME_VARY, K_MAX
+                )
+                
+                # Lower integration limit contribution
+                term2 = cum_pro_and_reactive_time_vary_fn(
+                    t_stim + 0.0,        # t (lower integration limit)
+                    RT_WINDOW,           # truncation window
+                    V_A, theta_A, t_A_aff,
+                    t_stim, current_ABL, current_ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
+                    PHI_PARAMS_OBJ, RATE_NORM_L, IS_NORM, IS_TIME_VARY, K_MAX
+                )
+                
+                # Difference gives probability mass in the window
+                trunc_factors.append(term1 - term2 + 1e-10)  # Add small epsilon for stability
+            
+            # Average truncation factor over all t_stim samples
+            trunc_factor = np.mean(trunc_factors) if trunc_factors else 1.0
+            if trunc_factor == 0:
+                trunc_factor = 1e-10  # Avoid division by zero
+            
+            # Calculate PDF for up and down choices
+            up_pdf = np.array([up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
+                t, 1, P_A, C_A, current_ABL, current_ILD,
+                rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go,
+                PHI_PARAMS_OBJ, RATE_NORM_L, IS_NORM, IS_TIME_VARY, K_MAX
+            ) for t in T_PTS])
+            
+            down_pdf = np.array([up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
+                t, -1, P_A, C_A, current_ABL, current_ILD,
+                rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go,
+                PHI_PARAMS_OBJ, RATE_NORM_L, IS_NORM, IS_TIME_VARY, K_MAX
+            ) for t in T_PTS])
+            
+            # Total PDF (up + down)
+            total_pdf = up_pdf + down_pdf
+            
+            # Select the relevant time window [0, RT_WINDOW]
+            mask = (T_PTS >= 0) & (T_PTS <= RT_WINDOW)
+            pdf_in_window = total_pdf[mask]
+            t_pts_in_window = T_PTS[mask]
+            
+            # Normalize the PDF within the time window
+            normalized_pdf = pdf_in_window / trunc_factor
+            
+            # Store the normalized PDF with its corresponding time points directly
+            animal_theoretical_rtds[(animal_id, batch_name)][stimulus] = (t_pts_in_window, normalized_pdf)
+
+print("--- Finished calculating theoretical RTDs for individual animals ---")
+
+# %% Average theoretical RTDs across animals for each stimulus
+averaged_theoretical_rtds = {}
+
+for stimulus in set(stim for animal_rtds in animal_theoretical_rtds.values() 
+                      for stim in animal_rtds.keys()):
+    # Collect all PDF arrays for this stimulus (using the first animal's time points)
+    t_arrays = []
+    pdf_arrays = []
+    
+    for animal_rtds in animal_theoretical_rtds.values():
+        if stimulus in animal_rtds:
+            t_array, pdf_array = animal_rtds[stimulus]
+            t_arrays.append(t_array)
+            pdf_arrays.append(pdf_array)
+    
+    # Average the PDFs across animals and use the time points from the first animal
+    if t_arrays and pdf_arrays:
+        # Make sure all PDF arrays have the same length as the first time array
+        reference_t = t_arrays[0]
+        aligned_pdfs = []
+        
+        for t, pdf in zip(t_arrays, pdf_arrays):
+            if np.array_equal(t, reference_t):
+                aligned_pdfs.append(pdf)
+            else:
+                # Skip if time arrays don't match (should not happen if calculated consistently)
+                print(f"Warning: Time arrays don't match for stimulus {stimulus}")
+        
+        if aligned_pdfs:
+            averaged_theoretical_rtds[stimulus] = (reference_t, np.mean(aligned_pdfs, axis=0))
+
+print("--- Finished averaging theoretical RTDs across animals ---")
+
+# %% Plot empirical vs theoretical RTDs
+num_abl = len(ABL_TARGETS)
+num_ild = len(ILD_ACTUAL_TARGETS)
+
+fig, axs = plt.subplots(num_abl, num_ild, 
+                       figsize=(max(20, num_ild * 2.5), num_abl * 4), 
+                       sharex=True, sharey=True)
+fig.suptitle('Empirical vs Theoretical RTDs', fontsize=18, y=1.02)
+
+# Adjust axes for single row or column
+if num_abl == 1 and num_ild > 1:
+    axs = np.array([axs])  # Make it 2D for consistent indexing
+elif num_abl > 1 and num_ild == 1:
+    axs = np.array([[ax] for ax in axs])  # Make it 2D for consistent indexing
+elif num_abl == 1 and num_ild == 1:
+    axs = np.array([[axs]])  # Make it 2D for consistent indexing
+
+# Find max y-value for consistent scaling
+max_y = 0
+for stimulus in averaged_rtds_by_stimulus.keys():
+    empirical_max = np.max(averaged_rtds_by_stimulus.get(stimulus, np.array([0])))
+    theoretical_max = np.max(averaged_theoretical_rtds.get(stimulus, np.array([0])))
+    max_y = max(max_y, empirical_max, theoretical_max)
+
+# Add 10% buffer to max_y
+max_y *= 1.1
+if max_y == 0:
+    max_y = 0.1  # Default if no data
+
+# Plot RTDs for each stimulus condition
+for abl_idx, current_ABL in enumerate(ABL_TARGETS):
+    for ild_idx, current_ILD in enumerate(ILD_ACTUAL_TARGETS):
+        ax = axs[abl_idx, ild_idx]
+        stimulus = (current_ABL, current_ILD)
+        
+        # Plot empirical RTD
+        empirical_rtd = averaged_rtds_by_stimulus.get(stimulus)
+        if empirical_rtd is not None and empirical_rtd.size > 0:
+            ax.bar(bin_centers, empirical_rtd, width=rtd_bin_width, 
+                   color='skyblue', alpha=0.6, label='Empirical (Avg)')
+        
+        # Plot theoretical RTD
+        theoretical_data = averaged_theoretical_rtds.get(stimulus)
+        if theoretical_data is not None:
+            t_points, pdf_values = theoretical_data
+            ax.plot(t_points, pdf_values, color='orangered', 
+                    linestyle='-', linewidth=2, label='Theoretical (Avg)')
+        
+        # Set plot limits and labels
+        ax.set_ylim(0, max_y)
+        ax.set_xlim(bins[0], bins[-1])
+        
+        # Add axis labels
+        if abl_idx == num_abl - 1:
+            ax.set_xlabel('Reaction Time (s)')
+        if ild_idx == 0:
+            ax.set_ylabel(f'ABL = {current_ABL} dB\nProbability Density')
+        if abl_idx == 0:
+            ax.set_title(f'ILD = {current_ILD} dB')
+        
+        ax.grid(True, linestyle=':', alpha=0.5)
+
+# Add legend to the entire figure
+handles, labels = axs[0, 0].get_legend_handles_labels()
+if handles:
+    fig.legend(handles, labels, loc='upper right', bbox_to_anchor=(0.99, 0.98))
+
+plt.tight_layout(rect=[0, 0.03, 1, 0.97])
+
+# Save the figure
+output_dir = os.path.dirname(os.path.abspath(__file__))  # Save in the same directory as the script
+output_filename = os.path.join(output_dir, 'RTDs_Empirical_vs_Theoretical.png')
+plt.savefig(output_filename, dpi=300)
+print(f"Saved comparison plot to {output_filename}")
+plt.show()
+
+print("--- End of RTD comparison analysis ---")
+
+# %%
