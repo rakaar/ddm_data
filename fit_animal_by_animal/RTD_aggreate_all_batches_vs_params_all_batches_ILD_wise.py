@@ -21,6 +21,24 @@ from collections import defaultdict
 import random
 
 # %%
+DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34']
+
+all_data_list = []
+
+for batch_name in DESIRED_BATCHES:
+    file_name = f'batch_{batch_name}_valid_and_aborts.csv'
+    file_path = os.path.join(csv_dir, file_name)
+    df = pd.read_csv(file_path)
+    df['batch_name'] = batch_name
+    all_data_list.append(df)
+    
+all_data = pd.concat(all_data_list, ignore_index=True)
+valid_trials = all_data[all_data['success'].isin([1, -1])].copy()
+filtered_trials = valid_trials[valid_trials['RTwrtStim'] <= 1]
+
+
+
+# %%
 bins = np.arange(0,1,0.02)
 base_dir = os.path.dirname(os.path.abspath(__file__))
 csv_dir = os.path.join(base_dir, 'batch_csvs')
