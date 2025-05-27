@@ -1009,3 +1009,86 @@ def plot_combined_psychometric_data(psychometric_data, theoretical_psychometric_
 
 # Run the combined plotting
 combined_fig = plot_combined_psychometric_data(psychometric_data, theoretical_psychometric_data)
+
+# %%
+# Single plot with all data and theory averages together
+def plot_all_averages_together(psychometric_data, theoretical_psychometric_data):
+    # Create a single figure
+    fig, ax = plt.subplots(figsize=(10, 8))
+    
+    # Define ILD range for smooth curves
+    ild_smooth = np.linspace(-16, 16, 100)
+    
+    # Define ABL values and colors
+    abls = [20, 40, 60]
+    abl_colors = ['b', 'g', 'r']
+    
+    # Process each ABL
+    for i, abl in enumerate(abls):
+        color = abl_colors[i]
+        
+        # --- EMPIRICAL DATA AVERAGE ---
+        empirical_individual_fits = []
+        
+        # Collect empirical fitted curves for this ABL
+        for batch_animal_pair, animal_data in psychometric_data.items():
+            if abl in animal_data and animal_data[abl]['fit'] is not None:
+                fit = animal_data[abl]['fit']
+                fit_values = [fit['sigmoid_fn'](x) for x in ild_smooth]
+                empirical_individual_fits.append(fit_values)
+        
+        # Plot average empirical fit if available (dotted line)
+        if empirical_individual_fits:
+            avg_empirical_fit = np.nanmean(empirical_individual_fits, axis=0)
+            ax.plot(ild_smooth, avg_empirical_fit, color=color, linestyle='--', linewidth=2, 
+                   label=f'Data ABL={abl}')
+        
+        # --- THEORETICAL DATA AVERAGE ---
+        theoretical_individual_fits = []
+        
+        # Collect theoretical fitted curves for this ABL
+        for batch_animal_pair, animal_data in theoretical_psychometric_data.items():
+            if abl in animal_data and animal_data[abl]['fit'] is not None:
+                fit = animal_data[abl]['fit']
+                fit_values = [fit['sigmoid_fn'](x) for x in ild_smooth]
+                theoretical_individual_fits.append(fit_values)
+        
+        # Plot average theoretical fit if available (solid line)
+        if theoretical_individual_fits:
+            avg_theoretical_fit = np.nanmean(theoretical_individual_fits, axis=0)
+            ax.plot(ild_smooth, avg_theoretical_fit, color=color, linestyle='-', linewidth=2, 
+                   label=f'Theory ABL={abl}')
+    
+    # Set title and labels
+    ax.set_title('Average Psychometric Curves: Data vs Theory', fontsize=14)
+    ax.set_xlabel('ILD (dB)', fontsize=12)
+    ax.set_ylabel('P(right choice)', fontsize=12)
+    
+    # Set axis limits and ticks
+    ax.set_xlim(-16, 16)
+    ax.set_ylim(0, 1)
+    ax.set_xticks([-15, -5, 5, 15])
+    ax.set_yticks([0, 0.5, 1])
+    
+    # Add reference lines
+    ax.axhline(y=0.5, color='grey', alpha=0.5, linestyle='-')  # Horizontal line at 0.5
+    ax.axvline(x=0, color='grey', alpha=0.5, linestyle='-')    # Vertical line at 0
+    
+    # Remove top and right spines
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    
+    # Add legend with smaller font size
+    ax.legend(fontsize=10, loc='best')
+    
+    # Adjust layout
+    plt.tight_layout()
+    
+    # Save figure
+    plt.savefig('all_averages_comparison.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    return fig
+
+# Run the all-averages plot
+all_averages_fig = plot_all_averages_together(psychometric_data, theoretical_psychometric_data)
