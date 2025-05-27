@@ -114,18 +114,18 @@ t_pts_for_integ = np.arange(0, 1, 0.001)
 tasks = [(ABL, ILD) for ABL in ABL_arr for ILD in ILD_arr]
 
 # %%
-def P_up_optim_fn(t, V_A, theta_A, x1, x2, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max, t_A_aff, t_stim, t_E_aff):
-    return rho_A_t_fn_vectorized(t - t_A_aff, V_A, theta_A) * ( CDF_E_minus_small_t_NORM_fn_vectorized(t - t_stim - t_E_aff, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max) + \
-                                                 P_small_t_btn_x1_x2_vectorized(x1, x2, t - t_stim - t_E_aff, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, K_max) )
+def P_up_optim_fn(t, V_A, theta_A, x1, x2, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max, t_A_aff, t_stim):
+    return rho_A_t_fn_vectorized(t - t_A_aff, V_A, theta_A) * ( CDF_E_minus_small_t_NORM_fn_vectorized(t - t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, bound, K_max) + \
+                                                 P_small_t_btn_x1_x2_vectorized(x1, x2, t - t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, K_max) )
 
 # %%
 def compute_integral(ABL, ILD, t_stim_arr, t_pts_for_integ, P_up_optim_fn, V_A, theta_A, x1, x2,
-                    rate_lambda, T_0, theta_E, Z_E, bound, K_max, t_A_aff, t_E_aff):
+                    rate_lambda, T_0, theta_E, Z_E, bound, K_max, t_A_aff):
     integrals = np.zeros_like(t_stim_arr)
     for t_stim_idx, t_stim in enumerate(t_stim_arr):
         unknown_integ_arr = P_up_optim_fn(t_pts_for_integ, V_A, theta_A, x1, x2,
                                     ABL, ILD, rate_lambda, T_0, theta_E, Z_E,
-                                    bound, K_max, t_A_aff, t_stim, t_E_aff)
+                                    bound, K_max, t_A_aff, t_stim)
         integrals[t_stim_idx] = trapezoid(unknown_integ_arr, t_pts_for_integ)
     return ((ABL, ILD), integrals)
 
@@ -161,7 +161,7 @@ def compute_loglike(row, integral_vs_t_stim):
 
 
 def psiam_tied_loglike_fn(params):
-    rate_lambda, T_0, theta_E, w,  t_E_aff = params
+    rate_lambda, T_0, theta_E, w = params
     Z_E = (w - 0.5) * 2 * theta_E
     
     bound = 1
@@ -173,7 +173,7 @@ def psiam_tied_loglike_fn(params):
     results = Parallel(n_jobs=30)(
         delayed(compute_integral)(
             ABL, ILD, t_stim_arr, t_pts_for_integ, P_up_optim_fn, V_A, theta_A, x1, x2,
-            rate_lambda, T_0, theta_E, Z_E, bound, K_max, t_A_aff, t_E_aff
+            rate_lambda, T_0, theta_E, Z_E, bound, K_max, t_A_aff
         ) for (ABL, ILD) in tasks
     )
     integral_vs_t_stim = {}
@@ -204,7 +204,6 @@ T_0_bounds = [0.1*(1e-3), 1*(1e-3)]
 # t_E_aff_bounds = [0.001, 0.1]
 # Z_E_bounds = [-10, 10]
 w_bounds = [0.2, 0.8]
-t_E_aff_bounds = [0.005, 0.1]
 # L_bounds = [0.1, 1.99]
 
 
@@ -216,7 +215,6 @@ theta_E_plausible_bounds = [40, 55]
 # t_E_aff_plausible_bounds = [0.01, 0.05]
 # Z_E_plausible_bounds = [-5, 5]
 w_plausible_bounds = [0.4, 0.6]
-t_E_aff_plausible_bounds = [0.04, 0.08]
 # L_plausible_bounds = [0.5, 1.5]
 
 # %% [markdown]
@@ -245,17 +243,16 @@ def trapezoidal_logpdf(x, a, b, c, d):
     
 
 def psiam_tied_prior_fn(params):
-    rate_lambda, T_0, theta_E, w, t_E_aff = params
+    rate_lambda, T_0, theta_E, w = params
 
     rate_lambda_logpdf = trapezoidal_logpdf(rate_lambda, rate_lambda_bounds[0], rate_lambda_plausible_bounds[0], rate_lambda_plausible_bounds[1], rate_lambda_bounds[1])
     theta_E_logpdf = trapezoidal_logpdf(theta_E, theta_E_bounds[0], theta_E_plausible_bounds[0], theta_E_plausible_bounds[1], theta_E_bounds[1])
     T_0_logpdf = trapezoidal_logpdf(T_0, T_0_bounds[0], T_0_plausible_bounds[0], T_0_plausible_bounds[1], T_0_bounds[1])
     w_logpdf = trapezoidal_logpdf(w, w_bounds[0], 0.5, 0.5, w_bounds[1])
-    t_E_aff_logpdf = trapezoidal_logpdf(t_E_aff, t_E_aff_bounds[0], t_E_aff_plausible_bounds[0], t_E_aff_plausible_bounds[1], t_E_aff_bounds[1])
     # Z_E_logpdf = trapezoidal_logpdf(Z_E, Z_E_bounds[0], Z_E_plausible_bounds[0], Z_E_plausible_bounds[1], Z_E_bounds[1])
     # L_logpdf = trapezoidal_logpdf(L, L_bounds[0], L_plausible_bounds[0], L_plausible_bounds[1], L_bounds[1])
 
-    return rate_lambda_logpdf + T_0_logpdf + theta_E_logpdf + w_logpdf + t_E_aff_logpdf
+    return rate_lambda_logpdf + T_0_logpdf + theta_E_logpdf + w_logpdf
 
 
 # %% [markdown]
@@ -274,15 +271,15 @@ def psiam_tied_joint_fn(params):
 
 # %%
 lb = np.array([ rate_lambda_bounds[0], T_0_bounds[0], theta_E_bounds[0], \
-                w_bounds[0], t_E_aff_bounds[0]])
+                w_bounds[0]])
 ub = np.array([ rate_lambda_bounds[1], T_0_bounds[1], theta_E_bounds[1], \
-                 w_bounds[1], t_E_aff_bounds[1]])
+                 w_bounds[1]])
 
 plb = np.array([ rate_lambda_plausible_bounds[0], T_0_plausible_bounds[0], theta_E_plausible_bounds[0], \
-                 w_plausible_bounds[0], t_E_aff_plausible_bounds[0]])
+                 w_plausible_bounds[0]])
 
 pub = np.array([rate_lambda_plausible_bounds[1], T_0_plausible_bounds[1], theta_E_plausible_bounds[1], \
-                 w_plausible_bounds[1], t_E_aff_plausible_bounds[1]])
+                 w_plausible_bounds[1]])
 
 
 np.random.seed(49)
@@ -290,9 +287,8 @@ rate_lambda_0 = np.random.uniform(rate_lambda_plausible_bounds[0], rate_lambda_p
 T_0_0 = np.random.uniform(T_0_plausible_bounds[0], T_0_plausible_bounds[1])
 theta_E_0 = np.random.uniform(theta_E_plausible_bounds[0], theta_E_plausible_bounds[1])
 w_0 = np.random.uniform(w_plausible_bounds[0], w_plausible_bounds[1])
-t_E_aff_0 = np.random.uniform(t_E_aff_plausible_bounds[0], t_E_aff_plausible_bounds[1])
 
-x_0 = np.array([rate_lambda_0, T_0_0, theta_E_0, w_0, t_E_aff_0])
+x_0 = np.array([rate_lambda_0, T_0_0, theta_E_0, w_0])
 
 vbmc = VBMC(psiam_tied_joint_fn, x_0, lb, ub, plb, pub, options={'display': 'on'})
 vp, results = vbmc.optimize()
@@ -303,7 +299,7 @@ vp, results = vbmc.optimize()
 vp_samples = vp.sample(int(1e5))[0]
 vp_samples[:,1] = vp_samples[:,1] * 1e3
 
-param_labels = ['lambda', 'T0', 'theta_E', 'w', 't_E_aff']
+param_labels = ['lambda', 'T0', 'theta_E', 'w']
 
 percentiles = np.percentile(vp_samples, [1, 99], axis=0)
 
