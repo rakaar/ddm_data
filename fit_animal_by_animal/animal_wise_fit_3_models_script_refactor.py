@@ -36,7 +36,7 @@ from animal_wise_plotting_utils import prepare_simulation_data, calculate_theore
 
 
 ############3 Params #############
-batch_name = 'LED7'
+batch_name = 'LED6'
 K_max = 10
 
 N_theory = int(1e3)
@@ -740,11 +740,12 @@ time_vary_norm_tied_pub = np.array([
 # %%
 ### Read csv and get batch data###
 # outExp.csv
-# exp_df = pd.read_csv('../outExp.csv')
+exp_df = pd.read_csv('../outExp.csv')
 # out_LED.csv
-exp_df = pd.read_csv('../out_LED.csv')
-exp_df.loc[:, 'RTwrtStim'] = exp_df['timed_fix'] - exp_df['intended_fix']
-exp_df = exp_df.rename(columns={'timed_fix': 'TotalFixTime'})
+# exp_df = pd.read_csv('../out_LED.csv')
+if 'timed_fix' in exp_df.columns:
+    exp_df.loc[:, 'RTwrtStim'] = exp_df['timed_fix'] - exp_df['intended_fix']
+    exp_df = exp_df.rename(columns={'timed_fix': 'TotalFixTime'})
 # 
 # remove rows where abort happened, and RT is nan
 exp_df = exp_df[~((exp_df['RTwrtStim'].isna()) & (exp_df['abort_event'] == 3))].copy()

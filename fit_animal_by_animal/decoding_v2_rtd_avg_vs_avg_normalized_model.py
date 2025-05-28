@@ -1,4 +1,5 @@
 # %%
+from scipy.integrate import trapezoid
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,8 +23,9 @@ import random
 
 # %%
 # Define desired batches
-# DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34']
-DESIRED_BATCHES = ['LED7']
+DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34']
+# DESIRED_BATCHES = ['Comparable', 'SD', 'LED1', 'LED34']
+# DESIRED_BATCHES = ['LED7']
 
 # Base directory paths
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -106,68 +108,72 @@ def get_params_from_animal_pkl_file(batch_name, animal_id):
         'theta_A_samples': 'theta_A',
         't_A_aff_samp': 't_A_aff'
     }
-    vbmc_vanilla_tied_param_keys_map = {
+    
+
+    vbmc_norm_tied_param_keys_map = {
         'rate_lambda_samples': 'rate_lambda',
         'T_0_samples': 'T_0',
         'theta_E_samples': 'theta_E',
         'w_samples': 'w',
         't_E_aff_samples': 't_E_aff',
-        'del_go_samples': 'del_go'
+        'del_go_samples': 'del_go',
+        'rate_norm_l_samples': 'rate_norm_l'
     }
     
     abort_keyname = "vbmc_aborts_results"
-    vanilla_tied_keyname = "vbmc_vanilla_tied_results"
+    norm_tied_keyname = "vbmc_norm_tied_results"
 
     abort_params = {}
-    vanilla_tied_params = {}
+    norm_tied_params = {}
 
     if abort_keyname in fit_results_data:
         abort_samples = fit_results_data[abort_keyname]
         for param_samples_name, param_label in vbmc_aborts_param_keys_map.items():
             abort_params[param_label] = np.mean(abort_samples[param_samples_name])
     
-    if vanilla_tied_keyname in fit_results_data:
-        vanilla_tied_samples = fit_results_data[vanilla_tied_keyname]
-        for param_samples_name, param_label in vbmc_vanilla_tied_param_keys_map.items():
-            vanilla_tied_params[param_label] = np.mean(vanilla_tied_samples[param_samples_name])
+    if norm_tied_keyname in fit_results_data:
+        norm_tied_samples = fit_results_data[norm_tied_keyname]
+        for param_samples_name, param_label in vbmc_norm_tied_param_keys_map.items():
+            norm_tied_params[param_label] = np.mean(norm_tied_samples[param_samples_name])
     
-    return abort_params, vanilla_tied_params    
+    return abort_params, norm_tied_params
+
     
 def get_P_A_C_A(batch, animal_id, abort_params):
     N_theory = int(1e3)
     file_name = f'batch_csvs/batch_{batch}_valid_and_aborts.csv'
     df = pd.read_csv(file_name)
     df_animal = df[df['animal'] == animal_id]
-    t_pts = np.arange(-1, 2, 0.001)
+    t_pts = np.arange(-2, 2, 0.001)
     P_A_mean, C_A_mean, t_stim_samples = calculate_theoretical_curves(
         df_animal, N_theory, t_pts, abort_params['t_A_aff'], abort_params['V_A'], abort_params['theta_A'], rho_A_t_fn
         )
     return P_A_mean, C_A_mean, t_stim_samples
 
 
-def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_params, vanilla_tied_params, ABL, ILD):
+def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, ABL, ILD):
     phi_params_obj = np.nan
-    rate_norm_l = 0
-    is_norm = False
+    rate_norm_l = tied_params.get('rate_norm_l', np.nan)
+    is_norm = True
     is_time_vary = False
     K_max = 10
     T_trunc = 0.3
-    t_pts = np.arange(-1, 2, 0.001)
+    t_pts = np.arange(-2, 2, 0.001)
     trunc_fac_samples = np.zeros((len(t_stim_samples)))
 
-    Z_E = (vanilla_tied_params['w'] - 0.5) * 2 * vanilla_tied_params['theta_E']
+    Z_E = (tied_params['w'] - 0.5) * 2 * tied_params['theta_E']
     for idx, t_stim in enumerate(t_stim_samples):
                 trunc_fac_samples[idx] = cum_pro_and_reactive_time_vary_fn(
                                 t_stim + 1, T_trunc,
                                 abort_params['V_A'], abort_params['theta_A'], abort_params['t_A_aff'],
-                                t_stim, ABL, ILD, vanilla_tied_params['rate_lambda'], vanilla_tied_params['T_0'], vanilla_tied_params['theta_E'], Z_E, vanilla_tied_params['t_E_aff'],
+                                t_stim, ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E, tied_params['t_E_aff'],
                                 phi_params_obj, rate_norm_l, 
                                 is_norm, is_time_vary, K_max) \
                                 - \
                                 cum_pro_and_reactive_time_vary_fn(
                                 t_stim, T_trunc,
                                 abort_params['V_A'], abort_params['theta_A'], abort_params['t_A_aff'],
-                                t_stim, ABL, ILD, vanilla_tied_params['rate_lambda'], vanilla_tied_params['T_0'], vanilla_tied_params['theta_E'], Z_E, vanilla_tied_params['t_E_aff'],
+                                t_stim, ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E, tied_params['t_E_aff'],
                                 phi_params_obj, rate_norm_l, 
                                 is_norm, is_time_vary, K_max) + 1e-10
     trunc_factor = np.mean(trunc_fac_samples)
@@ -175,13 +181,13 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
     up_mean = np.array([up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
                 t, 1,
                 P_A_mean[i], C_A_mean[i],
-                ABL, ILD, vanilla_tied_params['rate_lambda'], vanilla_tied_params['T_0'], vanilla_tied_params['theta_E'], Z_E, vanilla_tied_params['t_E_aff'], vanilla_tied_params['del_go'],
+                ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E, tied_params['t_E_aff'], tied_params['del_go'],
                 phi_params_obj, rate_norm_l, 
                 is_norm, is_time_vary, K_max) for i, t in enumerate(t_pts)])
     down_mean = np.array([up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
             t, -1,
             P_A_mean[i], C_A_mean[i],
-            ABL, ILD, vanilla_tied_params['rate_lambda'], vanilla_tied_params['T_0'], vanilla_tied_params['theta_E'], Z_E, vanilla_tied_params['t_E_aff'], vanilla_tied_params['del_go'],
+            ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E, tied_params['t_E_aff'], tied_params['del_go'],
             phi_params_obj, rate_norm_l, 
             is_norm, is_time_vary, K_max) for i, t in enumerate(t_pts)])
             
@@ -202,11 +208,11 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
     
 # %%
 ### TEST THAT THEORY and SIM agree ###
-# abort_params, vanilla_tied_params = get_params_from_animal_pkl_file('SD', 50)
+# abort_params, tied_params = get_params_from_animal_pkl_file('SD', 50)
 # p,c,ts_samp = get_P_A_C_A('SD', 50, abort_params)
 # ABL = 20
 # ILD = 2
-# t_pts_0_1,ud = get_theoretical_RTD_from_params(p, c, ts_samp, abort_params, vanilla_tied_params, ABL, ILD)
+# t_pts_0_1,ud = get_theoretical_RTD_from_params(p, c, ts_samp, abort_params, tied_params, ABL, ILD)
 
 
 
@@ -214,8 +220,10 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
 
 # N_print = N_sim // 5
 # dt = 1e-4
-# rate_norm_l = 0
-# is_norm = False
+
+# is_norm = True
+# rate_norm_l = tied_params.get('rate_norm_l', np.nan)
+
 # is_time_vary = False
 # phi_params_obj = np.nan
 
@@ -226,16 +234,16 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
 # df_animal = df[df['animal'] == animal_id]
 
 # t_stim_samples = df_animal['intended_fix'].sample(N_sim, replace=True).values
-# Z_E = (vanilla_tied_params['w'] - 0.5) * 2 * vanilla_tied_params['theta_E']
+# Z_E = (tied_params['w'] - 0.5) * 2 * tied_params['theta_E']
 # sim_results = Parallel(n_jobs=30)(
 #     delayed(psiam_tied_data_gen_wrapper_rate_norm_fn)(
-#         abort_params['V_A'], abort_params['theta_A'], ABL, ILD, vanilla_tied_params['rate_lambda'], vanilla_tied_params['T_0'], \
-#             vanilla_tied_params['theta_E'], Z_E, abort_params['t_A_aff'], vanilla_tied_params['t_E_aff'], vanilla_tied_params['del_go'], 
+#         abort_params['V_A'], abort_params['theta_A'], ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], \
+#             tied_params['theta_E'], Z_E, abort_params['t_A_aff'], tied_params['t_E_aff'], tied_params['del_go'], 
 #         t_stim_samples[iter_num], rate_norm_l, iter_num, N_print, dt
 #     ) for iter_num in tqdm(range(N_sim))
 # )
 
-# results_df = pd.DataFrame(sim_results)
+# sim_results_df = pd.DataFrame(sim_results)
 # sim_results_df_valid = sim_results_df[sim_results_df['rt'] > sim_results_df['t_stim']]
 # sim_results_df_valid_lt_1 = sim_results_df_valid[sim_results_df_valid['rt'] - sim_results_df_valid['t_stim'] <= 1]
 # sim_rt = sim_results_df_valid_lt_1['rt'] - sim_results_df_valid_lt_1['t_stim']
@@ -246,6 +254,7 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
 
 # plt.legend()
 # plt.show()
+
 
 # %%
 # SERIAL
@@ -331,6 +340,11 @@ ILD_arr = [-16., -8., -4., -2., -1., 1., 2., 4., 8., 16.]
 # Create bins for RTD histograms
 rt_bins = np.arange(0, 1.02, 0.02)  # 0 to 1 second in 0.02s bins
 
+# Track animals and ABLs included in analyses
+included_animals_rtd = []  # All animals are now included for RTD
+included_animals_psychometric = []  # Animals with at least one valid ABL
+included_abls_psychometric = {}  # Dictionary to track which ABLs were included for each animal
+
 # Function to process a single batch-animal pair
 def process_batch_animal(batch_animal_pair):
     batch_name, animal_id = batch_animal_pair
@@ -339,9 +353,9 @@ def process_batch_animal(batch_animal_pair):
     # Dictionary to store RTD data for this batch-animal pair
     animal_rtd_data = {}
     
-    # Try to get parameters for this animal
     try:
-        abort_params, vanilla_tied_params = get_params_from_animal_pkl_file(batch_name, int(animal_id))
+        # Try to get parameters for this animal
+        abort_params, tied_params = get_params_from_animal_pkl_file(batch_name, int(animal_id))
         p_a, c_a, ts_samp = get_P_A_C_A(batch_name, int(animal_id), abort_params)
         
         # Iterate through each ABL-ILD combination (stimulus)
@@ -357,7 +371,7 @@ def process_batch_animal(batch_animal_pair):
                     # Get theoretical RTD data
                     try:
                         t_pts_0_1, up_plus_down = get_theoretical_RTD_from_params(
-                            p_a, c_a, ts_samp, abort_params, vanilla_tied_params, abl, ild
+                            p_a, c_a, ts_samp, abort_params, tied_params, abl, ild
                         )
                     except Exception as e:
                         print(f"  Error calculating theoretical RTD for ABL={abl}, ILD={ild}: {str(e)}")
@@ -381,12 +395,16 @@ def process_batch_animal(batch_animal_pair):
                     
                 except Exception as e:
                     print(f"  Error processing stimulus ABL={abl}, ILD={ild}: {str(e)}")
+                    # Just continue to the next stimulus, no longer skipping the animal
                     continue
+        
+        # Always include this animal in the RTD analysis, regardless of missing data
+        included_animals_rtd.append(batch_animal_pair)
+        return batch_animal_pair, animal_rtd_data
                 
     except Exception as e:
         print(f"Error processing batch {batch_name}, animal {animal_id}: {str(e)}")
-    
-    return batch_animal_pair, animal_rtd_data
+        return batch_animal_pair, {}
 
 # Determine number of CPU cores to use (leave 1 core free for system processes)
 n_jobs = max(1, os.cpu_count() - 1)
@@ -563,43 +581,80 @@ def process_batch_animal_psychometric(batch_animal_pair):
     # Dictionary to store psychometric data for this batch-animal pair
     animal_psychometric_data = {}
     
-    # Process each ABL
-    for abl in [20, 40, 60]:  # The 3 ABLs we're interested in
-        try:
-            # Get empirical psychometric data
-            psychometric_data = get_animal_psychometric_data(batch_name, int(animal_id), abl)
-            
-            if psychometric_data is not None:
-                # Fit sigmoid to the data
-                fit_result = fit_psychometric_sigmoid(
-                    psychometric_data['ild_values'], 
-                    psychometric_data['right_choice_probs']
-                )
-                
-                # Store the data and fit
-                animal_psychometric_data[abl] = {
-                    'empirical': psychometric_data,
-                    'fit': fit_result
-                }
-                
-                print(f"  Processed ABL={abl}")
-            else:
-                # Store NaN data if ABL is absent
-                animal_psychometric_data[abl] = {
-                    'empirical': None,
-                    'fit': None
-                }
-                print(f"  No data for ABL={abl}")
-                
-        except Exception as e:
-            print(f"  Error processing ABL={abl}: {str(e)}")
-            # Store NaN data for this ABL
-            animal_psychometric_data[abl] = {
-                'empirical': None,
-                'fit': None
-            }
+    # Track which ABLs have complete data for this animal
+    valid_abls = []
     
-    return batch_animal_pair, animal_psychometric_data
+    try:
+        # Get the animal's data from CSV
+        file_name = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
+        df = pd.read_csv(file_name)
+        df_animal = df[(df['animal'] == animal_id) & (df['success'].isin([1, -1]))]
+        df_animal = df_animal[df_animal['RTwrtStim'] <= 1]  # Only trials with RT <= 1s
+        
+        # Process each ABL
+        for abl in [20, 40, 60]:  # The 3 ABLs we're interested in
+            # Print ILD data types for debugging (only once)
+            if abl == 20 and batch_animal_pair == batch_animal_pairs[0]:
+                print(f"ILD data type in DataFrame: {df_animal['ILD'].dtype}")
+                print(f"ILD data type in ILD_arr: {type(ILD_arr[0])}")
+                print(f"Sample values from DataFrame: {df_animal['ILD'].head().tolist()}")
+                print(f"Sample values from ILD_arr: {ILD_arr[:3]}")
+            
+            # Check if all ILDs exist for this ABL
+            missing_ilds = []
+            for ild in ILD_arr:
+                # Use approximate float comparison with small tolerance to handle floating point precision issues
+                subset = df_animal[(df_animal['ABL'] == abl) & (df_animal['ILD'].apply(lambda x: abs(float(x) - float(ild)) < 1e-5))]
+                if len(subset) == 0:
+                    missing_ilds.append(ild)
+            
+            if missing_ilds:
+                suffix = '...' if len(missing_ilds) > 3 else ''
+                # print(f"  ABL={abl} is missing data for {len(missing_ilds)} ILDs: {missing_ilds[:3]}{suffix}")
+                # print(f"  Skipping ABL={abl} for animal {batch_name},{animal_id}")
+                continue  # Skip this ABL but continue with other ABLs
+            
+            print('Accepted animal = {batch_name},{animal_id} for ABL={abl}')
+            try:
+                # Get empirical psychometric data
+                psychometric_data = get_animal_psychometric_data(batch_name, int(animal_id), abl)
+                
+                if psychometric_data is not None:
+                    # Fit sigmoid to the data
+                    fit_result = fit_psychometric_sigmoid(
+                        psychometric_data['ild_values'], 
+                        psychometric_data['right_choice_probs']
+                    )
+                    
+                    # Store the data and fit
+                    animal_psychometric_data[abl] = {
+                        'empirical': psychometric_data,
+                        'fit': fit_result
+                    }
+                    
+                    valid_abls.append(abl)  # Record that this ABL has valid data
+                    # print(f"  Processed ABL={abl}")
+                else:
+                    print(f"  No data for ABL={abl}. Skipping this ABL.")
+                    
+            except Exception as e:
+                print(f"  Error processing ABL={abl}: {str(e)}")
+                # Skip only this ABL, not the entire animal
+                continue
+        
+        # Include the animal if at least one ABL was processed successfully
+        if valid_abls:
+            included_animals_psychometric.append(batch_animal_pair)
+            included_abls_psychometric[batch_animal_pair] = valid_abls
+            print(f"Animal {batch_name},{animal_id} included with ABLs: {valid_abls}")
+            return batch_animal_pair, animal_psychometric_data
+        else:
+            print(f"Animal {batch_name},{animal_id} has no valid ABLs, skipping entirely.")
+            return batch_animal_pair, {}
+        
+    except Exception as e:
+        print(f"Error processing psychometric data for {batch_name}, animal {animal_id}: {str(e)}")
+        return batch_animal_pair, {}
 
 # %%
 # Process psychometric data for all batch-animal pairs in parallel
@@ -701,13 +756,12 @@ print("Saved psychometric data to psychometric_data.pkl")
 
 # %%
 # Theoretical psychometric - sigmoid averages
-from scipy.integrate import trapezoid
 
 # Function to calculate theoretical psychometric data for a given animal and ABL
 def get_theoretical_psychometric_data(batch_name, animal_id, ABL):
     # Get animal parameters
     try:
-        abort_params, vanilla_tied_params = get_params_from_animal_pkl_file(batch_name, int(animal_id))
+        abort_params, norm_tied_params = get_params_from_animal_pkl_file(batch_name, int(animal_id))
         p_a, c_a, ts_samp = get_P_A_C_A(batch_name, int(animal_id), abort_params)
         
         # Define ILD range
@@ -719,7 +773,7 @@ def get_theoretical_psychometric_data(batch_name, animal_id, ABL):
             try:
                 # Get theoretical RTD for up (rightward) and down (leftward) choices
                 t_pts_0_1, up_mean, down_mean = get_theoretical_RTD_up_down(
-                    p_a, c_a, ts_samp, abort_params, vanilla_tied_params, ABL, ild
+                    p_a, c_a, ts_samp, abort_params, norm_tied_params, ABL, ild
                 )
                 
                 # Calculate probability of rightward choice using the correct formula
@@ -742,29 +796,29 @@ def get_theoretical_psychometric_data(batch_name, animal_id, ABL):
         return None
 
 # Function to get both up (rightward) and down (leftward) theoretical RTD
-def get_theoretical_RTD_up_down(P_A_mean, C_A_mean, t_stim_samples, abort_params, vanilla_tied_params, ABL, ILD):
+def get_theoretical_RTD_up_down(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, ABL, ILD):
     phi_params_obj = np.nan
-    rate_norm_l = 0
-    is_norm = False
+    rate_norm_l = tied_params.get('rate_norm_l', np.nan)
+    is_norm = True
     is_time_vary = False
     K_max = 10
     T_trunc = 0.3
-    t_pts = np.arange(-1, 2, 0.001)
+    t_pts = np.arange(-2, 2, 0.001)
     trunc_fac_samples = np.zeros((len(t_stim_samples)))
 
-    Z_E = (vanilla_tied_params['w'] - 0.5) * 2 * vanilla_tied_params['theta_E']
+    Z_E = (tied_params['w'] - 0.5) * 2 * tied_params['theta_E']
     for idx, t_stim in enumerate(t_stim_samples):
                 trunc_fac_samples[idx] = cum_pro_and_reactive_time_vary_fn(
                                 t_stim + 1, T_trunc,
                                 abort_params['V_A'], abort_params['theta_A'], abort_params['t_A_aff'],
-                                t_stim, ABL, ILD, vanilla_tied_params['rate_lambda'], vanilla_tied_params['T_0'], vanilla_tied_params['theta_E'], Z_E, vanilla_tied_params['t_E_aff'],
+                                t_stim, ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E, tied_params['t_E_aff'],
                                 phi_params_obj, rate_norm_l, 
                                 is_norm, is_time_vary, K_max) \
                                 - \
                                 cum_pro_and_reactive_time_vary_fn(
                                 t_stim, T_trunc,
                                 abort_params['V_A'], abort_params['theta_A'], abort_params['t_A_aff'],
-                                t_stim, ABL, ILD, vanilla_tied_params['rate_lambda'], vanilla_tied_params['T_0'], vanilla_tied_params['theta_E'], Z_E, vanilla_tied_params['t_E_aff'],
+                                t_stim, ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E, tied_params['t_E_aff'],
                                 phi_params_obj, rate_norm_l, 
                                 is_norm, is_time_vary, K_max) + 1e-10
     trunc_factor = np.mean(trunc_fac_samples)
@@ -773,7 +827,7 @@ def get_theoretical_RTD_up_down(P_A_mean, C_A_mean, t_stim_samples, abort_params
     up_mean = np.array([up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
                 t, 1,  # 1 = up/right
                 P_A_mean[i], C_A_mean[i],
-                ABL, ILD, vanilla_tied_params['rate_lambda'], vanilla_tied_params['T_0'], vanilla_tied_params['theta_E'], Z_E, vanilla_tied_params['t_E_aff'], vanilla_tied_params['del_go'],
+                ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E, tied_params['t_E_aff'], tied_params['del_go'],
                 phi_params_obj, rate_norm_l, 
                 is_norm, is_time_vary, K_max) for i, t in enumerate(t_pts)])
     
@@ -781,7 +835,7 @@ def get_theoretical_RTD_up_down(P_A_mean, C_A_mean, t_stim_samples, abort_params
     down_mean = np.array([up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
                 t, -1,  # -1 = down/left
                 P_A_mean[i], C_A_mean[i],
-                ABL, ILD, vanilla_tied_params['rate_lambda'], vanilla_tied_params['T_0'], vanilla_tied_params['theta_E'], Z_E, vanilla_tied_params['t_E_aff'], vanilla_tied_params['del_go'],
+                ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E, tied_params['t_E_aff'], tied_params['del_go'],
                 phi_params_obj, rate_norm_l, 
                 is_norm, is_time_vary, K_max) for i, t in enumerate(t_pts)])
    
@@ -1107,3 +1161,329 @@ def plot_all_averages_together(psychometric_data, theoretical_psychometric_data)
 # Run the all-averages plot
 all_averages_fig = plot_all_averages_together(psychometric_data, theoretical_psychometric_data)
 # %%
+# Get all animal keys and determine grid size
+animal_keys = list(theoretical_psychometric_data.keys())
+total_animals = len(animal_keys)
+print(f'Total animals: {total_animals}')
+
+# Calculate number of rows needed (5 animals per row)
+row_count = (total_animals + 4) // 5  # Ceiling division to get number of rows
+
+# Create a figure with subplots arranged in a grid, 5 per row
+fig, axes = plt.subplots(row_count, 5, figsize=(20, 4*row_count))
+
+# Make axes 2D if there's only one row
+if row_count == 1:
+    axes = axes.reshape(1, -1)
+
+# Define colors for different ABLs
+abl_colors = {20: 'blue', 40: 'green', 60: 'red'}
+
+# Create plots for each animal
+for i, key in enumerate(animal_keys):
+    # Calculate row and column position
+    row = i // 5
+    col = i % 5
+    
+    # Get the appropriate axis
+    ax = axes[row, col]
+    
+    psycho_animal = theoretical_psychometric_data[key]
+    
+    # Set title for each subplot
+    ax.set_title(f'Animal {key}')
+    
+    # Plot each ABL
+    for abl in [20, 40, 60]:
+        if abl in psycho_animal:
+            psycho_abl = psycho_animal[abl]
+            ild_values = psycho_abl['theoretical']['ild_values']
+            right_choice_probs = psycho_abl['theoretical']['right_choice_probs']
+            ax.plot(ild_values, right_choice_probs, color=abl_colors[abl], label=f'ABL {abl}')
+    
+    # Add reference lines
+    ax.axhline(y=0.5, color='grey', alpha=0.5, linestyle='--')  # Horizontal line at 0.5
+    ax.axvline(x=0, color='grey', alpha=0.5, linestyle='--')    # Vertical line at 0
+    
+    # Set axis labels and limits
+    ax.set_xlabel('ILD (dB)')
+    if col == 0:  # Only add y-label for leftmost plots
+        ax.set_ylabel('P(right choice)')
+    ax.set_xlim(-16, 16)
+    ax.set_ylim(0, 1)
+    
+    # Add legend only for the first subplot
+    if i == 0:
+        ax.legend()
+
+# Hide empty subplots
+for i in range(total_animals, row_count * 5):
+    row = i // 5
+    col = i % 5
+    axes[row, col].axis('off')
+
+# Adjust layout
+plt.tight_layout()
+plt.savefig('theoretical_psychometric_by_animal_grid.png', dpi=300, bbox_inches='tight')
+plt.show()
+# %%
+# check if theory and sim agree
+### TEST THAT THEORY and SIM agree ###
+
+
+# Set up the simulation to compare psychometric curves between simulation and theory
+batch = 'SD'
+animal_id = 50
+
+# Get model parameters
+abort_params, tied_params = get_params_from_animal_pkl_file(batch, animal_id)
+
+# Simulation settings
+N_sim = int(1e6)
+N_print = N_sim // 5
+dt = 1e-3
+
+# Model settings
+is_norm = True
+rate_norm_l = tied_params.get('rate_norm_l', np.nan)
+is_time_vary = False
+phi_params_obj = np.nan
+
+# Load animal data for getting intended_fix sample distribution
+file_name = f'batch_csvs/batch_{batch}_valid_and_aborts.csv'
+df = pd.read_csv(file_name)
+df_animal = df[df['animal'] == animal_id]
+
+# Define ILD and ABL values to test
+ild_values = np.array([-16., -8., -4., -2., -1., 1., 2., 4., 8., 16.])
+abl_values = np.array([20, 40, 60])
+
+# Create figure for psychometric curves
+fig, axes = plt.subplots(1, len(abl_values), figsize=(15, 5), sharey=True)
+fig.suptitle(f'Psychometric Curves: Simulated vs Theoretical for Animal {animal_id}, Batch {batch}')
+
+# Sample intended_fix times from animal data
+t_stim_samples = df_animal['intended_fix'].sample(N_sim, replace=True).values
+Z_E = (tied_params['w'] - 0.5) * 2 * tied_params['theta_E']
+
+# Generate random ABL and ILD samples from the set of values
+ABL_samples = np.random.choice(abl_values, N_sim)
+ILD_samples = np.random.choice(ild_values, N_sim)
+
+# Run a single large simulation with all samples
+print("Running simulation for all conditions...")
+sim_results = Parallel(n_jobs=30)(
+    delayed(psiam_tied_data_gen_wrapper_rate_norm_fn)(
+        abort_params['V_A'], abort_params['theta_A'], ABL_samples[i], ILD_samples[i],
+        tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E,
+        abort_params['t_A_aff'], tied_params['t_E_aff'], tied_params['del_go'],
+        t_stim_samples[i], rate_norm_l, i, N_print, dt
+    ) for i in tqdm(range(N_sim))
+)
+
+# Convert to DataFrame and filter for valid trials
+sim_results_df = pd.DataFrame(sim_results)
+sim_results_df_valid = sim_results_df[
+    (sim_results_df['rt'] > sim_results_df['t_stim']) & 
+    (sim_results_df['rt'] - sim_results_df['t_stim'] <= 1)
+]
+
+# Process each ABL level
+for abl_idx, abl in enumerate(abl_values):
+    print(f"Processing ABL = {abl}")
+    
+    # Get theoretical psychometric data for this ABL
+    theo_psycho = get_theoretical_psychometric_data(batch, animal_id, abl)
+    
+    # Calculate simulated psychometric curve for this ABL
+    sim_right_probs = []
+    
+    # For each ILD value, calculate the probability of rightward choice
+    for ild in ild_values:
+        # Filter trials with current ABL and ILD
+        abl_ild_trials = sim_results_df_valid[
+            (sim_results_df_valid['ABL'] == abl) & 
+            (sim_results_df_valid['ILD'] == ild)
+        ]
+        
+        # Calculate probability of right choice (choice == 1)
+        if len(abl_ild_trials) > 0:
+            right_prob = (abl_ild_trials['choice'] == 1).mean()
+            print(f"  ILD={ild}, trials={len(abl_ild_trials)}, P(right)={right_prob:.3f}")
+        else:
+            right_prob = np.nan
+            print(f"  ILD={ild}, no valid trials found")
+            
+        sim_right_probs.append(right_prob)
+    
+    # Plot simulation results
+    axes[abl_idx].plot(ild_values, sim_right_probs, 'bo-', label='Simulation')
+    
+    # Plot theoretical results if available
+    if theo_psycho is not None:
+        axes[abl_idx].plot(theo_psycho['ild_values'], theo_psycho['right_choice_probs'], 
+                         'r*-', label='Theory')
+    
+    axes[abl_idx].set_title(f'ABL = {abl} dB')
+    axes[abl_idx].set_xlabel('ILD (dB)')
+    axes[abl_idx].set_ylim([0, 1])
+    axes[abl_idx].grid(True, alpha=0.3)
+    
+    if abl_idx == 0:
+        axes[abl_idx].set_ylabel('P(Right Choice)')
+    
+    axes[abl_idx].legend()
+
+plt.tight_layout()
+plt.savefig(f'psychometric_sim_vs_theory_animal_{animal_id}.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# %%
+# Create a new figure for psychometric data with sigmoid fits using actual experimental data
+# Load experimental data from CSV
+file_name = f'batch_csvs/batch_{batch}_valid_and_aborts.csv'
+df = pd.read_csv(file_name)
+df_animal = df[df['animal'] == animal_id]
+
+# Only use valid trials (not aborts) where the animal responded after sound onset
+df_valid = df_animal[(df_animal['success'] == 1) | (df_animal['success'] == -1)]
+
+# Create figure
+plt.figure(figsize=(12, 4))
+n_abls = len(abl_values)
+axes = plt.subplots(1, n_abls, figsize=(4*n_abls, 4))[1]
+
+# Set x-axis range for fine sigmoid interpolation
+x_interp = np.linspace(-16, 16, 100)
+
+for abl_idx, abl in enumerate(abl_values):
+    print(f"Processing psychometric fit for ABL = {abl} using real data")
+    
+    # Get actual data points for this ABL
+    abl_data = df_valid[df_valid['ABL'] == abl]
+    
+    # Calculate probability of right choice for each ILD
+    ild_data = []
+    right_probs = []
+    trial_counts = []
+    
+    for ild in sorted(abl_data['ILD'].unique()):
+        ild_trials = abl_data[abl_data['ILD'] == ild]
+        if len(ild_trials) > 0:
+            right_prob = (ild_trials['choice'] == 1).mean()
+            ild_data.append(ild)
+            right_probs.append(right_prob)
+            trial_counts.append(len(ild_trials))
+            print(f"  ILD={ild}, trials={len(ild_trials)}, P(right)={right_prob:.3f}")
+    
+    # Convert to numpy arrays
+    ild_data = np.array(ild_data)
+    right_probs = np.array(right_probs)
+    trial_counts = np.array(trial_counts)
+    
+    # Plot actual data points with fixed marker size
+    if len(ild_data) > 0:
+        axes[abl_idx].plot(ild_data, right_probs, 'bo', markersize=8, label='Data')
+    
+    # Fit sigmoid and plot it
+    fit_result = fit_psychometric_sigmoid(ild_data, right_probs)
+    
+    if fit_result is not None:
+        # Generate smooth curve from fitted sigmoid
+        y_interp = fit_result['sigmoid_fn'](x_interp)
+        axes[abl_idx].plot(x_interp, y_interp, 'r-', label='Sigmoid fit')
+        
+        # Extract parameters for display
+        base, amplitude, inflection, slope = fit_result['params']
+        print(f"  Sigmoid fit: base={base:.2f}, amplitude={amplitude:.2f}, inflection={inflection:.2f}, slope={slope:.2f}")
+    
+    # Set plot properties
+    axes[abl_idx].set_title(f'ABL = {abl} dB')
+    axes[abl_idx].set_xlabel('ILD (dB)')
+    axes[abl_idx].set_xlim([-16, 16])
+    axes[abl_idx].set_ylim([0, 1])
+    axes[abl_idx].grid(True, alpha=0.3)
+    axes[abl_idx].set_yticks([0, 0.5, 1.05])
+    axes[abl_idx].axhline(y=1, color='grey', alpha=0.5, linestyle='--')
+    
+    if abl_idx == 0:
+        axes[abl_idx].set_ylabel('P(Right Choice)')
+    
+    axes[abl_idx].legend()
+
+plt.tight_layout()
+plt.savefig(f'psychometric_real_data_fits_animal_{animal_id}.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# %%
+# ONLY DISCRETE POINTS, NO SMOOTHING
+# Get all animal keys and determine grid size
+animal_keys = list(theoretical_psychometric_data.keys())
+total_animals = len(animal_keys)
+print(f'Total animals: {total_animals}')
+
+# Calculate number of rows needed (5 animals per row)
+row_count = (total_animals + 4) // 5  # Ceiling division to get number of rows
+
+# Create a figure with subplots arranged in a grid, 5 per row
+fig, axes = plt.subplots(row_count, 5, figsize=(20, 4*row_count))
+
+# Make axes 2D if there's only one row
+if row_count == 1:
+    axes = axes.reshape(1, -1)
+
+# Define colors for different ABLs
+abl_colors = {20: 'blue', 40: 'green', 60: 'red'}
+
+# Create plots for each animal
+for i, key in enumerate(animal_keys):
+    # Calculate row and column position
+    row = i // 5
+    col = i % 5
+    
+    # Get the appropriate axis
+    ax = axes[row, col]
+    
+    psycho_animal = theoretical_psychometric_data[key]
+    
+    # Set title for each subplot
+    ax.set_title(f'Animal {key}')
+    
+    # Plot each ABL
+    for abl in [20, 40, 60]:
+        if abl in psycho_animal:
+            psycho_abl = psycho_animal[abl]
+            ild_values = psycho_abl['theoretical']['ild_values']
+            right_choice_probs = psycho_abl['theoretical']['right_choice_probs']
+            ax.scatter(ild_values, right_choice_probs, color=abl_colors[abl], label=f'ABL {abl}')
+            # ax.scatter(animal_psychometric_data[abl]['empirical']['ild_values'], animal_psychometric_data[abl]['empirical']['right_choice_probs'], color=abl_colors[abl], marker='x')
+    
+    # Add reference lines
+    ax.axhline(y=0.5, color='grey', alpha=0.5, linestyle='--')  # Horizontal line at 0.5
+    ax.axvline(x=0, color='grey', alpha=0.5, linestyle='--')    # Vertical line at 0
+    
+    # Set axis labels and limits
+    ax.set_xlabel('ILD (dB)')
+    if col == 0:  # Only add y-label for leftmost plots
+        ax.set_ylabel('P(right choice)')
+    ax.set_xlim(-17, 17)
+    ax.set_ylim(0, 1)
+    
+    # Add legend only for the first subplot
+    if i == 0:
+        ax.legend()
+
+# Hide empty subplots
+for i in range(total_animals, row_count * 5):
+    row = i // 5
+    col = i % 5
+    axes[row, col].axis('off')
+
+# Adjust layout
+plt.tight_layout()
+plt.show()
+
+# %%
+# %%
+psychometric_data = run_psychometric_processing()
+print(psychometric_data)

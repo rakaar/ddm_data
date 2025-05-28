@@ -1,6 +1,9 @@
 # %%
 # Psychometric fitting for all animals
 import numpy as np
+# Set non-interactive backend before importing plt to avoid tkinter errors
+import matplotlib
+matplotlib.use('Agg')  # Use the 'Agg' backend which doesn't require a GUI
 import matplotlib.pyplot as plt
 import pandas as pd
 from tqdm import tqdm
