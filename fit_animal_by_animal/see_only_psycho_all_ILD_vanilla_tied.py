@@ -77,36 +77,32 @@ def get_params_from_animal_pkl_file(batch_name, animal_id):
         'theta_A_samples': 'theta_A',
         't_A_aff_samp': 't_A_aff'
     }
-    
-
-    vbmc_norm_tied_param_keys_map = {
+    vbmc_vanilla_tied_param_keys_map = {
         'rate_lambda_samples': 'rate_lambda',
         'T_0_samples': 'T_0',
         'theta_E_samples': 'theta_E',
         'w_samples': 'w',
         't_E_aff_samples': 't_E_aff',
-        'del_go_samples': 'del_go',
-        'rate_norm_l_samples': 'rate_norm_l'
+        'del_go_samples': 'del_go'
     }
     
     abort_keyname = "vbmc_aborts_results"
-    norm_tied_keyname = "vbmc_norm_tied_results"
+    vanilla_tied_keyname = "vbmc_vanilla_tied_results"
 
     abort_params = {}
-    norm_tied_params = {}
+    vanilla_tied_params = {}
 
     if abort_keyname in fit_results_data:
         abort_samples = fit_results_data[abort_keyname]
         for param_samples_name, param_label in vbmc_aborts_param_keys_map.items():
             abort_params[param_label] = np.mean(abort_samples[param_samples_name])
     
-    if norm_tied_keyname in fit_results_data:
-        norm_tied_samples = fit_results_data[norm_tied_keyname]
-        for param_samples_name, param_label in vbmc_norm_tied_param_keys_map.items():
-            norm_tied_params[param_label] = np.mean(norm_tied_samples[param_samples_name])
+    if vanilla_tied_keyname in fit_results_data:
+        vanilla_tied_samples = fit_results_data[vanilla_tied_keyname]
+        for param_samples_name, param_label in vbmc_vanilla_tied_param_keys_map.items():
+            vanilla_tied_params[param_label] = np.mean(vanilla_tied_samples[param_samples_name])
     
-    return abort_params, norm_tied_params
-
+    return abort_params, vanilla_tied_params
     
 def get_P_A_C_A(batch, animal_id, abort_params):
     N_theory = int(1e3)
@@ -295,8 +291,8 @@ def get_theoretical_psychometric_data(batch_name, animal_id, ABL):
 # Function to get both up (rightward) and down (leftward) theoretical RTD
 def get_theoretical_RTD_up_down(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, ABL, ILD):
     phi_params_obj = np.nan
-    rate_norm_l = tied_params.get('rate_norm_l', np.nan)
-    is_norm = True
+    rate_norm_l = 0
+    is_norm = False
     is_time_vary = False
     K_max = 10
     T_trunc = 0.3
@@ -701,7 +697,6 @@ plt.tight_layout()
 plt.show()
 # %%
 # Plot all three ABLs in a single figure: data (dotted), theory (solid), each ABL a color
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -752,8 +747,6 @@ ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 plt.tight_layout()
 plt.show()
-
-
 # %%
 # --- Logistic fit slopes for theory and data, print and save ---
 import pickle
@@ -802,7 +795,7 @@ for abl in [20, 40, 60]:
         print(f"[DATA]   Not enough valid data points for ABL={abl} to fit.")
 
 # Save slopes and fit params to pickle
-with open('psychometric_logistic_slopes_NORM_TIED.pkl', 'wb') as f:
+with open('psychometric_logistic_slopes_VANILLA_TIED.pkl', 'wb') as f:
     pickle.dump(logistic_fit_results, f)
 print('Logistic fit slopes and parameters saved to psychometric_logistic_slopes.pkl')
 

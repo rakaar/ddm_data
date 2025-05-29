@@ -22,8 +22,8 @@ import random
 
 # %%
 # Define desired batches
-# DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34']
-DESIRED_BATCHES = ['LED7']
+DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
+# DESIRED_BATCHES = ['LED7']
 
 # Base directory paths
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -132,7 +132,7 @@ def get_params_from_animal_pkl_file(batch_name, animal_id):
             vanilla_tied_params[param_label] = np.mean(vanilla_tied_samples[param_samples_name])
     
     return abort_params, vanilla_tied_params    
-    
+
 def get_P_A_C_A(batch, animal_id, abort_params):
     N_theory = int(1e3)
     file_name = f'batch_csvs/batch_{batch}_valid_and_aborts.csv'
@@ -483,7 +483,9 @@ plt.savefig('rtd_average_by_stimulus.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 # %%
-###### Psychometric ####################
+################################################################################
+################################# Psychometric #################################
+################################################################################
 
 # Function to get empirical psychometric data for an animal in a batch for each ABL
 def get_animal_psychometric_data(batch_name, animal_id, ABL):
