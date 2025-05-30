@@ -22,6 +22,41 @@ from collections import defaultdict
 import random
 
 # %%
+def fit_psychometric_sigmoid(ild_values, right_choice_probs):
+    from scipy.optimize import curve_fit
+    
+    # Define 4-parameter sigmoid function
+    def sigmoid(x, base, amplitude, inflection, slope):
+        # Calculate sigmoid values and clip to [0,1] range
+        values = base + amplitude / (1 + np.exp(-slope * (x - inflection)))
+        return np.clip(values, 0, 1)
+    
+    # Initial parameter guess
+    p0 = [0.0, 1.0, 0.0, 1.0]  # [base, amplitude, inflection, slope]
+    
+    # Filter out NaN values before fitting
+    valid_idx = ~np.isnan(right_choice_probs)
+    if np.sum(valid_idx) < 4:  # Need at least 4 points for 4 parameters
+        return None
+    
+    x = ild_values[valid_idx]
+    y = right_choice_probs[valid_idx]
+    
+    try:
+        # Fit sigmoid function to data
+        popt, _ = curve_fit(sigmoid, x, y, p0=p0)
+        
+        # Return fitted parameters and function with explicit clipping
+        return {
+            'params': popt,
+            'sigmoid_fn': lambda x: np.clip(sigmoid(x, *popt), 0, 1)  # Ensure output is in [0,1] range
+        }
+    except Exception as e:
+        print(f"Error fitting sigmoid: {str(e)}")
+        return None
+
+
+# %%
 # Define desired batches
 DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
 # DESIRED_BATCHES = ['Comparable', 'SD', 'LED1', 'LED34']
@@ -190,10 +225,10 @@ def process_batch_animal_psychometric(batch_animal_pair):
                 
                 if psychometric_data is not None:
                     # Fit sigmoid to the data
-                    # fit_result = fit_psychometric_sigmoid(
-                    #     psychometric_data['ild_values'], 
-                    #     psychometric_data['right_choice_probs']
-                    # )
+                    fit_result = fit_psychometric_sigmoid(
+                        psychometric_data['ild_values'], 
+                        psychometric_data['right_choice_probs']
+                    )
                     
                     # Store the data and fit
                     animal_psychometric_data[abl] = {
@@ -714,7 +749,7 @@ for abl in [20, 40, 60]:
     print(f'emp n valid: {n_emp}')
     emp_sem = np.nanstd(emp, axis=0) / np.sqrt(np.maximum(n_emp - 1, 1))
     print(f'denominator: {np.sqrt(np.maximum(n_emp - 1, 1))}')
-    plt.errorbar(ilds, emp_mean, yerr=emp_sem, fmt='o', color=colors[abl], label=f'Data ABL={abl}', capsize=0)
+    plt.errorbar(ilds, emp_mean, yerr=emp_sem, fmt='o', color=colors[abl], label=f'Data ABL={abl}', capsize=0, markersize=4)
     # Logistic fit to theory: solid line
     valid_idx = ~np.isnan(theo_mean)
     if np.sum(valid_idx) >= 4:
@@ -795,9 +830,6 @@ for abl in [20, 40, 60]:
         print(f"[DATA]   Not enough valid data points for ABL={abl} to fit.")
 
 # Save slopes and fit params to pickle
-with open('psychometric_logistic_slopes_VANILLA_TIED.pkl', 'wb') as f:
-    pickle.dump(logistic_fit_results, f)
-print('Logistic fit slopes and parameters saved to psychometric_logistic_slopes.pkl')
-
-#%%
-logistic_fit_results
+# with open('psychometric_logistic_slopes_VANILLA_TIED.pkl', 'wb') as f:
+#     pickle.dump(logistic_fit_results, f)
+# print('Logistic fit slopes and parameters saved to psychometric_logistic_slopes.pkl')
