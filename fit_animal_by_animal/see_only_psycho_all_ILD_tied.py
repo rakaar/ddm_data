@@ -73,7 +73,11 @@ def find_batch_animal_pairs():
         else:
             print(f"Warning: Invalid filename format: {filename}")
     return pairs
-batch_animal_pairs = find_batch_animal_pairs()
+# batch_animal_pairs = find_batch_animal_pairs()
+# Use high slope animals
+with open('high_slope_animals.pkl', 'rb') as f:
+    batch_animal_pairs = pickle.load(f)
+
 print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
 
 # %%
@@ -380,43 +384,43 @@ def plot_theoretical_psychometric_data(theoretical_psychometric_data):
 
 # %%
 # Get theoretical and empirical data
-# theoretical_psychometric_data = run_theoretical_psychometric_processing()
+theoretical_psychometric_data = run_theoretical_psychometric_processing()
 psychometric_data = run_psychometric_processing()
-# print(f'len of theory psycho data = {len(theoretical_psychometric_data)}')
+print(f'len of theory psycho data = {len(theoretical_psychometric_data)}')
 print(f'len of empirical psycho data = {len(psychometric_data)}')
 
 # %%
 # Save theoretical data in pickle file
 # uncomment when no pkl files
-# import copy
-# theory_psycho_data_to_save = copy.deepcopy(theoretical_psychometric_data)
-# for batch_animal_pair, animal_data in theory_psycho_data_to_save.items():
-#     for abl, abl_data in animal_data.items():
-#         fit = abl_data.get('fit')
-#         if fit is not None and 'sigmoid_fn' in fit:
-#             del fit['sigmoid_fn']
+import copy
+theory_psycho_data_to_save = copy.deepcopy(theoretical_psychometric_data)
+for batch_animal_pair, animal_data in theory_psycho_data_to_save.items():
+    for abl, abl_data in animal_data.items():
+        fit = abl_data.get('fit')
+        if fit is not None and 'sigmoid_fn' in fit:
+            del fit['sigmoid_fn']
 
-# pickle_filename = f"theoretical_psychometric_data_{'norm' if IS_NORM_TIED else 'vanilla'}.pkl"
-# with open(pickle_filename, 'wb') as f:
-#     pickle.dump(theory_psycho_data_to_save, f)
-# print(f"Saved theoretical psychometric data to {pickle_filename}")
+pickle_filename = f"theoretical_psychometric_data_{'norm' if IS_NORM_TIED else 'vanilla'}.pkl"
+with open(pickle_filename, 'wb') as f:
+    pickle.dump(theory_psycho_data_to_save, f)
+print(f"Saved theoretical psychometric data to {pickle_filename}")
 
 # %%
 # --- Print a summary of psychometric_data dictionary structure ---
-print("\n--- Summary of psychometric_data ---")
-print(f"Top-level keys (batch, animal) pairs: {list(psychometric_data.keys())[:3]} ... total: {len(psychometric_data)}")
+# print("\n--- Summary of psychometric_data ---")
+# print(f"Top-level keys (batch, animal) pairs: {list(psychometric_data.keys())[:3]} ... total: {len(psychometric_data)}")
 
-# Show a sample entry
-for batch_animal_pair, abl_dict in list(psychometric_data.items())[:1]:
-    print(f"\nBatch-animal pair: {batch_animal_pair}")
-    print(f"  ABLs: {list(abl_dict.keys())}")
-    for abl, d in abl_dict.items():
-        print(f"    ABL {abl}:")
-        print(f"      empirical keys: {list(d['empirical'].keys())}")
-        if d['fit'] is not None:
-            print(f"      fit params: {d['fit'].get('params', None)}")
-        else:
-            print(f"      fit: None")
+# # Show a sample entry
+# for batch_animal_pair, abl_dict in list(psychometric_data.items())[:1]:
+#     print(f"\nBatch-animal pair: {batch_animal_pair}")
+#     print(f"  ABLs: {list(abl_dict.keys())}")
+#     for abl, d in abl_dict.items():
+#         print(f"    ABL {abl}:")
+#         print(f"      empirical keys: {list(d['empirical'].keys())}")
+#         if d['fit'] is not None:
+#             print(f"      fit params: {d['fit'].get('params', None)}")
+#         else:
+#             print(f"      fit: None")
 
 # %%
 # --- Slope comparison plot: Vanilla, Data, Norm TIED ---
@@ -497,6 +501,18 @@ plt.subplots_adjust(wspace=0.15, left=0.05, right=0.98, top=0.90, bottom=0.23)
 plt.show()
 
 # %%
+### Find and print (batch, animal) pairs with avg slope > 0.7 in data
+# high_slope_animals = []
+# for ba in common_pairs:
+#     avg = np.nanmean([slopes_data[ba][a] for a in [20, 40, 60]])
+#     if avg > 0.6:
+#         high_slope_animals.append(ba)
+#         # print(f"Batch: {ba[0]}, Animal: {ba[1]}, AvgSlope: {avg:.3f}")
+# with open('high_slope_animals.pkl', 'wb') as f:
+#     pickle.dump(high_slope_animals, f)
+# print(f"High slope animals saved to 'high_slope_animals.pkl'")
+
+# %%
 # --- Data vs Model Mean Slope Scatter Plots ---
 fig2, axes2 = plt.subplots(1, 2, figsize=(8, 4), sharey=True)
 
@@ -542,4 +558,393 @@ ax.spines['right'].set_visible(False)
 ax.plot([0.1, 0.9], [0.1, 0.9], color='grey', alpha=0.5, linestyle='--', linewidth=2, zorder=0)
 r2_norm = r2_score(data_means, norm_means)
 ax.legend([f'$R^2$ = {r2_norm:.2f}'], loc='upper left', frameon=False, fontsize=15)
+# %%
+import matplotlib.pyplot as plt
+import numpy as np
+import re
+from sklearn.metrics import r2_score
+
+# Assume the following variables are defined in the namespace:
+# data_means, vanilla_means, norm_means, common_pairs_sorted
+
+# Helper to extract animal number from animal id/name
+def extract_animal_number(animal_id):
+    match = re.search(r'(\d+)', str(animal_id))
+    return match.group(1) if match else str(animal_id)
+
+fig3, axes3 = plt.subplots(1, 2, figsize=(8, 4), sharey=True)
+
+# Data vs Vanilla (with labels)
+ax = axes3[0]
+for i, ba in enumerate(common_pairs_sorted):
+    x = data_means[i]
+    y = vanilla_means[i]
+    animal_label = extract_animal_number(ba)
+    ax.text(x, y, animal_label, fontsize=14, ha='center', va='center', fontweight='bold')
+ax.set_xlabel('Data', fontsize=20)
+ax.set_ylabel('w/o Normalization', fontsize=20)
+ax.set_xticks([0.1, 0.5, 0.9])
+ax.set_yticks([0.1, 0.5, 0.9])
+ax.set_xlim(0.1, 0.9)
+ax.set_ylim(0.1, 0.9)
+ax.tick_params(axis='both', labelsize=18)
+plt.setp(ax.get_xticklabels())
+plt.setp(ax.get_yticklabels())
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.plot([0.1, 0.9], [0.1, 0.9], color='grey', alpha=0.5, linestyle='--', linewidth=2, zorder=0)
+r2_vanilla = r2_score(data_means, vanilla_means)
+ax.legend([f'$R^2$ = {r2_vanilla:.2f}'], loc='upper left', frameon=False, fontsize=15)
+
+# Data vs Norm (with labels)
+ax = axes3[1]
+for i, ba in enumerate(common_pairs_sorted):
+    x = data_means[i]
+    y = norm_means[i]
+    animal_label = extract_animal_number(ba)
+    ax.text(x, y, animal_label, fontsize=14, ha='center', va='center', fontweight='bold')
+ax.set_xlabel('Data', fontsize=20)
+ax.set_ylabel('Normalization', fontsize=20)
+ax.set_xticks([0.1, 0.5, 0.9])
+ax.set_yticks([0.1, 0.5, 0.9])
+ax.set_xlim(0.1, 0.9)
+ax.set_ylim(0.1, 0.9)
+ax.tick_params(axis='both', labelsize=18)
+plt.setp(ax.get_xticklabels())
+plt.setp(ax.get_yticklabels())
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.plot([0.1, 0.9], [0.1, 0.9], color='grey', alpha=0.5, linestyle='--', linewidth=2, zorder=0)
+r2_norm = r2_score(data_means, norm_means)
+ax.legend([f'$R^2$ = {r2_norm:.2f}'], loc='upper left', frameon=False, fontsize=15)
+
+plt.tight_layout()
+plt.show()
+
+# %%
+########  Plot psychometrics ########
+# %%
+# Compare vanilla/norm and data psychometric curves
+# theoretical psychometric data can be vanilla or norm. Comment,Uncomment accordingly
+# theoretical_psychometric_data = vanilla_psychometric_data
+theoretical_psychometric_data = norm_psychometric_data
+
+# Get all animal keys and determine grid size
+animal_keys = list(psychometric_data.keys())
+total_animals = len(animal_keys)
+# print(f'Total animals: {len(animal_keys)}')
+
+
+# Calculate number of rows needed (5 animals per row)
+row_count = (total_animals + 4) // 5  # Ceiling division to get number of rows
+print(f'Number of animals: {total_animals}')
+# Create a figure with subplots arranged in a grid, 5 per row
+fig, axes = plt.subplots(row_count, 5, figsize=(20, 4*row_count))
+
+# Make axes 2D if there's only one row
+if row_count == 1:
+    axes = axes.reshape(1, -1)
+
+# Define colors for different ABLs
+abl_colors = {20: 'blue', 40: 'green', 60: 'red'}
+
+# Create plots for each animal
+for i, key in enumerate(animal_keys):
+    # Calculate row and column position
+    row = i // 5
+    col = i % 5
+    
+    # Get the appropriate axis
+    ax = axes[row, col]
+    
+    psycho_animal = theoretical_psychometric_data[key]
+    empirical_animal = psychometric_data[key]
+    # Set title for each subplot
+    ax.set_title(f'Animal {key}')
+    
+    # Plot each ABL
+    for abl in [20, 40, 60]:
+        if abl in psycho_animal:
+            psycho_abl = psycho_animal[abl]
+            ild_values = psycho_abl['theoretical']['ild_values']
+            right_choice_probs = psycho_abl['theoretical']['right_choice_probs']
+            ax.scatter(ild_values, right_choice_probs, color=abl_colors[abl], label=f'ABL {abl}')
+            if abl in empirical_animal:
+                ax.scatter(empirical_animal[abl]['empirical']['ild_values'], empirical_animal[abl]['empirical']['right_choice_probs'], color=abl_colors[abl], marker='x')    
+    # Add reference lines
+    ax.axhline(y=0.5, color='grey', alpha=0.5, linestyle='--')  # Horizontal line at 0.5
+    ax.axvline(x=0, color='grey', alpha=0.5, linestyle='--')    # Vertical line at 0
+    
+    # Set axis labels and limits
+    ax.set_xlabel('ILD (dB)')
+    if col == 0:  # Only add y-label for leftmost plots
+        ax.set_ylabel('P(right choice)')
+    ax.set_xlim(-17, 17)
+    ax.set_ylim(0, 1.02)
+    
+    # Add legend only for the first subplot
+    if i == 0:
+        ax.legend()
+
+# Hide empty subplots
+for i in range(total_animals, row_count * 5):
+    row = i // 5
+    col = i % 5
+    axes[row, col].axis('off')
+
+# Adjust layout
+plt.tight_layout()
+plt.show()
+
+# %%
+# === Start of new code for average psychometric plots ===
+# Ensure numpy and pyplot are available (likely already imported as np and plt)
+theory_agg = {}
+empirical_agg = {}
+for abl in [20, 40, 60]:
+    theory_agg[abl] = np.full((len(animal_keys), len(ILD_arr)), np.nan)
+    empirical_agg[abl] = np.full((len(animal_keys), len(ILD_arr)), np.nan)
+
+for idx, key in enumerate(animal_keys):
+    animal_data = psychometric_data[key]
+    theory_data = theoretical_psychometric_data[key]
+    
+    for abl_key in [20, 40, 60]:
+        if abl_key in theory_data:
+            theory_abl_psycho = theory_data[abl_key]['theoretical']['right_choice_probs']
+            theory_agg[abl_key][idx] = theory_abl_psycho
+        if abl_key in animal_data:
+            empirical = animal_data[abl_key]['empirical']
+            # Restrict to ILD_arr only, in order
+            ild_values = empirical['ild_values']
+            right_choice_probs = empirical['right_choice_probs']
+            # Build array for ILD_arr
+            selected_probs = np.full(len(ILD_arr), np.nan)
+            for i, ild in enumerate(ILD_arr):
+                matches = np.where(ild_values == ild)[0]
+                if len(matches) > 0:
+                    selected_probs[i] = right_choice_probs[matches[0]]
+            try:
+                empirical_agg[abl_key][idx] = selected_probs
+            except:
+                print(key, abl_key)
+                print('empirical ild_values:', ild_values)
+                print('empirical right_choice_probs:', right_choice_probs)
+                print('selected_probs:', selected_probs)
+        
+# %%
+
+
+# Plot average psychometric curves for each ABL
+import matplotlib.pyplot as plt
+import numpy as np
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
+for i, abl in enumerate([20, 40, 60]):
+    emp = empirical_agg[abl]  # shape: (n_animals, n_ilds)
+    theo = theory_agg[abl]
+    emp_mean = np.nanmean(emp, axis=0)
+    emp_std = np.nanstd(emp, axis=0)
+    theo_mean = np.nanmean(theo, axis=0)
+    theo_std = np.nanstd(theo, axis=0)
+
+    ax = axes[i]
+    ilds = ILD_arr
+    # Empirical: blue dots with error bars (std), no caps
+    ax.errorbar(ilds, emp_mean, yerr=emp_std, fmt='o', color='blue', label='data', capsize=0)
+    ax.plot(ilds, emp_mean, color='blue', linestyle='-', linewidth=2, alpha=0.7)  # Blue line joining dots
+    # Theoretical: red dots with error bars (std), no caps
+    ax.errorbar(ilds, theo_mean, yerr=theo_std, fmt='o', color='red', label='theory', capsize=0)
+    ax.plot(ilds, theo_mean, color='red', linestyle='-', linewidth=2, alpha=0.7)  # Red line joining dots
+    ax.set_title(f'ABL = {abl}')
+    ax.set_xlabel('ILD (dB)')
+    if i == 0:
+        ax.set_ylabel('P(choice = right)')
+    ax.set_xticks(ilds)
+    ax.set_ylim(-0.05, 1.05)
+    ax.legend()
+plt.tight_layout()
+plt.show()
+
+
+# %%
+# Plot all three ABLs in a single figure: data (dotted), theory (solid), each ABL a color
+import matplotlib.pyplot as plt
+import numpy as np
+
+colors = {20: 'tab:blue', 40: 'tab:orange', 60: 'tab:green'}
+plt.figure(figsize=(8, 6))
+for abl in [20, 40, 60]:
+    emp = empirical_agg[abl]
+    theo = theory_agg[abl]
+    emp_mean = np.nanmean(emp, axis=0)
+    theo_mean = np.nanmean(theo, axis=0)
+    ilds = ILD_arr
+    # Empirical: dotted line
+    plt.plot(ilds, emp_mean, linestyle=':', marker='o', color=colors[abl], label=f'Data ABL={abl}')
+    # Theory: solid line
+    plt.plot(ilds, theo_mean, linestyle='-', marker=None, color=colors[abl], label=f'Theory ABL={abl}')
+plt.xlabel('ILD (dB)')
+plt.ylabel('P(choice = right)')
+plt.title('Average Psychometric Curves (All ABLs)')
+plt.xticks([-15,-5,5,15])
+plt.yticks([0, 0.5, 1])
+plt.axvline(0, alpha=0.5, color='grey')
+plt.axhline(0.5, alpha=0.5, color='grey')
+
+plt.ylim(-0.05, 1.05)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# %%
+# Plot: data for all ABLs in one plot, theory for all ABLs in another plot
+import matplotlib.pyplot as plt
+import numpy as np
+
+colors = {20: 'tab:blue', 40: 'tab:orange', 60: 'tab:green'}
+fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
+
+# Data plot (left)
+for abl in [20, 40, 60]:
+    emp = empirical_agg[abl]
+    emp_mean = np.nanmean(emp, axis=0)
+    ilds = ILD_arr
+    axes[0].plot(ilds, emp_mean, linestyle=':', marker='o', color=colors[abl], label=f'Data ABL={abl}')
+axes[0].set_xlabel('ILD (dB)')
+axes[0].set_ylabel('P(choice = right)')
+axes[0].set_title('Empirical Data (All ABLs)')
+axes[0].set_xticks([-15, -5, 5, 15])
+axes[0].set_yticks([0, 0.5, 1])
+axes[0].axvline(0, alpha=0.5, color='grey')
+axes[0].axhline(0.5, alpha=0.5, color='grey')
+axes[0].set_ylim(-0.05, 1.05)
+axes[0].legend()
+
+# Theory plot (right)
+for abl in [20, 40, 60]:
+    theo = theory_agg[abl]
+    theo_mean = np.nanmean(theo, axis=0)
+    ilds = ILD_arr
+    axes[1].plot(ilds, theo_mean, linestyle='-', marker='o', color=colors[abl], label=f'Theory ABL={abl}')
+axes[1].set_xlabel('ILD (dB)')
+axes[1].set_title('Theoretical (All ABLs)')
+axes[1].set_xticks([-15, -5, 5, 15])
+axes[1].set_yticks([0, 0.5, 1])
+axes[1].axvline(0, alpha=0.5, color='grey')
+axes[1].axhline(0.5, alpha=0.5, color='grey')
+axes[1].set_ylim(-0.05, 1.05)
+axes[1].legend()
+
+plt.tight_layout()
+plt.show()
+# %%
+# Plot all three ABLs in a single figure: data (dotted), theory (solid), each ABL a color
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+colors = {20: 'tab:blue', 40: 'tab:orange', 60: 'tab:green'}
+plt.figure(figsize=(4, 3))  # Smaller figure for publication
+for abl in [20, 40, 60]:
+    emp = empirical_agg[abl]
+    theo = theory_agg[abl]
+    emp_mean = np.nanmean(emp, axis=0)
+    theo_mean = np.nanmean(theo, axis=0)
+    ilds = np.array(ILD_arr)
+    theo_mean = np.array(theo_mean)
+    # Empirical: dotted line
+    n_emp = np.sum(~np.isnan(emp), axis=0)
+    print(f'emp n valid: {n_emp}')
+    emp_sem = np.nanstd(emp, axis=0) / np.sqrt(np.maximum(n_emp - 1, 1))
+    print(f'denominator: {np.sqrt(np.maximum(n_emp - 1, 1))}')
+    plt.errorbar(ilds, emp_mean, yerr=emp_sem, fmt='o', color=colors[abl], label=f'Data ABL={abl}', capsize=0, markersize=4)
+    # Logistic fit to theory: solid line
+    valid_idx = ~np.isnan(theo_mean)
+    if np.sum(valid_idx) >= 4:
+        try:
+            from scipy.optimize import curve_fit
+            def logistic(x, base, amplitude, inflection, slope):
+                values = base + amplitude / (1 + np.exp(-slope * (x - inflection)))
+                return np.clip(values, 0, 1)
+            p0 = [0.0, 1.0, 0.0, 1.0]
+            popt, _ = curve_fit(logistic, ilds[valid_idx], theo_mean[valid_idx], p0=p0)
+            ilds_smooth = np.linspace(min(ilds), max(ilds), 200)
+            fit_curve = logistic(ilds_smooth, *popt)
+            plt.plot(ilds_smooth, fit_curve, linestyle='-', color=colors[abl], label=f'Logistic fit (Theory) ABL={abl}')
+        except Exception as e:
+            print(f"Could not fit logistic for ABL={abl}: {e}")
+    else:
+        print(f"Not enough valid theory points for ABL={abl} to fit.")
+plt.xlabel('ILD (dB)', fontsize=16)
+plt.ylabel('P(choice = right)', fontsize=16)
+# plt.title('Average Psychometric Curves (All ABLs)')
+plt.xticks([-15,-5,5,15], fontsize=14)
+plt.yticks([0, 0.5, 1], fontsize=14)
+plt.axvline(0, alpha=0.5, color='grey', linestyle='--')
+plt.axhline(0.5, alpha=0.5, color='grey', linestyle='--')
+
+plt.ylim(-0.05, 1.05)
+# Remove top and right spines for publication style
+ax = plt.gca()
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+plt.tight_layout()
+plt.show()
+
+
+# %%
+# --- Logistic fit slopes for theory and data, print and save ---
+import pickle
+from scipy.optimize import curve_fit
+
+logistic_fit_results = {'theory': {}, 'data': {}}
+
+for abl in [20, 40, 60]:
+    emp = empirical_agg[abl]
+    theo = theory_agg[abl]
+    emp_mean = np.nanmean(emp, axis=0)
+    theo_mean = np.nanmean(theo, axis=0)
+    ilds = np.array(ILD_arr)
+    # Theory fit
+    valid_theo = ~np.isnan(theo_mean)
+    if np.sum(valid_theo) >= 4:
+        try:
+            def logistic(x, base, amplitude, inflection, slope):
+                values = base + amplitude / (1 + np.exp(-slope * (x - inflection)))
+                return np.clip(values, 0, 1)
+            p0 = [0.0, 1.0, 0.0, 1.0]
+            popt, _ = curve_fit(logistic, ilds[valid_theo], theo_mean[valid_theo], p0=p0)
+            slope = popt[3]
+            logistic_fit_results['theory'][abl] = {'params': popt, 'slope': slope}
+            print(f"[THEORY] ABL={abl} logistic slope: {slope:.4f}")
+        except Exception as e:
+            logistic_fit_results['theory'][abl] = {'params': None, 'slope': None, 'error': str(e)}
+            print(f"[THEORY] Could not fit logistic for ABL={abl}: {e}")
+    else:
+        logistic_fit_results['theory'][abl] = {'params': None, 'slope': None, 'error': 'Insufficient valid points'}
+        print(f"[THEORY] Not enough valid theory points for ABL={abl} to fit.")
+    # Empirical fit
+    valid_emp = ~np.isnan(emp_mean)
+    if np.sum(valid_emp) >= 4:
+        try:
+            p0 = [0.0, 1.0, 0.0, 1.0]
+            popt, _ = curve_fit(logistic, ilds[valid_emp], emp_mean[valid_emp], p0=p0)
+            slope = popt[3]
+            logistic_fit_results['data'][abl] = {'params': popt, 'slope': slope}
+            print(f"[DATA]   ABL={abl} logistic slope: {slope:.4f}")
+        except Exception as e:
+            logistic_fit_results['data'][abl] = {'params': None, 'slope': None, 'error': str(e)}
+            print(f"[DATA]   Could not fit logistic for ABL={abl}: {e}")
+    else:
+        logistic_fit_results['data'][abl] = {'params': None, 'slope': None, 'error': 'Insufficient valid points'}
+        print(f"[DATA]   Not enough valid data points for ABL={abl} to fit.")
+
+# Save slopes and fit params to pickle
+with open('psychometric_logistic_slopes_NORM_TIED.pkl', 'wb') as f:
+    pickle.dump(logistic_fit_results, f)
+print('Logistic fit slopes and parameters saved to psychometric_logistic_slopes.pkl')
+
+
+
 # %%
