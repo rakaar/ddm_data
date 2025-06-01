@@ -3,7 +3,7 @@ Unified analysis for psychometric curves using TIED models.
 Set IS_NORM_TIED = True for normalized TIED, False for vanilla TIED.
 """
 # %%
-IS_NORM_TIED = True  # Set to False for vanilla TIED
+IS_NORM_TIED = False  # Set to False for vanilla TIED
 
 from scipy.integrate import trapezoid
 import pandas as pd
@@ -52,6 +52,8 @@ def fit_psychometric_sigmoid(ild_values, right_choice_probs):
 
 # %%
 DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
+# DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
+
 base_dir = os.path.dirname(os.path.abspath(__file__))
 csv_dir = os.path.join(base_dir, 'batch_csvs')
 results_dir = base_dir
@@ -168,6 +170,28 @@ def get_animal_psychometric_data(batch_name, animal_id, ABL):
         'right_choice_probs': np.array(right_choice_probs)
     }
 
+def get_animal_psychometric_all_ABL(batch_name, animal_id):
+    file_name = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
+    df = pd.read_csv(file_name)
+    df = df[(df['animal'] == animal_id) & (df['success'].isin([1, -1]))]
+    if df.empty:
+        print(f"No data found for batch {batch_name}, animal {animal_id}. Returning NaNs.")
+        return None
+    df = df[df['RTwrtStim'] <= 1]
+    ild_values = sorted(df['ILD'].unique())
+    right_choice_probs = []
+    for ild in ild_values:
+        ild_trials = df[df['ILD'] == ild]
+        if len(ild_trials) > 0:
+            right_prob = np.mean(ild_trials['choice'] == 1)
+            right_choice_probs.append(right_prob)
+        else:
+            right_choice_probs.append(np.nan)
+    return {
+        'ild_values': np.array(ild_values),
+        'right_choice_probs': np.array(right_choice_probs)
+    }
+
 # %%
 def process_batch_animal_psychometric(batch_animal_pair):
     batch_name, animal_id = batch_animal_pair
@@ -180,6 +204,7 @@ def process_batch_animal_psychometric(batch_animal_pair):
         df = pd.read_csv(file_name)
         df_animal = df[(df['animal'] == animal_id) & (df['success'].isin([1, -1]))]
         df_animal = df_animal[df_animal['RTwrtStim'] <= 1]
+        all_ABL_psychometric_data = get_animal_psychometric_all_ABL(batch_name, animal_id)
         for abl in ABL_arr:
             print(f'Processing animal = {batch_name},{animal_id} for ABL={abl}')
             try:
@@ -193,7 +218,8 @@ def process_batch_animal_psychometric(batch_animal_pair):
                         del fit_result['sigmoid_fn']  # Remove lambda before storing
                     animal_psychometric_data[abl] = {
                         'empirical': psychometric_data,
-                        'fit': fit_result
+                        'fit': fit_result,
+                        'all_ABL': all_ABL_psychometric_data
                     }
                     valid_abls.append(abl)
                 else:
@@ -384,9 +410,9 @@ def plot_theoretical_psychometric_data(theoretical_psychometric_data):
 
 # %%
 # Get theoretical and empirical data
-theoretical_psychometric_data = run_theoretical_psychometric_processing()
+# theoretical_psychometric_data = run_theoretical_psychometric_processing()
 psychometric_data = run_psychometric_processing()
-print(f'len of theory psycho data = {len(theoretical_psychometric_data)}')
+# print(f'len of theory psycho data = {len(theoretical_psychometric_data)}')
 print(f'len of empirical psycho data = {len(psychometric_data)}')
 
 # %%
@@ -405,22 +431,25 @@ with open(pickle_filename, 'wb') as f:
     pickle.dump(theory_psycho_data_to_save, f)
 print(f"Saved theoretical psychometric data to {pickle_filename}")
 
+
+
 # %%
 # --- Print a summary of psychometric_data dictionary structure ---
-# print("\n--- Summary of psychometric_data ---")
-# print(f"Top-level keys (batch, animal) pairs: {list(psychometric_data.keys())[:3]} ... total: {len(psychometric_data)}")
+print("\n--- Summary of psychometric_data ---")
+print(f"Top-level keys (batch, animal) pairs: {list(psychometric_data.keys())[:3]} ... total: {len(psychometric_data)}")
 
-# # Show a sample entry
-# for batch_animal_pair, abl_dict in list(psychometric_data.items())[:1]:
-#     print(f"\nBatch-animal pair: {batch_animal_pair}")
-#     print(f"  ABLs: {list(abl_dict.keys())}")
-#     for abl, d in abl_dict.items():
-#         print(f"    ABL {abl}:")
-#         print(f"      empirical keys: {list(d['empirical'].keys())}")
-#         if d['fit'] is not None:
-#             print(f"      fit params: {d['fit'].get('params', None)}")
-#         else:
-#             print(f"      fit: None")
+# Show a sample entry
+for batch_animal_pair, abl_dict in list(psychometric_data.items())[:1]:
+    print(f"\nBatch-animal pair: {batch_animal_pair}")
+    print(f"  ABLs: {list(abl_dict.keys())}")
+    for abl, d in abl_dict.items():
+        print(f"    ABL {abl}:")
+        print(f"      empirical keys: {list(d['empirical'].keys())}")
+        if d['fit'] is not None:
+            print(f"      fit params: {d['fit'].get('params', None)}")
+        else:
+            print(f"      fit: None")
+            
 
 # %%
 # --- Slope comparison plot: Vanilla, Data, Norm TIED ---
@@ -871,7 +900,7 @@ for abl in [20, 40, 60]:
             popt, _ = curve_fit(logistic, ilds[valid_idx], theo_mean[valid_idx], p0=p0)
             ilds_smooth = np.linspace(min(ilds), max(ilds), 200)
             fit_curve = logistic(ilds_smooth, *popt)
-            plt.plot(ilds_smooth, fit_curve, linestyle='-', color=colors[abl], label=f'Logistic fit (Theory) ABL={abl}')
+            plt.plot(ilds_smooth, fit_curve, linestyle='-', color=colors[abl], label=f'Logistic fit (Theory) ABL={abl}', lw=0.5)
         except Exception as e:
             print(f"Could not fit logistic for ABL={abl}: {e}")
     else:
@@ -892,59 +921,80 @@ ax.spines['right'].set_visible(False)
 plt.tight_layout()
 plt.show()
 
-
 # %%
-# --- Logistic fit slopes for theory and data, print and save ---
-import pickle
-from scipy.optimize import curve_fit
+# %%
+# Plot grand average (across all ABLs) for both data and theory
 
-logistic_fit_results = {'theory': {}, 'data': {}}
+import matplotlib.pyplot as plt
+import numpy as np
 
+plt.figure(figsize=(4,3))
+
+# Stack all empirical and theory psychometrics across ABLs
+theo_all = []
 for abl in [20, 40, 60]:
-    emp = empirical_agg[abl]
-    theo = theory_agg[abl]
-    emp_mean = np.nanmean(emp, axis=0)
-    theo_mean = np.nanmean(theo, axis=0)
-    ilds = np.array(ILD_arr)
-    # Theory fit
-    valid_theo = ~np.isnan(theo_mean)
-    if np.sum(valid_theo) >= 4:
-        try:
-            def logistic(x, base, amplitude, inflection, slope):
-                values = base + amplitude / (1 + np.exp(-slope * (x - inflection)))
-                return np.clip(values, 0, 1)
-            p0 = [0.0, 1.0, 0.0, 1.0]
-            popt, _ = curve_fit(logistic, ilds[valid_theo], theo_mean[valid_theo], p0=p0)
-            slope = popt[3]
-            logistic_fit_results['theory'][abl] = {'params': popt, 'slope': slope}
-            print(f"[THEORY] ABL={abl} logistic slope: {slope:.4f}")
-        except Exception as e:
-            logistic_fit_results['theory'][abl] = {'params': None, 'slope': None, 'error': str(e)}
-            print(f"[THEORY] Could not fit logistic for ABL={abl}: {e}")
-    else:
-        logistic_fit_results['theory'][abl] = {'params': None, 'slope': None, 'error': 'Insufficient valid points'}
-        print(f"[THEORY] Not enough valid theory points for ABL={abl} to fit.")
-    # Empirical fit
-    valid_emp = ~np.isnan(emp_mean)
-    if np.sum(valid_emp) >= 4:
-        try:
-            p0 = [0.0, 1.0, 0.0, 1.0]
-            popt, _ = curve_fit(logistic, ilds[valid_emp], emp_mean[valid_emp], p0=p0)
-            slope = popt[3]
-            logistic_fit_results['data'][abl] = {'params': popt, 'slope': slope}
-            print(f"[DATA]   ABL={abl} logistic slope: {slope:.4f}")
-        except Exception as e:
-            logistic_fit_results['data'][abl] = {'params': None, 'slope': None, 'error': str(e)}
-            print(f"[DATA]   Could not fit logistic for ABL={abl}: {e}")
-    else:
-        logistic_fit_results['data'][abl] = {'params': None, 'slope': None, 'error': 'Insufficient valid points'}
-        print(f"[DATA]   Not enough valid data points for ABL={abl} to fit.")
+    theo = theory_agg[abl]    # shape: (n_animals, n_ilds)
+    theo_all.append(theo)
+theo_all = np.concatenate(theo_all, axis=0)  # shape: (n_animals * 3, n_ilds)
 
-# Save slopes and fit params to pickle
-with open('psychometric_logistic_slopes_NORM_TIED.pkl', 'wb') as f:
-    pickle.dump(logistic_fit_results, f)
-print('Logistic fit slopes and parameters saved to psychometric_logistic_slopes.pkl')
+##### Correct:  emp all ###
+emp_all = np.full((len(psychometric_data), len(ILD_arr)), np.nan)
+for i, (batch, animal) in enumerate(psychometric_data.keys()):
+    ANY_KEY = list(psychometric_data[(batch, animal)].keys())[0]
+    ilds = psychometric_data[(batch, animal)][ANY_KEY]['all_ABL']['ild_values']
+    all_ABL_psycho = psychometric_data[(batch, animal)][ANY_KEY]['all_ABL']['right_choice_probs']
+    for j, ild in enumerate(ILD_arr):
+        if ild in ilds:
+            # find its index
+            idx = np.where(ilds == ild)[0][0]
+            emp_all[i, j] = all_ABL_psycho[idx]
 
 
 
+
+# Data: mean and error bars
+emp_mean = np.nanmean(emp_all, axis=0)
+n_emp = np.sum(~np.isnan(emp_all), axis=0)
+emp_sem = np.nanstd(emp_all, axis=0) / np.sqrt(np.maximum(n_emp - 1, 1))
+# print(f'std dev = {np.nanstd(emp_all, axis=0)}')
+# print(f'sqrt len - 1 = {np.sqrt(np.maximum(n_emp - 1, 1))}')
+# print(f'emp_sem = {emp_sem}')
+
+plt.errorbar(ILD_arr, emp_mean, yerr=emp_sem, fmt='o', color='tab:blue', label='Data (grand avg)', capsize=0, markersize=4)
+
+# Theory: mean
+theo_mean = np.nanmean(theo_all, axis=0)
+
+# Logistic fit to theory mean
+valid_idx = ~np.isnan(theo_mean)
+ilds = np.array(ILD_arr)
+if np.sum(valid_idx) >= 4:
+    try:
+        from scipy.optimize import curve_fit
+        def logistic(x, base, amplitude, inflection, slope):
+            values = base + amplitude / (1 + np.exp(-slope * (x - inflection)))
+            return np.clip(values, 0, 1)
+        p0 = [0.0, 1.0, 0.0, 1.0]
+        popt, _ = curve_fit(logistic, ILD_arr, theo_mean[valid_idx], p0=p0)
+        ilds_smooth = np.linspace(min(ilds), max(ilds), 200)
+        fit_curve = logistic(ilds_smooth, *popt)
+        plt.plot(ilds_smooth, fit_curve, linestyle='-', color='black', label='Logistic fit (Theory grand avg)', lw=0.5)
+    except Exception as e:
+        print(f"Could not fit logistic for theory grand avg: {e}")
+else:
+    print(f"Not enough valid theory points to fit.")
+
+plt.xlabel('ILD (dB)', fontsize=16)
+plt.ylabel('P(choice = right)', fontsize=16)
+plt.xticks([-15,-5,5,15], fontsize=14)
+plt.yticks([0, 0.5, 1], fontsize=14)
+plt.axvline(0, alpha=0.5, color='grey', linestyle='--')
+plt.axhline(0.5, alpha=0.5, color='grey', linestyle='--')
+
+plt.ylim(-0.05, 1.05)
+ax = plt.gca()
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+plt.tight_layout()
+plt.show()
 # %%

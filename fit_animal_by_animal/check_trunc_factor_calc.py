@@ -71,8 +71,8 @@ df = pd.read_csv(file_name)
 df_animal = df[df['animal'] == animal_id]
 
 N_sim = int(1e6)
-ILD = 1
-ABL = 20
+ILD = 16
+ABL = 60
 t_stim_samples = df_animal['intended_fix'].sample(N_sim, replace=True).values
 
 
@@ -147,9 +147,9 @@ def calculate_theoretical_curves(df_valid_and_aborts, N_theory, t_pts, t_A_aff, 
     t_stim_samples = df_valid_and_aborts['intended_fix'].sample(N_theory, replace=True).values
     
     P_A_samples = np.zeros((N_theory, len(t_pts)))
-    t_trunc = 0.3
+    t_trunc = 0.3 # wrt fix
     for idx, t_stim in enumerate(t_stim_samples):
-        # Apply user-defined logic for each t
+        # t is wrt t_stim, t + t_stim is wrt fix
         def _pa_val(t):
             if (t + t_stim) <= t_trunc:
                 return 0
@@ -211,36 +211,9 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
             
     
    
-    # --- Old approach: mask first, then normalize ---
-    # mask_0_1 = (t_pts >= 0) & (t_pts <= 1)
-    # t_pts_0_1 = t_pts[mask_0_1]
-    # up_mean_0_1 = up_mean[mask_0_1]
-    # down_mean_0_1 = down_mean[mask_0_1]
-    # 
-    # # Normalize theory curves
-    # up_theory_mean_norm = up_mean_0_1 
-    # down_theory_mean_norm = down_mean_0_1 
-    # up_plus_down_mean = up_theory_mean_norm + down_theory_mean_norm
-    # area = trapezoid(up_plus_down_mean, t_pts_0_1)
-    # if area != 0:
-    #     up_plus_down_mean = up_plus_down_mean / area
-    # print(f'area: {area}')
-    # return t_pts_0_1, up_plus_down_mean
-
-    # --- New approach: normalize first, then mask ---
     up_plus_down = up_mean + down_mean
-    # area_full = trapezoid(up_plus_down, t_pts)
-    # if area_full != 0:
-    #     up_plus_down_norm = up_plus_down / area_full
-    # else:
-    #     up_plus_down_norm = up_plus_down
-    # mask_0_1 = (t_pts >= 0) & (t_pts <= 1)
-    # t_pts_0_1 = t_pts[mask_0_1]
-    # up_plus_down_mean = up_plus_down_norm[mask_0_1]
-    # print(f'area (full): {area_full}')
-    # return t_pts_0_1, up_plus_down_mean
+    
 
-    # --- Corrected: mask first, then normalize ---
     mask_0_1 = (t_pts >= 0) & (t_pts <= 1)
     t_pts_0_1 = t_pts[mask_0_1]
     up_plus_down_masked = up_plus_down[mask_0_1]
@@ -249,7 +222,7 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
         up_plus_down_mean = up_plus_down_masked / area_masked
     else:
         up_plus_down_mean = up_plus_down_masked
-    print(f'area (masked): {area_masked}')
+    print(f'area btn 0 and 1 in truncated (theory): {area_masked}')
     return t_pts_0_1, up_plus_down_mean
 
 p_a, c_a, ts_samp = get_P_A_C_A(batch, int(animal_id), abort_params)
@@ -267,7 +240,7 @@ area = trapezoid(up_plus_down, t_pts_0_1)
 print(f'area: {area}')
 # %%
 trunc_factor_sim = len(valid_btn_1) / len(sim_results_df_trunc_aborts)
-print(trunc_factor_sim)
+print(f'trunc_factor_sim: {trunc_factor_sim}')
 
 # %%
 # theory
