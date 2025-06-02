@@ -156,9 +156,207 @@ def rho_E_minus_small_t_NORM_rate_norm_time_varying_fn(
 
     return density * (omega * phi_t)
 
+def rho_E_minus_small_t_NORM_rate_norm_time_varying_fn_vec(
+        t, bound, ABL, ILD, rate_lambda, T0, theta_E, Z_E, phi_t, int_phi_t,
+        rate_norm_l, is_norm, is_time_vary, K_max):
+    """
+    Vectorized version of rho_E_minus_small_t_NORM_rate_norm_time_varying_fn.
+    Accepts numpy arrays for all arguments (broadcasting supported).
+    """
+    t = np.asarray(t)
+    bound = np.asarray(bound)
+    ABL = np.asarray(ABL)
+    ILD = np.asarray(ILD)
+    rate_lambda = np.asarray(rate_lambda)
+    T0 = np.asarray(T0)
+    theta_E = np.asarray(theta_E)
+    Z_E = np.asarray(Z_E)
+    phi_t = np.asarray(phi_t)
+    int_phi_t = np.asarray(int_phi_t)
+    rate_norm_l = np.asarray(rate_norm_l)
+
+    chi = 17.37
+    v = theta_E * np.tanh(rate_lambda * ILD / chi)
+    w = 0.5 + (Z_E / (2.0 * theta_E))
+    a = 2
+
+    # Vectorized bound logic
+    v = np.where(bound == 1, -v, v)
+    w = np.where(bound == 1, 1 - w, w)
+
+    # Vectorized is_norm
+    rate_norm_l = np.where(is_norm, rate_norm_l, 0)
+
+    cosh_ratio = np.cosh(rate_lambda * ILD / chi) / np.cosh(rate_lambda * rate_norm_l * ILD / chi)
+    omega = (1 / (T0 * (theta_E ** 2))) * (10 ** ((rate_lambda * (1 - rate_norm_l) * ABL) / 20)) * cosh_ratio
+
+    # Vectorized is_time_vary
+    int_phi_t = np.where(is_time_vary, int_phi_t, t)
+    phi_t = np.where(is_time_vary, phi_t, 1)
+    t_eff = omega * int_phi_t
+
+    # Avoid division by zero and negative values
+    safe_t_eff = np.where(t_eff > 1e-12, t_eff, 1e-12)
+
+    # Vectorized non_sum_term
+    non_sum_term = (1/a**2)*(a**3/np.sqrt(2*np.pi*safe_t_eff**3))*np.exp(-v*a*w - (v**2 * safe_t_eff)/2)
+
+    # Vectorize k loop
+    K_max2 = int(K_max/2)
+    k_vals = np.linspace(-K_max2, K_max2, 2*K_max2 + 1)
+    # shape prep for broadcasting
+    shape = np.broadcast(safe_t_eff, w).shape
+    t_b = np.broadcast_to(safe_t_eff, shape)[..., None]
+    w_b = np.broadcast_to(w, shape)[..., None]
+
+    k_b = k_vals.reshape((1,) * len(shape) + (2*K_max2 + 1,))
+    k_b = np.broadcast_to(k_b, shape + (2*K_max2 + 1,))
+
+    sum_w_term = w_b + 2 * k_b
+    # Clamp exponent for np.exp to avoid overflow
+    exponent = -(a**2 * (w_b + 2*k_b)**2)/(2*t_b)
+    exponent = np.clip(exponent, -700, 700)
+    sum_exp_term = np.exp(exponent)
+    sum_result = np.sum(sum_w_term * sum_exp_term, axis=-1)
+
+    density = non_sum_term * sum_result
+    density = np.where(density <= 0, 1e-16, density)
+
+    out = density * (omega * phi_t)
+    out = np.where(t < 0, 0, out)
+    return out
+
 def CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn(
         t, bound, ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t, 
         rate_norm_l, is_norm, is_time_vary, K_max):
+    """
+    In normalized time, CDF of hitting the lower bound with gamma and omega, but time varying evidence
+    """
+    if t <= 0:
+        return 0
+
+    # evidence v
+    chi = 17.37
+    # v = rate_lambda * theta_E * ILD / chi # LINEAR
+    # NON linear
+    v = theta_E * np.tanh(rate_lambda * ILD / chi)
+    
+
+    w = 0.5 + ( Z_E / (2.0 * theta_E) )
+    a = 2
+    if bound == 1:
+        v = -v
+        w = 1 - w
+
+    if not is_norm:
+        rate_norm_l = 0
+    # omega = ( 1/(T0 * (theta_E**2)) ) * (10 ** ( (rate_lambda * (1 - rate_norm_l) * ABL) / 20 ) ) # LINEAR
+    # non linear
+    cosh_ratio = np.cosh(rate_lambda * ILD / chi)/np.cosh(rate_lambda * rate_norm_l * ILD / chi)
+    omega = ( 1/(T0 * (theta_E**2)) ) * (10 ** ( (rate_lambda * (1 - rate_norm_l) * ABL) / 20 ) ) * cosh_ratio
+
+    if not is_time_vary:
+        int_phi_t = t
+
+    t = omega * int_phi_t
+
+    # Compute the exponent argument separately
+    exponent_arg = -v * a * w - (((v**2) * t) / 2)
+
+    # Now compute the result using the clipped exponent
+    result = np.exp(exponent_arg)
+
+
+    summation = 0
+    for k in range(K_max + 1):
+        if k % 2 == 0:  # even k
+            r_k = k * a + a * w
+        else:  # odd k
+            r_k = k * a + a * (1 - w)
+        
+        
+        term1 = phi((r_k) / np.sqrt(t))
+        term2 = M((r_k - v * t) / np.sqrt(t)) + M((r_k + v * t) / np.sqrt(t))
+        
+        if np.isnan(term2) or np.isinf(term2):
+            print(f'omega = {omega}, T0 = {T0}, theta_E = {theta_E}, rate_lambda = {rate_lambda}')
+            raise ValueError(f'term2 = {term2}, v = {v}, t = {t}, r_k = {r_k}, M(r_k - v*t) = {M((r_k - v * t) / np.sqrt(t))}, M(r_k + v*t) = {M((r_k + v * t) / np.sqrt(t))}')
+        
+        summation += ((-1)**k) * term1 * term2
+
+    return (result*summation)
+
+def CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec(
+        t, bound, ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t,
+        rate_norm_l, is_norm, is_time_vary, K_max):
+    """
+    Vectorized version of CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn.
+    Accepts numpy arrays for all arguments (broadcasting supported).
+    """
+    t = np.asarray(t)
+    bound = np.asarray(bound)
+    ABL = np.asarray(ABL)
+    ILD = np.asarray(ILD)
+    rate_lambda = np.asarray(rate_lambda)
+    T0 = np.asarray(T0)
+    theta_E = np.asarray(theta_E)
+    Z_E = np.asarray(Z_E)
+    int_phi_t = np.asarray(int_phi_t)
+    rate_norm_l = np.asarray(rate_norm_l)
+
+    chi = 17.37
+    v = theta_E * np.tanh(rate_lambda * ILD / chi)
+    w = 0.5 + (Z_E / (2.0 * theta_E))
+    a = 2
+
+    # Vectorized bound logic
+    v = np.where(bound == 1, -v, v)
+    w = np.where(bound == 1, 1 - w, w)
+
+    # Vectorized is_norm
+    rate_norm_l = np.where(is_norm, rate_norm_l, 0)
+
+    cosh_ratio = np.cosh(rate_lambda * ILD / chi) / np.cosh(rate_lambda * rate_norm_l * ILD / chi)
+    omega = (1 / (T0 * (theta_E ** 2))) * (10 ** ((rate_lambda * (1 - rate_norm_l) * ABL) / 20)) * cosh_ratio
+
+    # Vectorized is_time_vary
+    int_phi_t = np.where(is_time_vary, int_phi_t, t)
+    t_eff = omega * int_phi_t
+
+    exponent_arg = -v * a * w - (((v ** 2) * t_eff) / 2)
+    result = np.exp(exponent_arg)
+
+    # Vectorize k loop
+    k_arr = np.arange(K_max + 1)
+    # shape prep for broadcasting
+    shape = np.broadcast(t_eff, v, w).shape
+    # Broadcast all to (..., 1) for k
+    t_b = np.broadcast_to(t_eff, shape)[..., None]
+    v_b = np.broadcast_to(v, shape)[..., None]
+    w_b = np.broadcast_to(w, shape)[..., None]
+
+    k_b = k_arr.reshape((1,) * len(shape) + (K_max + 1,))  # shape (1,...,K_max+1)
+    k_b = np.broadcast_to(k_b, shape + (K_max + 1,))
+
+    even_k = (k_b % 2 == 0)
+    r_k = np.where(even_k, k_b * a + a * w_b, k_b * a + a * (1 - w_b))
+
+    safe_t_b = np.where(t_b > 1e-12, t_b, 1e-12)
+    sqrt_t = np.sqrt(safe_t_b)
+    term1 = phi(r_k / sqrt_t)
+    term2 = M((r_k - v_b * safe_t_b) / sqrt_t) + M((r_k + v_b * safe_t_b) / sqrt_t)
+    # Optionally, mask out nan/inf term2 (raise if desired)
+    # summation = np.sum(((-1) ** k_b) * term1 * term2, axis=-1)
+    with np.errstate(invalid='raise', over='raise'):
+        try:
+            summation = np.sum(((-1) ** k_b) * term1 * term2, axis=-1)
+        except FloatingPointError:
+            raise ValueError('NaN or Inf encountered in vectorized term2 or summation')
+    out = result * summation
+    # Set to zero where original t < 0
+    out = np.where(t < 0, 0, out)
+    return out
+
     """
     In normalized time, CDF of hitting the lower bound with gamma and omega, but time varying evidence
     """
@@ -418,7 +616,6 @@ def up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
         ABL, ILD, rate_lambda, T0, theta_E, Z_E, t_E_aff, del_go,
         phi_params, rate_norm_l, 
         is_norm, is_time_vary, K_max):
-    
     # t1, t2 - if proactive wins, time range in which EA can hit bound and confirm a choice
     t1 = max(t - t_E_aff, 1e-6)
     t2 = max(t - t_E_aff + del_go, 1e-6)
@@ -446,7 +643,6 @@ def up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
 
                 params  = {phi_params.h1, phi_params.a1, phi_params.b1, phi_params.h2, phi_params.a2}
                 '''
-                    
                 )
     else:
         int_phi_t_E_g = np.nan
@@ -492,3 +688,56 @@ def up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
     
 
     return (P_A*(random_readout_if_EA_survives + P_E_plus_cum) + P_E_plus*(1-C_A))
+
+def up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn_vec(
+        t, bound,
+        P_A, C_A,
+        ABL, ILD, rate_lambda, T0, theta_E, Z_E, t_E_aff, del_go,
+        int_phi_t_E_g, phi_t_e, int_phi_t_e, int_phi_t2, int_phi_t1,
+        rate_norm_l, is_norm, is_time_vary, K_max):
+    """
+    Vectorized version. All phi/int_phi arguments must be arrays (or scalars) matching t.
+    """
+    int_phi_t_E_g = np.nan
+    phi_t_e = np.nan
+    int_phi_t_e = np.nan
+    int_phi_t2 = np.nan
+    int_phi_t1 = np.nan
+    # t1, t2 - if proactive wins, time range in which EA can hit bound and confirm a choice
+    t1 = np.maximum(t - t_E_aff, 1e-6)
+    t2 = np.maximum(t - t_E_aff + del_go, 1e-6)
+
+    # PA wins and random choice due to EA survival
+    P_EA_hits_either_bound = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec(
+                                t - t_E_aff + del_go, 1,
+                                ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t_E_g, rate_norm_l,
+                                is_norm, is_time_vary, K_max) \
+                                + \
+                                CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec(
+                                t - t_E_aff + del_go, -1,
+                                ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t_E_g, rate_norm_l,
+                                is_norm, is_time_vary, K_max)
+
+    P_EA_survives = 1 - P_EA_hits_either_bound
+    random_readout_if_EA_survives = 0.5 * P_EA_survives
+
+    # PA wins and EA hits later
+    P_E_plus_cum = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec(
+                            t2, bound,
+                            ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t2, rate_norm_l,
+                            is_norm, is_time_vary, K_max) \
+                            - \
+                            CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec(
+                            t1, bound,
+                            ABL, ILD, rate_lambda, T0, theta_E, Z_E, int_phi_t1, rate_norm_l,
+                            is_norm, is_time_vary, K_max)
+
+    # EA wins
+    P_E_plus = rho_E_minus_small_t_NORM_rate_norm_time_varying_fn_vec(
+        t - t_E_aff, bound, ABL, ILD, rate_lambda, T0, theta_E, Z_E, phi_t_e, int_phi_t_e,
+        rate_norm_l, is_norm, is_time_vary, K_max)
+
+    return (P_A * (random_readout_if_EA_survives + P_E_plus_cum) + P_E_plus * (1 - C_A))
+
+    
+    

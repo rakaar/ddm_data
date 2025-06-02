@@ -205,6 +205,7 @@ norm_all = np.array(norm_all)
 
 
 # %%
+# 
 plt.figure(figsize=(4, 3))
 for a_idx, ABL in enumerate(all_ABL):
     plt.scatter(all_ILD_sorted, gamma_vs_ILD_for_each_ABL[a_idx, :], label=f'ABL={ABL}')
@@ -223,6 +224,55 @@ plt.show()
 
 
 #%%
+
+# %% Create a 1x3 subplot figure
+# First plot - only scatter
+plt.figure(figsize=(4, 3))
+for a_idx, ABL in enumerate(all_ABL):
+    plt.scatter(all_ILD_sorted, gamma_vs_ILD_for_each_ABL[a_idx, :], label=f'ABL={ABL}')
+plt.xlabel('ILD', fontsize=14)
+plt.ylabel('Gamma', fontsize=14)
+plt.xticks([-15, -5, 5, 15])
+plt.yticks([-2, 0, 2])
+plt.tick_params(labelsize=12)
+plt.gca().spines['top'].set_visible(False)
+plt.gca().spines['right'].set_visible(False)
+plt.legend()
+plt.tight_layout()
+plt.savefig('gamma_scatter_only.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# Second plot - scatter and vanilla mean (in grey)
+plt.figure(figsize=(4, 3))
+for a_idx, ABL in enumerate(all_ABL):
+    plt.scatter(all_ILD_sorted, gamma_vs_ILD_for_each_ABL[a_idx, :], label=f'ABL={ABL}')
+plt.plot(ild_theory, vanilla_all.mean(axis=0), color='grey', alpha=0.8, linewidth=2)
+plt.xlabel('ILD', fontsize=14)
+plt.xticks([-15, -5, 5, 15])
+plt.yticks([-2, 0, 2])
+plt.tick_params(labelsize=12)
+plt.gca().spines['top'].set_visible(False)
+plt.gca().spines['right'].set_visible(False)
+plt.legend()
+plt.tight_layout()
+plt.savefig('gamma_vanilla_mean.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# Third plot - scatter and norm mean (in grey)
+plt.figure(figsize=(4, 3))
+for a_idx, ABL in enumerate(all_ABL):
+    plt.scatter(all_ILD_sorted, gamma_vs_ILD_for_each_ABL[a_idx, :], label=f'ABL={ABL}')
+plt.plot(ild_theory, norm_all.mean(axis=0), color='grey', alpha=0.8, linewidth=2)
+plt.xlabel('ILD', fontsize=14)
+plt.xticks([-15, -5, 5, 15])
+plt.yticks([-2, 0, 2])
+plt.tick_params(labelsize=12)
+plt.gca().spines['top'].set_visible(False)
+plt.gca().spines['right'].set_visible(False)
+plt.legend()
+plt.tight_layout()
+plt.savefig('gamma_norm_mean.png', dpi=300, bbox_inches='tight')
+plt.show()
 
 # %%
 plt.figure(figsize=(4, 3))
