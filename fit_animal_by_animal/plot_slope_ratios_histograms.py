@@ -23,15 +23,20 @@ merged_valid = merged_valid[merged_valid['batch_name'].isin(DESIRED_BATCHES)].co
 ABLS = [20, 40, 60]
 
 # --- 1. Fit sigmoid for each rat and ABL, store slope (k) ---
-slopes = {abl: {} for abl in ABLS}  # slopes[abl][rat] = k
-mean_psycho_slope = {}  # mean_psycho_slope[rat] = k0
-all_animals = merged_valid['animal'].unique()
+slopes = {abl: {} for abl in ABLS}  # slopes[abl][(batch_name, animal)] = k
+mean_psycho_slope = {}  # mean_psycho_slope[(batch_name, animal)] = k0
+# Create unique identifiers by combining batch_name and animal
+merged_valid['animal_id'] = list(zip(merged_valid['batch_name'], merged_valid['animal']))
+all_animals = merged_valid['animal_id'].unique()
 allowed_ilds = np.sort(np.array([1., 2., 4., 8., 16., -1., -2., -4., -8., -16.]))
 
-for animal in all_animals:
+for animal_id in all_animals:
+    batch_name, animal = animal_id  # Unpack the tuple
     # 1. Fit sigmoid for each ABL
     for abl in ABLS:
-        animal_df = merged_valid[(merged_valid['animal'] == animal) & (merged_valid['ABL'] == abl)]
+        animal_df = merged_valid[(merged_valid['batch_name'] == batch_name) & 
+                                  (merged_valid['animal'] == animal) & 
+                                  (merged_valid['ABL'] == abl)]
         if animal_df.empty:
             continue
         animal_ilds = np.sort(animal_df['ILD'].unique())
@@ -48,11 +53,13 @@ for animal in all_animals:
             try:
                 popt, _ = curve_fit(sigmoid, animal_ilds[mask], psycho[mask], p0=[1, 0, 1, 0], maxfev=5000)
                 k = popt[2]
-                slopes[abl][animal] = k
+                slopes[abl][animal_id] = k
             except Exception as e:
                 continue
     # 2. Fit sigmoid to mean psychometric (across all ABLs)
-    animal_df_all_abl = merged_valid[(merged_valid['animal'] == animal) & (merged_valid['ABL'].isin(ABLS))]
+    animal_df_all_abl = merged_valid[(merged_valid['batch_name'] == batch_name) & 
+                                   (merged_valid['animal'] == animal) & 
+                                   (merged_valid['ABL'].isin(ABLS))]
     if animal_df_all_abl.empty:
         continue
     # Compute mean P(Right) at each ILD (across ABLs)
@@ -70,26 +77,26 @@ for animal in all_animals:
         try:
             popt, _ = curve_fit(sigmoid, ilds[mask], psycho[mask], p0=[1, 0, 1, 0], maxfev=5000)
             k0 = popt[2]
-            mean_psycho_slope[animal] = k0
+            mean_psycho_slope[animal_id] = k0
         except Exception as e:
             continue
 
 # --- 2. log-ratio of slope at each ABL to mean psychometric slope for that rat ---
 log_ratios_within = []
-for animal in all_animals:
-    if animal not in mean_psycho_slope:
+for animal_id in all_animals:
+    if animal_id not in mean_psycho_slope:
         continue
-    k0 = mean_psycho_slope[animal]
+    k0 = mean_psycho_slope[animal_id]
     for abl in ABLS:
-        if animal in slopes[abl]:
-            ratio = slopes[abl][animal] / k0
+        if animal_id in slopes[abl]:
+            ratio = slopes[abl][animal_id] / k0
             log_ratios_within.append(np.log(ratio))
 
 # --- 4. log-ratio of mean slope for each rat to grand mean ---
 # Only use animals present in mean_psycho_slope
 animals_with_mean = list(mean_psycho_slope.keys())
-grand_mean_k = np.mean([mean_psycho_slope[animal] for animal in animals_with_mean])
-log_ratios_across = [np.log(mean_psycho_slope[animal] / grand_mean_k) for animal in animals_with_mean]
+grand_mean_k = np.mean([mean_psycho_slope[animal_id] for animal_id in animals_with_mean])
+log_ratios_across = [np.log(mean_psycho_slope[animal_id] / grand_mean_k) for animal_id in animals_with_mean]
 
 # --- 5. Plot histograms ---
 
@@ -97,15 +104,15 @@ ratios_within = np.exp(log_ratios_within)
 ratios_across = np.exp(log_ratios_across)
 
 diff_within = []  # slope_ABL - mean_slope_rat
-for animal in all_animals:
-    if animal not in mean_psycho_slope:
+for animal_id in all_animals:
+    if animal_id not in mean_psycho_slope:
         continue
-    k0 = mean_psycho_slope[animal]
+    k0 = mean_psycho_slope[animal_id]
     for abl in ABLS:
-        if animal in slopes[abl]:
-            diff_within.append(slopes[abl][animal] - k0)
+        if animal_id in slopes[abl]:
+            diff_within.append(slopes[abl][animal_id] - k0)
 
-mean_slopes = np.array([mean_psycho_slope[animal] for animal in animals_with_mean])
+mean_slopes = np.array([mean_psycho_slope[animal_id] for animal_id in animals_with_mean])
 diff_across = mean_slopes - grand_mean_k  # mean_slope_rat - grand_mean
 
 bins_within = np.arange(0, 2, 0.05)
@@ -187,15 +194,17 @@ for idx, abl in enumerate(ABLS):
     ax = axes[idx]
     color = COLORS[idx]
     # Get animals with slope for this ABL
-    animals = sorted([animal for animal in slopes[abl].keys()])
-    slope_vals = [slopes[abl][animal] for animal in animals]
-    ax.scatter(range(len(animals)), slope_vals, color=color, s=40)
+    animals_ids = sorted([animal_id for animal_id in slopes[abl].keys()])
+    slope_vals = [slopes[abl][animal_id] for animal_id in animals_ids]
+    ax.scatter(range(len(animals_ids)), slope_vals, color=color, s=40)
     ax.set_title(f'ABL = {abl}')
     ax.set_xlabel('Animal')
     if idx == 0:
         ax.set_ylabel('Slope (k)')
-    ax.set_xticks(range(len(animals)))
-    ax.set_xticklabels(animals, rotation=90, fontsize=8)
+    ax.set_xticks(range(len(animals_ids)))
+    # Create readable labels by combining batch_name and animal
+    animal_labels = [f"{batch}-{animal}" for batch, animal in animals_ids]
+    ax.set_xticklabels(animal_labels, rotation=90, fontsize=8)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 plt.tight_layout()
@@ -226,29 +235,33 @@ plt.tight_layout()
 plt.show()# %%
 
 # %%
-# --- 7b. Overlayed animal slopes for all ABLs, excluding SD, 49 ---
+# --- 7b. Overlayed animal slopes for all ABLs, excluding LED2, 41 ---
 COLORS = ['tab:blue', 'tab:orange', 'tab:green']
-# Exclude 'SD, 49' from the animals list
+# animals should be a list of (batch_name, animal) tuples
 print((animals))
-# Remove only 'LED2, 41' from the animals list
-animals_filtered = [a for a in animals if a != 'LED2, 41']
+# Remove only ('LED2', 41) from the animals list
+animals_filtered = [a for a in animals if a != ('LED2', 41)]
 print(len(animals_filtered))
-fig, ax = plt.subplots(figsize=(6, 3))  # Compressed x-axis
+fig, ax = plt.subplots(figsize=(5, 3))  # Compressed x-axis
 for idx, abl in enumerate(ABLS):
     color = COLORS[idx]
     y = [slopes[abl].get(animal, np.nan) for animal in animals_filtered]
     ax.scatter(range(len(animals_filtered)), y, color=color, s=40)
-# Remove all x-ticks and labels
 # Set x-ticks and labels to batch-animal
 ax.set_xticks(range(len(animals_filtered)))
-ax.set_xticklabels(animals_filtered, rotation=90, fontsize=8)
-ax.set_xlabel('Batch-Animal', fontsize=11)
+animal_labels = ["" for batch, animal in animals_filtered]
+
+ax.set_xticklabels(animal_labels, rotation=90, fontsize=8)
+ax.set_xlabel('Rat #', fontsize=13)
 ax.set_ylabel('Slope (k)', fontsize=13)
 # Set y-ticks to 0.5 and 1
-ax.set_yticks([0.5, 1])
+ax.set_yticks([0, 0.5, 1])
+ax.tick_params(axis='y', labelsize=13)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 plt.tight_layout()
+# save as pdf
+plt.savefig('slope_ratios_across_rats.pdf', dpi=300, bbox_inches='tight')
 plt.show()# %%
 # %%
 
