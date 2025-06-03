@@ -64,6 +64,8 @@ def get_animal_RTD_data(batch_name, animal_id, ABL, abs_ILD, bins):
     # df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['ILD'] == ILD) & (df['success'].isin([1, -1]))]
     df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['abs_ILD'] == abs_ILD) \
         & ((df['RTwrtStim'] <= 1) & (df['RTwrtStim'] >= 0))]
+    
+    n_trials = len(df)
 
     bin_centers = (bins[:-1] + bins[1:]) / 2
     if df.empty:
@@ -76,7 +78,7 @@ def get_animal_RTD_data(batch_name, animal_id, ABL, abs_ILD, bins):
         rtd_hist = np.full_like(bin_centers, np.nan)
         return bin_centers, rtd_hist
     rtd_hist, _ = np.histogram(df['RTwrtStim'], bins=bins, density=True)
-    return bin_centers, rtd_hist
+    return bin_centers, rtd_hist, n_trials
 # %%
 ABL_arr = [20, 40, 60]
 abs_ILD_arr = [1, 2, 4, 8, 16]
@@ -91,11 +93,12 @@ def process_batch_animal(batch_animal_pair):
             print(f"Animal = {batch_name},{animal_id}, Processing ABL {abl}")
             for abs_ild in abs_ILD_arr:
                 stim_key = (abl, abs_ild)
-                bin_centers, rtd_hist = get_animal_RTD_data(batch_name, int(animal_id), abl, abs_ild, rt_bins)
+                bin_centers, rtd_hist, n_trials = get_animal_RTD_data(batch_name, int(animal_id), abl, abs_ild, rt_bins)
                 animal_rtd_data[stim_key] = {
                         'empirical': {
                             'bin_centers': bin_centers,
-                            'rtd_hist': rtd_hist
+                            'rtd_hist': rtd_hist,
+                            'n_trials': n_trials
                         }
                     }
                 print(f"  Processed stimulus ABL={abl}, ILD={abs_ild}")
@@ -114,9 +117,10 @@ for batch_animal_pair, animal_rtd_data in results:
         rtd_data[batch_animal_pair] = animal_rtd_data
 print(f"Completed processing {len(rtd_data)} batch-animal pairs")
 # %%
+## Plot plane RTDs
 max_xlim_RT = 1
 # Create a single row of subplots, one for each abs_ILD
-fig, axes = plt.subplots(1, len(abs_ILD_arr), figsize=(12, 4), sharex=True, sharey=True)
+fig, axes = plt.subplots(1, len(abs_ILD_arr), figsize=(12, 3), sharex=True, sharey=True)
 
 # Make sure axes is always a 1D array even if there's only one subplot
 if len(abs_ILD_arr) == 1:
@@ -138,6 +142,7 @@ for j, abs_ild in enumerate(abs_ILD_arr):
     for abl in ABL_arr:
         # For each (ABL, abs(ILD)), average over (ABL, ILD) and (ABL, -ILD)
         empirical_rtds = []
+        weights = []
         bin_centers = None
         
         for ild in [abs_ild, -abs_ild]:
@@ -148,13 +153,20 @@ for j, abs_ild in enumerate(abs_ILD_arr):
                     if not np.all(np.isnan(emp_data['rtd_hist'])):
                         empirical_rtds.append(emp_data['rtd_hist'])
                         bin_centers = emp_data['bin_centers']
+                        weights.append(emp_data['n_trials'])
 
-        if ild in [1,-1]:
-            print(f'ABL = {abl}, empirical_rtds.shape = {np.shape(empirical_rtds)}')
+        # if ild in [1,-1]:
+        #     print(f'ABL = {abl}, empirical_rtds.shape = {np.shape(empirical_rtds)}')
         
         # Plot empirical RTDs only
         if empirical_rtds and bin_centers is not None:
-            avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
+            empirical_rtds = np.array(empirical_rtds)
+            weights = np.array(weights)
+            if np.sum(weights) > 0:
+                avg_empirical_rtd = np.nansum(empirical_rtds.T * weights, axis=1) / np.sum(weights)
+            else:
+                avg_empirical_rtd = np.full(empirical_rtds.shape[1], np.nan)
+
             ax.plot(bin_centers, avg_empirical_rtd, color=abl_colors[abl], linewidth=1.5, label=f'ABL={abl}')
             # print(f'area = {trapezoid(avg_empirical_rtd, bin_centers)}')
             edges = rt_bins                               # the array you used to build the histogram
@@ -165,66 +177,72 @@ for j, abs_ild in enumerate(abs_ILD_arr):
     
     # Set up the axes
     ax.set_xlabel('RT (s)', fontsize=12)
+    max_xlim_RT = 0.6
+    max_ylim = 12
     ax.set_xticks([0, max_xlim_RT])
     ax.set_xticklabels(['0', max_xlim_RT], fontsize=12)
     ax.set_xlim(0, max_xlim_RT)
-    ax.set_yticks([0, 15])
-    ax.set_ylim(0, 16)
+    ax.set_yticks([0, max_ylim])
+    ax.set_ylim(0, max_ylim)
     ax.set_title(f'|ILD|={abs_ild}', fontsize=12)
     
     # Add legend only to the first subplot
     if j == 0:
-        ax.legend(fontsize=10)
-        ax.set_ylabel('Probability Density', fontsize=12)
+        # ax.legend(fontsize=10)
+        ax.set_ylabel('Density', fontsize=12)
 
 # Set tick parameters for all axes
 for ax in axes:
     ax.tick_params(axis='x', labelsize=12)
     ax.tick_params(axis='y', labelsize=12)
-
 plt.tight_layout()
+
+plt.savefig('og_rtds.png')
+# save pdf
+plt.savefig('og_rtds.pdf')
+# plt.
 
 # %%
 # --- Plot all individual RTDs (not mean) for each abs_ILD and ABL=20 only ---
-fig_all_rtds, axes_all_rtds = plt.subplots(1, len(abs_ILD_arr), figsize=(12, 4), sharex=True, sharey=True)
-if len(abs_ILD_arr) == 1:
-    axes_all_rtds = np.array([axes_all_rtds])
+# fig_all_rtds, axes_all_rtds = plt.subplots(1, len(abs_ILD_arr), figsize=(12, 4), sharex=True, sharey=True)
+# if len(abs_ILD_arr) == 1:
+#     axes_all_rtds = np.array([axes_all_rtds])
 
-for ax in axes_all_rtds:
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+# for ax in axes_all_rtds:
+#     ax.spines['top'].set_visible(False)
+#     ax.spines['right'].set_visible(False)
 
-for j, abs_ild in enumerate(abs_ILD_arr):
-    ax = axes_all_rtds[j]
-    for abl in [20]:   # Only plot for ABL 20
-        for ild in [abs_ild, -abs_ild]:
-            stim_key = (abl, ild)
-            for batch_animal_pair, animal_data in rtd_data.items():
-                if stim_key in animal_data:
-                    emp_data = animal_data[stim_key]['empirical']
-                    rtd_hist = emp_data['rtd_hist']
-                    bin_centers = emp_data['bin_centers']
-                    if not np.all(np.isnan(rtd_hist)):
-                        ax.plot(bin_centers, rtd_hist, color=abl_colors[abl], alpha=0.25, linewidth=1)
-    ax.set_xlabel('RT (s)', fontsize=12)
-    ax.set_xticks([0, max_xlim_RT])
-    ax.set_xticklabels(['0', max_xlim_RT], fontsize=12)
-    ax.set_xlim(0, max_xlim_RT)
-    ax.set_yticks([0, 15])
-    ax.set_ylim(0, 16)
-    ax.set_title(f'|ILD|={abs_ild}', fontsize=12)
-    if j == 0:
-        from matplotlib.lines import Line2D
-        custom_lines = [Line2D([0], [0], color=abl_colors[20], lw=2)]
-        ax.legend(custom_lines, ['ABL=20'], fontsize=10)
-        ax.set_ylabel('Probability Density', fontsize=12)
+# for j, abs_ild in enumerate(abs_ILD_arr):
+#     ax = axes_all_rtds[j]
+#     for abl in [20]:   # Only plot for ABL 20
+#         for ild in [abs_ild, -abs_ild]:
+#             stim_key = (abl, ild)
+#             for batch_animal_pair, animal_data in rtd_data.items():
+#                 if stim_key in animal_data:
+#                     emp_data = animal_data[stim_key]['empirical']
+#                     rtd_hist = emp_data['rtd_hist']
+#                     bin_centers = emp_data['bin_centers']
+#                     if not np.all(np.isnan(rtd_hist)):
+#                         ax.plot(bin_centers, rtd_hist, color=abl_colors[abl], alpha=0.25, linewidth=1)
+#     ax.set_xlabel('RT (s)', fontsize=12)
+#     ax.set_xticks([0, max_xlim_RT])
+#     ax.set_xticklabels(['0', max_xlim_RT], fontsize=12)
+#     ax.set_xlim(0, max_xlim_RT)
+#     ax.set_yticks([0, 15])
+#     ax.set_ylim(0, 16)
+#     ax.set_title(f'|ILD|={abs_ild}', fontsize=12)
+#     if j == 0:
+#         from matplotlib.lines import Line2D
+#         custom_lines = [Line2D([0], [0], color=abl_colors[20], lw=2)]
+#         ax.legend(custom_lines, ['ABL=20'], fontsize=10)
+#         ax.set_ylabel('Probability Density', fontsize=12)
 
-for ax in axes_all_rtds:
-    ax.tick_params(axis='x', labelsize=12)
-    ax.tick_params(axis='y', labelsize=12)
+# for ax in axes_all_rtds:
+#     ax.tick_params(axis='x', labelsize=12)
+#     ax.tick_params(axis='y', labelsize=12)
 
-fig_all_rtds.suptitle('All Individual RTDs for ABL=20 (no averaging)', fontsize=14)
-plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+# fig_all_rtds.suptitle('All Individual RTDs for ABL=20 (no averaging)', fontsize=14)
+# plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 # %%
 # --- CDF Plot: 1x5 subplots for each abs_ILD, CDF for each ABL ---
 fig_cdf, axes_cdf = plt.subplots(1, len(abs_ILD_arr), figsize=(12, 4), sharex=True, sharey=True)
@@ -239,6 +257,7 @@ for j, abs_ild in enumerate(abs_ILD_arr):
     ax = axes_cdf[j]
     for abl in ABL_arr:
         empirical_rtds = []
+        weights = []
         bin_centers = None
         for ild in [abs_ild, -abs_ild]:
             stim_key = (abl, ild)
@@ -248,8 +267,14 @@ for j, abs_ild in enumerate(abs_ILD_arr):
                     if not np.all(np.isnan(emp_data['rtd_hist'])):
                         empirical_rtds.append(emp_data['rtd_hist'])
                         bin_centers = emp_data['bin_centers']
+                        weights.append(emp_data['n_trials'])
         if empirical_rtds and bin_centers is not None:
-            avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
+            empirical_rtds = np.array(empirical_rtds)
+            weights = np.array(weights)
+            if np.sum(weights) > 0:
+                avg_empirical_rtd = np.nansum(empirical_rtds.T * weights, axis=1) / np.sum(weights)
+            else:
+                avg_empirical_rtd = np.full(empirical_rtds.shape[1], np.nan)
             # Compute CDF: sum of PDF * bin width, normalized to 1
             bin_widths = np.diff(rt_bins)
             # CDF at bin centers: cumulative sum of PDF * bin width
@@ -284,6 +309,7 @@ quantiles_by_abl_ild = {abl: {abs_ild: None for abs_ild in abs_ILD_arr} for abl 
 for abs_ild in abs_ILD_arr:
     for abl in ABL_arr:
         empirical_rtds = []
+        weights = []
         bin_centers = None
         for ild in [abs_ild, -abs_ild]:
             stim_key = (abl, ild)
@@ -293,8 +319,14 @@ for abs_ild in abs_ILD_arr:
                     if not np.all(np.isnan(emp_data['rtd_hist'])):
                         empirical_rtds.append(emp_data['rtd_hist'])
                         bin_centers = emp_data['bin_centers']
+                        weights.append(emp_data['n_trials'])
         if empirical_rtds and bin_centers is not None:
-            avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
+            empirical_rtds = np.array(empirical_rtds)
+            weights = np.array(weights)
+            if np.sum(weights) > 0:
+                avg_empirical_rtd = np.nansum(empirical_rtds.T * weights, axis=1) / np.sum(weights)
+            else:
+                avg_empirical_rtd = np.full(empirical_rtds.shape[1], np.nan)
             bin_widths = np.diff(rt_bins)
             cdf = np.cumsum(avg_empirical_rtd * bin_widths)
             cdf = cdf / cdf[-1] if cdf[-1] > 0 else cdf
@@ -358,6 +390,8 @@ for abs_ild in abs_ILD_arr:
             # reupdate abs ILD 8 with what we got at ILD 16
             # fit_results[8][20] = {'slope': slope_20, 'intercept': 0.0}
             fit_results[8][20] = {'slope': 0.45, 'intercept': 0.0}
+            fit_results[16][20] = {'slope': 0.3, 'intercept': 0.0}
+            fit_results[16][40] = {'slope': 0.3, 'intercept': 0.0}
 
 
         ax.plot(x_fit, y_fit, color=abl_colors[20], linestyle='-', label=f'Fit 20 (m={slope_20:.2f})')
@@ -427,6 +461,7 @@ for j, abs_ild in enumerate(abs_ILD_arr):
     ax = axes_rescaled[j]
     for abl in ABL_arr:
         empirical_rtds = []
+        weights = []
         bin_centers = None
         for ild in [abs_ild, -abs_ild]:
             stim_key = (abl, ild)
@@ -436,11 +471,17 @@ for j, abs_ild in enumerate(abs_ILD_arr):
                     if not np.all(np.isnan(emp_data['rtd_hist'])):
                         empirical_rtds.append(emp_data['rtd_hist'])
                         bin_centers = emp_data['bin_centers']
+                        weights.append(emp_data['n_trials'])
 
         bin_centers_mask = bin_centers > min_x_cut
         
         if empirical_rtds and bin_centers is not None:
-            avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
+            empirical_rtds = np.array(empirical_rtds)
+            weights = np.array(weights)
+            if np.sum(weights) > 0:
+                avg_empirical_rtd = np.nansum(empirical_rtds.T * weights, axis=1) / np.sum(weights)
+            else:
+                avg_empirical_rtd = np.full(empirical_rtds.shape[1], np.nan)
             # Rescale x-axis for ABL 20 and 40
             if abl == 60:
                 xvals = bin_centers
@@ -458,20 +499,26 @@ for j, abs_ild in enumerate(abs_ILD_arr):
                 rescaled_rtd = avg_empirical_rtd * multiplier
                 print(f'rescaled_rtd shape = {rescaled_rtd.shape}')
                 ax.plot(xvals, rescaled_rtd, color=abl_colors[abl], linewidth=1.5, label=f'ABL={abl}')
-    ax.set_xlabel('Rescaled RT (s)', fontsize=12)
+    ax.set_xlabel('RT (s)', fontsize=12)
+    max_xlim_RT = 0.6
+    max_ylim = 12
     ax.set_xticks([0, max_xlim_RT])
     ax.set_xticklabels(['0', max_xlim_RT], fontsize=12)
     ax.set_xlim(0, max_xlim_RT)
-    ax.set_yticks([0, 15])
-    ax.set_ylim(0, 16)
+    ax.set_yticks([0, max_ylim])
+    ax.set_ylim(0, max_ylim)
     ax.set_title(f'|ILD|={abs_ild}', fontsize=12)
     if j == 0:
-        ax.legend(fontsize=10)
-        ax.set_ylabel('Probability Density', fontsize=12)
+        # ax.legend(fontsize=10)
+        ax.set_ylabel('Density', fontsize=12)
 for ax in axes_rescaled:
     ax.tick_params(axis='x', labelsize=12)
     ax.tick_params(axis='y', labelsize=12)
-fig_rescaled.suptitle('RTD rescaled', fontsize=14)
-plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+plt.tight_layout()
+
+plt.savefig('rescaled_rtds.png')
+plt.savefig('rescaled_rtds_4.pdf')
+# fig_rescaled.suptitle('RTD rescaled', fontsize=14)
+# plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
 # %%
