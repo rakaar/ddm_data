@@ -10,13 +10,11 @@ import corner
 from scipy.integrate import cumulative_trapezoid as cumtrapz
 import pickle
 from led_off_gamma_omega_pdf_utils import cum_pro_and_reactive_trunc_fn, up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn
-
-# %%
 from led_off_gamma_omega_pdf_utils import cum_pro_and_reactive, up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_fn,\
          rho_A_t_VEC_fn, up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn
+from led_off_gamma_omega_pdf_utils import up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_PA_CA_fn
 
-# %% [markdown]
-# # get og data
+
 
 # %%
 # repeat_trial, T16, S7
@@ -345,38 +343,61 @@ vp, results = vbmc.optimize()
 vbmc.save(f'vbmc_mutiple_gama_omega_at_once.pkl', overwrite=True)
 
 # %%
-# vbmc.save(f'vbmc_single_condn_ABL_{conditions['ABL'][0]}_ILD_{conditions['ILD'][0]}.pkl')
+# Load pickle
+with open('vbmc_mutiple_gama_omega_at_once.pkl', 'rb') as f:
+    vp = pickle.load(f)
 
-# %%
-# with open(f"vbmc_single_condn_ABL_{conditions['ABL'][0]}_ILD_{conditions['ILD'][0]}.pkl", 'rb') as f:
-#     vp = pickle.load(f)
+vp = vp.vp
 
-# vp = vp.vp
-
-# %% [markdown]
-# # vbmc sample
 
 # %%
 vp_samples = vp.sample(int(1e5))[0]
 
-gamma_samples = vp_samples[:, 0]
-omega_samples = vp_samples[:, 1]
-t_E_aff_samples = vp_samples[:, 2]
+# gamma_samples = vp_samples[:, 0]
+# omega_samples = vp_samples[:, 1]
+# t_E_aff_samples = vp_samples[:, 2]
+gamma_ABL_20_ILD_1_samples = vp_samples[:, 0]
+gamma_ABL_20_ILD_4_samples = vp_samples[:, 1]
+gamma_ABL_20_ILD_16_samples = vp_samples[:, 2]
+gamma_ABL_60_ILD_1_samples = vp_samples[:, 3]
+gamma_ABL_60_ILD_4_samples = vp_samples[:, 4]
+gamma_ABL_60_ILD_16_samples = vp_samples[:, 5]
+omega_ABL_20_ILD_1_samples = vp_samples[:, 6]
+omega_ABL_20_ILD_4_samples = vp_samples[:, 7]
+omega_ABL_20_ILD_16_samples = vp_samples[:, 8]
+omega_ABL_60_ILD_1_samples = vp_samples[:, 9]
+omega_ABL_60_ILD_4_samples = vp_samples[:, 10]
+omega_ABL_60_ILD_16_samples = vp_samples[:, 11]
+t_E_aff_samples = vp_samples[:, 12]
+w_samples = vp_samples[:, 13]
+del_go_samples = vp_samples[:, 14]
 
 # %%
-gamma = gamma_samples.mean()
-omega = omega_samples.mean()
+gamma_ABL_20_ILD_1 = gamma_ABL_20_ILD_1_samples.mean()
+gamma_ABL_20_ILD_4 = gamma_ABL_20_ILD_4_samples.mean()
+gamma_ABL_20_ILD_16 = gamma_ABL_20_ILD_16_samples.mean()
+gamma_ABL_60_ILD_1 = gamma_ABL_60_ILD_1_samples.mean()
+gamma_ABL_60_ILD_4 = gamma_ABL_60_ILD_4_samples.mean()
+gamma_ABL_60_ILD_16 = gamma_ABL_60_ILD_16_samples.mean()
+omega_ABL_20_ILD_1 = omega_ABL_20_ILD_1_samples.mean()
+omega_ABL_20_ILD_4 = omega_ABL_20_ILD_4_samples.mean()
+omega_ABL_20_ILD_16 = omega_ABL_20_ILD_16_samples.mean()
+omega_ABL_60_ILD_1 = omega_ABL_60_ILD_1_samples.mean()
+omega_ABL_60_ILD_4 = omega_ABL_60_ILD_4_samples.mean()
+omega_ABL_60_ILD_16 = omega_ABL_60_ILD_16_samples.mean()
 t_E_aff = t_E_aff_samples.mean()
+w = w_samples.mean()
+del_go = del_go_samples.mean()
 
 # %% [markdown]
 # # corner
 
 # %%
 # plot the corner plot
-corner_samples = np.vstack([gamma_samples, omega_samples, t_E_aff_samples]).T
+corner_samples = np.vstack([gamma_ABL_20_ILD_1_samples, gamma_ABL_20_ILD_4_samples, gamma_ABL_20_ILD_16_samples, gamma_ABL_60_ILD_1_samples, gamma_ABL_60_ILD_4_samples, gamma_ABL_60_ILD_16_samples, omega_ABL_20_ILD_1_samples, omega_ABL_20_ILD_4_samples, omega_ABL_20_ILD_16_samples, omega_ABL_60_ILD_1_samples, omega_ABL_60_ILD_4_samples, omega_ABL_60_ILD_16_samples, t_E_aff_samples, w_samples, del_go_samples]).T
 percentiles = np.percentile(corner_samples, [0, 100], axis=0)
 _ranges = [(percentiles[0, i], percentiles[1, i]) for i in np.arange(corner_samples.shape[1])]
-param_labels = [ 'gamma', 'omega', 't_E_aff']
+param_labels = [ 'gamma_ABL_20_ILD_1', 'gamma_ABL_20_ILD_4', 'gamma_ABL_20_ILD_16', 'gamma_ABL_60_ILD_1', 'gamma_ABL_60_ILD_4', 'gamma_ABL_60_ILD_16', 'omega_ABL_20_ILD_1', 'omega_ABL_20_ILD_4', 'omega_ABL_20_ILD_16', 'omega_ABL_60_ILD_1', 'omega_ABL_60_ILD_4', 'omega_ABL_60_ILD_16', 't_E_aff', 'w', 'del_go']
 
 corner.corner(
     corner_samples,
@@ -387,6 +408,97 @@ corner.corner(
     title_fmt=".4f"
 );
 
+# %%
+# See how RTDs look?
+choice = 1
+t_stim = 0
+t_pts = np.arange(0, 1, 0.001)\
+# Single ABL, multiple ILDs
+rtd_abl_20_ild_1 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+                                     gamma_ABL_20_ILD_1, omega_ABL_20_ILD_1, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
+                                        for rt in t_pts]
+rtd_abl_20_ild_4 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+                                     gamma_ABL_20_ILD_4, omega_ABL_20_ILD_4, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
+                                        for rt in t_pts]
+rtd_abl_20_ild_16 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+                                     gamma_ABL_20_ILD_16, omega_ABL_20_ILD_16, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
+                                        for rt in t_pts]
+plt.plot(t_pts, rtd_abl_20_ild_1, label='ABL 20 ILD 1')
+plt.plot(t_pts, rtd_abl_20_ild_4, label='ABL 20 ILD 4')
+plt.plot(t_pts, rtd_abl_20_ild_16, label='ABL 20 ILD 16')
+plt.legend()
+
+
+# Single ILD = 1, multiple ABLs
+rtd_abl_20_ild_1 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+                                     gamma_ABL_20_ILD_1, omega_ABL_20_ILD_1, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
+                                        for rt in t_pts]
+rtd_abl_60_ild_1 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+                                     gamma_ABL_60_ILD_1, omega_ABL_60_ILD_1, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
+                                        for rt in t_pts]
+plt.figure()
+plt.plot(t_pts, rtd_abl_20_ild_1, label='ABL 20 ILD 1')
+plt.plot(t_pts, rtd_abl_60_ild_1, label='ABL 60 ILD 1')
+plt.legend()
+
+# %%
+# Diagnostics - RTD choice
+N_theory = int(1e3)
+t_pts = np.arange(-1, 2, 0.001)
+t_stim_samples = df_led_off_valid_trials_cond_filtered['intended_fix'].sample(N_theory, replace=True).values
+P_A_samples = np.zeros((N_theory, len(t_pts)))
+t_trunc = 0.3 # wrt fix
+for idx, t_stim in enumerate(t_stim_samples):
+    # t is wrt t_stim, t + t_stim is wrt fix
+    # Vectorized version using rho_A_t_VEC_fn
+    t_shifted = t_pts + t_stim
+    mask = t_shifted > t_trunc
+    vals = np.zeros_like(t_pts)
+    if np.any(mask):
+        vals[mask] = rho_A_t_VEC_fn(t_shifted[mask] - t_A_aff, V_A, theta_A)
+    P_A_samples[idx, :] = vals
+
+
+from scipy.integrate import trapezoid
+P_A_mean = np.mean(P_A_samples, axis=0)
+area = trapezoid(P_A_mean, t_pts)
+
+if area != 0:
+    P_A_mean = P_A_mean / area
+C_A_mean = cumtrapz(P_A_mean, t_pts, initial=0)
+
+
+# %%
+ABL = 20
+ILD = 1
+bound = 1
+gamma_a_i = gamma_ABL_20_ILD_1
+omega_a_i = omega_ABL_20_ILD_1
+up_mean = np.array([ up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_PA_CA_fn(t, P_A_mean[idx], C_A_mean[idx],\
+         gamma_a_i, omega_a_i, 0, t_E_aff, del_go, bound, w, K_max) for idx,t in enumerate(t_pts)])
+down_mean = np.array([ up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_PA_CA_fn(t, P_A_mean[idx], C_A_mean[idx],\
+         gamma_a_i, omega_a_i, 0, t_E_aff, del_go, -bound, w, K_max) for idx,t in enumerate(t_pts)])
+print(f'len of up_plus_down_masked: {up_mean.shape}')
+
+
+t_pts_0_1 = t_pts[mask_0_1]
+up_plus_down = up_mean + down_mean
+up_plus_down_masked = up_plus_down[mask_0_1]
+area_masked = trapezoid(up_plus_down_masked, t_pts_0_1)
+if area_masked != 0:
+    up_plus_down_mean = up_plus_down_masked / area_masked
+else:
+    up_plus_down_mean = up_plus_down_masked
+
+plt.plot(t_pts_0_1, up_plus_down_mean)
+print(f'area = {trapezoid(up_plus_down_mean, t_pts_0_1)}')
+data_a_i = df_led_off_valid_trials_cond_filtered[
+        (df_led_off_valid_trials_cond_filtered['ABL'] == ABL) & \
+        (df_led_off_valid_trials_cond_filtered['ILD'] == ILD)
+    ]
+
+data_a_i_rt = data_a_i['timed_fix'] - data_a_i['intended_fix']
+plt.hist(data_a_i_rt, bins=np.arange(0,1,0.02), density=True, histtype='step');
 
 # %% [markdown]
 # # Diagnostics

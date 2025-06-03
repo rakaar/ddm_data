@@ -255,6 +255,27 @@ def up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(t, V_A, theta_A, g
     C_A = cum_A_t_fn(t - t_A_aff, V_A, theta_A)
     return (P_A*(random_readout_if_EA_surives + P_E_plus_or_minus_cum) + P_E_plus_or_minus*(1-C_A))
 
+def up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_PA_CA_fn(t, P_A, C_A, gamma, omega, t_stim, t_E_aff, del_go, bound, w, K_max):
+    """
+    PDF of all RTs array irrespective of choice
+    """
+    t2 = t - t_stim - t_E_aff + del_go
+    t1 = t - t_stim - t_E_aff
+
+    prob_EA_hits_either_bound = CDF_E_minus_small_t_NORM_omega_gamma_with_w_fn(t - t_stim - t_E_aff + del_go,\
+                                                                         gamma, omega, 1, w, K_max) \
+                             + CDF_E_minus_small_t_NORM_omega_gamma_with_w_fn(t - t_stim - t_E_aff + del_go,\
+                                                                         gamma, omega, -1, w, K_max)
+    prob_EA_survives = 1 - prob_EA_hits_either_bound
+    random_readout_if_EA_surives = 0.5 * prob_EA_survives
+    P_E_plus_or_minus_cum = CDF_E_minus_small_t_NORM_omega_gamma_with_w_fn(t2, gamma, omega, bound, w, K_max) \
+                    - CDF_E_minus_small_t_NORM_omega_gamma_with_w_fn(t1, gamma, omega, bound, w, K_max)
+    
+    
+    P_E_plus_or_minus = rho_E_minus_small_t_NORM_omega_gamma_with_w_fn(t-t_E_aff-t_stim, gamma, omega, bound, w, K_max)
+    
+    return (P_A*(random_readout_if_EA_surives + P_E_plus_or_minus_cum) + P_E_plus_or_minus*(1-C_A))
+
 
 def cum_pro_and_reactive_trunc_fn(
         t, c_A_trunc_time,

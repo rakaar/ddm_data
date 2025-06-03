@@ -8,7 +8,7 @@ Set MODEL_TYPE = 'vanilla' or 'norm' at the top to switch between models.
 All downstream logic is automatically adjusted based on this flag.
 """
 # %%
-MODEL_TYPE = 'norm'
+MODEL_TYPE = 'vanilla'
 print(f"Processing MODEL_TYPE: {MODEL_TYPE}")
 
 
@@ -59,8 +59,8 @@ def get_simulation_RTD_KDE(
 
 # %%
 # Define desired batches
-# DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
-DESIRED_BATCHES = ['LED7']
+DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
+# DESIRED_BATCHES = ['LED7']
 
 # Base directory paths
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -92,8 +92,8 @@ batch_animal_pairs = find_batch_animal_pairs()
 print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
 
 # remove SD 49 due to issue in sensory delay
-batch_animal_pairs = [(batch, animal) for batch, animal in batch_animal_pairs if not (batch == 'SD' and animal == '49')]
-print(f"Removed SD 49 due to issue in sensory delay. Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
+# batch_animal_pairs = [(batch, animal) for batch, animal in batch_animal_pairs if not (batch == 'SD' and animal == '49')]
+# print(f"Removed SD 49 due to issue in sensory delay. Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
 
 def get_animal_RTD_data(batch_name, animal_id, ABL, ILD, bins):
     file_name = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'

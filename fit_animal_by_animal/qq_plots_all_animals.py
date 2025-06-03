@@ -43,7 +43,8 @@ merged_valid = merged_valid[merged_valid['ABL'].isin([20,40,60])]
 ########################################
 ## TEMP: remove LED1 and LED2 batches ##
 #################   #######################
-merged_valid = merged_valid[(merged_valid['batch_name'] != 'LED1') & (merged_valid['batch_name'] != 'LED2')]
+# merged_valid = merged_valid[(merged_valid['batch_name'] != 'LED1') & (merged_valid['batch_name'] != 'LED2')]
+merged_valid = merged_valid[merged_valid['batch_name'] != 'LED7']
 
 # %%
 
