@@ -75,10 +75,10 @@ def find_batch_animal_pairs():
         else:
             print(f"Warning: Invalid filename format: {filename}")
     return pairs
-# batch_animal_pairs = find_batch_animal_pairs()
+batch_animal_pairs = find_batch_animal_pairs()
 # Use high slope animals
-with open('high_slope_animals.pkl', 'rb') as f:
-    batch_animal_pairs = pickle.load(f)
+# with open('high_slope_animals.pkl', 'rb') as f:
+    # batch_animal_pairs = pickle.load(f)
 
 print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
 
@@ -410,7 +410,7 @@ def plot_theoretical_psychometric_data(theoretical_psychometric_data):
 
 # %%
 # Get theoretical and empirical data
-# theoretical_psychometric_data = run_theoretical_psychometric_processing()
+theoretical_psychometric_data = run_theoretical_psychometric_processing()
 psychometric_data = run_psychometric_processing()
 # print(f'len of theory psycho data = {len(theoretical_psychometric_data)}')
 print(f'len of empirical psycho data = {len(psychometric_data)}')
@@ -458,10 +458,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Load vanilla and norm model pickles
-with open('theoretical_psychometric_data_vanilla.pkl', 'rb') as f:
-    vanilla_psychometric_data = pickle.load(f)
-with open('theoretical_psychometric_data_norm.pkl', 'rb') as f:
-    norm_psychometric_data = pickle.load(f)
+# with open('theoretical_psychometric_data_vanilla.pkl', 'rb') as f:
+#     vanilla_psychometric_data = pickle.load(f)
+# with open('theoretical_psychometric_data_norm.pkl', 'rb') as f:
+#     norm_psychometric_data = pickle.load(f)
 
 # Helper: extract slopes for a dict of psychometric data
 def extract_slopes(data_dict):
@@ -656,7 +656,7 @@ plt.show()
 # Compare vanilla/norm and data psychometric curves
 # theoretical psychometric data can be vanilla or norm. Comment,Uncomment accordingly
 # theoretical_psychometric_data = vanilla_psychometric_data
-theoretical_psychometric_data = norm_psychometric_data
+# theoretical_psychometric_data = norm_psychometric_data
 
 # Get all animal keys and determine grid size
 animal_keys = list(psychometric_data.keys())
@@ -996,5 +996,49 @@ ax = plt.gca()
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 plt.tight_layout()
+plt.savefig('N_26_psychometric_curve_vanila_data.pdf')
 plt.show()
 # %%
+# === Empirical-only psychometric plot (mean and fit) ===
+import matplotlib.pyplot as plt
+import numpy as np
+
+plt.figure(figsize=(4,3))
+
+# Use previously computed emp_mean and emp_sem
+plt.errorbar(ILD_arr, emp_mean, yerr=emp_sem, fmt='o', color='tab:blue', label='Data (grand avg)', capsize=0, markersize=4)
+
+# Fit psychometric (logistic) to empirical mean
+valid_idx = ~np.isnan(emp_mean)
+ilds = np.array(ILD_arr)
+if np.sum(valid_idx) >= 4:
+    try:
+        from scipy.optimize import curve_fit
+        def logistic(x, base, amplitude, inflection, slope):
+            values = base + amplitude / (1 + np.exp(-slope * (x - inflection)))
+            return np.clip(values, 0, 1)
+        p0 = [0.0, 1.0, 0.0, 1.0]
+        popt, _ = curve_fit(logistic, ILD_arr, emp_mean[valid_idx], p0=p0)
+        ilds_smooth = np.linspace(min(ilds), max(ilds), 200)
+        fit_curve = logistic(ilds_smooth, *popt)
+        plt.plot(ilds_smooth, fit_curve, linestyle='-', color='black', label='Logistic fit (Empirical grand avg)', lw=0.5)
+    except Exception as e:
+        print(f"Could not fit logistic for empirical grand avg: {e}")
+else:
+    print(f"Not enough valid empirical points to fit.")
+
+plt.xlabel('ILD (dB)', fontsize=16)
+plt.ylabel('P(choice = right)', fontsize=16)
+plt.xticks([-15,-5,5,15], fontsize=14)
+plt.yticks([0, 0.5, 1], fontsize=14)
+plt.axvline(0, alpha=0.5, color='grey', linestyle='--')
+plt.axhline(0.5, alpha=0.5, color='grey', linestyle='--')
+
+plt.ylim(-0.05, 1.05)
+ax = plt.gca()
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+plt.tight_layout()
+plt.savefig('empirical_psychometric_fit.pdf', bbox_inches='tight')
+# plt.legend()
+plt.show()

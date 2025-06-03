@@ -17,6 +17,8 @@ merged_data = pd.concat([
 ], ignore_index=True)
 merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
 merged_valid['batch_name'] = merged_valid['batch_name'].fillna('LED7')
+DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
+merged_valid = merged_valid[merged_valid['batch_name'].isin(DESIRED_BATCHES)].copy()
 
 ABLS = [20, 40, 60]
 
@@ -204,19 +206,50 @@ plt.show()
 # --- 7. Overlayed animal slopes for all ABLs ---
 COLORS = ['tab:blue', 'tab:orange', 'tab:green']
 animals = sorted(set().union(*[slopes[abl].keys() for abl in ABLS]))
-fig, ax = plt.subplots(figsize=(13, 4))
+fig, ax = plt.subplots(figsize=(6, 3))  # Compressed x-axis
 for idx, abl in enumerate(ABLS):
     color = COLORS[idx]
     y = [slopes[abl].get(animal, np.nan) for animal in animals]
-    ax.scatter(range(len(animals)), y, color=color, s=40, label=f'ABL={abl}')
-ax.set_xlabel('Animal')
-ax.set_ylabel('Slope (k)')
-ax.set_xticks(range(len(animals)))
-ax.set_xticklabels(animals, rotation=90, fontsize=8)
+    ax.scatter(range(len(animals)), y, color=color, s=40)
+# Remove all x-ticks and labels
+ax.set_xticks([])
+ax.set_xticklabels([])
+# Draw a horizontal line at y=0 (or at the bottom of the plot)
+ax.axhline(0, color='k', linewidth=1)
+ax.set_xlabel('')
+ax.set_ylabel('Slope (k)', fontsize=13)
+# Set y-ticks to 0.5 and 1
+ax.set_yticks([0.5, 1])
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
-ax.legend()
+plt.tight_layout()
+plt.show()# %%
+
+# %%
+# --- 7b. Overlayed animal slopes for all ABLs, excluding SD, 49 ---
+COLORS = ['tab:blue', 'tab:orange', 'tab:green']
+# Exclude 'SD, 49' from the animals list
+print((animals))
+# Remove only 'LED2, 41' from the animals list
+animals_filtered = [a for a in animals if a != 'LED2, 41']
+print(len(animals_filtered))
+fig, ax = plt.subplots(figsize=(6, 3))  # Compressed x-axis
+for idx, abl in enumerate(ABLS):
+    color = COLORS[idx]
+    y = [slopes[abl].get(animal, np.nan) for animal in animals_filtered]
+    ax.scatter(range(len(animals_filtered)), y, color=color, s=40)
+# Remove all x-ticks and labels
+# Set x-ticks and labels to batch-animal
+ax.set_xticks(range(len(animals_filtered)))
+ax.set_xticklabels(animals_filtered, rotation=90, fontsize=8)
+ax.set_xlabel('Batch-Animal', fontsize=11)
+ax.set_ylabel('Slope (k)', fontsize=13)
+# Set y-ticks to 0.5 and 1
+ax.set_yticks([0.5, 1])
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
 plt.tight_layout()
 plt.show()# %%
 # %%
-plt.plot(ratios_within)
+
+# %%
