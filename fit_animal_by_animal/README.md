@@ -28,3 +28,11 @@
 - `aggregate_qq_diff_xleq_03.py`  - aggregate Q - Q_60 vs Q_60 and line fit for Q_60 <= 0.3
 
 
+
+# decoding conf figs
+- `decoding_conf_rtd_scales.py` - RTD scale
+- `see_only_psycho_all_ILD_tied.py` - psychometric plots, vanila, norm
+- `see_only_rtd_avg_vs_avg_norm_and_vanila.py` - RTD plots, vanila, norm
+
+- `decoding_conf_NEW_psychometric_fit_vbmc_all_animals.py` - psychometric fit
+- `decoding_conf_psy_fit_see_psycho.py`, `decoding_conf_psy_fit_see_rtds.py` - psychometric fit diagnostics
