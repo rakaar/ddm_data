@@ -39,6 +39,10 @@ df['correct'] = (df['ILD'] * df['choice']).apply(lambda x: 1 if x > 0 else 0)
 
 # %%
 # find the animal with largest number of trials and take that
+####### TEMP ###############
+###### NOTE ############
+# Fitting super rat ########
+#######################
 animal_with_largest_trials = df['animal'].value_counts().idxmax()
 print(f'animal with largest number of trials: {animal_with_largest_trials}')
 df = df[df['animal'] == animal_with_largest_trials]
@@ -107,6 +111,10 @@ for param_samples_name, param_label in vbmc_aborts_param_keys_map.items():
 V_A = abort_params['V_A']
 theta_A = abort_params['theta_A']
 t_A_aff = abort_params['t_A_aff']
+### TEMP: NOTE for super rate #########
+# V_A = 1.6
+# theta_A = 2.5
+# t_A_aff = -0.22
 
 # other params
 K_max = 10
@@ -146,6 +154,8 @@ def compute_loglike_trial(row, gamma_ABL_20_ILD_1, gamma_ABL_20_ILD_4, gamma_ABL
     omega_ABL_60_ILD_16 if ABL == 60 and abs(ILD) == 16 else
     None
 )
+
+    gamma *= np.sign(ILD)
 
     if gamma is None or omega is None:
         print(f"gamma or omega is None for ABL {ABL}, ILD {ILD}")
@@ -196,8 +206,8 @@ def vbmc_loglike_fn(params):
 # %%
 # gamma_bounds = [0.02, 2]
 # gamma_plausible_bounds = [0.09, 0.9]
-gamma_ABL_20_ILD_1_bounds = gamma_ABL_20_ILD_4_bounds = gamma_ABL_20_ILD_16_bounds = gamma_ABL_60_ILD_1_bounds = gamma_ABL_60_ILD_4_bounds = gamma_ABL_60_ILD_16_bounds = [0.02, 2]
-gamma_ABL_20_ILD_1_plausible_bounds = gamma_ABL_20_ILD_4_plausible_bounds = gamma_ABL_20_ILD_16_plausible_bounds = gamma_ABL_60_ILD_1_plausible_bounds = gamma_ABL_60_ILD_4_plausible_bounds = gamma_ABL_60_ILD_16_plausible_bounds = [0.09, 0.9]
+gamma_ABL_20_ILD_1_bounds = gamma_ABL_20_ILD_4_bounds = gamma_ABL_20_ILD_16_bounds = gamma_ABL_60_ILD_1_bounds = gamma_ABL_60_ILD_4_bounds = gamma_ABL_60_ILD_16_bounds = [0.001, 5]
+gamma_ABL_20_ILD_1_plausible_bounds = gamma_ABL_20_ILD_4_plausible_bounds = gamma_ABL_20_ILD_16_plausible_bounds = gamma_ABL_60_ILD_1_plausible_bounds = gamma_ABL_60_ILD_4_plausible_bounds = gamma_ABL_60_ILD_16_plausible_bounds = [0.01, 3]
 
 omega_ABL_20_ILD_1_bounds = omega_ABL_20_ILD_4_bounds = omega_ABL_20_ILD_16_bounds = omega_ABL_60_ILD_1_bounds = omega_ABL_60_ILD_4_bounds = omega_ABL_60_ILD_16_bounds = [0.05, 50]
 omega_ABL_20_ILD_1_plausible_bounds = omega_ABL_20_ILD_4_plausible_bounds = omega_ABL_20_ILD_16_plausible_bounds = omega_ABL_60_ILD_1_plausible_bounds = omega_ABL_60_ILD_4_plausible_bounds = omega_ABL_60_ILD_16_plausible_bounds = [0.5, 10]
@@ -410,36 +420,65 @@ corner.corner(
 
 # %%
 # See how RTDs look?
-choice = 1
-t_stim = 0
-t_pts = np.arange(0, 1, 0.001)\
-# Single ABL, multiple ILDs
-rtd_abl_20_ild_1 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
-                                     gamma_ABL_20_ILD_1, omega_ABL_20_ILD_1, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
-                                        for rt in t_pts]
-rtd_abl_20_ild_4 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
-                                     gamma_ABL_20_ILD_4, omega_ABL_20_ILD_4, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
-                                        for rt in t_pts]
-rtd_abl_20_ild_16 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
-                                     gamma_ABL_20_ILD_16, omega_ABL_20_ILD_16, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
-                                        for rt in t_pts]
-plt.plot(t_pts, rtd_abl_20_ild_1, label='ABL 20 ILD 1')
-plt.plot(t_pts, rtd_abl_20_ild_4, label='ABL 20 ILD 4')
-plt.plot(t_pts, rtd_abl_20_ild_16, label='ABL 20 ILD 16')
-plt.legend()
+# choice = 1
+# t_stim = 0
+# t_pts = np.arange(0, 1, 0.001)\
+# # Single ABL, multiple ILDs
+# # rtd_abl_20_ild_1 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+# #                                      gamma_ABL_20_ILD_1, omega_ABL_20_ILD_1, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
+# #                                         for rt in t_pts]
+# # rtd_abl_20_ild_4 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+#                                     #  gamma_ABL_20_ILD_4, omega_ABL_20_ILD_4, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
+#                                         # for rt in t_pts]
+
+# # model values
+# plt.figure()
+# up_rtd_abl_20_ild_16 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+#                                      gamma_ABL_20_ILD_16, omega_ABL_20_ILD_16, t_stim, t_A_aff, t_E_aff, del_go, 1, w, K_max) \
+#                                         for rt in t_pts]
+# down_rtd_abl_20_ild_16 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+#                                      gamma_ABL_20_ILD_16, omega_ABL_20_ILD_16, t_stim, t_A_aff, t_E_aff, del_go, -1, w, K_max) \
+#                                         for rt in t_pts]
+
+# # plt.plot(t_pts, rtd_abl_20_ild_1, label='ABL 20 ILD 1')
+# # plt.plot(t_pts, rtd_abl_20_ild_4, label='ABL 20 ILD 4')
+# plt.plot(t_pts, up_rtd_abl_20_ild_16, label='up ABL 20 ILD 16')
+# plt.plot(t_pts, -1* np.array(down_rtd_abl_20_ild_16), label='down ABL 20 ILD 16')
+# print(f'area up: {np.trapz(up_rtd_abl_20_ild_16, t_pts) :.2f}')
+# print(f'area down: {np.trapz(down_rtd_abl_20_ild_16, t_pts) :.2f}')
+# plt.title(f'model values, gamma={gamma_ABL_20_ILD_16 :.2f}')
+# plt.legend()
+
+# # gamma higher 
+# plt.figure()
+# up_rtd_abl_20_ild_16 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+#                                      1, omega_ABL_20_ILD_16, t_stim, t_A_aff, t_E_aff, del_go, 1, w, K_max) \
+#                                         for rt in t_pts]
+# down_rtd_abl_20_ild_16 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+#                                      1, omega_ABL_20_ILD_16, t_stim, t_A_aff, t_E_aff, del_go, -1, w, K_max) \
+#                                         for rt in t_pts]
+
+# # plt.plot(t_pts, rtd_abl_20_ild_1, label='ABL 20 ILD 1')
+# # plt.plot(t_pts, rtd_abl_20_ild_4, label='ABL 20 ILD 4')
+# plt.plot(t_pts, up_rtd_abl_20_ild_16, label='up ABL 20 ILD 16')
+# plt.plot(t_pts, -1* np.array(down_rtd_abl_20_ild_16), label='down ABL 20 ILD 16')
+# print(f'area up: {np.trapz(up_rtd_abl_20_ild_16, t_pts) :.2f}')
+# print(f'area down: {np.trapz(down_rtd_abl_20_ild_16, t_pts) :.2f}')
+# plt.title('model except gamma = 1')
+# plt.legend()
 
 
 # Single ILD = 1, multiple ABLs
-rtd_abl_20_ild_1 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
-                                     gamma_ABL_20_ILD_1, omega_ABL_20_ILD_1, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
-                                        for rt in t_pts]
-rtd_abl_60_ild_1 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
-                                     gamma_ABL_60_ILD_1, omega_ABL_60_ILD_1, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
-                                        for rt in t_pts]
-plt.figure()
-plt.plot(t_pts, rtd_abl_20_ild_1, label='ABL 20 ILD 1')
-plt.plot(t_pts, rtd_abl_60_ild_1, label='ABL 60 ILD 1')
-plt.legend()
+# rtd_abl_20_ild_1 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+#                                      gamma_ABL_20_ILD_1, omega_ABL_20_ILD_1, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
+#                                         for rt in t_pts]
+# rtd_abl_60_ild_1 = [up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A,\
+#                                      gamma_ABL_60_ILD_1, omega_ABL_60_ILD_1, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max) \
+#                                         for rt in t_pts]
+# plt.figure()
+# plt.plot(t_pts, rtd_abl_20_ild_1, label='ABL 20 ILD 1')
+# plt.plot(t_pts, rtd_abl_60_ild_1, label='ABL 60 ILD 1')
+# plt.legend()
 
 # %%
 # Diagnostics - RTD choice
@@ -469,312 +508,229 @@ C_A_mean = cumtrapz(P_A_mean, t_pts, initial=0)
 
 
 # %%
-ABL = 20
-ILD = 1
-bound = 1
-gamma_a_i = gamma_ABL_20_ILD_1
-omega_a_i = omega_ABL_20_ILD_1
-up_mean = np.array([ up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_PA_CA_fn(t, P_A_mean[idx], C_A_mean[idx],\
-         gamma_a_i, omega_a_i, 0, t_E_aff, del_go, bound, w, K_max) for idx,t in enumerate(t_pts)])
-down_mean = np.array([ up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_PA_CA_fn(t, P_A_mean[idx], C_A_mean[idx],\
-         gamma_a_i, omega_a_i, 0, t_E_aff, del_go, -bound, w, K_max) for idx,t in enumerate(t_pts)])
-print(f'len of up_plus_down_masked: {up_mean.shape}')
+# --- Compute and store theory/data for all ABL/ILD combinations ---
+theory_curves = {}  # (ABL, ILD): dict with up_mean, down_mean, up_plus_down, t_pts_0_1, up_plus_down_mean
+rt_data = {}        # (ABL, ILD): data_a_i_rt
 
+for ABL in ABLs_to_fit:
+    for ILD in ILDs_to_fit:
+        gamma = (
+            gamma_ABL_20_ILD_1 if ABL == 20 and abs(ILD) == 1 else
+            gamma_ABL_20_ILD_4 if ABL == 20 and abs(ILD) == 4 else
+            gamma_ABL_20_ILD_16 if ABL == 20 and abs(ILD) == 16 else
+            gamma_ABL_60_ILD_1 if ABL == 60 and abs(ILD) == 1 else
+            gamma_ABL_60_ILD_4 if ABL == 60 and abs(ILD) == 4 else
+            gamma_ABL_60_ILD_16 if ABL == 60 and abs(ILD) == 16 else
+            None
+        )
+        omega = (
+            omega_ABL_20_ILD_1 if ABL == 20 and abs(ILD) == 1 else
+            omega_ABL_20_ILD_4 if ABL == 20 and abs(ILD) == 4 else
+            omega_ABL_20_ILD_16 if ABL == 20 and abs(ILD) == 16 else
+            omega_ABL_60_ILD_1 if ABL == 60 and abs(ILD) == 1 else
+            omega_ABL_60_ILD_4 if ABL == 60 and abs(ILD) == 4 else
+            omega_ABL_60_ILD_16 if ABL == 60 and abs(ILD) == 16 else
+            None
+        )
+        gamma *= np.sign(ILD)
+        if gamma is None or omega is None:
+            print(f"Skipping ABL={ABL}, ILD={ILD} (no gamma/omega)")
+            continue
+        bound = 1
+        up_mean = np.array([
+            up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_PA_CA_fn(
+                t, P_A_mean[idx], C_A_mean[idx],
+                gamma, omega, 0, t_E_aff, del_go, bound, w, K_max
+            ) for idx, t in enumerate(t_pts)
+        ])
+        down_mean = np.array([
+            up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_PA_CA_fn(
+                t, P_A_mean[idx], C_A_mean[idx],
+                gamma, omega, 0, t_E_aff, del_go, -bound, w, K_max
+            ) for idx, t in enumerate(t_pts)
+        ])
+        mask_0_1 = (t_pts >= 0) & (t_pts <= 1)
+        t_pts_0_1 = t_pts[mask_0_1]
+        up_plus_down = up_mean + down_mean
+        # area up and down
+        print(f'ABL={ABL}, ILD={ILD}')
+        print(f'area up {trapezoid(up_mean, t_pts) :.2f}')
+        print(f'area down {trapezoid(down_mean, t_pts) :.2f}')
+        up_plus_down_masked = up_plus_down[mask_0_1]
+        area_masked = trapezoid(up_plus_down_masked, t_pts_0_1)
 
-t_pts_0_1 = t_pts[mask_0_1]
-up_plus_down = up_mean + down_mean
-up_plus_down_masked = up_plus_down[mask_0_1]
-area_masked = trapezoid(up_plus_down_masked, t_pts_0_1)
-if area_masked != 0:
-    up_plus_down_mean = up_plus_down_masked / area_masked
-else:
-    up_plus_down_mean = up_plus_down_masked
+        if area_masked != 0:
+            up_plus_down_mean = up_plus_down_masked / area_masked
+        else:
+            up_plus_down_mean = up_plus_down_masked
+        theory_curves[(ABL, ILD)] = {
+            'up_mean': up_mean,
+            'down_mean': down_mean,
+            't_pts': t_pts,
 
-plt.plot(t_pts_0_1, up_plus_down_mean)
-print(f'area = {trapezoid(up_plus_down_mean, t_pts_0_1)}')
-data_a_i = df_led_off_valid_trials_cond_filtered[
-        (df_led_off_valid_trials_cond_filtered['ABL'] == ABL) & \
-        (df_led_off_valid_trials_cond_filtered['ILD'] == ILD)
-    ]
-
-data_a_i_rt = data_a_i['timed_fix'] - data_a_i['intended_fix']
-plt.hist(data_a_i_rt, bins=np.arange(0,1,0.02), density=True, histtype='step');
-
-# %% [markdown]
-# # Diagnostics
-
-# %% [markdown]
-# ## exp data df prepare
-
-# %%
-# DATA
-df_led_off = df[df['LED_trial'] == 0]
-
-# < 1s RTs
-df_led_off = df_led_off[df_led_off['timed_fix'] - df_led_off['intended_fix'] < 1]
-# remove truncated aborts
-data_df_led_off_with_aborts = df_led_off[ ~( (df_led_off['abort_event'] == 3) & (df_led_off['timed_fix'] < 0.3) ) ]
-# renaming
-data_df_led_off_with_aborts = data_df_led_off_with_aborts.rename(
-    columns={'timed_fix': 'rt', 'intended_fix': 't_stim'}
-)
-
-### ABORTS + VALID TRIALS + ABL, ILD CONDITION
-data_df_led_off_with_aborts_cond_filtered = data_df_led_off_with_aborts[
-    (data_df_led_off_with_aborts['ABL'].isin(conditions['ABL'])) & 
-    (data_df_led_off_with_aborts['ILD'].isin(conditions['ILD']))
-]
-
-data_df_led_off_valid = data_df_led_off_with_aborts[ data_df_led_off_with_aborts['success'].isin([1,-1]) ]
-
-# VALID TRIALS CONDITION
-df_led_off_valid_trials_cond_filtered = data_df_led_off_valid[
-    (data_df_led_off_valid['ABL'].isin(conditions['ABL'])) & 
-    (data_df_led_off_valid['ILD'].isin(conditions['ILD']))
-]
-
-df_led_off_valid_trials_cond_filtered['ABL'].unique(), df_led_off_valid_trials_cond_filtered['ILD'].unique()
-
-# %% [markdown]
-# ## up and down RT
-
-# %%
-N_theory = int(1e3)
-random_indices = np.random.randint(0, len(t_stim_and_led_tuple), N_theory)
-t_pts = np.arange(0, 1, 0.001)
-
-P_A_samples = np.zeros((N_theory, len(t_pts)))
-for idx in range(N_theory):
-    t_stim, t_LED = t_stim_and_led_tuple[random_indices[idx]]
-    pdf = rho_A_t_VEC_fn(t_pts + t_stim - t_A_aff, V_A, theta_A)
-    P_A_samples[idx, :] = pdf
+            'up_mean_mask': up_mean[mask_0_1],
+            'down_mean_mask': down_mean[mask_0_1],
+            't_pts_0_1': t_pts_0_1,
+            'up_plus_down_mean': up_plus_down_mean
+        }
+        # Data
+        data_a_i = df_led_off_valid_trials_cond_filtered[
+            (df_led_off_valid_trials_cond_filtered['ABL'] == ABL) &
+            (df_led_off_valid_trials_cond_filtered['ILD'] == ILD)
+        ]
+        data_a_i_rt = data_a_i['timed_fix'] - data_a_i['intended_fix']
+        rt_data[(ABL, ILD)] = data_a_i_rt
 
 # %%
-P_A_samples_mean = np.mean(P_A_samples, axis=0)
-C_A_mean = cumtrapz(P_A_samples_mean, t_pts, initial=0)
+# --- Plot from stored arrays ---
+n_ABLs = len(ABLs_to_fit)
+n_ILDs = len(ILDs_to_fit)
+fig, axes = plt.subplots(n_ABLs, n_ILDs, figsize=(4*n_ILDs, 3*n_ABLs), sharex=True, sharey=True)
+for i_ABL, ABL in enumerate(ABLs_to_fit):
+    for i_ILD, ILD in enumerate(ILDs_to_fit):
+        ax = axes[i_ABL, i_ILD] if n_ABLs > 1 and n_ILDs > 1 else (
+            axes[i_ILD] if n_ABLs == 1 else axes[i_ABL]
+        )
+        if (ABL, ILD) not in theory_curves:
+            ax.set_visible(False)
+            continue
+        tc = theory_curves[(ABL, ILD)]
+        ax.plot(tc['t_pts_0_1'], tc['up_plus_down_mean'], label="theory")
+        ax.hist(rt_data[(ABL, ILD)], bins=np.arange(0,1,0.02), density=True, histtype='step', label="data")
+        ax.set_title(f"ABL={ABL}, ILD={ILD}")
+        if i_ABL == n_ABLs-1:
+            ax.set_xlabel("RT (s)")
+        if i_ILD == 0:
+            ax.set_ylabel("Density")
+        ax.legend(fontsize=8)
+plt.tight_layout()
+plt.show()
 
 # %%
-up_wrt_stim = np.zeros_like(t_pts)
-down_wrt_stim = np.zeros_like(t_pts)
-for idx, t in enumerate(t_pts):
-    P_A = P_A_samples_mean[idx]
-    C_A = C_A_mean[idx]
-    up_wrt_stim[idx] =  up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, 1, K_max)
-    down_wrt_stim[idx] = up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, -1, K_max)
-
-
-# %%
-bins = np.arange(-1,1,0.02)
-bin_centers = (bins[:-1] + bins[1:]) / 2
-
-
-
-## data
-data_up = df_led_off_valid_trials_cond_filtered[df_led_off_valid_trials_cond_filtered['choice'] == 1]
-data_down = df_led_off_valid_trials_cond_filtered[df_led_off_valid_trials_cond_filtered['choice'] == -1]
-
-data_up_rt = data_up['rt'] - data_up['t_stim']
-data_up_rt_hist, _ = np.histogram(data_up_rt, bins=bins, density=True)
-
-data_down_rt = data_down['rt'] - data_down['t_stim']
-data_down_rt_hist, _ = np.histogram(data_down_rt, bins=bins, density=True)
-
-frac_up_data = len(data_up) / len(df_led_off_valid_trials_cond_filtered)
-frac_down_data = len(data_down) / len(df_led_off_valid_trials_cond_filtered)
-
-# %%
-# RTDs - up and down
-plt.plot(t_pts, up_wrt_stim, ls='--', color='r')
-plt.plot(t_pts, -down_wrt_stim, ls='--', color='r')
-
-plt.plot(bin_centers, data_up_rt_hist*frac_up_data, color='b')
-plt.plot(bin_centers, -data_down_rt_hist*frac_down_data, color='b')
-
-theory_area_up = trapz(up_wrt_stim, t_pts)
-theory_area_down = trapz(down_wrt_stim, t_pts)
-
-print(f'areas theory up = {theory_area_up :.3f}, down = {theory_area_down :.3f}')
-print(f'frac up data = {frac_up_data :.3f}, down data = {frac_down_data :.3f}')
-plt.xlim(0,1)
-plt.title(f'Areas: +T:{theory_area_up:.3f},+E:{frac_up_data:.3f},-T:{theory_area_down: .3f},-E:{frac_down_data :.3f}')
-
-plt.xlabel('rt wrt stim')
-plt.ylabel('density')
-
-# %% [markdown]
-# ## accuracy
-
-# %%
-## 2. Accuracy
-xlabels = ['data', 'vbmc']
-if conditions['ILD'][0] > 0:
-    accuracy_data_and_theory = [frac_up_data, theory_area_up]
-else:
-    accuracy_data_and_theory = [frac_down_data, theory_area_down]
-
-plt.bar(xlabels, accuracy_data_and_theory)
-plt.ylabel('accuracy')
-plt.title('between stim start and stim + 1s')
-plt.ylim(0,1)
-plt.yticks(np.arange(0, 1.1, 0.1));
-
-# %%
-
-
-# %% [markdown]
-# # tachometric
-
-# %%
-tacho = np.zeros_like(t_pts)
-for idx, t in enumerate(t_pts):
-    P_A = P_A_samples_mean[idx]
-    C_A = C_A_mean[idx]
-    P_up = up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, 1, K_max)
-    P_down = up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn(t, P_A, C_A, gamma, omega, t_E_aff, del_go, -1, K_max)
-
-    if conditions['ILD'][0] > 0:
-        P_rt_c = P_up
-    else:
-        P_rt_c = P_down
-        
-    P_rt = P_up + P_down
-
-    tacho[idx] = P_rt_c / (P_rt + 1e-10)
-
-# %%
-df_led_off_valid_trials_cond_filtered_copy = df_led_off_valid_trials_cond_filtered.copy()
-df_led_off_valid_trials_cond_filtered_copy.loc[:, 'RT_bin'] = pd.cut(df_led_off_valid_trials_cond_filtered_copy['rt'] - df_led_off_valid_trials_cond_filtered_copy['t_stim'],\
-                                                              bins = bins, include_lowest=True)
-grouped_by_rt_bin = df_led_off_valid_trials_cond_filtered_copy.groupby('RT_bin', observed=False)['correct'].agg(['mean', 'count'])
-grouped_by_rt_bin['bin_mid'] = grouped_by_rt_bin.index.map(lambda x: x.mid)
-
-# %%
-##  3. Tacho
-plt.plot(t_pts, tacho)
-plt.plot(grouped_by_rt_bin['bin_mid'], grouped_by_rt_bin['mean'], label='data')
-
-plt.ylim(0.5,1)
-plt.xlabel('rt - t_stim')
-plt.ylabel('accuracy')
-plt.title('btn stim start and stim + 1s')
-
-# %% [markdown]
-# # combined diagnostics
-
-# %% [markdown]
-# # des
-
-# %%
-import io
+# psychometrics:
+# Plot psychometric function: prob(choice==1) vs ILD for each ABL in data
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import corner
 
-# --------------------------
-# Font size parameters
-# Adjust these as needed
-FONT_SIZE_LABEL = 22   # for x/y labels
-FONT_SIZE_TICKS = 22   # for x/y tick labels
-FONT_SIZE_TITLE = 22   # for subplot titles
-FONT_SIZE_INSET_TITLE = 22  # for inset bar plot title
+plt.figure(figsize=(8, 5))
+for ABL in ABLs_to_fit:
+    # --- Data psychometric ---
+    df_abl = df_led_off_valid_trials_cond_filtered[df_led_off_valid_trials_cond_filtered['ABL'] == ABL]
+    prob_right_data = df_abl.groupby('ILD')['choice'].apply(lambda x: (x == 1).mean())
+    ILDs_data = prob_right_data.index.values
+    plt.scatter(ILDs_data, prob_right_data.values, label=f'Data ABL={ABL}', alpha=0.7, marker='o')
+    # --- Theory psychometric ---
+    ILDs_theory = []
+    prob_right_theory = []
+    for ILD in np.sort(ILDs_to_fit):
+        key = (ABL, ILD)
+        if key not in theory_curves:
+            continue
+        tc = theory_curves[key]
+        area_up = trapezoid(tc['up_mean_mask'], tc['t_pts_0_1'])
+        area_down = trapezoid(tc['down_mean_mask'], tc['t_pts_0_1'])
+        p_right = area_up / (area_up + area_down) if (area_up + area_down) > 0 else np.nan
+        print(f'ILD = {ILD}, p_right = {p_right}')
+        ILDs_theory.append(ILD)
+        prob_right_theory.append(p_right)
+    # Sort for line plot
+    ILDs_theory = np.array(ILDs_theory)
+    prob_right_theory = np.array(prob_right_theory)
+    idx_sort = np.argsort(ILDs_theory)
+    plt.plot(ILDs_theory[idx_sort], prob_right_theory[idx_sort], label=f'Theory ABL={ABL}', marker='x')
+plt.axhline(0.5, color='gray', ls='--', lw=1)
+plt.xlabel('ILD (dB)')
+plt.ylabel('P(choice=right)')
+plt.title('Psychometric curve: Data vs Theory')
+plt.legend(title='Curve')
+plt.tight_layout()
+plt.show()
 
-# --------------------------
-# Create a figure and a GridSpec with 3 columns,
-# giving the third column more space (e.g., 1.4 times the width).
-fig = plt.figure(figsize=(30, 8))
-gs = gridspec.GridSpec(nrows=1, ncols=3, width_ratios=[1, 1, 1.4])
+# %%
+# Plot up_mean_mask and down_mean_mask vs t_pts_0_1 for each (ABL, ILD)
+# n_ABLs = len(ABLs_to_fit)
+# n_ILDs = len(ILDs_to_fit)
+# fig, axes = plt.subplots(n_ABLs, n_ILDs, figsize=(4*n_ILDs, 3*n_ABLs), sharex=True, sharey=True)
+# for i_ABL, ABL in enumerate(ABLs_to_fit):
+#     for i_ILD, ILD in enumerate(ILDs_to_fit):
+#         key = (ABL, ILD)
+#         ax = axes[i_ABL, i_ILD] if n_ABLs > 1 and n_ILDs > 1 else (
+#             axes[i_ILD] if n_ABLs == 1 else axes[i_ABL]
+#         )
+#         if key in theory_curves:
+#             tc = theory_curves[key]
+#             ax.plot(tc['t_pts_0_1'], tc['up_mean_mask'], label='up_mean_mask', color='C0')
+#             ax.plot(tc['t_pts_0_1'], tc['down_mean_mask'], label='down_mean_mask', color='C1')
+#         ax.set_title(f'ABL={ABL}, ILD={ILD}')
+#         if i_ABL == n_ABLs - 1:
+#             ax.set_xlabel('t (s)')
+#         if i_ILD == 0:
+#             ax.set_ylabel('Density')
+#         ax.legend(fontsize=8)
+# plt.tight_layout()
+# plt.show()
 
-ax_rtd = fig.add_subplot(gs[0, 0])
-ax_tacho = fig.add_subplot(gs[0, 1])
-ax_corner = fig.add_subplot(gs[0, 2])
+# %%
+import matplotlib.pyplot as plt
 
-# ------------------------------------------------------------------------------
-# 1) RTD Plot in ax_rtd
-ax_rtd.plot(t_pts, up_wrt_stim, ls='--', color='r')
-ax_rtd.plot(t_pts, -down_wrt_stim, ls='--', color='r')
-ax_rtd.plot(bin_centers, data_up_rt_hist * frac_up_data, color='b')
-ax_rtd.plot(bin_centers, -data_down_rt_hist * frac_down_data, color='b')
+def get_gamma(ABL, ILD):
+    return (
+        gamma_ABL_20_ILD_1 if ABL == 20 and abs(ILD) == 1 else
+        gamma_ABL_20_ILD_4 if ABL == 20 and abs(ILD) == 4 else
+        gamma_ABL_20_ILD_16 if ABL == 20 and abs(ILD) == 16 else
+        gamma_ABL_60_ILD_1 if ABL == 60 and abs(ILD) == 1 else
+        gamma_ABL_60_ILD_4 if ABL == 60 and abs(ILD) == 4 else
+        gamma_ABL_60_ILD_16 if ABL == 60 and abs(ILD) == 16 else
+        None
+    )
 
-ax_rtd.set_xlim(0, 1)
+def get_omega(ABL, ILD):
+    return (
+        omega_ABL_20_ILD_1 if ABL == 20 and abs(ILD) == 1 else
+        omega_ABL_20_ILD_4 if ABL == 20 and abs(ILD) == 4 else
+        omega_ABL_20_ILD_16 if ABL == 20 and abs(ILD) == 16 else
+        omega_ABL_60_ILD_1 if ABL == 60 and abs(ILD) == 1 else
+        omega_ABL_60_ILD_4 if ABL == 60 and abs(ILD) == 4 else
+        omega_ABL_60_ILD_16 if ABL == 60 and abs(ILD) == 16 else
+        None
+    )
 
-# Set labels and title with custom font sizes
-ax_rtd.set_xlabel('rt wrt stim', fontsize=FONT_SIZE_LABEL)
-ax_rtd.set_ylabel('density', fontsize=FONT_SIZE_LABEL)
-ax_rtd.set_title(
-    f"Areas: +T:{theory_area_up:.3f},+E:{frac_up_data:.3f},"
-    f"-T:{theory_area_down:.3f},-E:{frac_down_data:.3f}",
-    fontsize=FONT_SIZE_TITLE
-)
+plt.figure(figsize=(4, 3))
+all_ILDs = sorted(set(ILD for ILD in ILDs_to_fit if ILD > 0))
+for ABL in ABLs_to_fit:
+    gammas = []
+    ILDs_plot = []
+    for ILD in ILDs_to_fit:
+        if ILD > 0:
+            gamma = get_gamma(ABL, ILD)
+            if gamma is not None:
+                gammas.append(gamma)
+                ILDs_plot.append(ILD)
+    plt.plot(ILDs_plot, gammas, marker='o', label=f'ABL={ABL}')
+plt.xlabel('ILD (dB)')
+plt.ylabel('gamma')
+plt.title('gamma vs ILD for each ABL')
+plt.xticks(all_ILDs)
+plt.tight_layout()
+plt.show()
 
-# Increase tick label size
-ax_rtd.tick_params(axis='both', which='major', labelsize=FONT_SIZE_TICKS)
-
-# Inset bar chart
-inset_ax = ax_rtd.inset_axes([0.65, 0.55, 0.3, 0.4])
-bar_positions = [0, 1]
-inset_ax.bar(bar_positions, accuracy_data_and_theory, color=['C0', 'C1'])
-inset_ax.set_xticks(bar_positions)
-inset_ax.set_xticklabels(['data', 'vbmc'], fontsize=FONT_SIZE_TICKS)
-inset_ax.set_ylim(0, 1)
-inset_ax.set_ylabel('accuracy', fontsize=FONT_SIZE_LABEL)
-inset_ax.set_title(
-    f"AL={conditions['ABL'][0]},ID={conditions['ILD'][0]}",
-    fontsize=FONT_SIZE_INSET_TITLE
-)
-inset_ax.tick_params(axis='y', which='major', labelsize=FONT_SIZE_TICKS)
-
-# ------------------------------------------------------------------------------
-# 2) Tacho Plot in ax_tacho
-ax_tacho.plot(t_pts, tacho, label='tacho')
-ax_tacho.plot(grouped_by_rt_bin['bin_mid'], grouped_by_rt_bin['mean'], label='data')
-ax_tacho.set_ylim(0.5, 1)
-
-# Set labels and title with custom font sizes
-ax_tacho.set_xlabel('rt - t_stim', fontsize=FONT_SIZE_LABEL)
-ax_tacho.set_ylabel('accuracy', fontsize=FONT_SIZE_LABEL)
-ax_tacho.set_title('btn stim start and stim + 1s', fontsize=FONT_SIZE_TITLE)
-
-# Increase tick label size
-ax_tacho.tick_params(axis='both', which='major', labelsize=FONT_SIZE_TICKS)
-ax_tacho.legend(fontsize=FONT_SIZE_TICKS)
-
-
-## 3. Corner
-fig_corner = corner.corner(
-    corner_samples,
-    labels=['Γ', 'ω', 'tE'],
-    show_titles=True,
-    quantiles=[0.025, 0.5, 0.975],
-    range=_ranges,
-    title_fmt=".4f",
-    title_kwargs={"fontsize": 18}
-)
-
-# Adjust subplots to reduce margins around the corner plot.
-# Tweak left, right, bottom, top until the left whitespace is minimized.
-fig_corner.subplots_adjust(left=-1, right=0.95, bottom=0.15, top=0.9)
-
-# Save with minimal padding
-buf = io.BytesIO()
-fig_corner.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
-buf.seek(0)
-
-# Read into an image array and close the figure
-corner_img = plt.imread(buf)
-plt.close(fig_corner)
-
-# Now display in your third subplot
-ax_corner.imshow(corner_img)
-ax_corner.axis('off')
-ax_corner.set_title('Corner Plot', fontsize=20, pad=0)
-
-# plt.savefig("my_figure.png", dpi=300, bbox_inches="tight")
+plt.figure(figsize=(4, 3))
+all_ILDs = sorted(set(ILD for ILD in ILDs_to_fit if ILD > 0))
+for ABL in ABLs_to_fit:
+    omegas = []
+    ILDs_plot = []
+    for ILD in ILDs_to_fit:
+        if ILD > 0:
+            omega = get_omega(ABL, ILD)
+            if omega is not None:
+                omegas.append(omega)
+                ILDs_plot.append(ILD)
+    plt.plot(ILDs_plot, omegas, marker='o', label=f'ABL={ABL}')
+plt.xlabel('ILD (dB)')
+plt.ylabel('omega')
+plt.title('omega vs ILD for each ABL')
+plt.xticks(all_ILDs)
+plt.tight_layout()
+plt.show()
 
 
 # %%
-
-
-# %%
-
-
-
