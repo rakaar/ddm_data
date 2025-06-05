@@ -1,0 +1,10 @@
+numpy
+scipy
+matplotlib
+pandas
+joblib
+pyvbmc
+corner
+h5py
+imageio
+# Add other packages you use, but avoid strict version pins unless required

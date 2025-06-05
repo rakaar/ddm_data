@@ -20,6 +20,9 @@ from led_off_gamma_omega_pdf_utils import up_or_down_RTs_fit_OPTIM_V_A_change_ga
 og_df = pd.read_csv('../out_LED.csv')
 all_animals = og_df['animal'].unique()
 all_but_first_animal = all_animals[1:]
+
+
+
 print(all_but_first_animal)
 
 for animal_id in all_but_first_animal:
@@ -55,9 +58,9 @@ for animal_id in all_but_first_animal:
     ###### NOTE ############
     # Fitting super rat ########
     #######################
-    animal_with_largest_trials = df['animal'].value_counts().idxmax()
-    print(f'animal with largest number of trials: {animal_with_largest_trials}')
-    df = df[df['animal'] == animal_with_largest_trials]
+    # animal_with_largest_trials = df['animal'].value_counts().idxmax()
+    print(f'animal filter: {animal_id}')
+    df = df[df['animal'] == int(animal_id)]
 
     # %% [markdown]
     # # data for vbmc
@@ -97,10 +100,7 @@ for animal_id in all_but_first_animal:
 
 
     # %%
-    # Proactive params
-    batch_name = 'LED7'
-    animal_id = '92'
-
+    
     pkl_file = f'/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/results_{batch_name}_animal_{animal_id}.pkl'
     with open(pkl_file, 'rb') as f:
         fit_results_data = pickle.load(f)
