@@ -83,7 +83,7 @@ for animal_id in [103]:
     # %%
     # Filter the ABLs and ILDs 
     ABLs_to_fit = [20, 60]
-    ILDs_to_fit = [1, 4, 16, -1, -4, -16]
+    ILDs_to_fit = [1, 2, 4, 8, 16, -1, -2, -4, -8, -16]
 
     df_led_off_valid_trials_cond_filtered = df_led_off_valid_trials[
         (df_led_off_valid_trials['ABL'].isin(ABLs_to_fit)) & 
@@ -136,10 +136,10 @@ for animal_id in [103]:
     # %%
     # VBMC loglike
     def compute_loglike_trial(row,
-        gamma_ABL_20_ILD_1,gamma_ABL_20_ILD_minus_1, gamma_ABL_20_ILD_4, gamma_ABL_20_ILD_minus_4, gamma_ABL_20_ILD_16, gamma_ABL_20_ILD_minus_16,
-        gamma_ABL_60_ILD_1, gamma_ABL_60_ILD_minus_1, gamma_ABL_60_ILD_4, gamma_ABL_60_ILD_minus_4, gamma_ABL_60_ILD_16, gamma_ABL_60_ILD_minus_16,
-        omega_ABL_20_ILD_1, omega_ABL_20_ILD_minus_1, omega_ABL_20_ILD_4, omega_ABL_20_ILD_minus_4, omega_ABL_20_ILD_16, omega_ABL_20_ILD_minus_16,
-        omega_ABL_60_ILD_1, omega_ABL_60_ILD_minus_1, omega_ABL_60_ILD_4, omega_ABL_60_ILD_minus_4, omega_ABL_60_ILD_16, omega_ABL_60_ILD_minus_16,
+        gamma_ABL_20_ILD_1,gamma_ABL_20_ILD_minus_1, gamma_ABL_20_ILD_2, gamma_ABL_20_ILD_minus_2, gamma_ABL_20_ILD_4, gamma_ABL_20_ILD_minus_4, gamma_ABL_20_ILD_8, gamma_ABL_20_ILD_minus_8, gamma_ABL_20_ILD_16, gamma_ABL_20_ILD_minus_16,
+        gamma_ABL_60_ILD_1, gamma_ABL_60_ILD_minus_1, gamma_ABL_60_ILD_2, gamma_ABL_60_ILD_minus_2, gamma_ABL_60_ILD_4, gamma_ABL_60_ILD_minus_4, gamma_ABL_60_ILD_8, gamma_ABL_60_ILD_minus_8, gamma_ABL_60_ILD_16, gamma_ABL_60_ILD_minus_16,
+        omega_ABL_20_ILD_1, omega_ABL_20_ILD_minus_1, omega_ABL_20_ILD_2, omega_ABL_20_ILD_minus_2, omega_ABL_20_ILD_4, omega_ABL_20_ILD_minus_4, omega_ABL_20_ILD_8, omega_ABL_20_ILD_minus_8, omega_ABL_20_ILD_16, omega_ABL_20_ILD_minus_16,
+        omega_ABL_60_ILD_1, omega_ABL_60_ILD_minus_1, omega_ABL_60_ILD_2, omega_ABL_60_ILD_minus_2, omega_ABL_60_ILD_4, omega_ABL_60_ILD_minus_4, omega_ABL_60_ILD_8, omega_ABL_60_ILD_minus_8, omega_ABL_60_ILD_16, omega_ABL_60_ILD_minus_16,
         t_E_aff, w_20, w_60, del_go):
         # data
         c_A_trunc_time = 0.3
@@ -152,7 +152,6 @@ for animal_id in [103]:
 
         gamma = None
         omega = None
-        abs_ILD = abs(ILD)
         if ABL == 20:
             if ILD == 1:
                 gamma = gamma_ABL_20_ILD_1
@@ -160,12 +159,24 @@ for animal_id in [103]:
             elif ILD == -1:
                 gamma = gamma_ABL_20_ILD_minus_1
                 omega = omega_ABL_20_ILD_minus_1
+            elif ILD == 2:
+                gamma = gamma_ABL_20_ILD_2
+                omega = omega_ABL_20_ILD_2
+            elif ILD == -2:
+                gamma = gamma_ABL_20_ILD_minus_2
+                omega = omega_ABL_20_ILD_minus_2
             elif ILD == 4:
                 gamma = gamma_ABL_20_ILD_4
                 omega = omega_ABL_20_ILD_4
             elif ILD == -4:
                 gamma = gamma_ABL_20_ILD_minus_4
                 omega = omega_ABL_20_ILD_minus_4
+            elif ILD == 8:
+                gamma = gamma_ABL_20_ILD_8
+                omega = omega_ABL_20_ILD_8
+            elif ILD == -8:
+                gamma = gamma_ABL_20_ILD_minus_8
+                omega = omega_ABL_20_ILD_minus_8
             elif ILD == 16:
                 gamma = gamma_ABL_20_ILD_16
                 omega = omega_ABL_20_ILD_16
@@ -182,12 +193,24 @@ for animal_id in [103]:
             elif ILD == -1:
                 gamma = gamma_ABL_60_ILD_minus_1
                 omega = omega_ABL_60_ILD_minus_1
+            elif ILD == 2:
+                gamma = gamma_ABL_60_ILD_2
+                omega = omega_ABL_60_ILD_2
+            elif ILD == -2:
+                gamma = gamma_ABL_60_ILD_minus_2
+                omega = omega_ABL_60_ILD_minus_2
             elif ILD == 4:
                 gamma = gamma_ABL_60_ILD_4
                 omega = omega_ABL_60_ILD_4
             elif ILD == -4:
                 gamma = gamma_ABL_60_ILD_minus_4
                 omega = omega_ABL_60_ILD_minus_4
+            elif ILD == 8:
+                gamma = gamma_ABL_60_ILD_8
+                omega = omega_ABL_60_ILD_8
+            elif ILD == -8:
+                gamma = gamma_ABL_60_ILD_minus_8
+                omega = omega_ABL_60_ILD_minus_8
             elif ILD == 16:
                 gamma = gamma_ABL_60_ILD_16
                 omega = omega_ABL_60_ILD_16
@@ -226,19 +249,19 @@ for animal_id in [103]:
         # gamma_ABL_x_ILD_y: x is [20,60]. y is [1,2,4,8,16]
         # omega_ABL_x_ILD_y: x is [20,60]. y is [1,2,4,8,16]
         (
-            gamma_ABL_20_ILD_1, gamma_ABL_20_ILD_minus_1, gamma_ABL_20_ILD_4, gamma_ABL_20_ILD_minus_4, gamma_ABL_20_ILD_16, gamma_ABL_20_ILD_minus_16,
-            gamma_ABL_60_ILD_1, gamma_ABL_60_ILD_minus_1, gamma_ABL_60_ILD_4, gamma_ABL_60_ILD_minus_4, gamma_ABL_60_ILD_16, gamma_ABL_60_ILD_minus_16,
-            omega_ABL_20_ILD_1, omega_ABL_20_ILD_minus_1, omega_ABL_20_ILD_4, omega_ABL_20_ILD_minus_4, omega_ABL_20_ILD_16, omega_ABL_20_ILD_minus_16,
-            omega_ABL_60_ILD_1, omega_ABL_60_ILD_minus_1, omega_ABL_60_ILD_4, omega_ABL_60_ILD_minus_4, omega_ABL_60_ILD_16, omega_ABL_60_ILD_minus_16,
+            gamma_ABL_20_ILD_1, gamma_ABL_20_ILD_minus_1, gamma_ABL_20_ILD_2, gamma_ABL_20_ILD_minus_2, gamma_ABL_20_ILD_4, gamma_ABL_20_ILD_minus_4, gamma_ABL_20_ILD_8, gamma_ABL_20_ILD_minus_8, gamma_ABL_20_ILD_16, gamma_ABL_20_ILD_minus_16,
+            gamma_ABL_60_ILD_1, gamma_ABL_60_ILD_minus_1, gamma_ABL_60_ILD_2, gamma_ABL_60_ILD_minus_2, gamma_ABL_60_ILD_4, gamma_ABL_60_ILD_minus_4, gamma_ABL_60_ILD_8, gamma_ABL_60_ILD_minus_8, gamma_ABL_60_ILD_16, gamma_ABL_60_ILD_minus_16,
+            omega_ABL_20_ILD_1, omega_ABL_20_ILD_minus_1, omega_ABL_20_ILD_2, omega_ABL_20_ILD_minus_2, omega_ABL_20_ILD_4, omega_ABL_20_ILD_minus_4, omega_ABL_20_ILD_8, omega_ABL_20_ILD_minus_8, omega_ABL_20_ILD_16, omega_ABL_20_ILD_minus_16,
+            omega_ABL_60_ILD_1, omega_ABL_60_ILD_minus_1, omega_ABL_60_ILD_2, omega_ABL_60_ILD_minus_2, omega_ABL_60_ILD_4, omega_ABL_60_ILD_minus_4, omega_ABL_60_ILD_8, omega_ABL_60_ILD_minus_8, omega_ABL_60_ILD_16, omega_ABL_60_ILD_minus_16,
             t_E_aff, w_20, w_60, del_go
         ) = params
 
         all_loglike = Parallel(n_jobs=30)(delayed(compute_loglike_trial)(
             row,
-            gamma_ABL_20_ILD_1, gamma_ABL_20_ILD_minus_1, gamma_ABL_20_ILD_4, gamma_ABL_20_ILD_minus_4, gamma_ABL_20_ILD_16, gamma_ABL_20_ILD_minus_16,
-            gamma_ABL_60_ILD_1, gamma_ABL_60_ILD_minus_1, gamma_ABL_60_ILD_4, gamma_ABL_60_ILD_minus_4, gamma_ABL_60_ILD_16, gamma_ABL_60_ILD_minus_16,
-            omega_ABL_20_ILD_1, omega_ABL_20_ILD_minus_1, omega_ABL_20_ILD_4, omega_ABL_20_ILD_minus_4, omega_ABL_20_ILD_16, omega_ABL_20_ILD_minus_16,
-            omega_ABL_60_ILD_1, omega_ABL_60_ILD_minus_1, omega_ABL_60_ILD_4, omega_ABL_60_ILD_minus_4, omega_ABL_60_ILD_16, omega_ABL_60_ILD_minus_16,
+            gamma_ABL_20_ILD_1, gamma_ABL_20_ILD_minus_1, gamma_ABL_20_ILD_2, gamma_ABL_20_ILD_minus_2, gamma_ABL_20_ILD_4, gamma_ABL_20_ILD_minus_4, gamma_ABL_20_ILD_8, gamma_ABL_20_ILD_minus_8, gamma_ABL_20_ILD_16, gamma_ABL_20_ILD_minus_16,
+            gamma_ABL_60_ILD_1, gamma_ABL_60_ILD_minus_1, gamma_ABL_60_ILD_2, gamma_ABL_60_ILD_minus_2, gamma_ABL_60_ILD_4, gamma_ABL_60_ILD_minus_4, gamma_ABL_60_ILD_8, gamma_ABL_60_ILD_minus_8, gamma_ABL_60_ILD_16, gamma_ABL_60_ILD_minus_16,
+            omega_ABL_20_ILD_1, omega_ABL_20_ILD_minus_1, omega_ABL_20_ILD_2, omega_ABL_20_ILD_minus_2, omega_ABL_20_ILD_4, omega_ABL_20_ILD_minus_4, omega_ABL_20_ILD_8, omega_ABL_20_ILD_minus_8, omega_ABL_20_ILD_16, omega_ABL_20_ILD_minus_16,
+            omega_ABL_60_ILD_1, omega_ABL_60_ILD_minus_1, omega_ABL_60_ILD_2, omega_ABL_60_ILD_minus_2, omega_ABL_60_ILD_4, omega_ABL_60_ILD_minus_4, omega_ABL_60_ILD_8, omega_ABL_60_ILD_minus_8, omega_ABL_60_ILD_16, omega_ABL_60_ILD_minus_16,
             t_E_aff, w_20, w_60, del_go
         ) for _, row in df_led_off_valid_trials_cond_filtered.iterrows())
 
@@ -253,57 +276,106 @@ for animal_id in [103]:
     # gamma bounds
 
     # For explicitness, also assign to local variables (for later use)
-    gamma_ABL_20_ILD_1_bounds = [0.001, 5]
-    gamma_ABL_20_ILD_minus_1_bounds = [-5, -0.001]
-    gamma_ABL_20_ILD_4_bounds = [0.001, 5]
-    gamma_ABL_20_ILD_minus_4_bounds = [-5, -0.001]
-    gamma_ABL_20_ILD_16_bounds = [0.001, 5]
-    gamma_ABL_20_ILD_minus_16_bounds = [-5, -0.001]
-    gamma_ABL_60_ILD_1_bounds = [0.001, 5]
-    gamma_ABL_60_ILD_minus_1_bounds = [-5, -0.001]
-    gamma_ABL_60_ILD_4_bounds = [0.001, 5]
-    gamma_ABL_60_ILD_minus_4_bounds = [-5, -0.001]
-    gamma_ABL_60_ILD_16_bounds = [0.001, 5]
-    gamma_ABL_60_ILD_minus_16_bounds = [-5, -0.001]
+    all_gamma_pos_ILD_bounds = [-1, 3]
+    all_gamma_neg_ILD_bounds = [-3, 1]
 
-    gamma_ABL_20_ILD_1_plausible_bounds = [0.01, 3]
-    gamma_ABL_20_ILD_minus_1_plausible_bounds = [-3, -0.01]
-    gamma_ABL_20_ILD_4_plausible_bounds = [0.01, 3]
-    gamma_ABL_20_ILD_minus_4_plausible_bounds = [-3, -0.01]
-    gamma_ABL_20_ILD_16_plausible_bounds = [0.01, 3]
-    gamma_ABL_20_ILD_minus_16_plausible_bounds = [-3, -0.01]
-    gamma_ABL_60_ILD_1_plausible_bounds = [0.01, 3]
-    gamma_ABL_60_ILD_minus_1_plausible_bounds = [-3, -0.01]
-    gamma_ABL_60_ILD_4_plausible_bounds = [0.01, 3]
-    gamma_ABL_60_ILD_minus_4_plausible_bounds = [-3, -0.01]
-    gamma_ABL_60_ILD_16_plausible_bounds = [0.01, 3]
-    gamma_ABL_60_ILD_minus_16_plausible_bounds = [-3, -0.01]
 
-    omega_ABL_20_ILD_1_bounds = [0.05, 50]
-    omega_ABL_20_ILD_minus_1_bounds = [0.05, 50]
-    omega_ABL_20_ILD_4_bounds = [0.05, 50]
-    omega_ABL_20_ILD_minus_4_bounds = [0.05, 50]
-    omega_ABL_20_ILD_16_bounds = [0.05, 50]
-    omega_ABL_20_ILD_minus_16_bounds = [0.05, 50]
-    omega_ABL_60_ILD_1_bounds = [0.05, 50]
-    omega_ABL_60_ILD_minus_1_bounds = [0.05, 50]
-    omega_ABL_60_ILD_4_bounds = [0.05, 50]
-    omega_ABL_60_ILD_minus_4_bounds = [0.05, 50]
-    omega_ABL_60_ILD_16_bounds = [0.05, 50]
-    omega_ABL_60_ILD_minus_16_bounds = [0.05, 50]
 
-    omega_ABL_20_ILD_1_plausible_bounds = [0.5, 10]
-    omega_ABL_20_ILD_minus_1_plausible_bounds = [0.5, 10]
-    omega_ABL_20_ILD_4_plausible_bounds = [0.5, 10]
-    omega_ABL_20_ILD_minus_4_plausible_bounds = [0.5, 10]
-    omega_ABL_20_ILD_16_plausible_bounds = [0.5, 10]
-    omega_ABL_20_ILD_minus_16_plausible_bounds = [0.5, 10]
-    omega_ABL_60_ILD_1_plausible_bounds = [0.5, 10]
-    omega_ABL_60_ILD_minus_1_plausible_bounds = [0.5, 10]
-    omega_ABL_60_ILD_4_plausible_bounds = [0.5, 10]
-    omega_ABL_60_ILD_minus_4_plausible_bounds = [0.5, 10]
-    omega_ABL_60_ILD_16_plausible_bounds = [0.5, 10]
-    omega_ABL_60_ILD_minus_16_plausible_bounds = [0.5, 10]
+    gamma_ABL_20_ILD_1_bounds = all_gamma_pos_ILD_bounds
+    gamma_ABL_20_ILD_minus_1_bounds = all_gamma_neg_ILD_bounds
+    gamma_ABL_20_ILD_2_bounds = all_gamma_pos_ILD_bounds
+    gamma_ABL_20_ILD_minus_2_bounds = all_gamma_neg_ILD_bounds
+    gamma_ABL_20_ILD_4_bounds = all_gamma_pos_ILD_bounds
+    gamma_ABL_20_ILD_minus_4_bounds = all_gamma_neg_ILD_bounds
+    gamma_ABL_20_ILD_8_bounds = all_gamma_pos_ILD_bounds
+    gamma_ABL_20_ILD_minus_8_bounds = all_gamma_neg_ILD_bounds
+    gamma_ABL_20_ILD_16_bounds = all_gamma_pos_ILD_bounds
+    gamma_ABL_20_ILD_minus_16_bounds = all_gamma_neg_ILD_bounds
+
+    gamma_ABL_60_ILD_1_bounds = all_gamma_pos_ILD_bounds
+    gamma_ABL_60_ILD_minus_1_bounds = all_gamma_neg_ILD_bounds
+    gamma_ABL_60_ILD_2_bounds = all_gamma_pos_ILD_bounds
+    gamma_ABL_60_ILD_minus_2_bounds = all_gamma_neg_ILD_bounds
+    gamma_ABL_60_ILD_4_bounds = all_gamma_pos_ILD_bounds
+    gamma_ABL_60_ILD_minus_4_bounds = all_gamma_neg_ILD_bounds
+    gamma_ABL_60_ILD_8_bounds = all_gamma_pos_ILD_bounds
+    gamma_ABL_60_ILD_minus_8_bounds = all_gamma_neg_ILD_bounds
+    gamma_ABL_60_ILD_16_bounds = all_gamma_pos_ILD_bounds
+    gamma_ABL_60_ILD_minus_16_bounds = all_gamma_neg_ILD_bounds
+
+    all_gamma_pos_ILD_plausible_bounds = [0, 2.5]
+    all_gamma_neg_ILD_plausible_bounds = [-2.5, 0]
+
+    gamma_ABL_20_ILD_1_plausible_bounds = all_gamma_pos_ILD_plausible_bounds
+    gamma_ABL_20_ILD_minus_1_plausible_bounds = all_gamma_neg_ILD_plausible_bounds
+    gamma_ABL_20_ILD_2_plausible_bounds = all_gamma_pos_ILD_plausible_bounds
+    gamma_ABL_20_ILD_minus_2_plausible_bounds = all_gamma_neg_ILD_plausible_bounds
+    gamma_ABL_20_ILD_4_plausible_bounds = all_gamma_pos_ILD_plausible_bounds
+    gamma_ABL_20_ILD_minus_4_plausible_bounds = all_gamma_neg_ILD_plausible_bounds
+    gamma_ABL_20_ILD_8_plausible_bounds = all_gamma_pos_ILD_plausible_bounds
+    gamma_ABL_20_ILD_minus_8_plausible_bounds = all_gamma_neg_ILD_plausible_bounds
+    gamma_ABL_20_ILD_16_plausible_bounds = all_gamma_pos_ILD_plausible_bounds
+    gamma_ABL_20_ILD_minus_16_plausible_bounds = all_gamma_neg_ILD_plausible_bounds
+    gamma_ABL_20_ILD_2_plausible_bounds = all_gamma_pos_ILD_plausible_bounds
+    gamma_ABL_20_ILD_minus_2_plausible_bounds = all_gamma_neg_ILD_plausible_bounds
+    
+    gamma_ABL_60_ILD_1_plausible_bounds = all_gamma_pos_ILD_plausible_bounds
+    gamma_ABL_60_ILD_minus_1_plausible_bounds = all_gamma_neg_ILD_plausible_bounds
+    gamma_ABL_60_ILD_2_plausible_bounds = all_gamma_pos_ILD_plausible_bounds
+    gamma_ABL_60_ILD_minus_2_plausible_bounds = all_gamma_neg_ILD_plausible_bounds
+    gamma_ABL_60_ILD_4_plausible_bounds = all_gamma_pos_ILD_plausible_bounds
+    gamma_ABL_60_ILD_minus_4_plausible_bounds = all_gamma_neg_ILD_plausible_bounds
+    gamma_ABL_60_ILD_8_plausible_bounds = all_gamma_pos_ILD_plausible_bounds
+    gamma_ABL_60_ILD_minus_8_plausible_bounds = all_gamma_neg_ILD_plausible_bounds
+    gamma_ABL_60_ILD_16_plausible_bounds = all_gamma_pos_ILD_plausible_bounds
+    gamma_ABL_60_ILD_minus_16_plausible_bounds = all_gamma_neg_ILD_plausible_bounds
+
+    all_omega_bounds = [0.1, 15]
+    all_omega_plausible_bounds = [2, 12]
+
+    omega_ABL_20_ILD_1_bounds = all_omega_bounds
+    omega_ABL_20_ILD_minus_1_bounds = all_omega_bounds
+    omega_ABL_20_ILD_2_bounds = all_omega_bounds
+    omega_ABL_20_ILD_minus_2_bounds = all_omega_bounds
+    omega_ABL_20_ILD_4_bounds = all_omega_bounds
+    omega_ABL_20_ILD_minus_4_bounds = all_omega_bounds
+    omega_ABL_20_ILD_8_bounds = all_omega_bounds
+    omega_ABL_20_ILD_minus_8_bounds = all_omega_bounds
+    omega_ABL_20_ILD_16_bounds = all_omega_bounds
+    omega_ABL_20_ILD_minus_16_bounds = all_omega_bounds
+    
+    omega_ABL_60_ILD_1_bounds = all_omega_bounds
+    omega_ABL_60_ILD_minus_1_bounds = all_omega_bounds
+    omega_ABL_60_ILD_2_bounds = all_omega_bounds
+    omega_ABL_60_ILD_minus_2_bounds = all_omega_bounds
+    omega_ABL_60_ILD_4_bounds = all_omega_bounds
+    omega_ABL_60_ILD_minus_4_bounds = all_omega_bounds
+    omega_ABL_60_ILD_8_bounds = all_omega_bounds
+    omega_ABL_60_ILD_minus_8_bounds = all_omega_bounds
+    omega_ABL_60_ILD_16_bounds = all_omega_bounds
+    omega_ABL_60_ILD_minus_16_bounds = all_omega_bounds
+
+    omega_ABL_20_ILD_1_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_20_ILD_minus_1_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_20_ILD_2_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_20_ILD_minus_2_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_20_ILD_4_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_20_ILD_minus_4_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_20_ILD_8_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_20_ILD_minus_8_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_20_ILD_16_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_20_ILD_minus_16_plausible_bounds = all_omega_plausible_bounds
+    
+    omega_ABL_60_ILD_1_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_60_ILD_minus_1_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_60_ILD_2_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_60_ILD_minus_2_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_60_ILD_4_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_60_ILD_minus_4_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_60_ILD_8_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_60_ILD_minus_8_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_60_ILD_16_plausible_bounds = all_omega_plausible_bounds
+    omega_ABL_60_ILD_minus_16_plausible_bounds = all_omega_plausible_bounds
 
 
     t_E_aff_bounds = [0, 1]
@@ -345,10 +417,10 @@ for animal_id in [103]:
 
     def vbmc_prior_fn(params):
         (
-            gamma_ABL_20_ILD_1, gamma_ABL_20_ILD_minus_1, gamma_ABL_20_ILD_4, gamma_ABL_20_ILD_minus_4, gamma_ABL_20_ILD_16, gamma_ABL_20_ILD_minus_16,
-            gamma_ABL_60_ILD_1, gamma_ABL_60_ILD_minus_1, gamma_ABL_60_ILD_4, gamma_ABL_60_ILD_minus_4, gamma_ABL_60_ILD_16, gamma_ABL_60_ILD_minus_16,
-            omega_ABL_20_ILD_1, omega_ABL_20_ILD_minus_1, omega_ABL_20_ILD_4, omega_ABL_20_ILD_minus_4, omega_ABL_20_ILD_16, omega_ABL_20_ILD_minus_16,
-            omega_ABL_60_ILD_1, omega_ABL_60_ILD_minus_1, omega_ABL_60_ILD_4, omega_ABL_60_ILD_minus_4, omega_ABL_60_ILD_16, omega_ABL_60_ILD_minus_16,
+            gamma_ABL_20_ILD_1, gamma_ABL_20_ILD_minus_1, gamma_ABL_20_ILD_2, gamma_ABL_20_ILD_minus_2, gamma_ABL_20_ILD_4, gamma_ABL_20_ILD_minus_4, gamma_ABL_20_ILD_8, gamma_ABL_20_ILD_minus_8, gamma_ABL_20_ILD_16, gamma_ABL_20_ILD_minus_16,
+            gamma_ABL_60_ILD_1, gamma_ABL_60_ILD_minus_1, gamma_ABL_60_ILD_2, gamma_ABL_60_ILD_minus_2, gamma_ABL_60_ILD_4, gamma_ABL_60_ILD_minus_4, gamma_ABL_60_ILD_8, gamma_ABL_60_ILD_minus_8, gamma_ABL_60_ILD_16, gamma_ABL_60_ILD_minus_16,
+            omega_ABL_20_ILD_1, omega_ABL_20_ILD_minus_1, omega_ABL_20_ILD_2, omega_ABL_20_ILD_minus_2, omega_ABL_20_ILD_4, omega_ABL_20_ILD_minus_4, omega_ABL_20_ILD_8, omega_ABL_20_ILD_minus_8, omega_ABL_20_ILD_16, omega_ABL_20_ILD_minus_16, 
+            omega_ABL_60_ILD_1, omega_ABL_60_ILD_minus_1, omega_ABL_60_ILD_2, omega_ABL_60_ILD_minus_2, omega_ABL_60_ILD_4, omega_ABL_60_ILD_minus_4, omega_ABL_60_ILD_8, omega_ABL_60_ILD_minus_8, omega_ABL_60_ILD_16, omega_ABL_60_ILD_minus_16,
             t_E_aff, w_20, w_60, del_go
         ) = params
 
@@ -356,28 +428,44 @@ for animal_id in [103]:
         gamma_logpdfs = [
             trapezoidal_logpdf(gamma_ABL_20_ILD_1, gamma_ABL_20_ILD_1_bounds[0], gamma_ABL_20_ILD_1_plausible_bounds[0], gamma_ABL_20_ILD_1_plausible_bounds[1], gamma_ABL_20_ILD_1_bounds[1]),
             trapezoidal_logpdf(gamma_ABL_20_ILD_minus_1, gamma_ABL_20_ILD_minus_1_bounds[0], gamma_ABL_20_ILD_minus_1_plausible_bounds[0], gamma_ABL_20_ILD_minus_1_plausible_bounds[1], gamma_ABL_20_ILD_minus_1_bounds[1]),
+            trapezoidal_logpdf(gamma_ABL_20_ILD_2, gamma_ABL_20_ILD_2_bounds[0], gamma_ABL_20_ILD_2_plausible_bounds[0], gamma_ABL_20_ILD_2_plausible_bounds[1], gamma_ABL_20_ILD_2_bounds[1]),
+            trapezoidal_logpdf(gamma_ABL_20_ILD_minus_2, gamma_ABL_20_ILD_minus_2_bounds[0], gamma_ABL_20_ILD_minus_2_plausible_bounds[0], gamma_ABL_20_ILD_minus_2_plausible_bounds[1], gamma_ABL_20_ILD_minus_2_bounds[1]),
             trapezoidal_logpdf(gamma_ABL_20_ILD_4, gamma_ABL_20_ILD_4_bounds[0], gamma_ABL_20_ILD_4_plausible_bounds[0], gamma_ABL_20_ILD_4_plausible_bounds[1], gamma_ABL_20_ILD_4_bounds[1]),
             trapezoidal_logpdf(gamma_ABL_20_ILD_minus_4, gamma_ABL_20_ILD_minus_4_bounds[0], gamma_ABL_20_ILD_minus_4_plausible_bounds[0], gamma_ABL_20_ILD_minus_4_plausible_bounds[1], gamma_ABL_20_ILD_minus_4_bounds[1]),
+            trapezoidal_logpdf(gamma_ABL_20_ILD_8, gamma_ABL_20_ILD_8_bounds[0], gamma_ABL_20_ILD_8_plausible_bounds[0], gamma_ABL_20_ILD_8_plausible_bounds[1], gamma_ABL_20_ILD_8_bounds[1]),
+            trapezoidal_logpdf(gamma_ABL_20_ILD_minus_8, gamma_ABL_20_ILD_minus_8_bounds[0], gamma_ABL_20_ILD_minus_8_plausible_bounds[0], gamma_ABL_20_ILD_minus_8_plausible_bounds[1], gamma_ABL_20_ILD_minus_8_bounds[1]),
             trapezoidal_logpdf(gamma_ABL_20_ILD_16, gamma_ABL_20_ILD_16_bounds[0], gamma_ABL_20_ILD_16_plausible_bounds[0], gamma_ABL_20_ILD_16_plausible_bounds[1], gamma_ABL_20_ILD_16_bounds[1]),
             trapezoidal_logpdf(gamma_ABL_20_ILD_minus_16, gamma_ABL_20_ILD_minus_16_bounds[0], gamma_ABL_20_ILD_minus_16_plausible_bounds[0], gamma_ABL_20_ILD_minus_16_plausible_bounds[1], gamma_ABL_20_ILD_minus_16_bounds[1]),
             trapezoidal_logpdf(gamma_ABL_60_ILD_1, gamma_ABL_60_ILD_1_bounds[0], gamma_ABL_60_ILD_1_plausible_bounds[0], gamma_ABL_60_ILD_1_plausible_bounds[1], gamma_ABL_60_ILD_1_bounds[1]),
             trapezoidal_logpdf(gamma_ABL_60_ILD_minus_1, gamma_ABL_60_ILD_minus_1_bounds[0], gamma_ABL_60_ILD_minus_1_plausible_bounds[0], gamma_ABL_60_ILD_minus_1_plausible_bounds[1], gamma_ABL_60_ILD_minus_1_bounds[1]),
+            trapezoidal_logpdf(gamma_ABL_60_ILD_2, gamma_ABL_60_ILD_2_bounds[0], gamma_ABL_60_ILD_2_plausible_bounds[0], gamma_ABL_60_ILD_2_plausible_bounds[1], gamma_ABL_60_ILD_2_bounds[1]),
+            trapezoidal_logpdf(gamma_ABL_60_ILD_minus_2, gamma_ABL_60_ILD_minus_2_bounds[0], gamma_ABL_60_ILD_minus_2_plausible_bounds[0], gamma_ABL_60_ILD_minus_2_plausible_bounds[1], gamma_ABL_60_ILD_minus_2_bounds[1]),
             trapezoidal_logpdf(gamma_ABL_60_ILD_4, gamma_ABL_60_ILD_4_bounds[0], gamma_ABL_60_ILD_4_plausible_bounds[0], gamma_ABL_60_ILD_4_plausible_bounds[1], gamma_ABL_60_ILD_4_bounds[1]),
             trapezoidal_logpdf(gamma_ABL_60_ILD_minus_4, gamma_ABL_60_ILD_minus_4_bounds[0], gamma_ABL_60_ILD_minus_4_plausible_bounds[0], gamma_ABL_60_ILD_minus_4_plausible_bounds[1], gamma_ABL_60_ILD_minus_4_bounds[1]),
+            trapezoidal_logpdf(gamma_ABL_60_ILD_8, gamma_ABL_60_ILD_8_bounds[0], gamma_ABL_60_ILD_8_plausible_bounds[0], gamma_ABL_60_ILD_8_plausible_bounds[1], gamma_ABL_60_ILD_8_bounds[1]),
+            trapezoidal_logpdf(gamma_ABL_60_ILD_minus_8, gamma_ABL_60_ILD_minus_8_bounds[0], gamma_ABL_60_ILD_minus_8_plausible_bounds[0], gamma_ABL_60_ILD_minus_8_plausible_bounds[1], gamma_ABL_60_ILD_minus_8_bounds[1]),
             trapezoidal_logpdf(gamma_ABL_60_ILD_16, gamma_ABL_60_ILD_16_bounds[0], gamma_ABL_60_ILD_16_plausible_bounds[0], gamma_ABL_60_ILD_16_plausible_bounds[1], gamma_ABL_60_ILD_16_bounds[1]),
             trapezoidal_logpdf(gamma_ABL_60_ILD_minus_16, gamma_ABL_60_ILD_minus_16_bounds[0], gamma_ABL_60_ILD_minus_16_plausible_bounds[0], gamma_ABL_60_ILD_minus_16_plausible_bounds[1], gamma_ABL_60_ILD_minus_16_bounds[1]),
         ]
         omega_logpdfs = [
             trapezoidal_logpdf(omega_ABL_20_ILD_1, omega_ABL_20_ILD_1_bounds[0], omega_ABL_20_ILD_1_plausible_bounds[0], omega_ABL_20_ILD_1_plausible_bounds[1], omega_ABL_20_ILD_1_bounds[1]),
             trapezoidal_logpdf(omega_ABL_20_ILD_minus_1, omega_ABL_20_ILD_minus_1_bounds[0], omega_ABL_20_ILD_minus_1_plausible_bounds[0], omega_ABL_20_ILD_minus_1_plausible_bounds[1], omega_ABL_20_ILD_minus_1_bounds[1]),
+            trapezoidal_logpdf(omega_ABL_20_ILD_2, omega_ABL_20_ILD_2_bounds[0], omega_ABL_20_ILD_2_plausible_bounds[0], omega_ABL_20_ILD_2_plausible_bounds[1], omega_ABL_20_ILD_2_bounds[1]),
+            trapezoidal_logpdf(omega_ABL_20_ILD_minus_2, omega_ABL_20_ILD_minus_2_bounds[0], omega_ABL_20_ILD_minus_2_plausible_bounds[0], omega_ABL_20_ILD_minus_2_plausible_bounds[1], omega_ABL_20_ILD_minus_2_bounds[1]),
             trapezoidal_logpdf(omega_ABL_20_ILD_4, omega_ABL_20_ILD_4_bounds[0], omega_ABL_20_ILD_4_plausible_bounds[0], omega_ABL_20_ILD_4_plausible_bounds[1], omega_ABL_20_ILD_4_bounds[1]),
             trapezoidal_logpdf(omega_ABL_20_ILD_minus_4, omega_ABL_20_ILD_minus_4_bounds[0], omega_ABL_20_ILD_minus_4_plausible_bounds[0], omega_ABL_20_ILD_minus_4_plausible_bounds[1], omega_ABL_20_ILD_minus_4_bounds[1]),
+            trapezoidal_logpdf(omega_ABL_20_ILD_8, omega_ABL_20_ILD_8_bounds[0], omega_ABL_20_ILD_8_plausible_bounds[0], omega_ABL_20_ILD_8_plausible_bounds[1], omega_ABL_20_ILD_8_bounds[1]),
+            trapezoidal_logpdf(omega_ABL_20_ILD_minus_8, omega_ABL_20_ILD_minus_8_bounds[0], omega_ABL_20_ILD_minus_8_plausible_bounds[0], omega_ABL_20_ILD_minus_8_plausible_bounds[1], omega_ABL_20_ILD_minus_8_bounds[1]),
             trapezoidal_logpdf(omega_ABL_20_ILD_16, omega_ABL_20_ILD_16_bounds[0], omega_ABL_20_ILD_16_plausible_bounds[0], omega_ABL_20_ILD_16_plausible_bounds[1], omega_ABL_20_ILD_16_bounds[1]),
             trapezoidal_logpdf(omega_ABL_20_ILD_minus_16, omega_ABL_20_ILD_minus_16_bounds[0], omega_ABL_20_ILD_minus_16_plausible_bounds[0], omega_ABL_20_ILD_minus_16_plausible_bounds[1], omega_ABL_20_ILD_minus_16_bounds[1]),
             trapezoidal_logpdf(omega_ABL_60_ILD_1, omega_ABL_60_ILD_1_bounds[0], omega_ABL_60_ILD_1_plausible_bounds[0], omega_ABL_60_ILD_1_plausible_bounds[1], omega_ABL_60_ILD_1_bounds[1]),
             trapezoidal_logpdf(omega_ABL_60_ILD_minus_1, omega_ABL_60_ILD_minus_1_bounds[0], omega_ABL_60_ILD_minus_1_plausible_bounds[0], omega_ABL_60_ILD_minus_1_plausible_bounds[1], omega_ABL_60_ILD_minus_1_bounds[1]),
+            trapezoidal_logpdf(omega_ABL_60_ILD_2, omega_ABL_60_ILD_2_bounds[0], omega_ABL_60_ILD_2_plausible_bounds[0], omega_ABL_60_ILD_2_plausible_bounds[1], omega_ABL_60_ILD_2_bounds[1]),
+            trapezoidal_logpdf(omega_ABL_60_ILD_minus_2, omega_ABL_60_ILD_minus_2_bounds[0], omega_ABL_60_ILD_minus_2_plausible_bounds[0], omega_ABL_60_ILD_minus_2_plausible_bounds[1], omega_ABL_60_ILD_minus_2_bounds[1]),
             trapezoidal_logpdf(omega_ABL_60_ILD_4, omega_ABL_60_ILD_4_bounds[0], omega_ABL_60_ILD_4_plausible_bounds[0], omega_ABL_60_ILD_4_plausible_bounds[1], omega_ABL_60_ILD_4_bounds[1]),
             trapezoidal_logpdf(omega_ABL_60_ILD_minus_4, omega_ABL_60_ILD_minus_4_bounds[0], omega_ABL_60_ILD_minus_4_plausible_bounds[0], omega_ABL_60_ILD_minus_4_plausible_bounds[1], omega_ABL_60_ILD_minus_4_bounds[1]),
+            trapezoidal_logpdf(omega_ABL_60_ILD_8, omega_ABL_60_ILD_8_bounds[0], omega_ABL_60_ILD_8_plausible_bounds[0], omega_ABL_60_ILD_8_plausible_bounds[1], omega_ABL_60_ILD_8_bounds[1]),
+            trapezoidal_logpdf(omega_ABL_60_ILD_minus_8, omega_ABL_60_ILD_minus_8_bounds[0], omega_ABL_60_ILD_minus_8_plausible_bounds[0], omega_ABL_60_ILD_minus_8_plausible_bounds[1], omega_ABL_60_ILD_minus_8_bounds[1]),
             trapezoidal_logpdf(omega_ABL_60_ILD_16, omega_ABL_60_ILD_16_bounds[0], omega_ABL_60_ILD_16_plausible_bounds[0], omega_ABL_60_ILD_16_plausible_bounds[1], omega_ABL_60_ILD_16_bounds[1]),
             trapezoidal_logpdf(omega_ABL_60_ILD_minus_16, omega_ABL_60_ILD_minus_16_bounds[0], omega_ABL_60_ILD_minus_16_plausible_bounds[0], omega_ABL_60_ILD_minus_16_plausible_bounds[1], omega_ABL_60_ILD_minus_16_bounds[1]),
         ]
@@ -407,74 +495,143 @@ for animal_id in [103]:
     # plb = np.array([gamma_plausible_bounds[0], omega_plausible_bounds[0], t_E_aff_plausible_bounds[0]])
     # pub = np.array([gamma_plausible_bounds[1], omega_plausible_bounds[1], t_E_aff_plausible_bounds[1]])
     lb = np.array([
-        gamma_ABL_20_ILD_1_bounds[0], gamma_ABL_20_ILD_minus_1_bounds[0], gamma_ABL_20_ILD_4_bounds[0], gamma_ABL_20_ILD_minus_4_bounds[0], gamma_ABL_20_ILD_16_bounds[0], gamma_ABL_20_ILD_minus_16_bounds[0],
-        gamma_ABL_60_ILD_1_bounds[0], gamma_ABL_60_ILD_minus_1_bounds[0], gamma_ABL_60_ILD_4_bounds[0], gamma_ABL_60_ILD_minus_4_bounds[0], gamma_ABL_60_ILD_16_bounds[0], gamma_ABL_60_ILD_minus_16_bounds[0],
-        omega_ABL_20_ILD_1_bounds[0], omega_ABL_20_ILD_minus_1_bounds[0], omega_ABL_20_ILD_4_bounds[0], omega_ABL_20_ILD_minus_4_bounds[0], omega_ABL_20_ILD_16_bounds[0], omega_ABL_20_ILD_minus_16_bounds[0],
-        omega_ABL_60_ILD_1_bounds[0], omega_ABL_60_ILD_minus_1_bounds[0], omega_ABL_60_ILD_4_bounds[0], omega_ABL_60_ILD_minus_4_bounds[0], omega_ABL_60_ILD_16_bounds[0], omega_ABL_60_ILD_minus_16_bounds[0],
+        gamma_ABL_20_ILD_1_bounds[0], gamma_ABL_20_ILD_minus_1_bounds[0], gamma_ABL_20_ILD_2_bounds[0], gamma_ABL_20_ILD_minus_2_bounds[0], gamma_ABL_20_ILD_4_bounds[0], gamma_ABL_20_ILD_minus_4_bounds[0], gamma_ABL_20_ILD_8_bounds[0], gamma_ABL_20_ILD_minus_8_bounds[0], gamma_ABL_20_ILD_16_bounds[0], gamma_ABL_20_ILD_minus_16_bounds[0],
+        gamma_ABL_60_ILD_1_bounds[0], gamma_ABL_60_ILD_minus_1_bounds[0], gamma_ABL_60_ILD_2_bounds[0], gamma_ABL_60_ILD_minus_2_bounds[0], gamma_ABL_60_ILD_4_bounds[0], gamma_ABL_60_ILD_minus_4_bounds[0], gamma_ABL_60_ILD_8_bounds[0], gamma_ABL_60_ILD_minus_8_bounds[0], gamma_ABL_60_ILD_16_bounds[0], gamma_ABL_60_ILD_minus_16_bounds[0],
+        omega_ABL_20_ILD_1_bounds[0], omega_ABL_20_ILD_minus_1_bounds[0], omega_ABL_20_ILD_2_bounds[0], omega_ABL_20_ILD_minus_2_bounds[0], omega_ABL_20_ILD_4_bounds[0], omega_ABL_20_ILD_minus_4_bounds[0], omega_ABL_20_ILD_8_bounds[0], omega_ABL_20_ILD_minus_8_bounds[0], omega_ABL_20_ILD_16_bounds[0], omega_ABL_20_ILD_minus_16_bounds[0],
+        omega_ABL_60_ILD_1_bounds[0], omega_ABL_60_ILD_minus_1_bounds[0], omega_ABL_60_ILD_2_bounds[0], omega_ABL_60_ILD_minus_2_bounds[0], omega_ABL_60_ILD_4_bounds[0], omega_ABL_60_ILD_minus_4_bounds[0], omega_ABL_60_ILD_8_bounds[0], omega_ABL_60_ILD_minus_8_bounds[0], omega_ABL_60_ILD_16_bounds[0], omega_ABL_60_ILD_minus_16_bounds[0],
         t_E_aff_bounds[0], w_20_bounds[0], w_60_bounds[0], del_go_bounds[0]
     ])
     ub = np.array([
-        gamma_ABL_20_ILD_1_bounds[1], gamma_ABL_20_ILD_minus_1_bounds[1], gamma_ABL_20_ILD_4_bounds[1], gamma_ABL_20_ILD_minus_4_bounds[1], gamma_ABL_20_ILD_16_bounds[1], gamma_ABL_20_ILD_minus_16_bounds[1],
-        gamma_ABL_60_ILD_1_bounds[1], gamma_ABL_60_ILD_minus_1_bounds[1], gamma_ABL_60_ILD_4_bounds[1], gamma_ABL_60_ILD_minus_4_bounds[1], gamma_ABL_60_ILD_16_bounds[1], gamma_ABL_60_ILD_minus_16_bounds[1],
-        omega_ABL_20_ILD_1_bounds[1], omega_ABL_20_ILD_minus_1_bounds[1], omega_ABL_20_ILD_4_bounds[1], omega_ABL_20_ILD_minus_4_bounds[1], omega_ABL_20_ILD_16_bounds[1], omega_ABL_20_ILD_minus_16_bounds[1],
-        omega_ABL_60_ILD_1_bounds[1], omega_ABL_60_ILD_minus_1_bounds[1], omega_ABL_60_ILD_4_bounds[1], omega_ABL_60_ILD_minus_4_bounds[1], omega_ABL_60_ILD_16_bounds[1], omega_ABL_60_ILD_minus_16_bounds[1],
+        gamma_ABL_20_ILD_1_bounds[1], gamma_ABL_20_ILD_minus_1_bounds[1], gamma_ABL_20_ILD_2_bounds[1], gamma_ABL_20_ILD_minus_2_bounds[1], gamma_ABL_20_ILD_4_bounds[1], gamma_ABL_20_ILD_minus_4_bounds[1], gamma_ABL_20_ILD_8_bounds[1], gamma_ABL_20_ILD_minus_8_bounds[1], gamma_ABL_20_ILD_16_bounds[1], gamma_ABL_20_ILD_minus_16_bounds[1],
+        gamma_ABL_60_ILD_1_bounds[1], gamma_ABL_60_ILD_minus_1_bounds[1], gamma_ABL_60_ILD_2_bounds[1], gamma_ABL_60_ILD_minus_2_bounds[1], gamma_ABL_60_ILD_4_bounds[1], gamma_ABL_60_ILD_minus_4_bounds[1], gamma_ABL_60_ILD_8_bounds[1], gamma_ABL_60_ILD_minus_8_bounds[1], gamma_ABL_60_ILD_16_bounds[1], gamma_ABL_60_ILD_minus_16_bounds[1],
+        omega_ABL_20_ILD_1_bounds[1], omega_ABL_20_ILD_minus_1_bounds[1], omega_ABL_20_ILD_2_bounds[1], omega_ABL_20_ILD_minus_2_bounds[1], omega_ABL_20_ILD_4_bounds[1], omega_ABL_20_ILD_minus_4_bounds[1], omega_ABL_20_ILD_8_bounds[1], omega_ABL_20_ILD_minus_8_bounds[1], omega_ABL_20_ILD_16_bounds[1], omega_ABL_20_ILD_minus_16_bounds[1],
+        omega_ABL_60_ILD_1_bounds[1], omega_ABL_60_ILD_minus_1_bounds[1], omega_ABL_60_ILD_2_bounds[1], omega_ABL_60_ILD_minus_2_bounds[1], omega_ABL_60_ILD_4_bounds[1], omega_ABL_60_ILD_minus_4_bounds[1], omega_ABL_60_ILD_8_bounds[1], omega_ABL_60_ILD_minus_8_bounds[1], omega_ABL_60_ILD_16_bounds[1], omega_ABL_60_ILD_minus_16_bounds[1],
         t_E_aff_bounds[1], w_20_bounds[1], w_60_bounds[1], del_go_bounds[1]
     ])
         
 
     
     plb = np.array([
-        gamma_ABL_20_ILD_1_plausible_bounds[0], gamma_ABL_20_ILD_minus_1_plausible_bounds[0], gamma_ABL_20_ILD_4_plausible_bounds[0], gamma_ABL_20_ILD_minus_4_plausible_bounds[0], gamma_ABL_20_ILD_16_plausible_bounds[0], gamma_ABL_20_ILD_minus_16_plausible_bounds[0],
-        gamma_ABL_60_ILD_1_plausible_bounds[0], gamma_ABL_60_ILD_minus_1_plausible_bounds[0], gamma_ABL_60_ILD_4_plausible_bounds[0], gamma_ABL_60_ILD_minus_4_plausible_bounds[0], gamma_ABL_60_ILD_16_plausible_bounds[0], gamma_ABL_60_ILD_minus_16_plausible_bounds[0],
-        omega_ABL_20_ILD_1_plausible_bounds[0], omega_ABL_20_ILD_minus_1_plausible_bounds[0], omega_ABL_20_ILD_4_plausible_bounds[0], omega_ABL_20_ILD_minus_4_plausible_bounds[0], omega_ABL_20_ILD_16_plausible_bounds[0], omega_ABL_20_ILD_minus_16_plausible_bounds[0],
-        omega_ABL_60_ILD_1_plausible_bounds[0], omega_ABL_60_ILD_minus_1_plausible_bounds[0], omega_ABL_60_ILD_4_plausible_bounds[0], omega_ABL_60_ILD_minus_4_plausible_bounds[0], omega_ABL_60_ILD_16_plausible_bounds[0], omega_ABL_60_ILD_minus_16_plausible_bounds[0],
+        gamma_ABL_20_ILD_1_plausible_bounds[0], gamma_ABL_20_ILD_minus_1_plausible_bounds[0], gamma_ABL_20_ILD_2_plausible_bounds[0], gamma_ABL_20_ILD_minus_2_plausible_bounds[0], gamma_ABL_20_ILD_4_plausible_bounds[0], gamma_ABL_20_ILD_minus_4_plausible_bounds[0], gamma_ABL_20_ILD_8_plausible_bounds[0], gamma_ABL_20_ILD_minus_8_plausible_bounds[0], gamma_ABL_20_ILD_16_plausible_bounds[0], gamma_ABL_20_ILD_minus_16_plausible_bounds[0],
+        gamma_ABL_60_ILD_1_plausible_bounds[0], gamma_ABL_60_ILD_minus_1_plausible_bounds[0], gamma_ABL_60_ILD_2_plausible_bounds[0], gamma_ABL_60_ILD_minus_2_plausible_bounds[0], gamma_ABL_60_ILD_4_plausible_bounds[0], gamma_ABL_60_ILD_minus_4_plausible_bounds[0], gamma_ABL_60_ILD_8_plausible_bounds[0], gamma_ABL_60_ILD_minus_8_plausible_bounds[0], gamma_ABL_60_ILD_16_plausible_bounds[0], gamma_ABL_60_ILD_minus_16_plausible_bounds[0],
+        omega_ABL_20_ILD_1_plausible_bounds[0], omega_ABL_20_ILD_minus_1_plausible_bounds[0], omega_ABL_20_ILD_2_plausible_bounds[0], omega_ABL_20_ILD_minus_2_plausible_bounds[0], omega_ABL_20_ILD_4_plausible_bounds[0], omega_ABL_20_ILD_minus_4_plausible_bounds[0], omega_ABL_20_ILD_8_plausible_bounds[0], omega_ABL_20_ILD_minus_8_plausible_bounds[0], omega_ABL_20_ILD_16_plausible_bounds[0], omega_ABL_20_ILD_minus_16_plausible_bounds[0],
+        omega_ABL_60_ILD_1_plausible_bounds[0], omega_ABL_60_ILD_minus_1_plausible_bounds[0], omega_ABL_60_ILD_2_plausible_bounds[0], omega_ABL_60_ILD_minus_2_plausible_bounds[0], omega_ABL_60_ILD_4_plausible_bounds[0], omega_ABL_60_ILD_minus_4_plausible_bounds[0], omega_ABL_60_ILD_8_plausible_bounds[0], omega_ABL_60_ILD_minus_8_plausible_bounds[0], omega_ABL_60_ILD_16_plausible_bounds[0], omega_ABL_60_ILD_minus_16_plausible_bounds[0],
         t_E_aff_plausible_bounds[0], w_20_plausible_bounds[0], w_60_plausible_bounds[0], del_go_plausible_bounds[0]
     ])
 
     pub = np.array([
-        gamma_ABL_20_ILD_1_plausible_bounds[1], gamma_ABL_20_ILD_minus_1_plausible_bounds[1], gamma_ABL_20_ILD_4_plausible_bounds[1], gamma_ABL_20_ILD_minus_4_plausible_bounds[1], gamma_ABL_20_ILD_16_plausible_bounds[1], gamma_ABL_20_ILD_minus_16_plausible_bounds[1],
-        gamma_ABL_60_ILD_1_plausible_bounds[1], gamma_ABL_60_ILD_minus_1_plausible_bounds[1], gamma_ABL_60_ILD_4_plausible_bounds[1], gamma_ABL_60_ILD_minus_4_plausible_bounds[1], gamma_ABL_60_ILD_16_plausible_bounds[1], gamma_ABL_60_ILD_minus_16_plausible_bounds[1],
-        omega_ABL_20_ILD_1_plausible_bounds[1], omega_ABL_20_ILD_minus_1_plausible_bounds[1], omega_ABL_20_ILD_4_plausible_bounds[1], omega_ABL_20_ILD_minus_4_plausible_bounds[1], omega_ABL_20_ILD_16_plausible_bounds[1], omega_ABL_20_ILD_minus_16_plausible_bounds[1],
-        omega_ABL_60_ILD_1_plausible_bounds[1], omega_ABL_60_ILD_minus_1_plausible_bounds[1], omega_ABL_60_ILD_4_plausible_bounds[1], omega_ABL_60_ILD_minus_4_plausible_bounds[1], omega_ABL_60_ILD_16_plausible_bounds[1], omega_ABL_60_ILD_minus_16_plausible_bounds[1],
+        gamma_ABL_20_ILD_1_plausible_bounds[1], gamma_ABL_20_ILD_minus_1_plausible_bounds[1], gamma_ABL_20_ILD_2_plausible_bounds[1], gamma_ABL_20_ILD_minus_2_plausible_bounds[1], gamma_ABL_20_ILD_4_plausible_bounds[1], gamma_ABL_20_ILD_minus_4_plausible_bounds[1], gamma_ABL_20_ILD_8_plausible_bounds[1], gamma_ABL_20_ILD_minus_8_plausible_bounds[1], gamma_ABL_20_ILD_16_plausible_bounds[1], gamma_ABL_20_ILD_minus_16_plausible_bounds[1],
+        gamma_ABL_60_ILD_1_plausible_bounds[1], gamma_ABL_60_ILD_minus_1_plausible_bounds[1], gamma_ABL_60_ILD_2_plausible_bounds[1], gamma_ABL_60_ILD_minus_2_plausible_bounds[1], gamma_ABL_60_ILD_4_plausible_bounds[1], gamma_ABL_60_ILD_minus_4_plausible_bounds[1], gamma_ABL_60_ILD_8_plausible_bounds[1], gamma_ABL_60_ILD_minus_8_plausible_bounds[1], gamma_ABL_60_ILD_16_plausible_bounds[1], gamma_ABL_60_ILD_minus_16_plausible_bounds[1],
+        omega_ABL_20_ILD_1_plausible_bounds[1], omega_ABL_20_ILD_minus_1_plausible_bounds[1], omega_ABL_20_ILD_2_plausible_bounds[1], omega_ABL_20_ILD_minus_2_plausible_bounds[1], omega_ABL_20_ILD_4_plausible_bounds[1], omega_ABL_20_ILD_minus_4_plausible_bounds[1], omega_ABL_20_ILD_8_plausible_bounds[1], omega_ABL_20_ILD_minus_8_plausible_bounds[1], omega_ABL_20_ILD_16_plausible_bounds[1], omega_ABL_20_ILD_minus_16_plausible_bounds[1],
+        omega_ABL_60_ILD_1_plausible_bounds[1], omega_ABL_60_ILD_minus_1_plausible_bounds[1], omega_ABL_60_ILD_2_plausible_bounds[1], omega_ABL_60_ILD_minus_2_plausible_bounds[1], omega_ABL_60_ILD_4_plausible_bounds[1], omega_ABL_60_ILD_minus_4_plausible_bounds[1], omega_ABL_60_ILD_8_plausible_bounds[1], omega_ABL_60_ILD_minus_8_plausible_bounds[1], omega_ABL_60_ILD_16_plausible_bounds[1], omega_ABL_60_ILD_minus_16_plausible_bounds[1],
         t_E_aff_plausible_bounds[1], w_20_plausible_bounds[1], w_60_plausible_bounds[1], del_go_plausible_bounds[1]
     ])
 
     # Initialize with random values within plausible bounds
     np.random.seed(42)
-    gamma_ABL_20_ILD_1_0 = np.random.uniform(gamma_ABL_20_ILD_1_plausible_bounds[0], gamma_ABL_20_ILD_1_plausible_bounds[1])
-    gamma_ABL_20_ILD_minus_1_0 = np.random.uniform(gamma_ABL_20_ILD_minus_1_plausible_bounds[0], gamma_ABL_20_ILD_minus_1_plausible_bounds[1])
-    gamma_ABL_20_ILD_4_0 = np.random.uniform(gamma_ABL_20_ILD_4_plausible_bounds[0], gamma_ABL_20_ILD_4_plausible_bounds[1])
-    gamma_ABL_20_ILD_minus_4_0 = np.random.uniform(gamma_ABL_20_ILD_minus_4_plausible_bounds[0], gamma_ABL_20_ILD_minus_4_plausible_bounds[1])
-    gamma_ABL_20_ILD_16_0 = np.random.uniform(gamma_ABL_20_ILD_16_plausible_bounds[0], gamma_ABL_20_ILD_16_plausible_bounds[1])
-    gamma_ABL_20_ILD_minus_16_0 = np.random.uniform(gamma_ABL_20_ILD_minus_16_plausible_bounds[0], gamma_ABL_20_ILD_minus_16_plausible_bounds[1])
-    gamma_ABL_60_ILD_1_0 = np.random.uniform(gamma_ABL_60_ILD_1_plausible_bounds[0], gamma_ABL_60_ILD_1_plausible_bounds[1])
-    gamma_ABL_60_ILD_minus_1_0 = np.random.uniform(gamma_ABL_60_ILD_minus_1_plausible_bounds[0], gamma_ABL_60_ILD_minus_1_plausible_bounds[1])
-    gamma_ABL_60_ILD_4_0 = np.random.uniform(gamma_ABL_60_ILD_4_plausible_bounds[0], gamma_ABL_60_ILD_4_plausible_bounds[1])
-    gamma_ABL_60_ILD_minus_4_0 = np.random.uniform(gamma_ABL_60_ILD_minus_4_plausible_bounds[0], gamma_ABL_60_ILD_minus_4_plausible_bounds[1])
-    gamma_ABL_60_ILD_16_0 = np.random.uniform(gamma_ABL_60_ILD_16_plausible_bounds[0], gamma_ABL_60_ILD_16_plausible_bounds[1])
-    gamma_ABL_60_ILD_minus_16_0 = np.random.uniform(gamma_ABL_60_ILD_minus_16_plausible_bounds[0], gamma_ABL_60_ILD_minus_16_plausible_bounds[1])
-    omega_ABL_20_ILD_1_0 = np.random.uniform(omega_ABL_20_ILD_1_plausible_bounds[0], omega_ABL_20_ILD_1_plausible_bounds[1])
-    omega_ABL_20_ILD_minus_1_0 = np.random.uniform(omega_ABL_20_ILD_minus_1_plausible_bounds[0], omega_ABL_20_ILD_minus_1_plausible_bounds[1])
-    omega_ABL_20_ILD_4_0 = np.random.uniform(omega_ABL_20_ILD_4_plausible_bounds[0], omega_ABL_20_ILD_4_plausible_bounds[1])
-    omega_ABL_20_ILD_minus_4_0 = np.random.uniform(omega_ABL_20_ILD_minus_4_plausible_bounds[0], omega_ABL_20_ILD_minus_4_plausible_bounds[1])
-    omega_ABL_20_ILD_16_0 = np.random.uniform(omega_ABL_20_ILD_16_plausible_bounds[0], omega_ABL_20_ILD_16_plausible_bounds[1])
-    omega_ABL_20_ILD_minus_16_0 = np.random.uniform(omega_ABL_20_ILD_minus_16_plausible_bounds[0], omega_ABL_20_ILD_minus_16_plausible_bounds[1])
-    omega_ABL_60_ILD_1_0 = np.random.uniform(omega_ABL_60_ILD_1_plausible_bounds[0], omega_ABL_60_ILD_1_plausible_bounds[1])
-    omega_ABL_60_ILD_minus_1_0 = np.random.uniform(omega_ABL_60_ILD_minus_1_plausible_bounds[0], omega_ABL_60_ILD_minus_1_plausible_bounds[1])
-    omega_ABL_60_ILD_4_0 = np.random.uniform(omega_ABL_60_ILD_4_plausible_bounds[0], omega_ABL_60_ILD_4_plausible_bounds[1])
-    omega_ABL_60_ILD_minus_4_0 = np.random.uniform(omega_ABL_60_ILD_minus_4_plausible_bounds[0], omega_ABL_60_ILD_minus_4_plausible_bounds[1])
-    omega_ABL_60_ILD_16_0 = np.random.uniform(omega_ABL_60_ILD_16_plausible_bounds[0], omega_ABL_60_ILD_16_plausible_bounds[1])
-    omega_ABL_60_ILD_minus_16_0 = np.random.uniform(omega_ABL_60_ILD_minus_16_plausible_bounds[0], omega_ABL_60_ILD_minus_16_plausible_bounds[1])
-    t_E_aff_0 = np.random.uniform(t_E_aff_plausible_bounds[0], t_E_aff_plausible_bounds[1])
-    w_20_0 = np.random.uniform(w_20_plausible_bounds[0], w_20_plausible_bounds[1])
-    w_60_0 = np.random.uniform(w_60_plausible_bounds[0], w_60_plausible_bounds[1])
-    del_go_0 = np.random.uniform(del_go_plausible_bounds[0], del_go_plausible_bounds[1])
+    # gamma_ABL_20_ILD_1_0 = np.random.uniform(gamma_ABL_20_ILD_1_plausible_bounds[0], gamma_ABL_20_ILD_1_plausible_bounds[1])
+    # gamma_ABL_20_ILD_minus_1_0 = np.random.uniform(gamma_ABL_20_ILD_minus_1_plausible_bounds[0], gamma_ABL_20_ILD_minus_1_plausible_bounds[1])
+    # gamma_ABL_20_ILD_2_0 = np.random.uniform(gamma_ABL_20_ILD_2_plausible_bounds[0], gamma_ABL_20_ILD_2_plausible_bounds[1])
+    # gamma_ABL_20_ILD_minus_2_0 = np.random.uniform(gamma_ABL_20_ILD_minus_2_plausible_bounds[0], gamma_ABL_20_ILD_minus_2_plausible_bounds[1])
+    # gamma_ABL_20_ILD_4_0 = np.random.uniform(gamma_ABL_20_ILD_4_plausible_bounds[0], gamma_ABL_20_ILD_4_plausible_bounds[1])
+    # gamma_ABL_20_ILD_minus_4_0 = np.random.uniform(gamma_ABL_20_ILD_minus_4_plausible_bounds[0], gamma_ABL_20_ILD_minus_4_plausible_bounds[1])
+    # gamma_ABL_20_ILD_8_0 = np.random.uniform(gamma_ABL_20_ILD_8_plausible_bounds[0], gamma_ABL_20_ILD_8_plausible_bounds[1])
+    # gamma_ABL_20_ILD_minus_8_0 = np.random.uniform(gamma_ABL_20_ILD_minus_8_plausible_bounds[0], gamma_ABL_20_ILD_minus_8_plausible_bounds[1])
+    # gamma_ABL_20_ILD_16_0 = np.random.uniform(gamma_ABL_20_ILD_16_plausible_bounds[0], gamma_ABL_20_ILD_16_plausible_bounds[1])
+    # gamma_ABL_20_ILD_minus_16_0 = np.random.uniform(gamma_ABL_20_ILD_minus_16_plausible_bounds[0], gamma_ABL_20_ILD_minus_16_plausible_bounds[1])
+    
+    # gamma_ABL_60_ILD_1_0 = np.random.uniform(gamma_ABL_60_ILD_1_plausible_bounds[0], gamma_ABL_60_ILD_1_plausible_bounds[1])
+    # gamma_ABL_60_ILD_minus_1_0 = np.random.uniform(gamma_ABL_60_ILD_minus_1_plausible_bounds[0], gamma_ABL_60_ILD_minus_1_plausible_bounds[1])
+    # gamma_ABL_60_ILD_2_0 = np.random.uniform(gamma_ABL_60_ILD_2_plausible_bounds[0], gamma_ABL_60_ILD_2_plausible_bounds[1])
+    # gamma_ABL_60_ILD_minus_2_0 = np.random.uniform(gamma_ABL_60_ILD_minus_2_plausible_bounds[0], gamma_ABL_60_ILD_minus_2_plausible_bounds[1])
+    # gamma_ABL_60_ILD_4_0 = np.random.uniform(gamma_ABL_60_ILD_4_plausible_bounds[0], gamma_ABL_60_ILD_4_plausible_bounds[1])
+    # gamma_ABL_60_ILD_minus_4_0 = np.random.uniform(gamma_ABL_60_ILD_minus_4_plausible_bounds[0], gamma_ABL_60_ILD_minus_4_plausible_bounds[1])
+    # gamma_ABL_60_ILD_8_0 = np.random.uniform(gamma_ABL_60_ILD_8_plausible_bounds[0], gamma_ABL_60_ILD_8_plausible_bounds[1])
+    # gamma_ABL_60_ILD_minus_8_0 = np.random.uniform(gamma_ABL_60_ILD_minus_8_plausible_bounds[0], gamma_ABL_60_ILD_minus_8_plausible_bounds[1])
+    # gamma_ABL_60_ILD_16_0 = np.random.uniform(gamma_ABL_60_ILD_16_plausible_bounds[0], gamma_ABL_60_ILD_16_plausible_bounds[1])
+    # gamma_ABL_60_ILD_minus_16_0 = np.random.uniform(gamma_ABL_60_ILD_minus_16_plausible_bounds[0], gamma_ABL_60_ILD_minus_16_plausible_bounds[1])
+    
+    # omega_ABL_20_ILD_1_0 = np.random.uniform(omega_ABL_20_ILD_1_plausible_bounds[0], omega_ABL_20_ILD_1_plausible_bounds[1])
+    # omega_ABL_20_ILD_minus_1_0 = np.random.uniform(omega_ABL_20_ILD_minus_1_plausible_bounds[0], omega_ABL_20_ILD_minus_1_plausible_bounds[1])
+    # omega_ABL_20_ILD_2_0 = np.random.uniform(omega_ABL_20_ILD_2_plausible_bounds[0], omega_ABL_20_ILD_2_plausible_bounds[1])
+    # omega_ABL_20_ILD_minus_2_0 = np.random.uniform(omega_ABL_20_ILD_minus_2_plausible_bounds[0], omega_ABL_20_ILD_minus_2_plausible_bounds[1])
+    # omega_ABL_20_ILD_4_0 = np.random.uniform(omega_ABL_20_ILD_4_plausible_bounds[0], omega_ABL_20_ILD_4_plausible_bounds[1])
+    # omega_ABL_20_ILD_minus_4_0 = np.random.uniform(omega_ABL_20_ILD_minus_4_plausible_bounds[0], omega_ABL_20_ILD_minus_4_plausible_bounds[1])
+    # omega_ABL_20_ILD_8_0 = np.random.uniform(omega_ABL_20_ILD_8_plausible_bounds[0], omega_ABL_20_ILD_8_plausible_bounds[1])
+    # omega_ABL_20_ILD_minus_8_0 = np.random.uniform(omega_ABL_20_ILD_minus_8_plausible_bounds[0], omega_ABL_20_ILD_minus_8_plausible_bounds[1])
+    # omega_ABL_20_ILD_16_0 = np.random.uniform(omega_ABL_20_ILD_16_plausible_bounds[0], omega_ABL_20_ILD_16_plausible_bounds[1])
+    # omega_ABL_20_ILD_minus_16_0 = np.random.uniform(omega_ABL_20_ILD_minus_16_plausible_bounds[0], omega_ABL_20_ILD_minus_16_plausible_bounds[1])
+    
+    # omega_ABL_60_ILD_1_0 = np.random.uniform(omega_ABL_60_ILD_1_plausible_bounds[0], omega_ABL_60_ILD_1_plausible_bounds[1])
+    # omega_ABL_60_ILD_minus_1_0 = np.random.uniform(omega_ABL_60_ILD_minus_1_plausible_bounds[0], omega_ABL_60_ILD_minus_1_plausible_bounds[1])
+    # omega_ABL_60_ILD_2_0 = np.random.uniform(omega_ABL_60_ILD_2_plausible_bounds[0], omega_ABL_60_ILD_2_plausible_bounds[1])
+    # omega_ABL_60_ILD_minus_2_0 = np.random.uniform(omega_ABL_60_ILD_minus_2_plausible_bounds[0], omega_ABL_60_ILD_minus_2_plausible_bounds[1])
+    # omega_ABL_60_ILD_4_0 = np.random.uniform(omega_ABL_60_ILD_4_plausible_bounds[0], omega_ABL_60_ILD_4_plausible_bounds[1])
+    # omega_ABL_60_ILD_minus_4_0 = np.random.uniform(omega_ABL_60_ILD_minus_4_plausible_bounds[0], omega_ABL_60_ILD_minus_4_plausible_bounds[1])
+    # omega_ABL_60_ILD_8_0 = np.random.uniform(omega_ABL_60_ILD_8_plausible_bounds[0], omega_ABL_60_ILD_8_plausible_bounds[1])
+    # omega_ABL_60_ILD_minus_8_0 = np.random.uniform(omega_ABL_60_ILD_minus_8_plausible_bounds[0], omega_ABL_60_ILD_minus_8_plausible_bounds[1])
+    # omega_ABL_60_ILD_16_0 = np.random.uniform(omega_ABL_60_ILD_16_plausible_bounds[0], omega_ABL_60_ILD_16_plausible_bounds[1])
+    # omega_ABL_60_ILD_minus_16_0 = np.random.uniform(omega_ABL_60_ILD_minus_16_plausible_bounds[0], omega_ABL_60_ILD_minus_16_plausible_bounds[1])
+    
+    # t_E_aff_0 = np.random.uniform(t_E_aff_plausible_bounds[0], t_E_aff_plausible_bounds[1])
+    # w_20_0 = np.random.uniform(w_20_plausible_bounds[0], w_20_plausible_bounds[1])
+    # w_60_0 = np.random.uniform(w_60_plausible_bounds[0], w_60_plausible_bounds[1])
+    # del_go_0 = np.random.uniform(del_go_plausible_bounds[0], del_go_plausible_bounds[1])
 
+    gamma_ABL_20_ILD_1_0 = 0
+    gamma_ABL_20_ILD_minus_1_0 = -0.5
+    gamma_ABL_20_ILD_2_0 = 0.8
+    gamma_ABL_20_ILD_minus_2_0 = -0.8
+    gamma_ABL_20_ILD_4_0 = 1.2
+    gamma_ABL_20_ILD_minus_4_0 = -1.2
+    gamma_ABL_20_ILD_8_0 = 1.5
+    gamma_ABL_20_ILD_minus_8_0 = -1.5
+    gamma_ABL_20_ILD_16_0 = 2
+    gamma_ABL_20_ILD_minus_16_0 = -2
+    
+    gamma_ABL_60_ILD_1_0 = 0
+    gamma_ABL_60_ILD_minus_1_0 = -0.5
+    gamma_ABL_60_ILD_2_0 = 0.8
+    gamma_ABL_60_ILD_minus_2_0 = -0.8
+    gamma_ABL_60_ILD_4_0 = 1.2
+    gamma_ABL_60_ILD_minus_4_0 = -1.2
+    gamma_ABL_60_ILD_8_0 = 1.5
+    gamma_ABL_60_ILD_minus_8_0 = -1.5
+    gamma_ABL_60_ILD_16_0 = 2
+    gamma_ABL_60_ILD_minus_16_0 = -2
+    
+    omega_ABL_20_ILD_1_0 = 3.5
+    omega_ABL_20_ILD_minus_1_0 = 3.5
+    omega_ABL_20_ILD_2_0 = 3.5
+    omega_ABL_20_ILD_minus_2_0 = 3.5
+    omega_ABL_20_ILD_4_0 = 3.5
+    omega_ABL_20_ILD_minus_4_0 = 3.5
+    omega_ABL_20_ILD_8_0 = 5
+    omega_ABL_20_ILD_minus_8_0 = 5
+    omega_ABL_20_ILD_16_0 = 5
+    omega_ABL_20_ILD_minus_16_0 = 5
+    
+    omega_ABL_60_ILD_1_0 = 6
+    omega_ABL_60_ILD_minus_1_0 = 6
+    omega_ABL_60_ILD_2_0 = 6
+    omega_ABL_60_ILD_minus_2_0 = 6
+    omega_ABL_60_ILD_4_0 = 6
+    omega_ABL_60_ILD_minus_4_0 = 6
+    omega_ABL_60_ILD_8_0 = 10
+    omega_ABL_60_ILD_minus_8_0 = 10
+    omega_ABL_60_ILD_16_0 = 10
+    omega_ABL_60_ILD_minus_16_0 = 10
+    
+    t_E_aff_0 = 0.077
+    w_20_0 = 0.45
+    w_60_0 = 0.45
+    del_go_0 = 0.12
+    
     x_0 = np.array([
-        gamma_ABL_20_ILD_1_0, gamma_ABL_20_ILD_minus_1_0, gamma_ABL_20_ILD_4_0, gamma_ABL_20_ILD_minus_4_0, gamma_ABL_20_ILD_16_0, gamma_ABL_20_ILD_minus_16_0,
-        gamma_ABL_60_ILD_1_0, gamma_ABL_60_ILD_minus_1_0, gamma_ABL_60_ILD_4_0, gamma_ABL_60_ILD_minus_4_0, gamma_ABL_60_ILD_16_0, gamma_ABL_60_ILD_minus_16_0,
-        omega_ABL_20_ILD_1_0, omega_ABL_20_ILD_minus_1_0, omega_ABL_20_ILD_4_0, omega_ABL_20_ILD_minus_4_0, omega_ABL_20_ILD_16_0, omega_ABL_20_ILD_minus_16_0,
-        omega_ABL_60_ILD_1_0, omega_ABL_60_ILD_minus_1_0, omega_ABL_60_ILD_4_0, omega_ABL_60_ILD_minus_4_0, omega_ABL_60_ILD_16_0, omega_ABL_60_ILD_minus_16_0,
+        gamma_ABL_20_ILD_1_0, gamma_ABL_20_ILD_minus_1_0, gamma_ABL_20_ILD_2_0, gamma_ABL_20_ILD_minus_2_0, gamma_ABL_20_ILD_4_0, gamma_ABL_20_ILD_minus_4_0, gamma_ABL_20_ILD_8_0, gamma_ABL_20_ILD_minus_8_0, gamma_ABL_20_ILD_16_0, gamma_ABL_20_ILD_minus_16_0,
+        gamma_ABL_60_ILD_1_0, gamma_ABL_60_ILD_minus_1_0, gamma_ABL_60_ILD_2_0, gamma_ABL_60_ILD_minus_2_0, gamma_ABL_60_ILD_4_0, gamma_ABL_60_ILD_minus_4_0, gamma_ABL_60_ILD_8_0, gamma_ABL_60_ILD_minus_8_0, gamma_ABL_60_ILD_16_0, gamma_ABL_60_ILD_minus_16_0,
+        omega_ABL_20_ILD_1_0, omega_ABL_20_ILD_minus_1_0, omega_ABL_20_ILD_2_0, omega_ABL_20_ILD_minus_2_0, omega_ABL_20_ILD_4_0, omega_ABL_20_ILD_minus_4_0, omega_ABL_20_ILD_8_0, omega_ABL_20_ILD_minus_8_0, omega_ABL_20_ILD_16_0, omega_ABL_20_ILD_minus_16_0,
+        omega_ABL_60_ILD_1_0, omega_ABL_60_ILD_minus_1_0, omega_ABL_60_ILD_2_0, omega_ABL_60_ILD_minus_2_0, omega_ABL_60_ILD_4_0, omega_ABL_60_ILD_minus_4_0, omega_ABL_60_ILD_8_0, omega_ABL_60_ILD_minus_8_0, omega_ABL_60_ILD_16_0, omega_ABL_60_ILD_minus_16_0,
         t_E_aff_0, w_20_0, w_60_0, del_go_0
     ])
 
