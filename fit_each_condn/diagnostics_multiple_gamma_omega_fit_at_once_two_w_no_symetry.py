@@ -288,7 +288,6 @@ for animal_id in [103]:
                     omega = omega_ABL_60_ILD_minus_16
                 
                 w = w_60
-            gamma *= np.sign(ILD)
             if gamma is None or omega is None:
                 print(f"Skipping ABL={ABL}, ILD={ILD} (no gamma/omega)")
                 continue
@@ -470,17 +469,16 @@ for animal_id in [103]:
 
         # --- gamma plot ---
     plt.figure(figsize=(4, 3))
-    all_ILDs = sorted(set(ILD for ILD in ILDs_to_fit if ILD > 0))
+    all_ILDs = sorted(set(ILD for ILD in ILDs_to_fit))
     for ABL in ABLs_to_fit:
         gammas = []
         ILDs_plot = []
         for ILD in ILDs_to_fit:
-            if ILD > 0:
-                gamma = get_gamma(ABL, ILD)
-                if gamma is not None:
-                    gammas.append(gamma)
-                    ILDs_plot.append(ILD)
-        plt.plot(ILDs_plot, gammas, marker='o', label=f'ABL={ABL}')
+            gamma = get_gamma(ABL, ILD)
+            if gamma is not None:
+                gammas.append(gamma)
+                ILDs_plot.append(ILD)
+        plt.scatter(ILDs_plot, gammas, marker='o', label=f'ABL={ABL}')
     plt.xlabel('ILD (dB)')
     plt.ylabel('gamma')
     plt.title(f'gamma vs ILD for each ABL\nAnimal: {animal_id}, Batch: {batch_name}')
@@ -491,17 +489,16 @@ for animal_id in [103]:
 
     # --- omega plot ---
     plt.figure(figsize=(4, 3))
-    all_ILDs = sorted(set(ILD for ILD in ILDs_to_fit if ILD > 0))
+    all_ILDs = sorted(set(ILD for ILD in ILDs_to_fit))
     for ABL in ABLs_to_fit:
         omegas = []
         ILDs_plot = []
         for ILD in ILDs_to_fit:
-            if ILD > 0:
-                omega = get_omega(ABL, ILD)
-                if omega is not None:
-                    omegas.append(omega)
-                    ILDs_plot.append(ILD)
-        plt.plot(ILDs_plot, omegas, marker='o', label=f'ABL={ABL}')
+            omega = get_omega(ABL, ILD)
+            if omega is not None:
+                omegas.append(omega)
+                ILDs_plot.append(ILD)
+        plt.scatter(ILDs_plot, omegas, marker='o', label=f'ABL={ABL}')
     plt.xlabel('ILD (dB)')
     plt.ylabel('omega')
     plt.title(f'omega vs ILD for each ABL\nAnimal: {animal_id}, Batch: {batch_name}')
@@ -515,45 +512,45 @@ for animal_id in [103]:
 
 # %%
 
-import matplotlib.pyplot as plt
-import numpy as np
+# import matplotlib.pyplot as plt
+# import numpy as np
 
-all_ILDs = np.sort([1, -1, 4, -4, 16, -16])
-ABLs_to_fit = [20, 60]  # Or use your existing variable
+# all_ILDs = np.sort([1, -1, 4, -4, 16, -16])
+# ABLs_to_fit = [20, 60]  # Or use your existing variable
 
-plt.figure(figsize=(6, 4))
-ABL_color_dict = {20: 'tab:blue', 60: 'tab:orange'}
-for ABL in ABLs_to_fit:
-    all_gammas = []
-    for animal_id, animal_dict in gamma_all_animals.items():
-        gammas = [animal_dict.get((ABL, ILD), np.nan) for ILD in all_ILDs]
-        all_gammas.append(gammas)
-        plt.plot(all_ILDs, gammas, color=ABL_color_dict[ABL], alpha=0.5, linewidth=1)
-    all_gammas = np.array(all_gammas)
-    mean_gammas = np.nanmean(all_gammas, axis=0)
-    plt.plot(all_ILDs, mean_gammas, color=ABL_color_dict[ABL], marker='o', linewidth=2, label=f'ABL={ABL}')
-    plt.xlabel('ILD (dB)')
-    plt.ylabel('gamma')
-    plt.title('gamma vs ILD (all animals)')
-    plt.legend()
-    plt.tight_layout()
-plt.show()
+# plt.figure(figsize=(6, 4))
+# ABL_color_dict = {20: 'tab:blue', 60: 'tab:orange'}
+# for ABL in ABLs_to_fit:
+#     all_gammas = []
+#     for animal_id, animal_dict in gamma_all_animals.items():
+#         gammas = [animal_dict.get((ABL, ILD), np.nan) for ILD in all_ILDs]
+#         all_gammas.append(gammas)
+#         plt.plot(all_ILDs, gammas, color=ABL_color_dict[ABL], alpha=0.5, linewidth=1)
+#     all_gammas = np.array(all_gammas)
+#     mean_gammas = np.nanmean(all_gammas, axis=0)
+#     plt.plot(all_ILDs, mean_gammas, color=ABL_color_dict[ABL], marker='o', linewidth=2, label=f'ABL={ABL}')
+#     plt.xlabel('ILD (dB)')
+#     plt.ylabel('gamma')
+#     plt.title('gamma vs ILD (all animals)')
+#     plt.legend()
+#     plt.tight_layout()
+# plt.show()
 
-# %%
-plt.figure(figsize=(6, 4))
-ABL_color_dict = {20: 'tab:blue', 60: 'tab:orange'}
-for ABL in ABLs_to_fit:
-    all_omegas = []
-    for animal_id, animal_dict in omega_all_animals.items():
-        omegas = [animal_dict.get((ABL, ILD), np.nan) for ILD in all_ILDs]
-        all_omegas.append(omegas)
-        plt.plot(all_ILDs, omegas, color=ABL_color_dict[ABL], alpha=0.5, linewidth=1)
-    all_omegas = np.array(all_omegas)
-    mean_omegas = np.nanmean(all_omegas, axis=0)
-    plt.plot(all_ILDs, mean_omegas, color=ABL_color_dict[ABL], marker='o', linewidth=2, label=f'ABL={ABL}')
-    plt.xlabel('ILD (dB)')
-    plt.ylabel('omega')
-    plt.title('omega vs ILD (all animals)')
-    plt.legend()
-    plt.tight_layout()
-plt.show()
+# # %%
+# plt.figure(figsize=(6, 4))
+# ABL_color_dict = {20: 'tab:blue', 60: 'tab:orange'}
+# for ABL in ABLs_to_fit:
+#     all_omegas = []
+#     for animal_id, animal_dict in omega_all_animals.items():
+#         omegas = [animal_dict.get((ABL, ILD), np.nan) for ILD in all_ILDs]
+#         all_omegas.append(omegas)
+#         plt.plot(all_ILDs, omegas, color=ABL_color_dict[ABL], alpha=0.5, linewidth=1)
+#     all_omegas = np.array(all_omegas)
+#     mean_omegas = np.nanmean(all_omegas, axis=0)
+#     plt.plot(all_ILDs, mean_omegas, color=ABL_color_dict[ABL], marker='o', linewidth=2, label=f'ABL={ABL}')
+#     plt.xlabel('ILD (dB)')
+#     plt.ylabel('omega')
+#     plt.title('omega vs ILD (all animals)')
+#     plt.legend()
+#     plt.tight_layout()
+# plt.show()

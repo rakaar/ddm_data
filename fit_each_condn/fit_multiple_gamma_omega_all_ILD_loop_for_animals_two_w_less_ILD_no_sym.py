@@ -174,6 +174,7 @@ for animal_id in [103]:
                 omega = omega_ABL_20_ILD_minus_16
             
             w = w_20
+            
         elif ABL == 60:
             if ILD == 1:
                 gamma = gamma_ABL_60_ILD_1
