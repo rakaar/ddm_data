@@ -514,6 +514,7 @@ for animal_id in [103]:
                 return gamma_ABL_60_ILD_8
             elif ILD == -8:
                 return gamma_ABL_60_ILD_minus_8
+            elif ILD == 16:
                 return gamma_ABL_60_ILD_16
             elif ILD == -16:
                 return gamma_ABL_60_ILD_minus_16
@@ -533,6 +534,10 @@ for animal_id in [103]:
                 return omega_ABL_20_ILD_4
             elif ILD == -4:
                 return omega_ABL_20_ILD_minus_4
+            elif ILD == 8:
+                return omega_ABL_20_ILD_8
+            elif ILD == -8:
+                return omega_ABL_20_ILD_minus_8
             elif ILD == 16:
                 return omega_ABL_20_ILD_16
             elif ILD == -16:
@@ -603,3 +608,52 @@ for animal_id in [103]:
 
     pdf.close()
 
+
+# %%
+plt.figure(figsize=(4, 3))
+all_ILDs = sorted(set(ILD for ILD in ILDs_to_fit))
+for ABL in ABLs_to_fit:
+    gammas = []
+    ILDs_plot = []
+    for ILD in ILDs_to_fit:
+        gamma = get_gamma(ABL, ILD)
+        if gamma is not None:
+            gammas.append(gamma)
+            ILDs_plot.append(ILD)
+    plt.scatter(ILDs_plot, gammas, marker='o', label=f'ABL={ABL}')
+plt.xlabel('ILD (dB)')
+plt.ylabel('gamma')
+plt.title(f'gamma vs ILD for each ABL\nAnimal: {animal_id}, Batch: {batch_name}')
+# save fig 12 hr fit gamma vs ILD batch_name, animal ild 124816
+plt.savefig(f'gamma_vs_ILD_{animal_id}_{batch_name}_12_hr_ILD_124816.png', dpi=300, bbox_inches='tight')
+plt.xticks(all_ILDs)
+plt.tight_layout()
+plt.show()
+
+# %%
+# --- omega plot ---
+plt.figure(figsize=(4, 3))
+all_ILDs = sorted(set(ILD for ILD in ILDs_to_fit))
+for ABL in ABLs_to_fit:
+    omegas = []
+    ILDs_plot = []
+    for ILD in ILDs_to_fit:
+        omega = get_omega(ABL, ILD)
+        if ABL == 20 and abs(ILD) == 8:
+            print(omega)
+        if omega is not None:
+            omegas.append(omega)
+            ILDs_plot.append(ILD)
+    if ABL == 20:
+        print(ILDs_plot)
+        print(omegas)
+    plt.scatter(ILDs_plot, omegas, marker='o', label=f'ABL={ABL}')
+plt.xlabel('ILD (dB)')
+plt.ylabel('omega')
+plt.title(f'omega vs ILD for each ABL\nAnimal: {animal_id}, Batch: {batch_name}')
+# save fig 12 hr fit omega vs ILD batch_name, animal ild 124816
+plt.savefig(f'omega_vs_ILD_{animal_id}_{batch_name}_12_hr_ILD_124816.png', dpi=300, bbox_inches='tight')
+plt.xticks(all_ILDs)
+plt.tight_layout()
+plt.show()
+# %%
