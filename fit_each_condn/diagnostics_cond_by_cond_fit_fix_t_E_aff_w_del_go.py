@@ -427,3 +427,156 @@ plt.title('omega vs ILD for each ABL with fit')
 # plt.legend()
 plt.tight_layout()
 plt.show()
+# %%
+### Adding bias to gamma and omega  ####
+from scipy.optimize import curve_fit
+
+def gamma_parametric(ILD, a, b, c):
+    return a * np.tanh(b * (ILD - c))
+
+n_ABLs = gamma_vs_ILD_for_each_ABL.shape[0]
+fit_params = []
+plt.figure(figsize=(8, 5))
+colors = ['b', 'g', 'r']
+for i_ABL in range(n_ABLs):
+    gamma_data = gamma_vs_ILD_for_each_ABL[i_ABL]
+    ILDs_arr = np.array(ILDs_to_fit)
+    # Initial guess: a=max(abs(gamma)), b=0.1, c=0
+    p0 = [np.max(np.abs(gamma_data)), 0.1, 0.0]
+    try:
+        popt, pcov = curve_fit(gamma_parametric, ILDs_arr, gamma_data, p0=p0)
+    except RuntimeError:
+        popt = [np.nan, np.nan, np.nan]
+    fit_params.append(popt)
+    a_fit, b_fit, c_fit = popt
+    ILDs_fine = np.linspace(min(ILDs_to_fit), max(ILDs_to_fit), 200)
+    plt.scatter(ILDs_to_fit, gamma_data, color=colors[i_ABL%3], label=f'ABL={ABLs_to_fit[i_ABL]} data')
+    plt.plot(ILDs_fine, gamma_parametric(ILDs_fine, *popt), color=colors[i_ABL%3], linestyle='--',
+             label=f'ABL={ABLs_to_fit[i_ABL]} fit: a={a_fit:.2f}, b={b_fit:.2f}, c={c_fit:.2f}')
+plt.xlabel('ILD (dB)')
+plt.ylabel('gamma')
+plt.title(r'gamma = $a \, \tanh(b (ILD-c))$')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+for i_ABL, params in enumerate(fit_params):
+    print(f'ABL={ABLs_to_fit[i_ABL]}: a={params[0]:.4f}, b={params[1]:.4f}, c={params[2]:.4f}')
+
+# %%
+# Fit omega = a * (cosh(m1 * (ILD - c)) / cosh(m2 * (ILD - c))) for each ABL
+from scipy.optimize import curve_fit
+
+def omega_parametric(ILD, a, m1, m2, c):
+    return a * (np.cosh(m1 * (ILD - c)) / np.cosh(m2 * (ILD - c)))
+
+n_ABLs = omega_vs_ILD_for_each_ABL.shape[0]
+omega_fit_params = []
+plt.figure(figsize=(8, 5))
+colors = ['b', 'g', 'r']
+for i_ABL in range(n_ABLs):
+    omega_data = omega_vs_ILD_for_each_ABL[i_ABL]
+    ILDs_arr = np.array(ILDs_to_fit)
+    # Initial guess: a=max(omega), m1=0.1, m2=0.05, c=0
+    p0 = [np.max(omega_data), 0.1, 0.05, 0.0]
+    try:
+        popt, pcov = curve_fit(omega_parametric, ILDs_arr, omega_data, p0=p0, maxfev=5000)
+    except RuntimeError:
+        popt = [np.nan, np.nan, np.nan, np.nan]
+    omega_fit_params.append(popt)
+    a_fit, m1_fit, m2_fit, c_fit = popt
+    ILDs_fine = np.linspace(min(ILDs_to_fit), max(ILDs_to_fit), 200)
+    plt.scatter(ILDs_to_fit, omega_data, color=colors[i_ABL%3], label=f'ABL={ABLs_to_fit[i_ABL]} data')
+    plt.plot(ILDs_fine, omega_parametric(ILDs_fine, *popt), color=colors[i_ABL%3], linestyle='--',
+             label=f'ABL={ABLs_to_fit[i_ABL]} fit: a={a_fit:.2f}, m1={m1_fit:.2f}, m2={m2_fit:.2f}, c={c_fit:.2f}')
+plt.xlabel('ILD (dB)')
+plt.ylabel('omega')
+plt.title(r'omega = $a \, \frac{\cosh(m_1 (ILD-c))}{\cosh(m_2 (ILD-c))}$')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+for i_ABL, params in enumerate(omega_fit_params):
+    print(f'ABL={ABLs_to_fit[i_ABL]}: a={params[0]:.4f}, m1={params[1]:.4f}, m2={params[2]:.4f}, c={params[3]:.4f}')
+
+print("\nm2/m1 for each ABL:")
+for i_ABL, params in enumerate(omega_fit_params):
+    m1 = params[1]
+    m2 = params[2]
+    ratio = m2 / m1 if m1 != 0 else float('nan')
+    print(f'ABL={ABLs_to_fit[i_ABL]}: m2/m1 = {ratio:.4f}')
+
+# %%
+plt.plot(ABLs_to_fit,np.log ([params[0] for params in omega_fit_params]), 'o-')
+plt.xlabel('ABL')
+plt.ylabel('log(a)')
+plt.title('log(a) vs ABL')
+plt.show()
+
+# %%
+# Fit omega with m1 and m2 shared across ABLs (global), a and c per ABL
+from scipy.optimize import curve_fit
+
+def omega_parametric_shared(ILD, *params):
+    # params: [a0, c0, a1, c1, a2, c2, m1, m2]
+    a0, c0, a1, c1, a2, c2, m1, m2 = params
+    out = np.zeros_like(ILD)
+    # Assign per-ABL
+    for i, (a, c) in enumerate([(a0, c0), (a1, c1), (a2, c2)]):
+        mask = (ABL_inds == i)
+        out[mask] = a * (np.cosh(m1 * (ILD[mask] - c)) / np.cosh(m2 * (ILD[mask] - c)))
+    return out
+
+# Prepare data
+ILDs_all = np.array(ILDs_to_fit * n_ABLs)
+omega_all = omega_vs_ILD_for_each_ABL.flatten()
+ABL_inds = np.repeat(np.arange(n_ABLs), len(ILDs_to_fit))
+
+# Initial guess: a=per ABL max, c=0, m1=mean m1, m2=mean m2
+init_abc = []
+for i_ABL in range(n_ABLs):
+    omega_data = omega_vs_ILD_for_each_ABL[i_ABL]
+    init_abc.extend([np.max(omega_data), 0.0])
+# Use previous fits if available
+if len(omega_fit_params) == n_ABLs:
+    m1_init = np.mean([params[1] for params in omega_fit_params])
+    m2_init = np.mean([params[2] for params in omega_fit_params])
+else:
+    m1_init, m2_init = 0.1, 0.05
+p0 = init_abc + [m1_init, m2_init]
+
+try:
+    popt_shared, pcov_shared = curve_fit(
+        omega_parametric_shared,
+        ILDs_all, omega_all, p0=p0, maxfev=10000)
+except RuntimeError:
+    popt_shared = [np.nan]*8
+
+# Plot fits for each ABL
+plt.figure(figsize=(8, 5))
+colors = ['b', 'g', 'r']
+for i_ABL in range(n_ABLs):
+    omega_data = omega_vs_ILD_for_each_ABL[i_ABL]
+    ILDs_arr = np.array(ILDs_to_fit)
+    a_fit, c_fit = popt_shared[2*i_ABL], popt_shared[2*i_ABL+1]
+    m1_fit, m2_fit = popt_shared[-2], popt_shared[-1]
+    ILDs_fine = np.linspace(min(ILDs_to_fit), max(ILDs_to_fit), 200)
+    plt.scatter(ILDs_to_fit, omega_data, color=colors[i_ABL%3], label=f'ABL={ABLs_to_fit[i_ABL]} data')
+    plt.plot(ILDs_fine, a_fit * (np.cosh(m1_fit*(ILDs_fine-c_fit))/np.cosh(m2_fit*(ILDs_fine-c_fit))),
+             color=colors[i_ABL%3], linestyle='--',
+             label=f'ABL={ABLs_to_fit[i_ABL]} fit: a={a_fit:.2f}, c={c_fit:.2f}')
+plt.xlabel('ILD (dB)')
+plt.ylabel('omega')
+plt.title(r'omega = $a \, \frac{\cosh(m_1 (ILD-c))}{\cosh(m_2 (ILD-c))}$ (shared $m_1, m_2$)\n' +
+          f'Shared: $m_1$={m1_fit:.3f}, $m_2$={m2_fit:.3f}, $m_2/m_1$={m2_fit/m1_fit:.3f}')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Print parameters
+for i_ABL in range(n_ABLs):
+    print(f'ABL={ABLs_to_fit[i_ABL]}: a={popt_shared[2*i_ABL]:.4f}, c={popt_shared[2*i_ABL+1]:.4f}')
+print(f'Shared: m1={popt_shared[-2]:.4f}, m2={popt_shared[-1]:.4f}, m2/m1={popt_shared[-1]/popt_shared[-2]:.4f}')
+
+
+# %%
