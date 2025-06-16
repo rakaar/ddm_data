@@ -203,6 +203,9 @@ def CDF_E_minus_small_t_NORM_omega_gamma_with_w_fn(t, gamma, omega, bound, w, K_
         
         summation += ((-1)**k) * term1 * term2
 
+    if np.isnan(summation) or np.isnan(result):
+        raise ValueError(f"summation or result is nan or inf for t={t}, gamma={gamma}, omega={omega}, bound={bound}, summation={summation}, result={result}, w={w}, K_max={K_max}")
+
     return (result*summation)
 
 ###########################################

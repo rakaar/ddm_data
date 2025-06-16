@@ -580,3 +580,62 @@ print(f'Shared: m1={popt_shared[-2]:.4f}, m2={popt_shared[-1]:.4f}, m2/m1={popt_
 
 
 # %%
+# Fit omega with m2 = m1 * l (l to be fit), m1 and l shared, a and c per ABL
+from scipy.optimize import curve_fit
+
+def omega_parametric_m2_l(ILD, *params):
+    # params: [a0, c0, a1, c1, a2, c2, m1, l]
+    a0, c0, a1, c1, a2, c2, m1, l = params
+    m2 = m1 * l
+    out = np.zeros_like(ILD)
+    for i, (a, c) in enumerate([(a0, c0), (a1, c1), (a2, c2)]):
+        mask = (ABL_inds == i)
+        out[mask] = a * (np.cosh(m1 * (ILD[mask] - c)) / np.cosh(m2 * (ILD[mask] - c)))
+    return out
+
+# Initial guess: a=per ABL max, c=0, m1=mean m1, l=mean m2/m1
+init_abc = []
+for i_ABL in range(n_ABLs):
+    omega_data = omega_vs_ILD_for_each_ABL[i_ABL]
+    init_abc.extend([np.max(omega_data), 0.0])
+if len(omega_fit_params) == n_ABLs:
+    m1_init = np.mean([params[1] for params in omega_fit_params])
+    l_init = np.mean([params[2]/params[1] for params in omega_fit_params if params[1] != 0])
+else:
+    m1_init, l_init = 0.1, 0.5
+p0 = init_abc + [m1_init, l_init]
+
+try:
+    popt_l, pcov_l = curve_fit(
+        omega_parametric_m2_l,
+        ILDs_all, omega_all, p0=p0, maxfev=10000)
+except RuntimeError:
+    popt_l = [np.nan]*8
+
+# Plot fits for each ABL
+plt.figure(figsize=(8, 5))
+colors = ['b', 'g', 'r']
+m1_fit, l_fit = popt_l[-2], popt_l[-1]
+m2_fit = m1_fit * l_fit
+for i_ABL in range(n_ABLs):
+    omega_data = omega_vs_ILD_for_each_ABL[i_ABL]
+    ILDs_arr = np.array(ILDs_to_fit)
+    a_fit, c_fit = popt_l[2*i_ABL], popt_l[2*i_ABL+1]
+    ILDs_fine = np.linspace(min(ILDs_to_fit), max(ILDs_to_fit), 200)
+    plt.scatter(ILDs_to_fit, omega_data, color=colors[i_ABL%3], label=f'ABL={ABLs_to_fit[i_ABL]} data')
+    plt.plot(ILDs_fine, a_fit * (np.cosh(m1_fit*(ILDs_fine-c_fit))/np.cosh(m2_fit*(ILDs_fine-c_fit))),
+             color=colors[i_ABL%3], linestyle='--',
+             label=f'ABL={ABLs_to_fit[i_ABL]} fit: a={a_fit:.2f}, c={c_fit:.2f}')
+plt.xlabel('ILD (dB)')
+plt.ylabel('omega')
+plt.title(r'omega = $a \, \frac{\cosh(m_1 (ILD-c))}{\cosh(m_1 l (ILD-c))}$ (shared $m_1, l$)\n' +
+          f'Shared: $m_1$={m1_fit:.3f}, $l$={l_fit:.3f}, $m_2/m_1$={l_fit:.3f}')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Print parameters
+for i_ABL in range(n_ABLs):
+    print(f'ABL={ABLs_to_fit[i_ABL]}: a={popt_l[2*i_ABL]:.4f}, c={popt_l[2*i_ABL+1]:.4f}')
+print(f'Shared: m1={m1_fit:.4f}, l={l_fit:.4f}, m2={m2_fit:.4f}, m2/m1={l_fit:.4f}')
+
