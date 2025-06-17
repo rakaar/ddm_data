@@ -460,15 +460,28 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
+# Save gamma fit parameters for each ABL in a dictionary and pickle file
+params_dict = {}
 for i_ABL, params in enumerate(fit_params):
-    print(f'ABL={ABLs_to_fit[i_ABL]}: a={params[0]:.4f}, b={params[1]:.4f}, c={params[2]:.4f}')
+    ABL = ABLs_to_fit[i_ABL]
+    params_dict[f'gamma_tanh_scale_{ABL}'] = params[0]
+    params_dict[f'gamma_ILD_scale_{ABL}'] = params[1]
+    params_dict[f'gamma_ILD_offset_{ABL}'] = params[2]
+    print(f'ABL={ABL}: a={params[0]:.4f}, b={params[1]:.4f}, c={params[2]:.4f}')
+# Save to pickle file
+with open('gamma_parametric_params_LED7_103_on_cond_by_cond_fit.pkl', 'wb') as f:
+    pickle.dump(params_dict, f)
+print('Gamma fit parameters saved to gamma_parametric_params_LED7_103_on_cond_by_cond_fit.pkl')
 
 # %%
 # Fit omega = a * (cosh(m1 * (ILD - c)) / cosh(m2 * (ILD - c))) for each ABL
 from scipy.optimize import curve_fit
 
-def omega_parametric(ILD, a, m1, m2, c):
-    return a * (np.cosh(m1 * (ILD - c)) / np.cosh(m2 * (ILD - c)))
+# Fit omega = a * (cosh(m1 * (ILD - c)) / cosh(m1 * l * (ILD - c))) for each ABL, i.e., m2 = m1 * l
+from scipy.optimize import curve_fit
+
+def omega_parametric_m2_l(ILD, a, m1, l, c):
+    return a * (np.cosh(m1 * (ILD - c)) / np.cosh(m1 * l * (ILD - c)))
 
 n_ABLs = omega_vs_ILD_for_each_ABL.shape[0]
 omega_fit_params = []
@@ -477,34 +490,45 @@ colors = ['b', 'g', 'r']
 for i_ABL in range(n_ABLs):
     omega_data = omega_vs_ILD_for_each_ABL[i_ABL]
     ILDs_arr = np.array(ILDs_to_fit)
-    # Initial guess: a=max(omega), m1=0.1, m2=0.05, c=0
-    p0 = [np.max(omega_data), 0.1, 0.05, 0.0]
+    # Initial guess: a=max(omega), m1=0.1, l=0.5, c=0
+    p0 = [np.max(omega_data), 0.1, 0.5, 0.0]
     try:
-        popt, pcov = curve_fit(omega_parametric, ILDs_arr, omega_data, p0=p0, maxfev=5000)
+        popt, pcov = curve_fit(omega_parametric_m2_l, ILDs_arr, omega_data, p0=p0, maxfev=5000)
     except RuntimeError:
         popt = [np.nan, np.nan, np.nan, np.nan]
     omega_fit_params.append(popt)
-    a_fit, m1_fit, m2_fit, c_fit = popt
+    a_fit, m1_fit, l_fit, c_fit = popt
     ILDs_fine = np.linspace(min(ILDs_to_fit), max(ILDs_to_fit), 200)
     plt.scatter(ILDs_to_fit, omega_data, color=colors[i_ABL%3], label=f'ABL={ABLs_to_fit[i_ABL]} data')
-    plt.plot(ILDs_fine, omega_parametric(ILDs_fine, *popt), color=colors[i_ABL%3], linestyle='--',
-             label=f'ABL={ABLs_to_fit[i_ABL]} fit: a={a_fit:.2f}, m1={m1_fit:.2f}, m2={m2_fit:.2f}, c={c_fit:.2f}')
+    plt.plot(ILDs_fine, omega_parametric_m2_l(ILDs_fine, *popt), color=colors[i_ABL%3], linestyle='--',
+             label=f'ABL={ABLs_to_fit[i_ABL]} fit: a={a_fit:.2f}, m1={m1_fit:.2f}, l={l_fit:.2f}, c={c_fit:.2f}')
 plt.xlabel('ILD (dB)')
 plt.ylabel('omega')
-plt.title(r'omega = $a \, \frac{\cosh(m_1 (ILD-c))}{\cosh(m_2 (ILD-c))}$')
+plt.title(r'omega = $a \, \frac{\cosh(m_1 (ILD-c))}{\cosh(m_1 l (ILD-c))}$')
 plt.legend()
 plt.tight_layout()
 plt.show()
 
+# Save omega fit parameters for each ABL in a dictionary and pickle file
+omega_params_dict = {}
 for i_ABL, params in enumerate(omega_fit_params):
-    print(f'ABL={ABLs_to_fit[i_ABL]}: a={params[0]:.4f}, m1={params[1]:.4f}, m2={params[2]:.4f}, c={params[3]:.4f}')
+    a, m1, l, c = params
+    ABL = ABLs_to_fit[i_ABL]
+    omega_params_dict[f'omega_ratio_scale_{ABL}'] = a
+    omega_params_dict[f'omega_ild_scale_{ABL}'] = m1
+    omega_params_dict[f'omega_norm_factor_{ABL}'] = l
+    omega_params_dict[f'omega_ild_offset_{ABL}'] = c
+    print(f'ABL={ABL}: a={a:.4f}, m1={m1:.4f}, l={l:.4f}, c={c:.4f} (m2 = {m1*l:.4f})')
 
-print("\nm2/m1 for each ABL:")
+print("\nl for each ABL (m2/m1):")
 for i_ABL, params in enumerate(omega_fit_params):
     m1 = params[1]
-    m2 = params[2]
-    ratio = m2 / m1 if m1 != 0 else float('nan')
-    print(f'ABL={ABLs_to_fit[i_ABL]}: m2/m1 = {ratio:.4f}')
+    l = params[2]
+    print(f'ABL={ABLs_to_fit[i_ABL]}: l = {l:.4f}')
+# Save to pickle file
+with open('omega_parametric_params_LED7_103_on_cond_by_cond_fit.pkl', 'wb') as f:
+    pickle.dump(omega_params_dict, f)
+print('Omega fit parameters saved to omega_parametric_params_LED7_103_on_cond_by_cond_fit.pkl')
 
 # %%
 plt.plot(ABLs_to_fit,np.log ([params[0] for params in omega_fit_params]), 'o-')
