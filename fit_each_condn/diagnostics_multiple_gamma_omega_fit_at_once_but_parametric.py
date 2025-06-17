@@ -26,9 +26,8 @@ K_max = 10
 gamma_all_animals = {}
 omega_all_animals = {}
 
-# for animal_id in all_animals:
-for animal_id in [103]:
-
+for animal_id in all_animals:
+# for animal_id in [103]:
     animal_id = str(animal_id)
     
     # get the df
@@ -56,7 +55,8 @@ for animal_id in [103]:
 
     # saved_vbmc_file = f'{batch_name}_{animal_id}_vbmc_mutiple_gama_omega_at_once_ILDs_1_2_4_8_16.pkl'
 
-    saved_vbmc_file = 'vbmc_mutiple_gama_omega_at_once_but_parametric.pkl'
+    # saved_vbmc_file = 'vbmc_mutiple_gama_omega_at_once_but_parametric.pkl'
+    saved_vbmc_file = f'vbmc_mutiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}.pkl'
 
     if not os.path.exists(saved_vbmc_file):
         print(f"Skipping {animal_id} as VBMC file {saved_vbmc_file} does not exist.")
@@ -67,7 +67,7 @@ for animal_id in [103]:
     vp = vp.vp
 
     # --- PDF output block ---
-    pdf_filename = f'{batch_name}_{animal_id}_diagnostics_multiple_gama_omega_at_once_but_parametric.pdf'
+    pdf_filename = f'{batch_name}_{animal_id}_diagnostics_multiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}.pdf'
     with PdfPages(pdf_filename) as pdf:
         # Title/cover page
         fig_cover = plt.figure(figsize=(8, 4))
@@ -435,60 +435,3 @@ for animal_id in [103]:
 
 #     # -- w plot ---
 
-
-# %%
-# print all gamma and omega values
-for ABL in ABLs_to_fit:
-    if ABL == 20:
-        print(f'ABL=20: g_tanh_scale_20={g_tanh_scale_20 :.2f}, g_ild_scale_20={g_ild_scale_20 :.2f}, g_ild_offset_20={g_ild_offset_20 :.2f}, o_ratio_scale_20={o_ratio_scale_20 :.2f}, o_ild_scale_20={o_ild_scale_20 :.2f}, o_ild_offset_20={o_ild_offset_20 :.2f}, norm_factor_20={norm_factor_20 :.2f}, w_20={w_20 :.2f}')
-    elif ABL == 40:
-        print(f'ABL=40: g_tanh_scale_40={g_tanh_scale_40 :.2f}, g_ild_scale_40={g_ild_scale_40 :.2f}, g_ild_offset_40={g_ild_offset_40 :.2f}, o_ratio_scale_40={o_ratio_scale_40 :.2f}, o_ild_scale_40={o_ild_scale_40 :.2f}, o_ild_offset_40={o_ild_offset_40 :.2f}, norm_factor_40={norm_factor_40 :.2f}, w_40={w_40 :.2f}')
-    elif ABL == 60:
-        print(f'ABL=60: g_tanh_scale_60={g_tanh_scale_60 :.2f}, g_ild_scale_60={g_ild_scale_60 :.2f}, g_ild_offset_60={g_ild_offset_60 :.2f}, o_ratio_scale_60={o_ratio_scale_60 :.2f}, o_ild_scale_60={o_ild_scale_60 :.2f}, o_ild_offset_60={o_ild_offset_60 :.2f}, norm_factor_60={norm_factor_60 :.2f}, w_60={w_60 :.2f}')
-print(f't_E_aff={t_E_aff :.2f}, del_go={del_go :.2f}')
-
-
-# # %%
-
-# import matplotlib.pyplot as plt
-# import numpy as np
-
-# all_ILDs = [1, 2, 4, 8, 16]
-# ABLs_to_fit = [20, 60]  # Or use your existing variable
-
-# plt.figure(figsize=(6, 4))
-# ABL_color_dict = {20: 'tab:blue', 60: 'tab:orange'}
-# for ABL in ABLs_to_fit:
-#     all_gammas = []
-#     for animal_id, animal_dict in gamma_all_animals.items():
-#         gammas = [animal_dict.get((ABL, ILD), np.nan) for ILD in all_ILDs]
-#         all_gammas.append(gammas)
-#         plt.plot(all_ILDs, gammas, color=ABL_color_dict[ABL], alpha=0.5, linewidth=1)
-#     all_gammas = np.array(all_gammas)
-#     mean_gammas = np.nanmean(all_gammas, axis=0)
-#     plt.plot(all_ILDs, mean_gammas, color=ABL_color_dict[ABL], marker='o', linewidth=2, label=f'ABL={ABL}')
-#     plt.xlabel('ILD (dB)')
-#     plt.ylabel('gamma')
-#     plt.title('gamma vs ILD (all animals)')
-#     plt.legend()
-#     plt.tight_layout()
-# plt.show()
-
-# # %%
-# plt.figure(figsize=(6, 4))
-# ABL_color_dict = {20: 'tab:blue', 60: 'tab:orange'}
-# for ABL in ABLs_to_fit:
-#     all_omegas = []
-#     for animal_id, animal_dict in omega_all_animals.items():
-#         omegas = [animal_dict.get((ABL, ILD), np.nan) for ILD in all_ILDs]
-#         all_omegas.append(omegas)
-#         plt.plot(all_ILDs, omegas, color=ABL_color_dict[ABL], alpha=0.5, linewidth=1)
-#     all_omegas = np.array(all_omegas)
-#     mean_omegas = np.nanmean(all_omegas, axis=0)
-#     plt.plot(all_ILDs, mean_omegas, color=ABL_color_dict[ABL], marker='o', linewidth=2, label=f'ABL={ABL}')
-#     plt.xlabel('ILD (dB)')
-#     plt.ylabel('omega')
-#     plt.title('omega vs ILD (all animals)')
-#     plt.legend()
-#     plt.tight_layout()
-# plt.show()

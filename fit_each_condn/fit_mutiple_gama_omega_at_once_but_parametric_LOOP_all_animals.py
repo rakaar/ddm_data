@@ -205,32 +205,32 @@ for animal_id in animal_ids:
     # # bounds
 
     # %%
-    g_tanh_scale_bounds = [0.01, 10]
+    g_tanh_scale_bounds = [0.01, 6]
     g_tanh_scale_plausible_bounds = [0.5, 4]
 
-    g_ild_scale_bounds = [0.01, 5]
-    g_ild_scale_plausible_bounds = [0.1, 1]
+    g_ild_scale_bounds = [0.001, 0.7]
+    g_ild_scale_plausible_bounds = [0.1, 0.5]
 
     g_ild_offset_bounds = [-5, 5]
     g_ild_offset_plausible_bounds = [-3, 3]
 
-    o_ratio_scale_bounds = [1, 10]
-    o_ratio_scale_plausible_bounds = [2, 7]
+    o_ratio_scale_bounds = [0.1, 7]
+    o_ratio_scale_plausible_bounds = [0.5, 6]
 
     o_ild_scale_bounds = [0.01, 0.6]
     o_ild_scale_plausible_bounds = [0.05, 0.5]
 
-    o_ild_offset_bounds = [-1, 5]
-    o_ild_offset_plausible_bounds = [-0.1, 4]
+    o_ild_offset_bounds = [-3, 3]
+    o_ild_offset_plausible_bounds = [-1, 1]
 
-    norm_factor_bounds = [0, 1]
-    norm_factor_plausible_bounds = [0.6, 0.99]
+    norm_factor_bounds = [0.5, 1.25]
+    norm_factor_plausible_bounds = [0.75, 1]
 
     w_bounds = [0.2, 0.8]
     w_plausible_bounds = [0.3, 0.7]
 
-    t_E_aff_bounds = [0.01, 1.2]
-    t_E_aff_plausible_bounds = [0.05, 0.09]
+    t_E_aff_bounds = [0.01, 0.12]
+    t_E_aff_plausible_bounds = [0.06, 0.1]
 
     del_go_bounds = [0.001, 0.2]
     del_go_plausible_bounds = [0.11, 0.15]
@@ -411,4 +411,4 @@ for animal_id in animal_ids:
     vp, results = vbmc.optimize()
 
     # %%
-    vbmc.save(f'vbmc_mutiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}.pkl', overwrite=True)
+    vbmc.save(f'vbmc_mutiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}_BETTER_BOUNDS.pkl', overwrite=True)
