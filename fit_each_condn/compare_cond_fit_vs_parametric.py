@@ -54,7 +54,11 @@ gamma_flat = np.array(gamma_flat)
 
 # %%
 # Parametric fit
-saved_vbmc_file = f'vbmc_mutiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}_BETTER_BOUNDS_V2.pkl'
+gamma_bias = True
+if not gamma_bias:
+    saved_vbmc_file = f'vbmc_mutiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}_BETTER_BOUNDS_V2.pkl'
+else:
+    saved_vbmc_file = f'vbmc_mutiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}_BETTER_BOUNDS_V2_Gamma_BIAS.pkl'
 with open(saved_vbmc_file, 'rb') as f:
     vp = pickle.load(f)
 vp = vp.vp
@@ -85,6 +89,16 @@ o_ild_scale_60_samples = vp_samples[:, 18]
 o_ild_offset_60_samples = vp_samples[:, 19]
 norm_factor_60_samples = vp_samples[:, 20]
 
+if gamma_bias:
+    w_20_samples = vp_samples[:, 21]
+    w_40_samples = vp_samples[:, 22]
+    w_60_samples = vp_samples[:, 23]
+    t_E_aff_samples = vp_samples[:, 24]
+    del_go_samples = vp_samples[:, 25]
+    g_bias_20_samples = vp_samples[:, 26]
+    g_bias_40_samples = vp_samples[:, 27]
+    g_bias_60_samples = vp_samples[:, 28]
+
 # Mean
 g_tanh_scale_20 = g_tanh_scale_20_samples.mean()
 g_ild_scale_20 = g_ild_scale_20_samples.mean()
@@ -109,6 +123,19 @@ o_ratio_scale_60 = o_ratio_scale_60_samples.mean()
 o_ild_scale_60 = o_ild_scale_60_samples.mean()
 o_ild_offset_60 = o_ild_offset_60_samples.mean()
 norm_factor_60 = norm_factor_60_samples.mean()
+
+if gamma_bias:
+    w_20 = w_20_samples.mean()
+    w_40 = w_40_samples.mean()
+    w_60 = w_60_samples.mean()
+    t_E_aff = t_E_aff_samples.mean()
+    del_go = del_go_samples.mean()
+    g_bias_20 = g_bias_20_samples.mean()
+    g_bias_40 = g_bias_40_samples.mean()
+    g_bias_60 = g_bias_60_samples.mean()
+
+else:
+    g_bias_20 = g_bias_40 = g_bias_60 = 0
 
 def get_omega(ABL, ILD):
     if ABL == 20:
@@ -142,11 +169,11 @@ plt.show()
 # --- GAMMA PLOTS ---
 def get_gamma(ABL, ILD):
     if ABL == 20:
-        return g_tanh_scale_20 * np.tanh(g_ild_scale_20 * (ILD - g_ild_offset_20))
+        return g_tanh_scale_20 * np.tanh(g_ild_scale_20 * (ILD - g_ild_offset_20)) + g_bias_20
     elif ABL == 40:
-        return g_tanh_scale_40 * np.tanh(g_ild_scale_40 * (ILD - g_ild_offset_40))
+        return g_tanh_scale_40 * np.tanh(g_ild_scale_40 * (ILD - g_ild_offset_40)) + g_bias_40
     elif ABL == 60:
-        return g_tanh_scale_60 * np.tanh(g_ild_scale_60 * (ILD - g_ild_offset_60))
+        return g_tanh_scale_60 * np.tanh(g_ild_scale_60 * (ILD - g_ild_offset_60)) + g_bias_60
     else:
         return None
 
@@ -163,7 +190,7 @@ for i, ABL in enumerate(ABLs_to_fit):
 plt.xlabel('ILD (dB)')
 plt.ylabel('gamma')
 plt.title(f'gamma vs ILD, Animal: {animal_id}, Batch: {batch_name}')
-plt.savefig(f'gamma_vs_ILD_{animal_id}_{batch_name}_parametric_and_cond_by_cond.png')
+plt.savefig(f'gamma_vs_ILD_{animal_id}_{batch_name}_parametric_and_cond_by_con_gamma_bias.png')
 plt.tight_layout()
 plt.show()
 
