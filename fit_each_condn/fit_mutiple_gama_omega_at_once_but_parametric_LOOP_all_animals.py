@@ -21,7 +21,9 @@ from led_off_gamma_omega_pdf_utils import up_or_down_RTs_fit_OPTIM_V_A_change_ga
 batch_name = 'LED7'
 og_df = pd.read_csv('../out_LED.csv')
 animal_ids = og_df['animal'].unique()
-for animal_id in animal_ids:
+# remove animal 92
+# for animal_id in animal_ids:
+for animal_id in [103]:
     print(f'##### Starting animal {animal_id} #####')
     og_df = pd.read_csv('../out_LED.csv')
     df = og_df[ og_df['repeat_trial'].isin([0,2]) | og_df['repeat_trial'].isna() ]
@@ -220,10 +222,10 @@ for animal_id in animal_ids:
     o_ild_scale_bounds = [0.01, 0.6]
     o_ild_scale_plausible_bounds = [0.05, 0.5]
 
-    o_ild_offset_bounds = [-3, 3]
+    o_ild_offset_bounds = [-6, 6]
     o_ild_offset_plausible_bounds = [-1, 1]
 
-    norm_factor_bounds = [0.5, 1.25]
+    norm_factor_bounds = [0.3, 1.6]
     norm_factor_plausible_bounds = [0.75, 1]
 
     w_bounds = [0.2, 0.8]
@@ -411,4 +413,4 @@ for animal_id in animal_ids:
     vp, results = vbmc.optimize()
 
     # %%
-    vbmc.save(f'vbmc_mutiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}_BETTER_BOUNDS.pkl', overwrite=True)
+    vbmc.save(f'vbmc_mutiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}_BETTER_BOUNDS_V2.pkl', overwrite=True)

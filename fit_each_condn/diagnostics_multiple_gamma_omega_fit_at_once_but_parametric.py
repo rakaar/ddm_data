@@ -26,8 +26,8 @@ K_max = 10
 gamma_all_animals = {}
 omega_all_animals = {}
 
-for animal_id in all_animals:
-# for animal_id in [103]:
+# for animal_id in all_animals:
+for animal_id in [103]:
     animal_id = str(animal_id)
     
     # get the df
@@ -56,7 +56,7 @@ for animal_id in all_animals:
     # saved_vbmc_file = f'{batch_name}_{animal_id}_vbmc_mutiple_gama_omega_at_once_ILDs_1_2_4_8_16.pkl'
 
     # saved_vbmc_file = 'vbmc_mutiple_gama_omega_at_once_but_parametric.pkl'
-    saved_vbmc_file = f'vbmc_mutiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}.pkl'
+    saved_vbmc_file = f'vbmc_mutiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}_BETTER_BOUNDS_V2.pkl'
 
     if not os.path.exists(saved_vbmc_file):
         print(f"Skipping {animal_id} as VBMC file {saved_vbmc_file} does not exist.")
@@ -67,7 +67,7 @@ for animal_id in all_animals:
     vp = vp.vp
 
     # --- PDF output block ---
-    pdf_filename = f'{batch_name}_{animal_id}_diagnostics_multiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}.pdf'
+    pdf_filename = f'{batch_name}_{animal_id}_diagnostics_multiple_gama_omega_at_once_but_parametric_batch_{batch_name}_animal_{animal_id}_BETTER_BOUNDS_V2.pdf'
     with PdfPages(pdf_filename) as pdf:
         # Title/cover page
         fig_cover = plt.figure(figsize=(8, 4))
