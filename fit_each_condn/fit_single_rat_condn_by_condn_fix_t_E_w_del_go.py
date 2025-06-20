@@ -89,9 +89,11 @@ K_max = 10
 # Average w: 0.4594308751578441
 # Average del_go: 0.12118261009394682
 
-t_E_aff = 0.08411045805617333
-w = 0.4594308751578441
-del_go = 0.12118261009394682
+t_E_aff = 0.078
+w_20 = 0.435
+w_40 = 0.458
+w_60 = 0.443
+del_go = 0.144
 
 # %%
 def compute_loglike_trial(row, gamma, omega):
@@ -100,6 +102,13 @@ def compute_loglike_trial(row, gamma, omega):
         rt = row['timed_fix']
         t_stim = row['intended_fix']
         response_poke = row['response_poke']
+        
+        if row['ABL'] == 20:
+            w = w_20
+        elif row['ABL'] == 40:
+            w = w_40
+        elif row['ABL'] == 60:
+            w = w_60
         
         trunc_factor_p_joint = cum_pro_and_reactive_trunc_fn(
                                 t_stim + 1, c_A_trunc_time,
@@ -111,6 +120,7 @@ def compute_loglike_trial(row, gamma, omega):
                                 t_stim, t_E_aff, gamma, omega, w, K_max)
 
         choice = 2*response_poke - 5
+        
         P_joint_rt_choice = up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_fn(rt, V_A, theta_A, gamma, omega, t_stim, t_A_aff, t_E_aff, del_go, choice, w, K_max)
         
 
@@ -226,6 +236,6 @@ for cond_ABL in all_ABLs_cond:
         vp, results = vbmc.optimize()
 
         # save vbmc 
-        vbmc.save(f'vbmc_cond_by_cond_{batch_name}_{animal_id}_{cond_ABL}_ILD_{cond_ILD}_FIX_t_E_w_del_go.pkl', overwrite=True)
+        vbmc.save(f'vbmc_cond_by_cond_{batch_name}_{animal_id}_{cond_ABL}_ILD_{cond_ILD}_FIX_t_E_w_del_go_same_as_parametric.pkl', overwrite=True)
 
         
