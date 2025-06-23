@@ -10,6 +10,7 @@ import os
 # Read and merge the three batch CSVs for LED7, LED6, and Comparable
 batch_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
 batch_files = [f for f in os.listdir(batch_dir) if f.endswith('_valid_and_aborts.csv')]
+print(batch_files)
 merged_data = pd.concat([
     pd.read_csv(os.path.join(batch_dir, fname)) for fname in batch_files
 ], ignore_index=True)
@@ -18,8 +19,6 @@ merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
 # %%
 print(merged_valid['batch_name'].unique())
 # batch_name is nan, fill it with LED7
-merged_valid['batch_name'] = merged_valid['batch_name'].fillna('LED7')
-print(merged_valid['batch_name'].unique())
 
 
 # %%
@@ -206,7 +205,7 @@ legend_handles = [Line2D([0], [0], marker='o', color=color, linestyle='-', label
 fig.legend(handles=legend_handles, title='ABL', loc='lower right', bbox_to_anchor=(1, 0), fontsize=24, title_fontsize=26)
 
 # Save figure
-plt.savefig(f'all_animals_psychometric_all.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'all_animals_psychometric_all_batches_with_LED8.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 # %%

@@ -16,9 +16,10 @@ merged_data = pd.concat([
     pd.read_csv(os.path.join(batch_dir, fname)) for fname in batch_files
 ], ignore_index=True)
 merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
-merged_valid['batch_name'] = merged_valid['batch_name'].fillna('LED7')
-DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
-merged_valid = merged_valid[merged_valid['batch_name'].isin(DESIRED_BATCHES)].copy()
+
+#### To filter out specific batches, uncomment the following lines ######
+# DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
+# merged_valid = merged_valid[merged_valid['batch_name'].isin(DESIRED_BATCHES)].copy()
 
 ABLS = [20, 40, 60]
 
