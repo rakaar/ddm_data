@@ -29,7 +29,8 @@ omega_all_animals = {}
 # for animal_id in all_animals:
 # Params change to 
 # theta_E, rate_lambda, ILD_bias_20, ILD_bias_40, ILD_bias_60, o_ratio_scale_20, o_ratio_scale_40, o_ratio_scale_60, norm_factor, w, t_E_aff, del_go
-for animal_id in [103]:
+# for animal_id in [103]:
+for animal_id in all_animals:
     animal_id = str(animal_id)
     
     # get the df

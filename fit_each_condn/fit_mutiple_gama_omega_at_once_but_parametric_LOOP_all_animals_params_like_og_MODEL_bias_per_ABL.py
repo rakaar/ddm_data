@@ -21,9 +21,10 @@ from led_off_gamma_omega_pdf_utils import up_or_down_RTs_fit_OPTIM_V_A_change_ga
 batch_name = 'LED7'
 og_df = pd.read_csv('../out_LED.csv')
 animal_ids = og_df['animal'].unique()
-# remove animal 92
-# for animal_id in animal_ids:
-for animal_id in [103]:
+# remove animal 103
+animal_ids = animal_ids[animal_ids != 103]
+for animal_id in animal_ids:
+# for animal_id in [103]:
     print(f'##### Starting animal {animal_id} #####')
     og_df = pd.read_csv('../out_LED.csv')
     df = og_df[ og_df['repeat_trial'].isin([0,2]) | og_df['repeat_trial'].isna() ]
