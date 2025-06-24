@@ -6,8 +6,8 @@ import os
 from scipy.optimize import curve_fit
 
 # --- Sigmoid function ---
-def sigmoid(x, L, x0, k, b):
-    return L / (1 + np.exp(-k*(x-x0))) + b
+def sigmoid(x, lambda_L, lambda_R, k, x0):
+    return lambda_L + (1 - lambda_L - lambda_R) / (1 + np.exp(-k * (x - x0)))
 
 # --- Load merged_valid as in make_all_animals_psycho_single_figure.py ---
 batch_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
@@ -52,7 +52,9 @@ for animal_id in all_animals:
         mask = ~np.isnan(psycho)
         if np.sum(mask) > 3:
             try:
-                popt, _ = curve_fit(sigmoid, animal_ilds[mask], psycho[mask], p0=[1, 0, 1, 0], maxfev=5000)
+                p0 = [0.05, 0.05, 1, 0]
+                bounds = ([0, 0, -np.inf, -np.inf], [1, 1, np.inf, np.inf])
+                popt, _ = curve_fit(sigmoid, animal_ilds[mask], psycho[mask], p0=p0, bounds=bounds, maxfev=5000)
                 k = popt[2]
                 slopes[abl][animal_id] = k
             except Exception as e:
@@ -235,6 +237,89 @@ ax.spines['right'].set_visible(False)
 plt.tight_layout()
 plt.show()# %%
 
+# %% 
+# overlayed abs of bias for each ABL 
+COLORS = ['tab:blue', 'tab:orange', 'tab:green']
+# For this, we need to extract and store x0 (bias) for each animal and ABL during the sigmoid fit.
+# If not already done, re-fit or re-extract x0 for each animal and ABL.
+# We'll re-fit here to guarantee x0 is available.
+biases = {abl: {} for abl in ABLS}  # biases[abl][(batch_name, animal)] = x0
+for animal_id in animals:
+    batch_name, animal = animal_id
+    for idx, abl in enumerate(ABLS):
+        animal_df = merged_valid[(merged_valid['batch_name'] == batch_name) & \
+                                  (merged_valid['animal'] == animal) & \
+                                  (merged_valid['ABL'] == abl)]
+        if animal_df.empty:
+            continue
+        animal_ilds = np.sort(animal_df['ILD'].unique())
+        psycho = []
+        for ild in animal_ilds:
+            sub = animal_df[animal_df['ILD'] == ild]
+            if len(sub) > 0:
+                psycho.append(np.mean(sub['choice'] == 1))
+            else:
+                psycho.append(np.nan)
+        psycho = np.array(psycho)
+        mask = ~np.isnan(psycho)
+        if np.sum(mask) > 3:
+            try:
+                p0 = [0.05, 0.05, 1, 0]
+                bounds = ([0, 0, -np.inf, -np.inf], [1, 1, np.inf, np.inf])
+                popt, _ = curve_fit(sigmoid, animal_ilds[mask], psycho[mask], p0=p0, bounds=bounds, maxfev=5000)
+                x0 = popt[3]
+                biases[abl][animal_id] = x0
+            except Exception as e:
+                continue
+
+# %%
+# Now plot overlayed |bias| for each ABL
+fig, ax = plt.subplots(figsize=(max(6, len(animals)//4), 3))  # wider if many animals
+for idx, abl in enumerate(ABLS):
+    color = COLORS[idx]
+    y = [np.abs(biases[abl].get(animal, np.nan)) for animal in animals]
+    ax.scatter(range(len(animals)), y, color=color, s=40)
+
+# Set x-ticks and labels to batch-animal, vertical
+animal_labels = [f"{batch}_{animal}" for batch, animal in animals]
+ax.set_xticks(range(len(animals)))
+ax.set_xticklabels(animal_labels, rotation=90, fontsize=8)
+
+ax.axhline(0, color='k', linewidth=1)
+ax.set_xlabel('')
+ax.set_ylabel('|Bias| (|x0|)', fontsize=13)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+plt.tight_layout()
+plt.show()
+
+# %% 
+# average 
+# Compute mean |bias| per animal across all ABLs
+avg_abs_bias_per_animal = []
+for animal in animals:
+    abs_biases = [np.abs(biases[abl].get(animal, np.nan)) for abl in ABLS]
+    # Compute mean, ignoring NaNs
+    mean_abs_bias = np.nanmean(abs_biases)
+    avg_abs_bias_per_animal.append(mean_abs_bias)
+
+# Plot one point per animal (the mean |bias| across ABLs)
+fig, ax = plt.subplots(figsize=(max(6, len(animals)//4), 3))
+ax.scatter(range(len(animals)), avg_abs_bias_per_animal, color='k', s=60)  # single color, larger marker
+
+# Set x-ticks and labels to batch-animal, vertical
+animal_labels = [f"{batch}_{animal}" for batch, animal in animals]
+ax.set_xticks(range(len(animals)))
+ax.set_xticklabels(animal_labels, rotation=90, fontsize=8)
+
+ax.axhline(0, color='k', linewidth=1)
+ax.set_xlabel('')
+ax.set_ylabel('Mean |Bias| (|x0|)', fontsize=13)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+plt.tight_layout()
+plt.show()
+
 # %%
 # --- 7b. Overlayed animal slopes for all ABLs, excluding LED2, 41 ---
 COLORS = ['tab:blue', 'tab:orange', 'tab:green']
@@ -267,3 +352,173 @@ plt.show()# %%
 # %%
 
 # %%
+# --- Compute and plot average lapse rates (mean of lambda_L and lambda_R) ---
+
+# 1. Extract average lapse rates for each animal and ABL
+lapse_rates = {abl: {} for abl in ABLS}  # lapse_rates[abl][(batch_name, animal)] = mean(lambda_L, lambda_R)
+for animal_id in animals:
+    batch_name, animal = animal_id
+    for idx, abl in enumerate(ABLS):
+        animal_df = merged_valid[(merged_valid['batch_name'] == batch_name) &
+                                 (merged_valid['animal'] == animal) &
+                                 (merged_valid['ABL'] == abl)]
+        if animal_df.empty:
+            continue
+        animal_ilds = np.sort(animal_df['ILD'].unique())
+        psycho = []
+        for ild in animal_ilds:
+            sub = animal_df[animal_df['ILD'] == ild]
+            if len(sub) > 0:
+                psycho.append(np.mean(sub['choice'] == 1))
+            else:
+                psycho.append(np.nan)
+        psycho = np.array(psycho)
+        mask = ~np.isnan(psycho)
+        if np.sum(mask) > 3:
+            try:
+                p0 = [0.05, 0.05, 1, 0]
+                bounds = ([0, 0, -np.inf, -np.inf], [1, 1, np.inf, np.inf])
+                popt, _ = curve_fit(sigmoid, animal_ilds[mask], psycho[mask], p0=p0, bounds=bounds, maxfev=5000)
+                lambda_L, lambda_R = popt[0], popt[1]
+                lapse_rates[abl][animal_id] = 0.5 * (lambda_L + lambda_R)
+            except Exception as e:
+                continue
+
+# %%
+# 2. Plot overlayed average lapse rates for each ABL
+fig, ax = plt.subplots(figsize=(max(6, len(animals)//4), 3))
+for idx, abl in enumerate(ABLS):
+    color = COLORS[idx]
+    y = [lapse_rates[abl].get(animal, np.nan) for animal in animals]
+    ax.scatter(range(len(animals)), y, color=color, s=40)
+
+animal_labels = [f"{batch}_{animal}" for batch, animal in animals]
+ax.set_xticks(range(len(animals)))
+ax.set_xticklabels(animal_labels, rotation=90, fontsize=8)
+
+ax.axhline(0, color='k', linewidth=1)
+ax.set_xlabel('')
+ax.set_ylabel('mean of λ_L, λ_R', fontsize=13)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+plt.tight_layout()
+plt.show()
+
+# 3. Plot mean average lapse rate per animal (across ABLs)
+avg_lapse_per_animal = []
+for animal in animals:
+    lapses = [lapse_rates[abl].get(animal, np.nan) for abl in ABLS]
+    mean_lapse = np.nanmean(lapses)
+    avg_lapse_per_animal.append(mean_lapse)
+
+fig, ax = plt.subplots(figsize=(max(6, len(animals)//4), 3))
+ax.scatter(range(len(animals)), avg_lapse_per_animal, color='k', s=60)
+
+ax.set_xticks(range(len(animals)))
+ax.set_xticklabels(animal_labels, rotation=90, fontsize=8)
+
+ax.axhline(0, color='k', linewidth=1)
+ax.set_xlabel('')
+ax.set_ylabel('ABL mean-λ_L,λ_R', fontsize=13)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+plt.tight_layout()
+plt.show()
+
+# %%
+# --- Compute and plot abs(slope differences) between ABLs for each animal ---
+
+# 1. Extract slopes (k) for each animal and ABL
+slopes = {abl: {} for abl in ABLS}  # slopes[abl][(batch_name, animal)] = k
+for animal_id in animals:
+    batch_name, animal = animal_id
+    for idx, abl in enumerate(ABLS):
+        animal_df = merged_valid[(merged_valid['batch_name'] == batch_name) &
+                                 (merged_valid['animal'] == animal) &
+                                 (merged_valid['ABL'] == abl)]
+        if animal_df.empty:
+            continue
+        animal_ilds = np.sort(animal_df['ILD'].unique())
+        psycho = []
+        for ild in animal_ilds:
+            sub = animal_df[animal_df['ILD'] == ild]
+            if len(sub) > 0:
+                psycho.append(np.mean(sub['choice'] == 1))
+            else:
+                psycho.append(np.nan)
+        psycho = np.array(psycho)
+        mask = ~np.isnan(psycho)
+        if np.sum(mask) > 3:
+            try:
+                p0 = [0.05, 0.05, 1, 0]
+                bounds = ([0, 0, -np.inf, -np.inf], [1, 1, np.inf, np.inf])
+                popt, _ = curve_fit(sigmoid, animal_ilds[mask], psycho[mask], p0=p0, bounds=bounds, maxfev=5000)
+                k = popt[2]
+                slopes[abl][animal_id] = k
+            except Exception as e:
+                continue
+
+# 2. Compute absolute differences for each animal
+abs_slope_20_40 = []
+abs_slope_40_60 = []
+abs_slope_20_60 = []
+
+for animal in animals:
+    k20 = slopes.get(20, {}).get(animal, np.nan)
+    k40 = slopes.get(40, {}).get(animal, np.nan)
+    k60 = slopes.get(60, {}).get(animal, np.nan)
+    abs_slope_20_40.append(np.abs(k20 - k40))
+    abs_slope_40_60.append(np.abs(k40 - k60))
+    abs_slope_20_60.append(np.abs(k20 - k60))
+
+animal_labels = [f"{batch}_{animal}" for batch, animal in animals]
+
+# 3. Plot the absolute slope differences
+fig, ax = plt.subplots(figsize=(max(6, len(animals)//4), 3))
+ax.scatter(range(len(animals)), abs_slope_20_40, color='tab:blue', s=40, label='|slope_20 - slope_40|')
+ax.scatter(range(len(animals)), abs_slope_40_60, color='tab:orange', s=40, label='|slope_40 - slope_60|')
+ax.scatter(range(len(animals)), abs_slope_20_60, color='tab:green', s=40, label='|slope_20 - slope_60|')
+
+ax.set_xticks(range(len(animals)))
+ax.set_xticklabels(animal_labels, rotation=90, fontsize=8)
+ax.axhline(0, color='k', linewidth=1)
+ax.set_xlabel('')
+ax.set_ylabel('|k_i - k_j|', fontsize=13)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.legend()
+plt.tight_layout()
+plt.show()
+
+# %%
+# --- Plot number of trials per ABL in each animal ---
+
+# Prepare data: count trials per animal and ABL
+trial_counts = {abl: [] for abl in ABLS}
+for animal_id in animals:
+    batch_name, animal = animal_id
+    for abl in ABLS:
+        count = merged_valid[
+            (merged_valid['batch_name'] == batch_name) &
+            (merged_valid['animal'] == animal) &
+            (merged_valid['ABL'] == abl)
+        ].shape[0]
+        trial_counts[abl].append(count)
+
+animal_labels = [f"{batch}_{animal}" for batch, animal in animals]
+x = np.arange(len(animals))
+
+fig, ax = plt.subplots(figsize=(max(6, len(animals)//4), 3))
+for idx, abl in enumerate(ABLS):
+    # Offset a bit for visibility, or just plot all at the same x
+    ax.scatter(x + (idx - 1) * 0.08, np.log10(trial_counts[abl]), color=COLORS[idx], s=40, label=f'ABL {abl}')
+
+ax.set_xticks(x)
+ax.set_xticklabels(animal_labels, rotation=90, fontsize=8)
+ax.set_ylabel('log10(Number of Trials)', fontsize=13)
+ax.set_xlabel('')
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+# ax.legend()
+plt.tight_layout()
+plt.show()
