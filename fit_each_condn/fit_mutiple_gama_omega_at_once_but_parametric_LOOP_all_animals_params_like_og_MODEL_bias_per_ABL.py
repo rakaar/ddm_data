@@ -17,25 +17,31 @@ from led_off_gamma_omega_pdf_utils import up_or_down_RTs_fit_OPTIM_V_A_change_ga
 
 
 # %%
+# LED7
 # repeat_trial, T16, S7
-batch_name = 'LED7'
-og_df = pd.read_csv('../out_LED.csv')
-animal_ids = og_df['animal'].unique()
+# batch_name = 'LED7'
+# og_df = pd.read_csv('../out_LED.csv')
+# animal_ids = og_df['animal'].unique()
+# LED8
+# batch_name = 'LED8'
+# og_df = pd.read_csv('../outLED8.csv')
+# animal_ids = og_df['animal'].unique()
 # remove animal 103
-animal_ids = animal_ids[animal_ids != 103]
+# animal_ids = animal_ids[animal_ids != 103]
+batch_name = 'LED34'
+og_df = pd.read_csv('../fit_animal_by_animal/batch_csvs/batch_LED34_valid_and_aborts.csv')
+animal_ids = og_df['animal'].unique()
+
 for animal_id in animal_ids:
 # for animal_id in [103]:
     print(f'##### Starting animal {animal_id} #####')
-    og_df = pd.read_csv('../out_LED.csv')
-    df = og_df[ og_df['repeat_trial'].isin([0,2]) | og_df['repeat_trial'].isna() ]
-    session_type = 7    
-    df = df[ df['session_type'].isin([session_type]) ]
-    training_level = 16
-    df = df[ df['training_level'].isin([training_level]) ]
-
-
+    df = pd.read_csv('../fit_animal_by_animal/batch_csvs/batch_LED34_valid_and_aborts.csv')
     # t_stim, t_LED, ABL, ILD
-    t_stim_and_led_tuple = [(row['intended_fix'], row['intended_fix'] - row['LED_onset_time']) for _, row in df.iterrows()]
+    # LED7
+    # t_stim_and_led_tuple = [(row['intended_fix'], row['intended_fix'] - row['LED_onset_time']) for _, row in df.iterrows()]
+    # LED8
+    t_stim_and_led_tuple = [(row['intended_fix'], np.nan) for _, row in df.iterrows()]
+
     ABL_arr = df['ABL'].unique(); ABL_arr.sort()
     ILD_arr = df['ILD'].unique(); ILD_arr.sort()
 
@@ -54,7 +60,7 @@ for animal_id in animal_ids:
 
     # %%
     # LED OFF
-    df_led_off = df[df['LED_trial'] == 0]
+    df_led_off = df[df['LED_trial'].isin([0, np.nan])]
     print(f'len of LED off: {len(df_led_off)}')
 
     # valid trials
@@ -62,7 +68,8 @@ for animal_id in animal_ids:
     print(f'len of led off valid trials = {len(df_led_off_valid_trials)}')
 
     # remove trials with RT > 1s
-    df_led_off_valid_trials = df_led_off_valid_trials[df_led_off_valid_trials['timed_fix'] - df_led_off_valid_trials['intended_fix'] < 1]
+    # df_led_off_valid_trials = df_led_off_valid_trials[df_led_off_valid_trials['timed_fix'] - df_led_off_valid_trials['intended_fix'] < 1]
+    df_led_off_valid_trials = df_led_off_valid_trials[df_led_off_valid_trials['RTwrtStim'] < 1]
     print(f'len of valid trials < 1s : {len(df_led_off_valid_trials)}')
 
     # %%
@@ -125,7 +132,8 @@ for animal_id in animal_ids:
     def compute_loglike_trial(row, theta_E, rate_lambda, ILD_bias_20, ILD_bias_40, ILD_bias_60, o_ratio_scale_20, o_ratio_scale_40, o_ratio_scale_60, norm_factor, w, t_E_aff, del_go):
         # data
         c_A_trunc_time = 0.3
-        rt = row['timed_fix']
+        # rt = row['timed_fix']
+        rt = row['TotalFixTime']
         t_stim = row['intended_fix']
         response_poke = row['response_poke']
         
@@ -172,7 +180,7 @@ for animal_id in animal_ids:
             theta_E, rate_lambda,  ILD_bias_20, ILD_bias_40, ILD_bias_60, o_ratio_scale_20, o_ratio_scale_40, o_ratio_scale_60, norm_factor, w, t_E_aff, del_go
         ) = params
 
-        all_loglike = Parallel(n_jobs=30)(
+        all_loglike = Parallel(n_jobs=20)(
             delayed(compute_loglike_trial)(
                 row,
                 theta_E, rate_lambda, ILD_bias_20, ILD_bias_40, ILD_bias_60, o_ratio_scale_20, o_ratio_scale_40, o_ratio_scale_60, norm_factor,
