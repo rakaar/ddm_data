@@ -36,3 +36,7 @@
 
 - `decoding_conf_NEW_psychometric_fit_vbmc_all_animals.py` - psychometric fit
 - `decoding_conf_psy_fit_see_psycho.py`, `decoding_conf_psy_fit_see_rtds.py` - psychometric fit diagnostics
+
+# paper
+- see_only_rtd_avg_vs_avg_norm_and_vanila_for_paper.py: RTD plots, vanila, norm
+- see_only_psycho_all_ILD_tied_for_paper.py: Psychometric plots, vanila, norm
