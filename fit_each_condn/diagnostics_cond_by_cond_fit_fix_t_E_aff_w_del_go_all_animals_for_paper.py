@@ -72,7 +72,7 @@ def find_batch_animal_pairs():
             animal_id = parts[animal_index].split('.')[0]
             if batch_name in DESIRED_BATCHES:
                 # Exclude animals 40, 41, 43 from LED2 batch
-                if not (batch_name == 'LED2' and animal_id in ['40', '41', '43']):
+                if not (batch_name == 'LED2' and animal_id in ['40', '41', '43']) and not batch_name == 'LED1':
                     pairs.append((batch_name, animal_id))
         else:
             print(f"Warning: Invalid filename format: {filename}")
@@ -408,4 +408,79 @@ for batch_name, animal_id in batch_animal_pairs:
     # break
 
 
+# %%
+all_ABLs_cond = [20, 40, 60]
+all_ILDs_cond = [1, -1, 2, -2, 4, -4, 8, -8, 16, -16]
+vbmc_fit_saving_path = '/home/rlab/raghavendra/ddm_data/fit_each_condn/each_animal_cond_fit_gama_omega_pkl_files'
+K_max = 10
+# --- Collect for scatter plots ---
+w_avg_list = []
+w_norm_list = []
+t_E_aff_avg_list = []
+t_E_aff_norm_list = []
+del_go_avg_list = []
+del_go_norm_list = []
+animal_labels = []
+for batch_name, animal_id in batch_animal_pairs:
+# for batch_name, animal_id in [('LED7', '103')]:
+
+    MODEL_TYPE = 'vanilla'
+    abort_params, vanilla_tied_params, rate_norm_l, is_norm = get_params_from_animal_pkl_file(batch_name, animal_id)
+    MODEL_TYPE = 'norm'
+    abort_params, norm_tied_params, rate_norm_l, is_norm = get_params_from_animal_pkl_file(batch_name, animal_id)
+    
+    # take w, t_E_aff, del_go avg from both vanilla and norm tied params
+    w = (vanilla_tied_params['w'] + norm_tied_params['w']) / 2
+    t_E_aff = (vanilla_tied_params['t_E_aff'] + norm_tied_params['t_E_aff']) / 2
+    del_go = (vanilla_tied_params['del_go'] + norm_tied_params['del_go']) / 2
+    
+        # Store for plotting
+    w_avg_list.append(w)
+    w_norm_list.append(norm_tied_params['w'])
+    t_E_aff_avg_list.append(t_E_aff)
+    t_E_aff_norm_list.append(norm_tied_params['t_E_aff'])
+    del_go_avg_list.append(del_go)
+    del_go_norm_list.append(norm_tied_params['del_go'])
+    animal_labels.append(f"{batch_name}-{animal_id}")
+
+import matplotlib.pyplot as plt
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+# 1. w avg vs norm_tied_params['w']
+axes[0].scatter(w_avg_list, w_norm_list)
+# for i, label in enumerate(animal_labels):
+#     axes[0].annotate(label, (w_avg_list[i], w_norm_list[i]), fontsize=8, alpha=0.7)
+min_w = min(w_avg_list + w_norm_list)
+max_w = max(w_avg_list + w_norm_list)
+axes[0].plot([min_w, max_w], [min_w, max_w], 'k--', alpha=0.5)
+axes[0].set_xlabel('w (avg vanilla/norm)')
+axes[0].set_ylabel('w (norm)')
+axes[0].set_title('w: avg vs norm')
+
+# 2. t_E_aff avg vs norm_tied_params['t_E_aff']
+axes[1].scatter(t_E_aff_avg_list, t_E_aff_norm_list)
+for i, label in enumerate(animal_labels):
+    axes[1].annotate(label, (t_E_aff_avg_list[i], t_E_aff_norm_list[i]), fontsize=8, alpha=0.7)
+min_t = min(t_E_aff_avg_list + t_E_aff_norm_list)
+max_t = max(t_E_aff_avg_list + t_E_aff_norm_list)
+
+axes[1].plot([min_t, max_t], [min_t, max_t], 'k--', alpha=0.5)
+axes[1].set_xlabel('t_E_aff (avg vanilla/norm)')
+axes[1].set_ylabel('t_E_aff (norm)')
+axes[1].set_title('t_E_aff: avg vs norm')
+
+# 3. del_go avg vs norm_tied_params['del_go']
+axes[2].scatter(del_go_avg_list, del_go_norm_list)
+for i, label in enumerate(animal_labels):
+    axes[2].annotate(label, (del_go_avg_list[i], del_go_norm_list[i]), fontsize=8, alpha=0.7)
+min_d = min(del_go_avg_list + del_go_norm_list)
+max_d = max(del_go_avg_list + del_go_norm_list)
+axes[2].plot([min_d, max_d], [min_d, max_d], 'k--', alpha=0.5)
+axes[2].set_xlabel('del_go (avg vanilla/norm)')
+axes[2].set_ylabel('del_go (norm)')
+axes[2].set_title('del_go: avg vs norm')
+
+plt.tight_layout()
+plt.show()
 # %%

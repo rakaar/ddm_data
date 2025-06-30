@@ -38,6 +38,7 @@ batch_animal_pairs = find_batch_animal_pairs()
 
 print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
 
+
 # %%
 
 
@@ -653,11 +654,11 @@ for i, ABL in enumerate(all_ABL):
     axes[i].set_xticks(all_ILD_sorted)
     
     # Print the sorted animals and their lowest omega ILDs
-    print(f"\nAnimals sorted by ILD with lowest omega at ABL {ABL}:")
-    for rank, animal_idx in enumerate(sorted_indices):
-        batch_name, animal_id = batch_animal_pairs[animal_idx]
-        ild = lowest_omega_ILDs[animal_idx]
-        print(f"Rank {rank+1}: Batch: {batch_name}, Animal: {animal_id}, Lowest omega ILD: {ild}")
+    # print(f"\nAnimals sorted by ILD with lowest omega at ABL {ABL}:")
+    # for rank, animal_idx in enumerate(sorted_indices):
+    #     batch_name, animal_id = batch_animal_pairs[animal_idx]
+    #     ild = lowest_omega_ILDs[animal_idx]
+    #     print(f"Rank {rank+1}: Batch: {batch_name}, Animal: {animal_id}, Lowest omega ILD: {ild}")
 
 # Adjust layout and save
 plt.tight_layout()
@@ -665,17 +666,204 @@ fig.savefig('omega_heatmap_sorted_by_lowest_ILD.png', dpi=300)
 plt.show()
 
 # %%
-# LED1 33, ABL 40 trials
-import pandas as pd
-batch_name = 'LED1'
-animal_id = '33'
-file_name = f'../fit_animal_by_animal/batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
-df = pd.read_csv(file_name)
-df_animal = df[df['animal'] == int(animal_id)]
-df_animal_success = df_animal[df_animal['success'].isin([1, -1])]
-df_animal_success_rt_filter = df_animal_success[(df_animal_success['RTwrtStim'] <= 1) & (df_animal_success['RTwrtStim'] > 0)]
+# Create simple heatmap visualizations of absolute gamma values
+# Use the same sorting order as in the omega plot (by ILD with lowest omega value)
 
-# check num of ABL 40 trials
-num_trials = len(df_animal_success_rt_filter[df_animal_success_rt_filter['ABL'] == 40])
-print(f'batch_name: {batch_name}, animal_id: {animal_id}')
-print(f'Number of ABL 40 trials: {num_trials}')
+# Create a figure with 3 subplots (one for each ABL)
+fig, axes = plt.subplots(1, 3, figsize=(18, 8))
+
+# Process each ABL
+for i, ABL in enumerate(all_ABL):
+    # Get omega values for this ABL (for sorting)
+    omega_data = omega_cond_by_cond_fit_all_animals[str(ABL)]
+    
+    # Get gamma values for this ABL
+    gamma_data = gamma_cond_by_cond_fit_all_animals[str(ABL)]
+    
+    # Find the ILD with lowest omega for each animal
+    lowest_omega_ILD_indices = np.nanargmin(omega_data, axis=1)
+    
+    # Convert indices to actual ILD values
+    lowest_omega_ILDs = [all_ILD_sorted[idx] if not np.isnan(idx) and idx < len(all_ILD_sorted) 
+                         else np.nan for animal_idx, idx in enumerate(lowest_omega_ILD_indices)]
+    
+    # Create a list of (animal_index, lowest_omega_ILD) tuples for sorting
+    animal_ILD_pairs = [(idx, ild) for idx, ild in enumerate(lowest_omega_ILDs) if not np.isnan(ild)]
+    
+    # Sort by lowest_omega_ILD (from lowest to highest)
+    sorted_pairs = sorted(animal_ILD_pairs, key=lambda x: x[1])
+    
+    # Extract the sorted animal indices
+    sorted_indices = [pair[0] for pair in sorted_pairs]
+    
+    # Create a new array with sorted animal data and take absolute value of gamma
+    sorted_gamma_data = np.abs(gamma_data[sorted_indices, :])
+    
+    # Normalize each row (animal) independently between 0 and 1
+    normalized_data = np.zeros_like(sorted_gamma_data)
+    
+    # Process each animal (row) separately
+    for row_idx in range(sorted_gamma_data.shape[0]):
+        row_data = sorted_gamma_data[row_idx, :]
+        valid_data = row_data[~np.isnan(row_data)]
+        
+        if len(valid_data) > 0:  # Check if there's valid data in this row
+            row_min = np.min(valid_data)
+            row_max = np.max(valid_data)
+            
+            # Avoid division by zero if min and max are the same
+            if row_min != row_max:
+                normalized_data[row_idx, :] = (row_data - row_min) / (row_max - row_min)
+            # else:
+            #     # If all values are the same, set to 0.5 (middle of range)
+            #     normalized_data[row_idx, :] = 0.5 * np.ones_like(row_data)
+        
+        # NaN values remain as NaN
+        normalized_data[row_idx, np.isnan(row_data)] = np.nan
+    
+    # Create the heatmap with normalized data
+    im = axes[i].imshow(normalized_data, aspect='auto', cmap='viridis', vmin=0, vmax=1,
+                      extent=[min(all_ILD_sorted), max(all_ILD_sorted), len(sorted_indices)-0.5, -0.5])
+    
+    # Add colorbar
+    plt.colorbar(im, ax=axes[i])
+    
+    # Set title and labels
+    axes[i].set_title(f'Absolute Gamma vs ILD at ABL {ABL}')
+    axes[i].set_xlabel('ILD')
+    if i == 0:
+        axes[i].set_ylabel('Animal Index (sorted by lowest omega ILD)')
+    
+    # Set x-ticks to match ILD values
+    axes[i].set_xticks(all_ILD_sorted)
+
+# Adjust layout and save
+plt.tight_layout()
+fig.savefig('abs_gamma_heatmap_sorted_by_lowest_omega_ILD.png', dpi=300)
+plt.show()
+
+# %%
+# Create a scatter plot comparing ILDs with minimum absolute gamma vs minimum omega for each animal at each ABL
+
+# Create the figure
+plt.figure(figsize=(10, 8))
+
+# Define colors for each ABL
+abl_colors = {'20': 'tab:blue', '40': 'tab:orange', '60': 'tab:green'}
+
+# Store all points for correlation calculation
+all_min_gamma_ilds = []
+all_min_omega_ilds = []
+
+# Process each ABL
+for ABL in all_ABL:
+    # Get data for this ABL
+    gamma_data = gamma_cond_by_cond_fit_all_animals[str(ABL)]
+    omega_data = omega_cond_by_cond_fit_all_animals[str(ABL)]
+    
+    # Take absolute value of gamma
+    abs_gamma_data = np.abs(gamma_data)
+    
+    # Find the ILD with minimum absolute gamma and minimum omega for each animal
+    min_abs_gamma_ild_indices = np.nanargmin(abs_gamma_data, axis=1)
+    min_omega_ild_indices = np.nanargmin(omega_data, axis=1)
+    
+    # Convert indices to actual ILD values
+    min_abs_gamma_ilds = [all_ILD_sorted[idx] if not np.isnan(idx) and idx < len(all_ILD_sorted) 
+                         else np.nan for idx in min_abs_gamma_ild_indices]
+    min_omega_ilds = [all_ILD_sorted[idx] if not np.isnan(idx) and idx < len(all_ILD_sorted) 
+                     else np.nan for idx in min_omega_ild_indices]
+    
+    # Store valid pairs for correlation calculation
+    for g_ild, o_ild in zip(min_abs_gamma_ilds, min_omega_ilds):
+        if not np.isnan(g_ild) and not np.isnan(o_ild):
+            all_min_gamma_ilds.append(g_ild)
+            all_min_omega_ilds.append(o_ild)
+    
+    # Plot scatter points for this ABL
+    plt.scatter(min_abs_gamma_ilds, min_omega_ilds, color=abl_colors[str(ABL)], 
+                alpha=0.7, label=f'ABL {ABL}', s=80)
+
+# Calculate correlation if there are enough data points
+if len(all_min_gamma_ilds) > 1:
+    correlation = np.corrcoef(all_min_gamma_ilds, all_min_omega_ilds)[0, 1]
+    plt.title(f'ILD with Minimum Absolute Gamma vs ILD with Minimum Omega\nCorrelation: {correlation:.3f}')
+else:
+    plt.title('ILD with Minimum Absolute Gamma vs ILD with Minimum Omega')
+
+# Add identity line
+min_val = min(plt.xlim()[0], plt.ylim()[0])
+max_val = max(plt.xlim()[1], plt.ylim()[1])
+plt.plot([min_val, max_val], [min_val, max_val], 'k--', alpha=0.5)
+
+# Set labels and legend
+plt.xlabel('ILD with Minimum Absolute Gamma')
+plt.ylabel('ILD with Minimum Omega')
+plt.legend()
+plt.grid(True, alpha=0.3)
+# Make the plot square
+plt.axis('equal')
+
+# Save the figure
+plt.tight_layout()
+plt.xlim(-2,2)
+plt.savefig('min_abs_gamma_vs_min_omega_ILD_scatter.png', dpi=300)
+plt.show()
+
+# %%
+# ILD with min omega vs w
+
+# Create the figure
+plt.figure(figsize=(10, 8))
+
+# Define colors for each ABL
+abl_colors = {'20': 'tab:blue', '40': 'tab:orange', '60': 'tab:green'}
+
+# Process each ABL
+for ABL in all_ABL:
+    # Get omega values for this ABL
+    omega_data = omega_cond_by_cond_fit_all_animals[str(ABL)]
+    
+    # Find the ILD with minimum omega for each animal
+    min_omega_ild_indices = np.nanargmin(omega_data, axis=1)
+    
+    # Convert indices to actual ILD values
+    min_omega_ilds = [all_ILD_sorted[idx] if not np.isnan(idx) and idx < len(all_ILD_sorted) 
+                     else np.nan for idx in min_omega_ild_indices]
+    
+    # Get w values for each animal
+    w_values = []
+    valid_ilds = []
+    valid_animal_indices = []
+    
+    for animal_idx, (batch_name, animal_id) in enumerate(batch_animal_pairs):
+        if not np.isnan(min_omega_ilds[animal_idx]):
+            # Get w parameter for this animal
+            MODEL_TYPE = 'vanilla'
+            abort_params, vanilla_tied_params, rate_norm_l, is_norm = get_params_from_animal_pkl_file(batch_name, animal_id)
+            MODEL_TYPE = 'norm'
+            abort_params, norm_tied_params, rate_norm_l, is_norm = get_params_from_animal_pkl_file(batch_name, animal_id)
+            
+            # Calculate average w from vanilla and norm models
+            w = (vanilla_tied_params['w'] + norm_tied_params['w']) / 2
+            
+            w_values.append(w)
+            valid_ilds.append(min_omega_ilds[animal_idx])
+            valid_animal_indices.append(animal_idx)
+    
+    # Plot scatter points for this ABL
+    plt.scatter(valid_ilds, w_values, color=abl_colors[str(ABL)], 
+                alpha=0.7, label=f'ABL {ABL}', s=80)
+
+# Set title and labels
+plt.title('ILD with Minimum Omega vs w')
+plt.xlabel('ILD with Minimum Omega')
+plt.ylabel('w')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+# Save the figure
+plt.tight_layout()
+plt.xlim(-17, 17)
+plt.savefig('min_omega_ILD_vs_w_scatter.png', dpi=300)
+plt.show()
