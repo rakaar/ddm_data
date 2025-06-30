@@ -40,3 +40,8 @@
 # paper
 - see_only_rtd_avg_vs_avg_norm_and_vanila_for_paper.py: RTD plots, vanila, norm
 - see_only_psycho_all_ILD_tied_for_paper.py: Psychometric plots, vanila, norm
+
+## gamma cond by cond fit vs theoretical obtained from model fit
+- `fit_single_rat_condn_by_condn_fix_t_E_w_del_go_all_animals_loop_for_paper.py` - Fit cond by cond for each animal
+- `diagnostics_cond_by_cond_fit_fix_t_E_aff_w_del_go_all_animals_for_paper.py` - Diagnostics for cond by cond fit done above
+- `compare_gamma_from_cond_fit_and_norm_model_fit_for_paper.py` - Compare gamma from cond by cond fit and gamma from vanilla,norm model fit
