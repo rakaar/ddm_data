@@ -100,12 +100,12 @@ print(f"Completed processing {len(rtd_data)} batch-animal pairs")
 
 # %% 
 abl_colors = {20: 'tab:blue', 40: 'tab:orange', 60: 'tab:green'}
-output_filename = 'animal_specific_rtd_plots.pdf'
+output_filename = f'animal_specific_rtd_plots_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}.pdf'
 
 with PdfPages(output_filename) as pdf:
     for batch_animal_pair, animal_data in rtd_data.items():
         batch_name, animal_id = batch_animal_pair
-        fig, axes = plt.subplots(3, len(abs_ILD_arr), figsize=(15, 12), sharex='col')
+        fig, axes = plt.subplots(3, len(abs_ILD_arr), figsize=(15, 12), sharex=False)
         fig.suptitle(f'Animal: {animal_id} (Batch: {batch_name})', fontsize=16)
 
         quantile_levels = np.arange(0.01, 1.0, 0.01)
@@ -132,10 +132,13 @@ with PdfPages(output_filename) as pdf:
                     ax1.plot(emp_data['bin_centers'], emp_data['rtd_hist'], color=abl_colors[abl], lw=1.5, label=f'ABL={abl}')
             ax1.set_title(f'|ILD|={abs_ild}')
             if j == 0: ax1.set_ylabel('Density')
+            ax1.set_xlim(0, 0.7)
+            ax1.tick_params(axis='x', labelbottom=False)
 
             # Row 2: Q-Q analysis plots
             ax2 = axes[1, j]
             q_60 = quantiles_by_abl_ild[60][abs_ild]
+            title_slopes = {}
             for abl in [20, 40]:
                 q_other = quantiles_by_abl_ild[abl][abs_ild]
                 if not np.any(np.isnan(q_60)) and not np.any(np.isnan(q_other)):
@@ -153,22 +156,31 @@ with PdfPages(output_filename) as pdf:
                         
                         slope = np.sum(x_fit_calc * y_fit_calc_shifted) / np.sum(x_fit_calc**2) if np.sum(x_fit_calc**2) > 0 else np.nan
                         fit_results[abs_ild][abl] = {'slope': slope}
+                        title_slopes[abl] = slope
 
                         # plot fitted line
                         if not np.isnan(slope):
-                            # OLD
-                            # x_line = np.array([min_RT_cut, np.nanmax(q_60[mask])])
-                            # y_line = y_intercept + slope * (x_line - min_RT_cut)
-                            # ax2.plot(x_line, y_line, color=abl_colors[abl], linestyle='-' if abl==20 else '--', label=f'Fit {abl} (m={slope:.2f})', lw=3)
                             x_line_shifted = np.array([0, np.nanmax(x_fit_calc)])
                             y_line_shifted = slope * x_line_shifted
-
-                            ax2.plot(x_line_shifted, y_line_shifted, color=abl_colors[abl], label=f'Fit {abl} (m={slope:.2f})', lw=3)
+                            ax2.plot(x_line_shifted, y_line_shifted, color=abl_colors[abl], label=f'Fit {abl} (m={slope:.3f})', lw=3)
 
                     else:
                         fit_results[abs_ild][abl] = {'slope': np.nan}
                 else:
                     fit_results[abs_ild][abl] = {'slope': np.nan}
+            
+            # Set title for the Q-Q plot with slopes
+            s20 = title_slopes.get(20)
+            s40 = title_slopes.get(40)
+            title_parts = []
+            if s20 is not None and not np.isnan(s20):
+                title_parts.append(f'm₂₀={s20:.3f}')
+            if s40 is not None and not np.isnan(s40):
+                title_parts.append(f'm₄₀={s40:.3f}')
+            if title_parts:
+                ax2.set_title(', '.join(title_parts))
+
+            ax2.set_xlim(0, max_RT_cut)
             ax2.axhline(0, color='k', linestyle='--')
             if j == 0: ax2.set_ylabel('RT Diff (s)')
 
@@ -191,6 +203,7 @@ with PdfPages(output_filename) as pdf:
                             ax3.plot(xvals, rescaled_rtd, color=abl_colors[abl], lw=1.5)
                         else:
                             ax3.plot(bin_centers, rtd_hist, color=abl_colors[abl], lw=1.5, linestyle=':') # Plot original as dotted if no fit
+            ax3.set_xlim(0, 0.7)
             ax3.set_xlabel('RT (s)')
             if j == 0: ax3.set_ylabel('Density (Rescaled)')
 
