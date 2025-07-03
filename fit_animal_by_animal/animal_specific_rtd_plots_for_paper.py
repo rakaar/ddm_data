@@ -223,3 +223,120 @@ with PdfPages(output_filename) as pdf:
 print(f'PDF saved to {output_filename}')
 
 # %%
+
+# %% Code for average animal plot
+
+print("Generating average animal plot...")
+
+# --- Data Aggregation ---
+aggregated_rtds = {(abl, ild): [] for abl in ABL_arr for ild in abs_ILD_arr}
+aggregated_rescaled_data = {(abl, ild): [] for abl in ABL_arr for ild in abs_ILD_arr}
+quantile_levels = np.arange(0.01, 1.0, 0.01)
+
+for batch_animal_pair, animal_data in tqdm(rtd_data.items(), desc="Aggregating data for average plot"):
+    # Recalculate slopes for this animal (same logic as in the per-animal plot)
+    quantiles_by_abl_ild = {abl: {ild: None for ild in abs_ILD_arr} for abl in ABL_arr}
+    fit_results = {ild: {} for ild in abs_ILD_arr}
+
+    for j, abs_ild in enumerate(abs_ILD_arr):
+        for abl in ABL_arr:
+            stim_key = (abl, abs_ild)
+            emp_data = animal_data.get(stim_key, {}).get('empirical', {})
+            if emp_data and emp_data.get('n_trials', 0) > 0 and not np.all(np.isnan(emp_data['rtd_hist'])):
+                bin_widths = np.diff(rt_bins)
+                cdf = np.cumsum(emp_data['rtd_hist'] * bin_widths)
+                cdf = cdf / cdf[-1] if cdf[-1] > 0 else cdf
+                quantiles_by_abl_ild[abl][abs_ild] = np.interp(quantile_levels, cdf, emp_data['bin_centers'])
+            else:
+                quantiles_by_abl_ild[abl][abs_ild] = np.full_like(quantile_levels, np.nan)
+
+        q_60 = quantiles_by_abl_ild[60][abs_ild]
+        for abl in [20, 40]:
+            q_other = quantiles_by_abl_ild[abl][abs_ild]
+            if not np.any(np.isnan(q_60)) and not np.any(np.isnan(q_other)):
+                mask = (q_60 >= min_RT_cut) & (q_60 <= max_RT_cut)
+                if np.sum(mask) >= 2:
+                    q_other_minus_60 = q_other - q_60
+                    x_fit_calc = q_60[mask] - min_RT_cut
+                    y_fit_calc = q_other_minus_60[mask]
+                    y_intercept = y_fit_calc[0]
+                    y_fit_calc_shifted = y_fit_calc - y_intercept
+                    slope = np.sum(x_fit_calc * y_fit_calc_shifted) / np.sum(x_fit_calc**2) if np.sum(x_fit_calc**2) > 0 else np.nan
+                    fit_results[abs_ild][abl] = {'slope': slope}
+                else:
+                    fit_results[abs_ild][abl] = {'slope': np.nan}
+            else:
+                fit_results[abs_ild][abl] = {'slope': np.nan}
+
+    # Aggregate original and rescaled RTDs
+    for abs_ild in abs_ILD_arr:
+        for abl in ABL_arr:
+            stim_key = (abl, abs_ild)
+            emp_data = animal_data.get(stim_key, {}).get('empirical', {})
+            
+            if emp_data and emp_data.get('n_trials', 0) > 0:
+                bin_centers = emp_data['bin_centers']
+                rtd_hist = emp_data['rtd_hist']
+                
+                # Store original RTD
+                aggregated_rtds[stim_key].append(rtd_hist)
+
+                # Calculate and store rescaled RTD
+                if abl == 60:
+                    rescaled_rtd = rtd_hist
+                    xvals = bin_centers
+                else:
+                    slope = fit_results[abs_ild].get(abl, {}).get('slope')
+                    if slope is not None and not np.isnan(slope) and (slope + 1) != 0:
+                        xvals = ((bin_centers - min_RT_cut) / (1 + slope)) + min_RT_cut
+                        multiplier = np.ones_like(rtd_hist)
+                        multiplier[bin_centers > min_RT_cut] = slope + 1
+                        rescaled_rtd = rtd_hist * multiplier
+                    else: # no fit, use original
+                        rescaled_rtd = rtd_hist
+                        xvals = bin_centers
+                
+                # Interpolate rescaled RTD back to the common grid (bin_centers) before aggregating
+                interp_rescaled_rtd = np.interp(bin_centers, xvals, rescaled_rtd, left=0, right=0)
+                aggregated_rescaled_data[stim_key].append(interp_rescaled_rtd)
+            else:
+                nan_hist = np.full(len(rt_bins) - 1, np.nan)
+                aggregated_rtds[stim_key].append(nan_hist)
+                aggregated_rescaled_data[stim_key].append(nan_hist)
+
+# --- Plotting ---
+avg_output_filename = f'average_animal_rtd_plots_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}.pdf'
+with PdfPages(avg_output_filename) as pdf:
+    fig, axes = plt.subplots(2, len(abs_ILD_arr), figsize=(15, 8), sharex='col', sharey='row')
+    fig.suptitle('Average Animal RTD Analysis', fontsize=16)
+
+    for j, abs_ild in enumerate(abs_ILD_arr):
+        ax1 = axes[0, j]
+        ax2 = axes[1, j]
+
+        for abl in ABL_arr:
+            stim_key = (abl, abs_ild)
+            
+            # Plot average original RTD
+            avg_rtd = np.nanmean(np.array(aggregated_rtds[stim_key]), axis=0)
+            ax1.plot(rt_bins[:-1] + np.diff(rt_bins)/2, avg_rtd, color=abl_colors[abl], lw=1.5, label=f'ABL={abl}')
+
+            # Plot average rescaled RTD
+            avg_rescaled_rtd = np.nanmean(np.array(aggregated_rescaled_data[stim_key]), axis=0)
+            ax2.plot(rt_bins[:-1] + np.diff(rt_bins)/2, avg_rescaled_rtd, color=abl_colors[abl], lw=1.5)
+
+        ax1.set_title(f'|ILD|={abs_ild}')
+        ax1.set_xlim(0, 0.7)
+        if j == 0: ax1.set_ylabel('Density')
+        
+        ax2.set_xlim(0, 0.7)
+        ax2.set_xlabel('RT (s)')
+        if j == 0: ax2.set_ylabel('Density (Rescaled)')
+
+    axes[0, 0].legend()
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    pdf.savefig(fig)
+    plt.close(fig)
+
+print(f'Average plot PDF saved to {avg_output_filename}')
+
