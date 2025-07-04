@@ -8,6 +8,7 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 import pickle
 from matplotlib.backends.backend_pdf import PdfPages
+from sklearn.neighbors import KernelDensity
 
 # %%
 DESIRED_BATCHES = ['SD', 'LED2', 'LED1', 'LED34', 'LED6', 'LED8', 'LED7']
@@ -67,7 +68,8 @@ def get_animal_RTD_data(batch_name, animal_id, ABL, abs_ILD, bins):
 # params
 ABL_arr = [20, 40, 60]
 abs_ILD_arr = [1, 2, 4, 8, 16]
-rt_bins = np.arange(0, 1.02, 0.02)
+rt_bin_size = 0.02
+rt_bins = np.arange(0, 1 + rt_bin_size, rt_bin_size)
 min_RT_cut = 0.09
 max_RT_cut = 0.3
 # %%
@@ -100,7 +102,8 @@ print(f"Completed processing {len(rtd_data)} batch-animal pairs")
 
 # %% 
 abl_colors = {20: 'tab:blue', 40: 'tab:orange', 60: 'tab:green'}
-output_filename = f'animal_specific_rtd_plots_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}.pdf'
+output_filename = f'animal_specific_rtd_plots_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
+all_fit_results = {}
 
 with PdfPages(output_filename) as pdf:
     for batch_animal_pair, animal_data in rtd_data.items():
@@ -215,6 +218,9 @@ with PdfPages(output_filename) as pdf:
             for ax in axes[i, :]:
                 ax.set_ylim(min_y, max_y)
 
+        # Store the fit results for this animal before plotting
+        all_fit_results[batch_animal_pair] = fit_results
+
         axes[0, 0].legend()
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         pdf.savefig(fig)
@@ -305,7 +311,7 @@ for batch_animal_pair, animal_data in tqdm(rtd_data.items(), desc="Aggregating d
                 aggregated_rescaled_data[stim_key].append(nan_hist)
 
 # --- Plotting ---
-avg_output_filename = f'average_animal_rtd_plots_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}.pdf'
+avg_output_filename = f'average_animal_rtd_plots_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
 with PdfPages(avg_output_filename) as pdf:
     fig, axes = plt.subplots(2, len(abs_ILD_arr), figsize=(15, 8), sharex='col', sharey='row')
     fig.suptitle('Average Animal RTD Analysis', fontsize=16)
@@ -340,3 +346,228 @@ with PdfPages(avg_output_filename) as pdf:
 
 print(f'Average plot PDF saved to {avg_output_filename}')
 
+# %%
+
+# --- Plotting with KDE (Epanechnikov) ---
+
+kde_output_filename = f'average_animal_rtd_plots_KDE_Epanechnikov_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
+with PdfPages(kde_output_filename) as pdf:
+    fig, axes = plt.subplots(2, len(abs_ILD_arr), figsize=(15, 8), sharex='col', sharey='row')
+    fig.suptitle('Average Animal RTDs (Epanechnikov KDE)', fontsize=16)
+
+    x_grid = np.arange(0, 0.7, 0.001).reshape(-1, 1)
+    bandwidth = 0.09
+
+    for j, abs_ild in enumerate(abs_ILD_arr):
+        ax1 = axes[0, j]
+        ax2 = axes[1, j]
+
+        for abl in ABL_arr:
+            stim_key = (abl, abs_ild)
+            bin_centers = rt_bins[:-1] + np.diff(rt_bins)/2
+            
+            # --- Original RTD KDE ---
+            avg_rtd = np.nanmean(np.array(aggregated_rtds[stim_key]), axis=0)
+            valid_indices = ~np.isnan(avg_rtd)
+            if np.count_nonzero(valid_indices) > 1:
+                filtered_centers = bin_centers[valid_indices].reshape(-1, 1)
+                filtered_weights = avg_rtd[valid_indices]
+                if np.sum(filtered_weights) > 1e-6:
+                    try:
+                        kde = KernelDensity(kernel='epanechnikov', bandwidth=bandwidth)
+                        kde.fit(filtered_centers, sample_weight=filtered_weights)
+                        log_dens = kde.score_samples(x_grid)
+                        kde_y = np.exp(log_dens)
+                        # Normalize the density to ensure area is 1
+                        kde_y /= np.trapz(kde_y, x_grid.ravel())
+                        ax1.plot(x_grid.ravel(), kde_y, color=abl_colors[abl], lw=1.5, label=f'ABL={abl}')
+                    except Exception as e:
+                        print(f"KDE failed for original {stim_key}: {e}. Plotting original.")
+                        ax1.plot(bin_centers, avg_rtd, color=abl_colors[abl], lw=1.5, label=f'ABL={abl}')
+            
+            # --- Rescaled RTD KDE ---
+            avg_rescaled_rtd = np.nanmean(np.array(aggregated_rescaled_data[stim_key]), axis=0)
+            valid_indices_rescaled = ~np.isnan(avg_rescaled_rtd)
+            if np.count_nonzero(valid_indices_rescaled) > 1:
+                filtered_centers_rescaled = bin_centers[valid_indices_rescaled].reshape(-1, 1)
+                filtered_weights_rescaled = avg_rescaled_rtd[valid_indices_rescaled]
+                if np.sum(filtered_weights_rescaled) > 1e-6:
+                    try:
+                        kde_rescaled = KernelDensity(kernel='epanechnikov', bandwidth=bandwidth)
+                        kde_rescaled.fit(filtered_centers_rescaled, sample_weight=filtered_weights_rescaled)
+                        log_dens_rescaled = kde_rescaled.score_samples(x_grid)
+                        kde_y_rescaled = np.exp(log_dens_rescaled)
+                        # Normalize the density
+                        kde_y_rescaled /= np.trapz(kde_y_rescaled, x_grid.ravel())
+                        ax2.plot(x_grid.ravel(), kde_y_rescaled, color=abl_colors[abl], lw=1.5)
+                    except Exception as e:
+                        print(f"KDE failed for rescaled {stim_key}: {e}. Plotting original.")
+                        ax2.plot(bin_centers, avg_rescaled_rtd, color=abl_colors[abl], lw=1.5)
+
+        ax1.set_title(f'|ILD|={abs_ild}')
+        ax1.set_xlim(0, 0.7)
+        ax1.set_ylim(0,6)
+        if j == 0: ax1.set_ylabel('Density (KDE)')
+        
+        ax2.set_xlim(0, 0.7)
+        ax2.set_ylim(0,6)
+        ax2.set_xlabel('RT (s)')
+        if j == 0: ax2.set_ylabel('Density (Rescaled, KDE)')
+
+    # Sync y-axes for each row
+    for i in range(2):
+        max_ylim = 0
+        for j in range(len(abs_ILD_arr)):
+            max_ylim = max(max_ylim, axes[i, j].get_ylim()[1])
+        for j in range(len(abs_ILD_arr)):
+            axes[i, j].set_ylim(0, max_ylim)
+
+    axes[0, 0].legend()
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    pdf.savefig(fig)
+    plt.close(fig)
+
+print(f'KDE plot PDF saved to {kde_output_filename}')
+
+# %% 
+
+# =============================================================================
+# NEW: Aggregate RAW data across all animals and run KDE on the raw data
+# This is the methodologically correct way to perform KDE, as it avoids
+# artifacts from binning and uses the true underlying data.
+# =============================================================================
+
+import pandas as pd
+from collections import defaultdict
+
+# Dictionaries to hold the raw data points for each condition
+aggregated_raw_rts = defaultdict(list)
+aggregated_raw_rescaled_rts = defaultdict(list)
+
+print("Aggregating raw RT data from all animals...")
+# Loop through all animal/batch pairs that were processed
+for batch_animal_pair in tqdm(rtd_data.keys(), desc="Loading Raw RTs"):
+    batch_name, animal_id_str = batch_animal_pair
+    animal_id = int(animal_id_str)
+
+    # Load the corresponding CSV
+    csv_path = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
+    try:
+        df_animal = pd.read_csv(csv_path)
+        # Filter for the specific animal and for valid trials
+        df_animal = df_animal[(df_animal['animal'] == animal_id) & (df_animal['success'].isin([1, -1]))]
+    except FileNotFoundError:
+        print(f"Warning: Could not find {csv_path}. Skipping.")
+        continue
+
+    # Get the fit results (slopes) for this animal
+    animal_fit_results = all_fit_results.get(batch_animal_pair, {})
+
+    for abs_ild in abs_ILD_arr:
+        # Create a copy for filtering
+        df_animal['abs_ILD'] = np.abs(df_animal['ILD'])
+        df_animal_ild = df_animal[df_animal['abs_ILD'] == abs_ild].copy()
+        
+        for abl in ABL_arr:
+            stim_key = (abl, abs_ild)
+            
+            # Filter for ABL
+            df_stim = df_animal_ild[df_animal_ild['ABL'] == abl]
+            
+            # Get raw RTs and filter them consistent with the original analysis.
+            # The original code uses all RTs in the [0, 1] range for histograms.
+            # min_RT_cut is for the scaling transformation, not for pre-filtering the data.
+            raw_rts = df_stim['RTwrtStim'].dropna().values
+            valid_rts = raw_rts[(raw_rts >= 0) & (raw_rts <= 1)]
+            
+            if len(valid_rts) > 0:
+                # --- Aggregate Original RTs ---
+                aggregated_raw_rts[stim_key].extend(valid_rts)
+
+                # --- Aggregate Rescaled RTs ---
+                # Get the slope for this condition
+                slope = 0  # Default for ABL 60
+                if abl != 60:
+                    try:
+                        slope = animal_fit_results[abs_ild][abl]['slope']
+                        if np.isnan(slope): slope = 0
+                    except (KeyError, TypeError):
+                        raise Exception(f"Slope not found for ABL={abl}, abs_ILD={abs_ild}")
+                        slope = 0 # If slope wasn't calculated, treat as 0
+                
+                # Rescale the valid RTs and add them to the list, using the correct formula
+                if (1 + slope) != 0:
+                    rescaled_rts = ((valid_rts - min_RT_cut) / (1 + slope)) + min_RT_cut
+                    aggregated_raw_rescaled_rts[stim_key].extend(rescaled_rts)
+                else:
+                    # If slope is -1, rescaling is undefined; add the original rts
+                    aggregated_raw_rescaled_rts[stim_key].extend(valid_rts)
+
+# --- Plotting with KDE on RAW DATA ---
+kde_output_filename_raw = f'average_animal_rtd_plots_KDE_RAW_DATA_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
+with PdfPages(kde_output_filename_raw) as pdf:
+    fig, axes = plt.subplots(2, len(abs_ILD_arr), figsize=(15, 8), sharex='col', sharey='row')
+    fig.suptitle('Average Animal RTDs (KDE on Raw Data)', fontsize=16)
+
+    x_grid = np.arange(0, 0.7, 0.001).reshape(-1, 1)
+    bandwidth = 0.02 # Resetting to a more reasonable default after changing method
+
+    for j, abs_ild in enumerate(abs_ILD_arr):
+        ax1 = axes[0, j]
+        ax2 = axes[1, j]
+
+        for abl in ABL_arr:
+            stim_key = (abl, abs_ild)
+            
+            # --- Original RTD KDE from Raw Data ---
+            all_raw_rts = np.array(aggregated_raw_rts.get(stim_key, [])).reshape(-1, 1)
+            if all_raw_rts.shape[0] > 1:
+                try:
+                    kde = KernelDensity(kernel='epanechnikov', bandwidth=bandwidth)
+                    kde.fit(all_raw_rts)
+                    log_dens = kde.score_samples(x_grid)
+                    kde_y = np.exp(log_dens)
+                    kde_y /= np.trapz(kde_y, x_grid.ravel())
+                    ax1.plot(x_grid.ravel(), kde_y, color=abl_colors[abl], lw=1.5, label=f'ABL={abl}')
+                except Exception as e:
+                    print(f"KDE failed for original {stim_key}: {e}")
+
+            # --- Rescaled RTD KDE from Raw Data ---
+            all_rescaled_rts = np.array(aggregated_raw_rescaled_rts.get(stim_key, [])).reshape(-1, 1)
+            if all_rescaled_rts.shape[0] > 1:
+                try:
+                    kde_rescaled = KernelDensity(kernel='epanechnikov', bandwidth=bandwidth)
+                    kde_rescaled.fit(all_rescaled_rts)
+                    log_dens_rescaled = kde_rescaled.score_samples(x_grid)
+                    kde_y_rescaled = np.exp(log_dens_rescaled)
+                    kde_y_rescaled /= np.trapz(kde_y_rescaled, x_grid.ravel())
+                    ax2.plot(x_grid.ravel(), kde_y_rescaled, color=abl_colors[abl], lw=1.5)
+                except Exception as e:
+                    print(f"KDE failed for rescaled {stim_key}: {e}")
+
+        ax1.set_title(f'|ILD|={abs_ild}')
+        ax1.set_xlim(0, 0.7)
+        if j == 0: ax1.set_ylabel('Density (KDE)')
+        
+        ax2.set_xlim(0, 0.7)
+        ax2.set_xlabel('RT (s)')
+        if j == 0: ax2.set_ylabel('Density (Rescaled, KDE)')
+
+    # Sync y-axes for each row
+    for i in range(2):
+        max_ylim = 0
+        for ax in axes[i, :]:
+            if ax.get_ylim()[1] > max_ylim:
+                max_ylim = ax.get_ylim()[1]
+        for ax in axes[i, :]:
+            ax.set_ylim(0, max_ylim * 1.1)
+    
+    axes[0, 0].legend()
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    pdf.savefig(fig)
+    plt.close(fig)
+
+print(f'KDE plot PDF saved to {kde_output_filename_raw}')
+
+
+# %%
