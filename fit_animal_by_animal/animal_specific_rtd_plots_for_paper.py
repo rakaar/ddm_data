@@ -512,7 +512,7 @@ with PdfPages(kde_output_filename_raw) as pdf:
     fig.suptitle('Average Animal RTDs (KDE on Raw Data)', fontsize=16)
 
     x_grid = np.arange(-0.1, 1, 0.001).reshape(-1, 1)
-    bandwidth = 0.02 # Resetting to a more reasonable default after changing method
+    bandwidth = 0.001 # Resetting to a more reasonable default after changing method
 
     for j, abs_ild in enumerate(abs_ILD_arr):
         ax1 = axes[0, j]
@@ -576,4 +576,3 @@ print(f'KDE plot PDF saved to {kde_output_filename_raw}')
 
 
 # %%
-# 
