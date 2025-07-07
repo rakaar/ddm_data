@@ -509,7 +509,7 @@ with PdfPages(kde_output_filename_raw) as pdf:
     fig, axes = plt.subplots(2, len(abs_ILD_arr), figsize=(15, 8), sharex='col', sharey='row')
     fig.suptitle('Average Animal RTDs (KDE on Raw Data)', fontsize=16)
 
-    x_grid = np.arange(0, 0.7, 0.001).reshape(-1, 1)
+    x_grid = np.arange(0, 1, 0.001).reshape(-1, 1)
     bandwidth = 0.02 # Resetting to a more reasonable default after changing method
 
     for j, abs_ild in enumerate(abs_ILD_arr):
@@ -524,7 +524,10 @@ with PdfPages(kde_output_filename_raw) as pdf:
             if all_raw_rts.shape[0] > 1:
                 try:
                     kde = KernelDensity(kernel='epanechnikov', bandwidth=bandwidth)
+                    # giving it raw data, so that it learns distribution from raw data
+                    # it learns the cont basis functions params
                     kde.fit(all_raw_rts)
+                    # convert the continous basis on x_grid to plot
                     log_dens = kde.score_samples(x_grid)
                     kde_y = np.exp(log_dens)
                     kde_y /= np.trapz(kde_y, x_grid.ravel())
@@ -571,3 +574,4 @@ print(f'KDE plot PDF saved to {kde_output_filename_raw}')
 
 
 # %%
+# 
