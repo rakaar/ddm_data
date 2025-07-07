@@ -13,6 +13,7 @@ from sklearn.neighbors import KernelDensity
 
 # %%
 DESIRED_BATCHES = ['SD', 'LED2', 'LED1', 'LED34', 'LED6', 'LED8', 'LED7']
+# DESIRED_BATCHES = ['LED2', 'LED1', 'LED34', 'LED6', 'LED8', 'LED7']
 
 # Base directory paths
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -119,52 +120,61 @@ n_cols = 5
 n_rows = int(np.ceil(n_animals / n_cols))
 
 fig, axes = plt.subplots(n_rows, n_cols, figsize=(n_cols * 4, n_rows * 3.5), squeeze=False)
-axes = axes.flatten() # Flatten to make it easier to iterate
 
-for i, result in enumerate(valid_results):
-    ax = axes[i]
-    batch_animal_pair, chrono_data = result
-    batch_name, animal_id = batch_animal_pair
+for r in range(n_rows):
+    row_max_rt = 0
+    # First pass for the row to find the max RT
+    for c in range(n_cols):
+        i = r * n_cols + c
+        if i < n_animals:
+            _, chrono_data = valid_results[i]
+            if not chrono_data.empty:
+                row_max_rt = max(row_max_rt, chrono_data['mean'].max())
 
-    # Sort by ABL to ensure consistent legend order
-    for abl in sorted(chrono_data['ABL'].unique()):
-        if abl not in abl_colors:
-            continue
-        
-        abl_data = chrono_data[chrono_data['ABL'] == abl].sort_values('abs_ILD')
-        
-        ax.errorbar(
-            x=abl_data['abs_ILD'], 
-            y=abl_data['mean'], 
-            yerr=abl_data['sem'],
-            fmt='o-',
-            color=abl_colors[abl],
-            label=f'{int(abl)} dB',
-            capsize=0, 
-            markersize=4,
-            linewidth=1.5
-        )
-        
-    ax.set_xlabel('Absolute ILD (dB)')
-    if i % n_cols == 0: # Only show y-label on the first column
-        ax.set_ylabel('Mean RT (s)')
+    # Second pass to plot and set uniform y-axis for the row
+    for c in range(n_cols):
+        i = r * n_cols + c
+        ax = axes[r, c]
+        if i < n_animals:
+            result = valid_results[i]
+            batch_animal_pair, chrono_data = result
+            batch_name, animal_id = batch_animal_pair
 
-    ax.set_title(f'Animal {animal_id} ({batch_name})', fontsize=10)
-    ax.legend(title='ABL', fontsize='x-small')
-    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
-    
-    ax.set_xscale('log')
-    ax.set_xticks(abs_ild_ticks)
-    ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax.tick_params(axis='x', labelsize=8)
+            # Sort by ABL to ensure consistent legend order
+            for abl in sorted(chrono_data['ABL'].unique()):
+                if abl not in abl_colors:
+                    continue
+                
+                abl_data = chrono_data[chrono_data['ABL'] == abl].sort_values('abs_ILD')
+                
+                ax.errorbar(
+                    x=abl_data['abs_ILD'], 
+                    y=abl_data['mean'], 
+                    yerr=abl_data['sem'],
+                    fmt='o-',
+                    color=abl_colors[abl],
+                    label=f'{int(abl)} dB',
+                    capsize=0, 
+                    markersize=4,
+                    linewidth=1.5
+                )
+            
+            ax.set_xlabel('Absolute ILD (dB)')
+            if c == 0: # Only show y-label on the first column of each row
+                ax.set_ylabel('Mean RT (s)')
 
-    if not chrono_data.empty:
-        max_rt = chrono_data['mean'].max()
-        ax.set_ylim(bottom=0, top=max_rt * 1.15)
+            ax.set_title(f'Animal {animal_id} ({batch_name})', fontsize=10)
+            ax.legend(title='ABL', fontsize='x-small')
+            
+            ax.set_xscale('log')
+            ax.set_xticks(abs_ild_ticks)
+            ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+            ax.tick_params(axis='x', labelsize=8)
 
-# Hide unused subplots
-for j in range(i + 1, len(axes)):
-    axes[j].set_visible(False)
+            if row_max_rt > 0:
+                ax.set_ylim(bottom=0, top=row_max_rt * 1.15)
+        else:
+            ax.set_visible(False) # Hide unused subplots
 
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 fig.suptitle('Chronometric Curves for All Animals', fontsize=16)
@@ -175,3 +185,4 @@ plt.savefig(output_filename, dpi=300, bbox_inches='tight')
 plt.close(fig)
 
 print(f"All chronometric plots saved in a single file: '{output_filename}'.")
+# %%
