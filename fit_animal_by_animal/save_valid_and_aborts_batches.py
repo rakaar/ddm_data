@@ -5,6 +5,10 @@ import random
 
 # List of batches to process (excluding 'Comparable' and any LED.csv)
 
+# Flag to include abort_event == 4. If True, abort_event==4 will be included and
+# the output filename will be suffixed with '_and_4'.
+INCLUDE_ABORT_EVENT_4 = True
+
 # Map batch to file
 batch_file_map = {
     'SD': '../outExp.csv',
@@ -112,14 +116,27 @@ for batch_name in batch_names:
         raise ValueError(f"Unknown batch_name: {batch_name}")
 
     # Get only valid and aborts
-    df_valid_and_aborts = exp_df_batch[
-        (exp_df_batch['success'].isin([1, -1])) |
-        (exp_df_batch['abort_event'] == 3)
-    ].copy()
+    if INCLUDE_ABORT_EVENT_4:
+        print("Including abort_event == 4")
+        df_valid_and_aborts = exp_df_batch[
+            (exp_df_batch['success'].isin([1, -1])) |
+            (exp_df_batch['abort_event'].isin([3, 4]))
+        ].copy()
+    else:
+        print("Excluding abort_event == 4")
+        df_valid_and_aborts = exp_df_batch[
+            (exp_df_batch['success'].isin([1, -1])) |
+            (exp_df_batch['abort_event'] == 3)
+        ].copy()
 
-    # Save to CSV
-    out_path = os.path.join(output_dir, f'batch_{batch_name}_valid_and_aborts.csv')
-    df_valid_and_aborts.to_csv(out_path, index=False)
-    print(f'Saved {out_path} ({len(df_valid_and_aborts)} rows)')
+    # Save the dataframe
+    if INCLUDE_ABORT_EVENT_4:
+        csv_filename = os.path.join(
+            output_dir, f'batch_{batch_name}_valid_and_aborts_and_4.csv')
+    else:
+        csv_filename = os.path.join(
+            output_dir, f'batch_{batch_name}_valid_and_aborts.csv')
+    df_valid_and_aborts.to_csv(csv_filename, index=False)
+    print(f'Saved {csv_filename} ({len(df_valid_and_aborts)} rows)')
 
 print('Done!')

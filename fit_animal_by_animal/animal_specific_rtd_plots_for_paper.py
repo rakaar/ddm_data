@@ -10,6 +10,19 @@ import pickle
 from matplotlib.backends.backend_pdf import PdfPages
 from sklearn.neighbors import KernelDensity
 
+# Flag to include abort_event == 4. If True, data with these aborts is loaded
+# and filenames are updated accordingly.
+INCLUDE_ABORT_EVENT_4 = True
+
+if INCLUDE_ABORT_EVENT_4:
+    CSV_SUFFIX = '_and_4'
+    ABORT_EVENTS = [3, 4]
+    FILENAME_SUFFIX = '_with_abort4'
+else:
+    CSV_SUFFIX = ''
+    ABORT_EVENTS = [3]
+    FILENAME_SUFFIX = ''
+
 # %%
 DESIRED_BATCHES = ['SD', 'LED2', 'LED1', 'LED34', 'LED6', 'LED8', 'LED7']
 
@@ -42,7 +55,7 @@ print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}
 
 # %%
 def get_animal_RTD_data(batch_name, animal_id, ABL, abs_ILD, bins):
-    file_name = os.path.join(csv_dir, f'batch_{batch_name}_valid_and_aborts.csv')
+    file_name = os.path.join(csv_dir, f'batch_{batch_name}_valid_and_aborts{CSV_SUFFIX}.csv')
     try:
         df = pd.read_csv(file_name)
     except FileNotFoundError:
@@ -102,7 +115,7 @@ print(f"Completed processing {len(rtd_data)} batch-animal pairs")
 
 # %% 
 abl_colors = {20: 'tab:blue', 40: 'tab:orange', 60: 'tab:green'}
-output_filename = f'animal_specific_rtd_plots_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
+output_filename = f'animal_specific_rtd_plots{FILENAME_SUFFIX}_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
 all_fit_results = {}
 
 with PdfPages(output_filename) as pdf:
@@ -311,7 +324,7 @@ for batch_animal_pair, animal_data in tqdm(rtd_data.items(), desc="Aggregating d
                 aggregated_rescaled_data[stim_key].append(nan_hist)
 
 # --- Plotting ---
-avg_output_filename = f'average_animal_rtd_plots_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
+avg_output_filename = f'average_animal_rtd_plots{FILENAME_SUFFIX}_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
 with PdfPages(avg_output_filename) as pdf:
     fig, axes = plt.subplots(2, len(abs_ILD_arr), figsize=(15, 8), sharex='col', sharey='row')
     fig.suptitle('Average Animal RTD Analysis', fontsize=16)
@@ -346,11 +359,12 @@ with PdfPages(avg_output_filename) as pdf:
 
 print(f'Average plot PDF saved to {avg_output_filename}')
 
-# %%
-
 # --- Plotting with KDE (Epanechnikov) ---
 
-kde_output_filename = f'average_animal_rtd_plots_KDE_Epanechnikov_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
+
+
+kde_output_filename = f'average_animal_rtd_plots_KDE_Epanechnikov{FILENAME_SUFFIX}_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
+
 with PdfPages(kde_output_filename) as pdf:
     fig, axes = plt.subplots(2, len(abs_ILD_arr), figsize=(15, 8), sharex='col', sharey='row')
     fig.suptitle('Average Animal RTDs (Epanechnikov KDE)', fontsize=16)
@@ -364,7 +378,6 @@ with PdfPages(kde_output_filename) as pdf:
 
         for abl in ABL_arr:
             stim_key = (abl, abs_ild)
-            bin_centers = rt_bins[:-1] + np.diff(rt_bins)/2
             
             # --- Original RTD KDE ---
             avg_rtd = np.nanmean(np.array(aggregated_rtds[stim_key]), axis=0)
@@ -451,11 +464,11 @@ for batch_animal_pair in tqdm(rtd_data.keys(), desc="Loading Raw RTs"):
     animal_id = int(animal_id_str)
 
     # Load the corresponding CSV
-    csv_path = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
+    csv_path = f'batch_csvs/batch_{batch_name}_valid_and_aborts{CSV_SUFFIX}.csv'
     try:
         df_animal = pd.read_csv(csv_path)
         # Filter for the specific animal and for valid trials & aborts
-        df_animal = df_animal[(df_animal['animal'] == animal_id) & ((df_animal['abort_event'] == 3) | (df_animal['success'].isin([1,-1])))]
+        df_animal = df_animal[(df_animal['animal'] == animal_id) & ((df_animal['abort_event'].isin(ABORT_EVENTS)) | (df_animal['success'].isin([1,-1])))]
 
     except FileNotFoundError:
         print(f"Warning: Could not find {csv_path}. Skipping.")
@@ -501,7 +514,7 @@ for batch_animal_pair in tqdm(rtd_data.keys(), desc="Loading Raw RTs"):
                     # aggregated_raw_rescaled_rts[stim_key].extend(valid_rts)
 
 # --- Plotting with KDE on RAW DATA ---
-kde_output_filename_raw = f'average_animal_rtd_plots_KDE_RAW_DATA_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
+kde_output_filename_raw = f'average_animal_rtd_plots_KDE_RAW_DATA{FILENAME_SUFFIX}_min_RT_{min_RT_cut}_max_RT_{max_RT_cut}_bin_size_{rt_bin_size}.pdf'
 with PdfPages(kde_output_filename_raw) as pdf:
     fig, axes = plt.subplots(2, len(abs_ILD_arr), figsize=(15, 8), sharex='col', sharey='row')
     fig.suptitle('Average Animal RTDs (KDE on Raw Data)', fontsize=16)
@@ -647,11 +660,11 @@ for i, (batch_name, animal_id_str) in enumerate(tqdm(batch_animal_pairs, desc="P
     axes[i, 0].set_ylabel(f"Animal {animal_id}\n({batch_name})", fontsize=9)
 
     # Load the corresponding CSV data for the animal's batch
-    csv_path = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
+    csv_path = f'batch_csvs/batch_{batch_name}_valid_and_aborts{CSV_SUFFIX}.csv'
     try:
         df_full = pd.read_csv(csv_path)
         # Filter for the specific animal and for both valid and abort trials
-        df_animal = df_full[(df_full['animal'] == animal_id) & ((df_full['abort_event'] == 3) | (df_full['success'].isin([1, -1])))]
+        df_animal = df_full[(df_full['animal'] == animal_id) & ((df_full['abort_event'].isin(ABORT_EVENTS)) | (df_full['success'].isin([1, -1])))]
         df_animal['abs_ILD'] = np.abs(df_animal['ILD'])
     except FileNotFoundError:
         print(f"Warning: Could not find {csv_path} for animal {animal_id}. Skipping row.")
@@ -737,10 +750,10 @@ for animal_id in tqdm(animal_ids_in_order, desc="Calculating Window Densities (A
         continue
 
     # Load the corresponding CSV data
-    csv_path = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
+    csv_path = f'batch_csvs/batch_{batch_name}_valid_and_aborts{CSV_SUFFIX}.csv'
     try:
         df_full = pd.read_csv(csv_path)
-        df_animal = df_full[(df_full['animal'] == animal_id) & ((df_full['abort_event'] == 3) | (df_full['success'].isin([1, -1])))]
+        df_animal = df_full[(df_full['animal'] == animal_id) & ((df_full['abort_event'].isin(ABORT_EVENTS)) | (df_full['success'].isin([1, -1])))]
         df_animal['abs_ILD'] = np.abs(df_animal['ILD'])
     except FileNotFoundError:
         continue
@@ -805,3 +818,11 @@ plt.tight_layout(rect=[0.02, 0.03, 1, 0.95])
 plt.show()
 
 # %%
+##### Check abort types #####
+df_7 = pd.read_csv('../out_LED.csv')
+df_7['abort_event'].unique()
+df_7_abort_4 = df_7[df_7['abort_event'] == 4]
+# RTs of aborts
+df_7_abort_4.loc[:, 'RTwrtStim'] = (df_7_abort_4['timed_fix'] - df_7_abort_4['intended_fix']).copy()
+print(f"min RTwrtStim: {1000*df_7_abort_4['RTwrtStim'].min():.2f} ms, max RTwrtStim: {1000*df_7_abort_4['RTwrtStim'].max():.2f} ms")
+# min RTwrtStim: 0.00 ms, max RTwrtStim: 9.76 ms
