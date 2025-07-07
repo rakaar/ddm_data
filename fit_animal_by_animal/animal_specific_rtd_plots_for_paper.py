@@ -455,7 +455,9 @@ for batch_animal_pair in tqdm(rtd_data.keys(), desc="Loading Raw RTs"):
     try:
         df_animal = pd.read_csv(csv_path)
         # Filter for the specific animal and for valid trials
-        df_animal = df_animal[(df_animal['animal'] == animal_id) & (df_animal['success'].isin([1, -1]))]
+        # df_animal = df_animal[(df_animal['animal'] == animal_id) & (df_animal['success'].isin([1, -1]))]
+        df_animal = df_animal[(df_animal['animal'] == animal_id) & ((df_animal['abort_event'] == 3) | (df_animal['success'].isin([1,-1])))]
+
     except FileNotFoundError:
         print(f"Warning: Could not find {csv_path}. Skipping.")
         continue
@@ -478,7 +480,7 @@ for batch_animal_pair in tqdm(rtd_data.keys(), desc="Loading Raw RTs"):
             # The original code uses all RTs in the [0, 1] range for histograms.
             # min_RT_cut is for the scaling transformation, not for pre-filtering the data.
             raw_rts = df_stim['RTwrtStim'].dropna().values
-            valid_rts = raw_rts[(raw_rts >= 0) & (raw_rts <= 1)]
+            valid_rts = raw_rts[(raw_rts >= -0.1) & (raw_rts <= 1)]
             
             if len(valid_rts) > 0:
                 # --- Aggregate Original RTs ---
@@ -509,7 +511,7 @@ with PdfPages(kde_output_filename_raw) as pdf:
     fig, axes = plt.subplots(2, len(abs_ILD_arr), figsize=(15, 8), sharex='col', sharey='row')
     fig.suptitle('Average Animal RTDs (KDE on Raw Data)', fontsize=16)
 
-    x_grid = np.arange(0, 1, 0.001).reshape(-1, 1)
+    x_grid = np.arange(-0.1, 1, 0.001).reshape(-1, 1)
     bandwidth = 0.02 # Resetting to a more reasonable default after changing method
 
     for j, abs_ild in enumerate(abs_ILD_arr):
@@ -549,10 +551,10 @@ with PdfPages(kde_output_filename_raw) as pdf:
                     print(f"KDE failed for rescaled {stim_key}: {e}")
 
         ax1.set_title(f'|ILD|={abs_ild}')
-        ax1.set_xlim(0, 0.7)
+        ax1.set_xlim(-0.1, 0.7)
         if j == 0: ax1.set_ylabel('Density (KDE)')
         
-        ax2.set_xlim(0, 0.7)
+        ax2.set_xlim(-0.1, 0.7)
         ax2.set_xlabel('RT (s)')
         if j == 0: ax2.set_ylabel('Density (Rescaled, KDE)')
 
