@@ -212,7 +212,7 @@ with PdfPages(output_filename) as pdf:
                     else:
                         slope = fit_results[abs_ild].get(abl, {}).get('slope')
                         if slope is not None and not np.isnan(slope) and (slope + 1) != 0:
-                            xvals = ((bin_centers - min_RT_cut) / (1 + slope)) + min_RT_cut
+                            xvals = np.where(bin_centers > min_RT_cut, ((bin_centers - min_RT_cut) / (1 + slope)) + min_RT_cut, bin_centers)
                             multiplier = np.ones_like(rtd_hist)
                             multiplier[bin_centers > min_RT_cut] = slope + 1
                             rescaled_rtd = rtd_hist * multiplier
@@ -307,7 +307,7 @@ for batch_animal_pair, animal_data in tqdm(rtd_data.items(), desc="Aggregating d
                 else:
                     slope = fit_results[abs_ild].get(abl, {}).get('slope')
                     if slope is not None and not np.isnan(slope) and (slope + 1) != 0:
-                        xvals = ((bin_centers - min_RT_cut) / (1 + slope)) + min_RT_cut
+                        xvals = np.where(bin_centers > min_RT_cut, ((bin_centers - min_RT_cut) / (1 + slope)) + min_RT_cut, bin_centers)
                         multiplier = np.ones_like(rtd_hist)
                         multiplier[bin_centers > min_RT_cut] = slope + 1
                         rescaled_rtd = rtd_hist * multiplier
@@ -506,7 +506,7 @@ for batch_animal_pair in tqdm(rtd_data.keys(), desc="Loading Raw RTs"):
                 
                 # Rescale the valid RTs and add them to the list, using the correct formula
                 if (1 + slope) != 0:
-                    rescaled_rts = ((valid_rts - min_RT_cut) / (1 + slope)) + min_RT_cut
+                    rescaled_rts = np.where(valid_rts > min_RT_cut, ((valid_rts - min_RT_cut) / (1 + slope)) + min_RT_cut, valid_rts)
                     aggregated_raw_rescaled_rts[stim_key].extend(rescaled_rts)
                 else:
                     # If slope is -1, rescaling is undefined

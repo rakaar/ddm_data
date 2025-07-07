@@ -49,3 +49,5 @@
 # Fig 1 
 - `animal_specific_rtd_plots_for_paper.py` - RTD plots, Q-Q plots, rescaled RTD
 - `rtd_scaling_for_paper.py` - average RTD, averaged Q-Q plots, averaged rescaled RTD
+- `animal_specific_rtd_plots_for_paper.py` - RTDs original, rescaled on raw KDE data section
+- `animal_specific_chronometric_for_paper.py` - Chronometric plots - animal wise and average
