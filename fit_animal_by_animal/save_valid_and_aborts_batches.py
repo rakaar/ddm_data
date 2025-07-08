@@ -7,32 +7,32 @@ import random
 
 # Flag to include abort_event == 4. If True, abort_event==4 will be included and
 # the output filename will be suffixed with '_and_4'.
-INCLUDE_ABORT_EVENT_4 = False
+INCLUDE_ABORT_EVENT_4 = True
 
 # Map batch to file
-# batch_file_map = {
-#     'SD': '../outExp.csv',
-#     'LED1': '../outExp.csv',
-#     'LED2': '../outExp.csv',
-#     'LED34': '../outExp.csv',
-#     'Comparable': '../outExp.csv',
-#     'LED6': '../outExp.csv',
-#     'LED7': '../out_LED.csv',
-#     'LED8': '../outLED8.csv',
-#     'LED34_even': '../outExp.csv' 
-# }
-
 batch_file_map = {
-    # 'SD': '../outExp.csv',
-    # 'LED1': '../outExp.csv',
-    # 'LED2': '../outExp.csv',
-    # 'LED34': '../outExp.csv',
-    # 'Comparable': '../outExp.csv',
-    # 'LED6': '../outExp.csv',
-    # 'LED7': '../out_LED.csv',
-    # 'LED8': '../outLED8.csv',
+    'SD': '../outExp.csv',
+    'LED1': '../outExp.csv',
+    'LED2': '../outExp.csv',
+    'LED34': '../outExp.csv',
+    'Comparable': '../outExp.csv',
+    'LED6': '../outExp.csv',
+    'LED7': '../out_LED.csv',
+    'LED8': '../outLED8.csv',
     'LED34_even': '../outUni.csv' 
 }
+
+# batch_file_map = {
+#     # 'SD': '../outExp.csv',
+#     # 'LED1': '../outExp.csv',
+#     # 'LED2': '../outExp.csv',
+#     # 'LED34': '../outExp.csv',
+#     # 'Comparable': '../outExp.csv',
+#     # 'LED6': '../outExp.csv',
+#     # 'LED7': '../out_LED.csv',
+#     # 'LED8': '../outLED8.csv',
+#     'LED34_even': '../outUni.csv' 
+# }
 
 batch_names = batch_file_map.keys()
 # batch_names = ['SD', 'LED1', 'LED2', 'LED34', 'Comparable', 'LED6', 'LED7']

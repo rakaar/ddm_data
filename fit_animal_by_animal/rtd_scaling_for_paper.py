@@ -23,92 +23,109 @@ from scipy.stats import gaussian_kde
 from scipy.integrate import trapezoid
 
 # %%
-DESIRED_BATCHES = ['SD', 'LED2', 'LED1', 'LED34', 'LED6', 'LED8', 'LED7']
+# Define desired batches and paths
+DESIRED_BATCHES = ['SD', 'LED2', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even'] # Excluded LED1 as per original logic
+csv_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
 
-# Base directory paths
-base_dir = os.path.dirname(os.path.abspath(__file__))
-csv_dir = os.path.join(base_dir, 'batch_csvs')
-results_dir = base_dir  # Directory containing the pickle files
+# --- Data loading ---
+batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
+all_data_list = []
+for fname in batch_files:
+    fpath = os.path.join(csv_dir, fname)
+    if os.path.exists(fpath):
+        print(f"Loading {fpath}...")
+        all_data_list.append(pd.read_csv(fpath))
 
-def find_batch_animal_pairs():
-    pairs = []
-    pattern = os.path.join(results_dir, '../fit_animal_by_animal/results_*_animal_*.pkl')
-    pickle_files = glob.glob(pattern)
-    for pickle_file in pickle_files:
-        filename = os.path.basename(pickle_file)
-        parts = filename.split('_')
-        if len(parts) >= 4:
-            batch_index = parts.index('animal') - 1 if 'animal' in parts else 1
-            animal_index = parts.index('animal') + 1 if 'animal' in parts else 2
-            batch_name = parts[batch_index]
-            animal_id = parts[animal_index].split('.')[0]
-            if batch_name in DESIRED_BATCHES:
-                # Exclude animals 40, 41, 43 from LED2 batch and the entire LED1 batch
-                if not ((batch_name == 'LED2' and animal_id in ['40', '41', '43']) or batch_name == 'LED1'):
-                    pairs.append((batch_name, animal_id))
-        else:
-            print(f"Warning: Invalid filename format: {filename}")
-    return pairs
+if not all_data_list:
+    raise FileNotFoundError(f"No batch CSV files found for {DESIRED_BATCHES} in '{csv_dir}'")
 
-batch_animal_pairs = find_batch_animal_pairs()
+merged_data = pd.concat(all_data_list, ignore_index=True)
 
-print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
+# --- Identify valid trials and batch-animal pairs ---
+merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
+
+# Get initial pairs from CSV data
+base_pairs = set(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values))
+
+# Apply specific exclusion logic from the original script
+excluded_animals_led2 = {40, 41, 43}
+
+batch_animal_pairs = sorted([
+    (batch, animal) for batch, animal in base_pairs 
+    if not (batch == 'LED2' and animal in excluded_animals_led2)
+])
+
+# --- Print animal table for verification ---
+print(f"Found {len(batch_animal_pairs)} batch-animal pairs from {len(set(p[0] for p in batch_animal_pairs))} batches:")
+if batch_animal_pairs:
+    batch_to_animals = defaultdict(list)
+    for batch, animal in sorted(batch_animal_pairs):
+        batch_to_animals[batch].append(str(animal))
+
+    max_batch_len = max(len(b) for b in batch_to_animals.keys()) if batch_to_animals else 0
+    animal_strings = {b: ', '.join(sorted(a, key=int)) for b, a in batch_to_animals.items()}
+    max_animals_len = max(len(s) for s in animal_strings.values()) if animal_strings else 0
+
+    print(f"{'Batch':<{max_batch_len}}  {'Animals'}")
+    print(f"{'=' * max_batch_len}  {'=' * max_animals_len}")
+    for batch, animals_str in sorted(animal_strings.items()):
+        print(f"{batch:<{max_batch_len}}  {animals_str}")
 
 # %%
-def get_animal_RTD_data(batch_name, animal_id, ABL, abs_ILD, bins):
-    file_name = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
-    df = pd.read_csv(file_name)
+def get_animal_RTD_data(df, batch_name, animal_id, ABL, abs_ILD, bins):
+    """Calculates RTD from a pre-filtered DataFrame for a specific animal."""
     df['abs_ILD'] = df['ILD'].abs()
-     # J1: keep all RTs
-    # df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['ILD'] == ILD) & (df['success'].isin([1, -1]))]
-    df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['abs_ILD'] == abs_ILD) \
-        & ((df['RTwrtStim'] <= 1) & (df['RTwrtStim'] >= 0))]
     
-    n_trials = len(df)
-
+    # Filter for the specific condition
+    condition_df = df[(df['ABL'] == ABL) & (df['abs_ILD'] == abs_ILD) & (df['RTwrtStim'] >= 0) & (df['RTwrtStim'] <= 1)]
+    
+    n_trials = len(condition_df)
     bin_centers = (bins[:-1] + bins[1:]) / 2
-    if df.empty:
-        print(f"No data found for batch {batch_name}, animal {animal_id}, ABL {ABL}, abs_ILD {abs_ILD}. Returning NaNs.")
+
+    if condition_df.empty or n_trials == 0:
+        # No print statement here to avoid clutter during parallel execution
         rtd_hist = np.full_like(bin_centers, np.nan)
-        return bin_centers, rtd_hist
-    df = df[df['RTwrtStim'] <= 1]
-    if len(df) == 0:
-        print(f"No trials with RTwrtStim <= 1 for batch {batch_name}, animal {animal_id}, ABL {ABL}, abs_ILD {abs_ILD}. Returning NaNs.")
-        rtd_hist = np.full_like(bin_centers, np.nan)
-        return bin_centers, rtd_hist
-    rtd_hist, _ = np.histogram(df['RTwrtStim'], bins=bins, density=True)
+        return bin_centers, rtd_hist, n_trials
+
+    rtd_hist, _ = np.histogram(condition_df['RTwrtStim'], bins=bins, density=True)
     return bin_centers, rtd_hist, n_trials
 # %%
 ABL_arr = [20, 40, 60]
 abs_ILD_arr = [1, 2, 4, 8, 16]
 rt_bins = np.arange(0, 1.02, 0.02)  # 0 to 1 second in 0.02s bins
 
-def process_batch_animal(batch_animal_pair):
+def process_batch_animal(batch_animal_pair, animal_df):
+    """Wrapper function to process a single batch-animal pair using pre-loaded data."""
     batch_name, animal_id = batch_animal_pair
-    print(f"Processing batch {batch_name}, animal {animal_id}")
     animal_rtd_data = {}
     try:
         for abl in ABL_arr:
-            print(f"Animal = {batch_name},{animal_id}, Processing ABL {abl}")
             for abs_ild in abs_ILD_arr:
                 stim_key = (abl, abs_ild)
-                bin_centers, rtd_hist, n_trials = get_animal_RTD_data(batch_name, int(animal_id), abl, abs_ild, rt_bins)
+                # Pass the animal-specific dataframe to the processing function
+                bin_centers, rtd_hist, n_trials = get_animal_RTD_data(
+                    animal_df, batch_name, int(animal_id), abl, abs_ild, rt_bins
+                )
                 animal_rtd_data[stim_key] = {
-                        'empirical': {
-                            'bin_centers': bin_centers,
-                            'rtd_hist': rtd_hist,
-                            'n_trials': n_trials
-                        }
+                    'empirical': {
+                        'bin_centers': bin_centers,
+                        'rtd_hist': rtd_hist,
+                        'n_trials': n_trials
                     }
-                print(f"  Processed stimulus ABL={abl}, ILD={abs_ild}")
+                }
     except Exception as e:
         print(f"Error processing batch {batch_name}, animal {animal_id}: {str(e)}")
     return batch_animal_pair, animal_rtd_data
 
 # %%
-n_jobs = max(1, os.cpu_count() - 1)
+# Group data by animal for efficient parallel processing
+animal_groups = merged_valid.groupby(['batch_name', 'animal'])
+
+n_jobs = max(1, os.cpu_count() - 4) # Leave some cores free
+print(f"Processing {len(animal_groups)} animal-batch groups on {n_jobs} cores...")
+
 results = Parallel(n_jobs=n_jobs, verbose=10)(
-    delayed(process_batch_animal)(batch_animal_pair) for batch_animal_pair in batch_animal_pairs
+    delayed(process_batch_animal)(name, group) for name, group in animal_groups if name in batch_animal_pairs
 )
 rtd_data = {}
 for batch_animal_pair, animal_rtd_data in results:
