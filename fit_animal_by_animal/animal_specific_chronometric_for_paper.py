@@ -1,5 +1,6 @@
 # %%
 import pandas as pd
+from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker
@@ -40,7 +41,26 @@ def find_batch_animal_pairs():
     return pairs
 
 batch_animal_pairs = find_batch_animal_pairs()
-print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
+print(f"Found {len(batch_animal_pairs)} batch-animal pairs from {len(set(p[0] for p in batch_animal_pairs))} batches:")
+
+# Group animals by batch and print table
+if batch_animal_pairs:
+    batch_to_animals = defaultdict(list)
+    for batch, animal in sorted(batch_animal_pairs):
+        batch_to_animals[batch].append(animal)
+
+    # Determine column widths for formatting
+    max_batch_len = max(len(b) for b in batch_to_animals.keys()) if batch_to_animals else 0
+    animal_strings = {b: ', '.join(a) for b, a in batch_to_animals.items()}
+    max_animals_len = max(len(s) for s in animal_strings.values()) if animal_strings else 0
+
+    # Header
+    print(f"{'Batch':<{max_batch_len}}  {'Animals'}")
+    print(f"{'=' * max_batch_len}  {'=' * max_animals_len}")
+
+    # Rows
+    for batch, animals_str in sorted(animal_strings.items()):
+        print(f"{batch:<{max_batch_len}}  {animals_str}")
 
 # %%
 def get_animal_chronometric_data(batch_name, animal_id):
