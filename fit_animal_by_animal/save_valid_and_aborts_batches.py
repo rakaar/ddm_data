@@ -7,18 +7,31 @@ import random
 
 # Flag to include abort_event == 4. If True, abort_event==4 will be included and
 # the output filename will be suffixed with '_and_4'.
-INCLUDE_ABORT_EVENT_4 = True
+INCLUDE_ABORT_EVENT_4 = False
 
 # Map batch to file
+# batch_file_map = {
+#     'SD': '../outExp.csv',
+#     'LED1': '../outExp.csv',
+#     'LED2': '../outExp.csv',
+#     'LED34': '../outExp.csv',
+#     'Comparable': '../outExp.csv',
+#     'LED6': '../outExp.csv',
+#     'LED7': '../out_LED.csv',
+#     'LED8': '../outLED8.csv',
+#     'LED34_even': '../outExp.csv' 
+# }
+
 batch_file_map = {
-    'SD': '../outExp.csv',
-    'LED1': '../outExp.csv',
-    'LED2': '../outExp.csv',
-    'LED34': '../outExp.csv',
-    'Comparable': '../outExp.csv',
-    'LED6': '../outExp.csv',
-    'LED7': '../out_LED.csv',
-    'LED8': '../outLED8.csv'
+    # 'SD': '../outExp.csv',
+    # 'LED1': '../outExp.csv',
+    # 'LED2': '../outExp.csv',
+    # 'LED34': '../outExp.csv',
+    # 'Comparable': '../outExp.csv',
+    # 'LED6': '../outExp.csv',
+    # 'LED7': '../out_LED.csv',
+    # 'LED8': '../outLED8.csv',
+    'LED34_even': '../outUni.csv' 
 }
 
 batch_names = batch_file_map.keys()
@@ -111,7 +124,17 @@ for batch_name in batch_names:
 
         ].copy() 
         # add batch_name column
-        exp_df_batch['batch_name'] = batch_name     
+        exp_df_batch['batch_name'] = batch_name
+    elif batch_name == 'LED34_even':
+        allowed_animals = [48,52,56,60]
+        exp_df_batch = exp_df[
+            (exp_df['batch_name'] == 'LED34') &
+            ((exp_df['LED_trial'].isin([float('nan'), 0]) | exp_df['LED_trial'].isna())) &
+            (exp_df['session_type'].isin([1,2])) &
+            (exp_df['animal'].isin(allowed_animals))
+        ].copy()
+        # add batch_name column
+        exp_df_batch['batch_name'] = batch_name
     else:
         raise ValueError(f"Unknown batch_name: {batch_name}")
 
@@ -140,3 +163,4 @@ for batch_name in batch_names:
     print(f'Saved {csv_filename} ({len(df_valid_and_aborts)} rows)')
 
 print('Done!')
+
