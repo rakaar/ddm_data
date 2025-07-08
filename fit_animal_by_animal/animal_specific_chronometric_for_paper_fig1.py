@@ -15,82 +15,64 @@ from sklearn.neighbors import KernelDensity
 # %%
 # DESIRED_BATCHES = ['SD', 'LED2', 'LED1', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
 DESIRED_BATCHES = ['SD','LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+# DESIRED_BATCHES = ['SD','LED34', 'LED6', 'LED8', 'LED7']
 
-# Base directory paths
-base_dir = os.path.dirname(os.path.abspath(__file__))
-csv_dir = os.path.join(base_dir, 'batch_csvs')
-results_dir = base_dir  # Directory containing the pickle files
 
-def find_batch_animal_pairs():
-    pairs = []
-    pattern = os.path.join(results_dir, '../fit_animal_by_animal/results_*_animal_*.pkl')
-    pickle_files = glob.glob(pattern)
-    for pickle_file in pickle_files:
-        filename = os.path.basename(pickle_file)
-        parts = filename.split('_')
-        if len(parts) >= 4:
-            batch_index = parts.index('animal') - 1 if 'animal' in parts else 1
-            animal_index = parts.index('animal') + 1 if 'animal' in parts else 2
-            batch_name = parts[batch_index]
-            animal_id = parts[animal_index].split('.')[0]
-            if batch_name in DESIRED_BATCHES:
-                if batch_name not in ['LED1', 'LED2']:
-                    pairs.append((batch_name, animal_id))
-        else:
-            print(f"Warning: Invalid filename format: {filename}")
-    return pairs
+# --- Data loading --- 
+csv_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
+batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
 
-batch_animal_pairs = find_batch_animal_pairs()
+all_data_list = []
+for fname in batch_files:
+    fpath = os.path.join(csv_dir, fname)
+    if os.path.exists(fpath):
+        print(f"Loading {fpath}...")
+        all_data_list.append(pd.read_csv(fpath))
+
+if not all_data_list:
+    raise FileNotFoundError(f"No batch CSV files found for {DESIRED_BATCHES} in '{csv_dir}'")
+
+merged_data = pd.concat(all_data_list, ignore_index=True)
+
+# --- Identify valid trials and batch-animal pairs ---
+merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
+batch_animal_pairs = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
+
+# --- Print animal table ---
 print(f"Found {len(batch_animal_pairs)} batch-animal pairs from {len(set(p[0] for p in batch_animal_pairs))} batches:")
-
-# Group animals by batch and print table
 if batch_animal_pairs:
     batch_to_animals = defaultdict(list)
     for batch, animal in sorted(batch_animal_pairs):
-        batch_to_animals[batch].append(animal)
+        batch_to_animals[batch].append(str(animal))
 
-    # Determine column widths for formatting
     max_batch_len = max(len(b) for b in batch_to_animals.keys()) if batch_to_animals else 0
-    animal_strings = {b: ', '.join(a) for b, a in batch_to_animals.items()}
+    animal_strings = {b: ', '.join(sorted(a)) for b, a in batch_to_animals.items()}
     max_animals_len = max(len(s) for s in animal_strings.values()) if animal_strings else 0
 
-    # Header
     print(f"{'Batch':<{max_batch_len}}  {'Animals'}")
     print(f"{'=' * max_batch_len}  {'=' * max_animals_len}")
-
-    # Rows
     for batch, animals_str in sorted(animal_strings.items()):
         print(f"{batch:<{max_batch_len}}  {animals_str}")
 
 # %%
-def get_animal_chronometric_data(batch_name, animal_id):
+def get_animal_chronometric_data(animal_df, batch_name, animal_id):
     """
-    Calculates mean reaction time and standard error for a given animal from a batch.
+    Calculates mean reaction time and standard error for a given animal from its dataframe.
     """
-    file_name = os.path.join(csv_dir, f'batch_{batch_name}_valid_and_aborts.csv')
-    try:
-        df = pd.read_csv(file_name)
-    except FileNotFoundError:
-        print(f"File not found: {file_name}")
-        return None
-
-    df_animal = df[df['animal'] == animal_id].copy()
-    
     # Ensure 'abs_ILD' column exists
-    if 'ILD' in df_animal.columns:
-        df_animal['abs_ILD'] = df_animal['ILD'].abs()
+    if 'ILD' in animal_df.columns:
+        animal_df['abs_ILD'] = animal_df['ILD'].abs()
     else:
-        print(f"Warning: 'ILD' column not found for animal {animal_id} in {file_name}")
+        print(f"Warning: 'ILD' column not found for animal {animal_id} in {batch_name}")
         return None
 
-    # Filter for valid trials (responded after sound onset)
-    # As per memory, this is success == 1 or -1
-    df_valid = df_animal[df_animal['success'].isin([1, -1])].copy()
-    # RTs >=0, <= 1
+    # Filter for valid trials (responded after sound onset) and valid RTs
+    df_valid = animal_df[animal_df['success'].isin([1, -1])].copy()
     df_valid = df_valid[(df_valid['RTwrtStim'] >= 0) & (df_valid['RTwrtStim'] <= 1)].copy()
 
     if df_valid.empty:
-        print(f"No valid trials found for animal {animal_id} in {file_name}")
+        # This check is now mostly redundant if pairs are derived from valid data, but good practice
+        # print(f"No valid trials found for animal {animal_id} in {batch_name}")
         return None
 
     # Calculate mean and SEM for RTwrtStim, grouped by ABL and abs_ILD
@@ -99,14 +81,13 @@ def get_animal_chronometric_data(batch_name, animal_id):
     return chrono_data
 
 # %%
-def process_batch_animal(batch_animal_pair):
+def process_batch_animal(batch_animal_pair, animal_data_df):
     """
-    Wrapper function to process a single batch-animal pair.
+    Wrapper function to process a single batch-animal pair using pre-loaded data.
     """
     batch_name, animal_id = batch_animal_pair
     try:
-        # animal_id from the pairs can be string, convert to int for comparison with df column
-        chrono_data = get_animal_chronometric_data(batch_name, int(animal_id))
+        chrono_data = get_animal_chronometric_data(animal_data_df, batch_name, animal_id)
         if chrono_data is not None and not chrono_data.empty:
             return (batch_animal_pair, chrono_data)
     except Exception as e:
@@ -114,11 +95,14 @@ def process_batch_animal(batch_animal_pair):
     return None
 
 # %%
+# Group data by animal for parallel processing
+animal_groups = merged_data.groupby(['batch_name', 'animal'])
+
 # Run processing in parallel
 n_jobs = max(1, os.cpu_count() - 4) # Leave some cores free
-print(f"Processing {len(batch_animal_pairs)} animal-batch pairs on {n_jobs} cores...")
+print(f"Processing {len(animal_groups)} animal-batch groups on {n_jobs} cores...")
 results = Parallel(n_jobs=n_jobs, verbose=10)(
-    delayed(process_batch_animal)(pair) for pair in batch_animal_pairs
+    delayed(process_batch_animal)(name, group) for name, group in animal_groups
 )
 
 # Filter out None results from processing
@@ -157,7 +141,6 @@ for i, result in enumerate(valid_results):
             continue
         
         abl_data = chrono_data[chrono_data['ABL'] == abl].sort_values('abs_ILD')
-        
         ax.errorbar(
             x=abl_data['abs_ILD'], 
             y=abl_data['mean'], 
@@ -175,7 +158,7 @@ for i, result in enumerate(valid_results):
         ax.set_ylabel('Mean RT (s)')
 
     ax.set_title(f'Animal {animal_id} ({batch_name})', fontsize=10)
-    ax.legend(title='ABL', fontsize='x-small')
+    # ax.legend(title='ABL', fontsize='x-small')
     
     ax.set_xscale('log')
     ax.set_xticks(abs_ild_ticks)
@@ -219,11 +202,18 @@ all_chrono_data_df = pd.concat(all_chrono_data_list, ignore_index=True)
 
 # Filter for the desired absolute ILDs
 all_chrono_data_df = all_chrono_data_df[all_chrono_data_df['abs_ILD'].isin(abs_ild_ticks)]
+print(f'After filtering for ILDs, shape: {all_chrono_data_df.shape}')
 
+# --- Confirm total number of unique animals ---
+total_unique_animals = all_chrono_data_df[['batch_name', 'animal_id']].drop_duplicates().shape[0]
+print(f"\nTotal unique animals (batch + ID) being plotted: {total_unique_animals}\n")
 
 # %%
 # 2. Create the 1x4 subplot figure
-fig, axes = plt.subplots(1, 4, figsize=(22, 5.5), sharey=True)
+
+
+
+fig, axes = plt.subplots(1, 4, figsize=(14, 4), sharey=True)
 plot_abls = [20, 40, 60]
 grand_means_data = {}  # To store the mean data for the last plot
 keep_grid = False
@@ -234,10 +224,12 @@ for i, abl in enumerate(plot_abls):
     
     # Filter data for the current ABL
     abl_df = all_chrono_data_df[all_chrono_data_df['ABL'] == abl]
+    unique_animals_in_abl = abl_df[['batch_name', 'animal_id']].drop_duplicates().shape[0]
+    print(f'For ABL = {abl}: shape = {abl_df.shape}, unique animals = {unique_animals_in_abl}')
     
     # Plot individual animal lines in a light color
-    for animal_id in abl_df['animal_id'].unique():
-        animal_df = abl_df[abl_df['animal_id'] == animal_id].sort_values('abs_ILD')
+    for (batch_name, animal_id), animal_df in abl_df.groupby(['batch_name', 'animal_id']):
+        animal_df = animal_df.sort_values('abs_ILD')
         ax.plot(animal_df['abs_ILD'], animal_df['mean'], color='gray', alpha=0.4, linewidth=1.5)
             
     # Calculate and plot the grand mean with SEM
@@ -256,26 +248,31 @@ for i, abl in enumerate(plot_abls):
         fmt='o-',
         color='black',
         linewidth=2.5,
-        markersize=6,
-        capsize=3, # Add caps to the error bars for clarity
+        markersize=8.5,
+        capsize=0,
         label='Population Mean'
     )
 
     # Formatting for each subplot
-    ax.set_title(f'ABL = {int(abl)} dB', fontsize=14)
-    ax.set_xlabel('Absolute ILD (dB)', fontsize=12)
+    ax.set_xlabel('|ILD| (dB)', fontsize=18)
     if i == 0:
-        ax.set_ylabel('Mean RT (s)', fontsize=12)
-    
+        ax.set_ylabel('Mean RT (s)', fontsize=18)
+        ax.spines['left'].set_color('black')
+        ax.yaxis.label.set_color('black')
+        ax.tick_params(axis='y', colors='black')
+    else:
+        ax.spines['left'].set_color('#bbbbbb')
+        ax.tick_params(axis='y', colors='#bbbbbb')
+
     ax.set_xscale('log')
     ax.set_xticks(abs_ild_ticks)
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax.tick_params(axis='x', labelsize=10)
-    ax.tick_params(axis='y', labelsize=10)
-    if keep_grid:
-        ax.grid(True, which="both", ls="--", linewidth=1)
-    ax.set_ylim(0.1, 0.5) # Consistent Y-axis limits
-    ax.set_yticks(np.arange(0.1, 0.51, 0.1))
+    ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator()) # Most forceful way to remove minor ticks
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    ax.set_ylim(0.1, 0.45)
+    ax.set_yticks([0.1, 0.2, 0.3, 0.4])
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
 
 
 # 4. Generate the 4th subplot (aggregation)
@@ -290,29 +287,32 @@ for abl, stats_data in grand_means_data.items():
         fmt='o-',
         color=abl_colors[abl],
         label=f'{int(abl)} dB',
-        linewidth=2,
-        markersize=5,
-        capsize=3
+        linewidth=2.5,
+        markersize=8.5,
+        capsize=0
     )
 
 # Formatting for the 4th subplot
-ax4.set_title('Mean of means', fontsize=14)
-ax4.set_xlabel('Absolute ILD (dB)', fontsize=12)
-ax4.legend(title='ABL', fontsize=10)
+ax4.set_xlabel('|ILD| (dB)', fontsize=18)
+# ax4.legend(title='ABL', fontsize=14)
 ax4.set_xscale('log')
 ax4.set_xticks(abs_ild_ticks)
 ax4.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-ax4.tick_params(axis='x', labelsize=10)
-if keep_grid:
-    ax4.grid(True, which="both", ls="--", linewidth=1)
+ax4.xaxis.set_minor_locator(matplotlib.ticker.NullLocator()) # Most forceful way to remove minor ticks
+ax4.tick_params(axis='both', which='major', labelsize=12)
+ax4.spines['top'].set_visible(False)
+ax4.spines['right'].set_visible(False)
+ax4.spines['left'].set_color('#bbbbbb')
+ax4.tick_params(axis='y', colors='#bbbbbb')
 
 
 # 5. Final figure adjustments and saving
-plt.tight_layout(rect=[0, 0, 1, 0.95])
-fig.suptitle('Chronometric Curves: Individual Animals vs. Population Mean', fontsize=18, y=1.03)
+plt.tight_layout()
+plt.subplots_adjust(bottom=0.15, left=0.07, right=0.97, top=0.95)
 
 summary_plot_filename = os.path.join(output_dir, 'summary_chronometric_plot_by_abl.png')
 plt.savefig(summary_plot_filename, dpi=300, bbox_inches='tight')
-plt.close(fig)
+plt.show(fig)
 
 print(f"Summary plot saved to '{summary_plot_filename}'")
+# %%
