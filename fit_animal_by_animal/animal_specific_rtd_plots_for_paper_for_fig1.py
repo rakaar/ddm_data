@@ -12,7 +12,7 @@ from sklearn.neighbors import KernelDensity
 
 # Flag to include abort_event == 4. If True, data with these aborts is loaded
 # and filenames are updated accordingly.
-INCLUDE_ABORT_EVENT_4 = True
+INCLUDE_ABORT_EVENT_4 = False
 
 if INCLUDE_ABORT_EVENT_4:
     CSV_SUFFIX = '_and_4'
@@ -110,13 +110,26 @@ def process_batch_animal(batch_animal_pair, animal_df):
         for abl in ABL_arr:
             for abs_ild in abs_ILD_arr:
                 stim_key = (abl, abs_ild)
+                # Compute RTD histogram
                 bin_centers, rtd_hist, n_trials = get_animal_RTD_data(animal_df, abl, abs_ild, rt_bins)
+
+                # Compute quantiles directly from raw RTs (no binning)
+                condition_df = animal_df[(animal_df['ABL'] == abl) & (animal_df['ILD'].abs() == abs_ild) &
+                                          (animal_df['RTwrtStim'] >= 0) & (animal_df['RTwrtStim'] <= 1) & (animal_df['success'].isin([1, -1]))]
+                quantile_levels = np.arange(0.01, 1.0, 0.01)
+                if len(condition_df) > 0:
+                    quantiles = condition_df['RTwrtStim'].quantile(quantile_levels).values
+                else:
+                    quantiles = np.full(len(quantile_levels), np.nan)
+
+                # Store empirical histogram and quantiles together
                 animal_rtd_data[stim_key] = {
                     'empirical': {
                         'bin_centers': bin_centers,
                         'rtd_hist': rtd_hist,
                         'n_trials': n_trials
-                    }
+                    },
+                    'quantiles': quantiles
                 }
     except Exception as e:
         print(f"Error processing batch {batch_name}, animal {animal_id}: {str(e)}")
@@ -153,14 +166,9 @@ with PdfPages(output_filename) as pdf:
         for j, abs_ild in enumerate(abs_ILD_arr):
             for abl in ABL_arr:
                 stim_key = (abl, abs_ild)
-                emp_data = animal_data.get(stim_key, {}).get('empirical', {})
-                if emp_data and emp_data.get('n_trials', 0) > 0 and not np.all(np.isnan(emp_data['rtd_hist'])):
-                    bin_widths = np.diff(rt_bins)
-                    cdf = np.cumsum(emp_data['rtd_hist'] * bin_widths)
-                    cdf = cdf / cdf[-1] if cdf[-1] > 0 else cdf
-                    quantiles_by_abl_ild[abl][abs_ild] = np.interp(quantile_levels, cdf, emp_data['bin_centers'])
-                else:
-                    quantiles_by_abl_ild[abl][abs_ild] = np.full_like(quantile_levels, np.nan)
+                # Retrieve pre-computed quantiles (calculated in process_batch_animal)
+                quant_arr = animal_data.get(stim_key, {}).get('quantiles', np.full_like(quantile_levels, np.nan))
+                quantiles_by_abl_ild[abl][abs_ild] = quant_arr
 
             # Row 1: Original RTDs
             ax1 = axes[0, j]
@@ -282,14 +290,9 @@ for batch_animal_pair, animal_data in tqdm(rtd_data.items(), desc="Aggregating d
     for j, abs_ild in enumerate(abs_ILD_arr):
         for abl in ABL_arr:
             stim_key = (abl, abs_ild)
-            emp_data = animal_data.get(stim_key, {}).get('empirical', {})
-            if emp_data and emp_data.get('n_trials', 0) > 0 and not np.all(np.isnan(emp_data['rtd_hist'])):
-                bin_widths = np.diff(rt_bins)
-                cdf = np.cumsum(emp_data['rtd_hist'] * bin_widths)
-                cdf = cdf / cdf[-1] if cdf[-1] > 0 else cdf
-                quantiles_by_abl_ild[abl][abs_ild] = np.interp(quantile_levels, cdf, emp_data['bin_centers'])
-            else:
-                quantiles_by_abl_ild[abl][abs_ild] = np.full_like(quantile_levels, np.nan)
+            # Retrieve pre-computed quantiles (calculated in process_batch_animal)
+            quant_arr = animal_data.get(stim_key, {}).get('quantiles', np.full_like(quantile_levels, np.nan))
+            quantiles_by_abl_ild[abl][abs_ild] = quant_arr
 
         q_60 = quantiles_by_abl_ild[60][abs_ild]
         for abl in [20, 40]:
