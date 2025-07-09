@@ -99,7 +99,9 @@ def get_animal_quantile_data(df, ABL, abs_ILD, plot_q_levels, fit_q_levels):
 # params
 ABL_arr = [20, 40, 60]
 abs_ILD_arr = [1, 2, 4, 8, 16]
-plotting_quantiles = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+# plotting_quantiles = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+plotting_quantiles = np.arange(0.01,0.91,0.01)
+# plotting_quantiles = np.array([0.1, 0.3, 0.5, 0.7, 0.9])
 fitting_quantiles = np.arange(0.01, 1.0, 0.01)
 min_RT_cut = 0.09 # for slope fitting
 max_RT_cut = 0.3 # for slope fitting
@@ -429,3 +431,70 @@ with PdfPages(abl_grid_filename) as pdf_grid:
     plt.close(fig_grid)
 
 print(f'Quantiles-vs-ABL grid PDF saved to {abl_grid_filename}')
+
+# %%
+# Scatter of Quantiles between ABL pairs (saved as PNG)
+print("Generating scatter figures comparing ABL pairs…")
+
+abl_pairs = [(20, 60), (20, 40), (40, 60)]  # (x-axis ABL, y-axis ABL)
+row_labels = ["Original", "Scaled"]
+
+for abl_x, abl_y in abl_pairs:
+    # File name e.g. quantile_scatter_ABL20_vs60.png
+    scatter_filename = f'quantile_scatter_ABL{abl_x}_vs{abl_y}{FILENAME_SUFFIX}.png'
+
+    fig, axes = plt.subplots(2, len(abs_ILD_arr), figsize=(20, 8), sharex=False, sharey=False)
+    fig.suptitle(f'Across-Animal Quantile Comparison: ABL {abl_x} dB vs {abl_y} dB', fontsize=18)
+
+    for row_idx, (dataset, label) in enumerate(zip([mean_unscaled, mean_scaled], row_labels)):
+        for col_idx, abs_ild in enumerate(abs_ILD_arr):
+            ax = axes[row_idx, col_idx]
+
+            # Extract quantile vectors (length = len(plotting_quantiles))
+            x_vals = dataset[abl_x][:, col_idx]
+            y_vals = dataset[abl_y][:, col_idx]
+
+            # Filter out NaNs to avoid warnings
+            valid_mask = ~np.isnan(x_vals) & ~np.isnan(y_vals)
+            x_vals_plot = x_vals[valid_mask]
+            y_vals_plot = y_vals[valid_mask]
+            q_colors_plot = quantile_colors[valid_mask]
+
+            # Scatter plot
+            ax.scatter(x_vals_plot, y_vals_plot, c=q_colors_plot, s=40)
+
+            # Identity line
+            min_lim = np.nanmin([x_vals_plot.min() if x_vals_plot.size else np.nan,
+                                 y_vals_plot.min() if y_vals_plot.size else np.nan])
+            max_lim = np.nanmax([x_vals_plot.max() if x_vals_plot.size else np.nan,
+                                 y_vals_plot.max() if y_vals_plot.size else np.nan])
+            if not np.isnan(min_lim) and not np.isnan(max_lim):
+                padding = 0.02 * (max_lim - min_lim)
+                ax.plot([min_lim - padding, max_lim + padding], [min_lim - padding, max_lim + padding], 'k--', linewidth=1)
+                ax.set_xlim(min_lim - padding, max_lim + padding)
+                ax.set_ylim(min_lim - padding, max_lim + padding)
+            ax.set_aspect('equal', adjustable='box')
+
+            # Titles & labels
+            if row_idx == 0:
+                ax.set_title(f'|ILD| = {abs_ild}')
+            if col_idx == 0:
+                ax.set_ylabel(label)
+            if row_idx == len(row_labels) - 1:
+                ax.set_xlabel(f'Quantiles at ABL {abl_x} (s)')
+            if col_idx == len(abs_ILD_arr) - 1:
+                ax.annotate(f'ABL {abl_y}', xy=(1.05, 0.5), xycoords='axes fraction', rotation=-90,
+                             va='center', ha='left')
+
+    # Global colour legend (quantile levels) on the right
+    from matplotlib.lines import Line2D
+    quantile_handles = [Line2D([0], [0], marker='o', linestyle='None', color=quantile_colors[i], label=f'{int(q*100)}th')
+                        for i, q in enumerate(plotting_quantiles)]
+    fig.legend(handles=quantile_handles, title='Quantile', loc='center left', bbox_to_anchor=(1.02, 0.5))
+
+    plt.tight_layout(rect=[0, 0, 0.97, 0.94])
+    fig.savefig(scatter_filename, dpi=300)
+    plt.close(fig)
+    print(f'Saved {scatter_filename}')
+
+# %%
