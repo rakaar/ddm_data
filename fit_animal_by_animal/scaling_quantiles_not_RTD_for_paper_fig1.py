@@ -381,3 +381,51 @@ with PdfPages(overlay_filename) as pdf_overlay:
     plt.close(fig_overlay)
 
 print(f'Scaled-overlay quantiles PDF saved to {overlay_filename}')
+
+# %%
+# --------- Quantiles vs ABL grid (2 rows × 5 ILDs) ---------
+abl_grid_filename = f'quantiles_vs_ABL_grid{FILENAME_SUFFIX}.pdf'
+
+with PdfPages(abl_grid_filename) as pdf_grid:
+    fig_grid, axes_grid = plt.subplots(2, len(abs_ILD_arr), figsize=(20, 6), sharey='row')
+    fig_grid.suptitle('Average log RT Quantiles Across ABLs for each |ILD|', fontsize=18)
+
+    for col_idx, abs_ild in enumerate(abs_ILD_arr):
+        # --- Original row (0) ---
+        ax_orig = axes_grid[0, col_idx]
+        for q_idx, q_level in enumerate(plotting_quantiles):
+            y_raw = np.array([mean_unscaled[abl][q_idx, col_idx] for abl in ABL_arr])
+            y_err_raw = np.array([sem_unscaled[abl][q_idx, col_idx] for abl in ABL_arr])
+            y_vals = np.log(y_raw)
+            y_errs = y_err_raw / y_raw  # propagate SEM under log transform
+            ax_orig.errorbar(ABL_arr, y_vals, yerr=y_errs, marker='o', linestyle='-', color=quantile_colors[q_idx], alpha=0.9)
+        ax_orig.set_title(f'|ILD| = {abs_ild}')
+        ax_orig.set_xticks(ABL_arr)
+        if col_idx == 0:
+            ax_orig.set_ylabel('log RT (s)')
+        ax_orig.grid(True, axis='y', ls=':', alpha=0.3)
+
+        # --- Scaled row (1) ---
+        ax_scaled = axes_grid[1, col_idx]
+        for q_idx, q_level in enumerate(plotting_quantiles):
+            y_raw = np.array([mean_scaled[abl][q_idx, col_idx] for abl in ABL_arr])
+            y_err_raw = np.array([sem_scaled[abl][q_idx, col_idx] for abl in ABL_arr])
+            y_vals = np.log(y_raw)
+            y_errs = y_err_raw / y_raw  # propagate SEM under log transform
+            ax_scaled.errorbar(ABL_arr, y_vals, yerr=y_errs, marker='o', linestyle='-', color=quantile_colors[q_idx], alpha=0.9)
+        ax_scaled.set_xticks(ABL_arr)
+        if col_idx == 0:
+            ax_scaled.set_ylabel('log RT (s) (Scaled)')
+        ax_scaled.set_xlabel('ABL (dB)')
+        ax_scaled.grid(True, axis='y', ls=':', alpha=0.3)
+
+    # Legends: add to the far right outside first row
+    from matplotlib.lines import Line2D
+    quantile_handles = [Line2D([0], [0], color=quantile_colors[i], marker='o', linestyle='-', label=f'{int(q*100)}th') for i, q in enumerate(plotting_quantiles)]
+    fig_grid.legend(handles=quantile_handles, title='Quantile', loc='center left', bbox_to_anchor=(1.01, 0.5))
+
+    plt.tight_layout(rect=[0, 0, 0.97, 0.95])
+    pdf_grid.savefig(fig_grid)
+    plt.close(fig_grid)
+
+print(f'Quantiles-vs-ABL grid PDF saved to {abl_grid_filename}')
