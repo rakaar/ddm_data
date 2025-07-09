@@ -8,6 +8,7 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 import pickle
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib.ticker import NullFormatter, NullLocator
 from sklearn.neighbors import KernelDensity
 
 # Flag to include abort_event == 4. If True, data with these aborts is loaded
@@ -24,7 +25,7 @@ else:
     FILENAME_SUFFIX = ''
 
 min_RT_cut_by_ILD = {1: 0.0865, 2: 0.0865, 4: 0.0885, 8: 0.0785, 16: 0.0615}
-does_min_RT_depend_on_ILD = False
+does_min_RT_depend_on_ILD = True
 # %%
 from collections import defaultdict
 
@@ -306,90 +307,113 @@ for abl in ABL_arr:
     sem_unscaled[abl] = np.nanstd(data_unscaled, axis=0, ddof=0) / np.sqrt(np.where(n_unscaled==0, np.nan, n_unscaled))
     sem_scaled[abl]   = np.nanstd(data_scaled,   axis=0, ddof=0) / np.sqrt(np.where(n_scaled==0,   np.nan, n_scaled))
 
-with PdfPages(avg_output_filename) as pdf_avg:
-    fig_avg, axes_avg = plt.subplots(2, 3, figsize=(18, 10), sharex=True, sharey=True)
-    fig_avg.suptitle('Average RT Quantiles Across Animals', fontsize=18)
+# --- Average-across-animals plots saved as separate PNGs (unscaled & scaled) ---
+orig_output_filename = f'average_quantile_unscaled{FILENAME_SUFFIX}_for_paper_fig1.png'
+scaled_output_filename = f'average_quantile_scaled{FILENAME_SUFFIX}.png'
+# %%
+# -------- Original (unscaled) --------
+fig_orig, axes_orig = plt.subplots(1, 3, figsize=(18, 5), sharex=True, sharey=True)
 
-    # Row 0: original
-    for col, abl in enumerate(ABL_arr):
-        ax = axes_avg[0, col]
-        q_mat = mean_unscaled[abl]
-        sem_mat = sem_unscaled[abl]
-        for q_idx, q_level in enumerate(plotting_quantiles):
-            ax.errorbar(abs_ILD_arr, q_mat[q_idx, :], yerr=sem_mat[q_idx, :], marker='o', linestyle='-', color=quantile_colors[q_idx], label=f'{int(q_level*100)}th')
-        ax.set_title(f'ABL = {abl} dB (Original)')
-        ax.set_xscale('log')
-        ax.set_xticks(abs_ILD_arr)
-        ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
-        if col == 0:
-            ax.set_ylabel('Reaction Time (s)')
-            ax.legend(title='Quantile')
+abl_colors = ['tab:blue', 'tab:orange', 'tab:green']
 
-    # Row 1: scaled
-    for col, abl in enumerate(ABL_arr):
-        ax = axes_avg[1, col]
-        q_mat = mean_scaled[abl]
-        sem_mat = sem_scaled[abl]
-        for q_idx, q_level in enumerate(plotting_quantiles):
-            ax.errorbar(abs_ILD_arr, q_mat[q_idx, :], yerr=sem_mat[q_idx, :], marker='o', linestyle='-', color=quantile_colors[q_idx], label=f'{int(q_level*100)}th')
-        ax.set_title(f'ABL = {abl} dB (Scaled)')
-        ax.set_xscale('log')
-        ax.set_xticks(abs_ILD_arr)
-        ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
-        if col == 0:
-            ax.set_ylabel('Reaction Time (s) (Scaled)')
+for col, abl in enumerate(ABL_arr):
+    ax = axes_orig[col]
+    q_mat = mean_unscaled[abl]
+    sem_mat = sem_unscaled[abl]
+    for q_idx, q_level in enumerate(plotting_quantiles):
+        ax.errorbar(abs_ILD_arr, q_mat[q_idx, :], yerr=sem_mat[q_idx, :], marker='o',
+                    linestyle='-', color=abl_colors[col])
 
-    for ax in axes_avg[-1, :]:
-        ax.set_xlabel('|ILD|')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.set_xscale('log')
+    ax.set_xticks(abs_ILD_arr)
+    ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
+    ax.xaxis.set_minor_locator(NullLocator())
+    ax.tick_params(axis='both', which='major', labelsize=18)
 
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    pdf_avg.savefig(fig_avg)
-    plt.close(fig_avg)
+    ax.set_ylim(0, 0.6)
+    ax.set_yticks([0, 0.25, 0.5])
 
-print(f'Average-across-animals PDF saved to {avg_output_filename}')
+    if col == 0:
+        ax.set_ylabel('Mean RT(s)', fontsize=18)
+
+for ax in axes_orig:
+    ax.set_xlabel('|ILD| (dB)', fontsize=18)
+
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+fig_orig.savefig(orig_output_filename, dpi=300, bbox_inches='tight')
+plt.show(fig_orig)
+print(f'Average-across-animals unscaled PNG saved to {orig_output_filename}')
+# %%
+# -------- Scaled --------
+fig_scaled, axes_scaled = plt.subplots(1, 3, figsize=(18, 5), sharex=True, sharey=True)
+fig_scaled.suptitle('Average RT Quantiles Across Animals (Scaled)', fontsize=18)
+
+for col, abl in enumerate(ABL_arr):
+    ax = axes_scaled[col]
+    q_mat = mean_scaled[abl]
+    sem_mat = sem_scaled[abl]
+    for q_idx, q_level in enumerate(plotting_quantiles):
+        ax.errorbar(abs_ILD_arr, q_mat[q_idx, :], yerr=sem_mat[q_idx, :], marker='o',
+                    linestyle='-', color=quantile_colors[q_idx], label=f'{int(q_level*100)}th')
+    ax.set_title(f'ABL = {abl} dB')
+    ax.set_xscale('log')
+    ax.set_xticks(abs_ILD_arr)
+    ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
+    if col == 0:
+        ax.set_ylabel('Reaction Time (s) (Scaled)')
+        ax.legend(title='Quantile')
+for ax in axes_scaled:
+    ax.set_xlabel('|ILD|')
+
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+fig_scaled.savefig(scaled_output_filename, dpi=300, bbox_inches='tight')
+plt.show(fig_scaled)
+print(f'Average-across-animals scaled PNG saved to {scaled_output_filename}')
 
 # %%
 # --------- Overlay figure of scaled quantiles (all ABLs on one axes) ---------
-overlay_filename = f'average_scaled_quantiles_overlay{FILENAME_SUFFIX}.pdf'
-abl_markers = {20: 'o', 40: 's', 60: '^'}
+overlay_filename = f'average_scaled_quantiles_overlay{FILENAME_SUFFIX}.png'
 
-with PdfPages(overlay_filename) as pdf_overlay:
-    fig_overlay, ax_overlay = plt.subplots(figsize=(6, 4))
-    fig_overlay.suptitle('Scaled RT Quantiles – Overlay Across ABLs', fontsize=16)
+fig_overlay, ax_overlay = plt.subplots(figsize=(6, 4))
 
-    for abl in ABL_arr:
-        q_mat = mean_scaled[abl]
-        sem_mat = sem_scaled[abl]
-        for q_idx, q_level in enumerate(plotting_quantiles):
-            ax_overlay.errorbar(
-                abs_ILD_arr,
-                q_mat[q_idx, :],
-                yerr=sem_mat[q_idx, :],
-                marker=abl_markers[abl],
-                linestyle='-',
-                color=quantile_colors[q_idx],
-                alpha=0.8
-            )
+abl_colors = ['tab:blue', 'tab:orange', 'tab:green']
 
-    ax_overlay.set_xscale('log')
-    ax_overlay.set_xticks(abs_ILD_arr)
-    ax_overlay.get_xaxis().set_major_formatter(plt.ScalarFormatter())
-    ax_overlay.set_xlabel('|ILD|')
-    ax_overlay.set_ylabel('Reaction Time (s) (Scaled)')
+for col, abl in enumerate(ABL_arr):
+    q_mat = mean_scaled[abl]
+    sem_mat = sem_scaled[abl]
+    for q_idx, q_level in enumerate(plotting_quantiles):
+        ax_overlay.errorbar(
+            abs_ILD_arr,
+            q_mat[q_idx, :],
+            yerr=sem_mat[q_idx, :],
+            marker='o',
+            linestyle='-',
+            color=abl_colors[col]
+        )
 
-    # Legends
-    from matplotlib.lines import Line2D
-    quantile_handles = [Line2D([0], [0], color=quantile_colors[i], marker='o', linestyle='-', label=f'{int(q*100)}th') for i, q in enumerate(plotting_quantiles)]
-    abl_handles = [Line2D([0], [0], color='k', marker=abl_markers[abl], linestyle='None', label=f'ABL {abl} dB') for abl in ABL_arr]
-    first_legend = ax_overlay.legend(handles=quantile_handles, title='Quantile', loc='upper left', bbox_to_anchor=(1.02, 1))
-    ax_overlay.add_artist(first_legend)
-    ax_overlay.legend(handles=abl_handles, title='ABL', loc='lower left', bbox_to_anchor=(1.02, 0))
+ax_overlay.spines['right'].set_visible(False)
+ax_overlay.spines['top'].set_visible(False)
 
-    plt.tight_layout()
-    pdf_overlay.savefig(fig_overlay)
-    plt.close(fig_overlay)
+ax_overlay.set_xscale('log')
+ax_overlay.set_xticks(abs_ILD_arr)
+ax_overlay.get_xaxis().set_major_formatter(plt.ScalarFormatter())
+ax_overlay.xaxis.set_minor_formatter(NullFormatter())
+ax_overlay.xaxis.set_minor_locator(NullLocator())
+ax_overlay.tick_params(axis='both', which='major', labelsize=18)
 
-print(f'Scaled-overlay quantiles PDF saved to {overlay_filename}')
+ax_overlay.set_ylim(0, 0.4)
+ax_overlay.set_yticks([0, 0.2, 0.4])
+
+ax_overlay.set_xlabel('|ILD| (dB)', fontsize=18)
+ax_overlay.set_ylabel('Scaled RT (s)', fontsize=18)
+
+plt.tight_layout()
+fig_overlay.savefig(overlay_filename, dpi=300, bbox_inches='tight')
+plt.show(fig_overlay)
+
+print(f'Scaled-overlay quantiles PNG saved to {overlay_filename}')
 
 # %%
 # --------- Quantiles vs ABL grid (2 rows × 5 ILDs) ---------
