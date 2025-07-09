@@ -99,7 +99,9 @@ ABL_arr = [20, 40, 60]
 abs_ILD_arr = [1, 2, 4, 8, 16]
 rt_bin_size = 0.02
 rt_bins = np.arange(0, 1 + rt_bin_size, rt_bin_size)
-min_RT_cut = 0.09
+min_RT_cut_by_ILD = {1: 0.0865, 2: 0.0865, 4: 0.0885, 8: 0.0785, 16: 0.0615}
+does_min_RT_depend_on_ILD = True
+min_RT_cut = 0.09 # Fallback for plots/logic not updated to be ILD-specific
 max_RT_cut = 0.3
 # %%
 def process_batch_animal(batch_animal_pair, animal_df):
@@ -185,17 +187,23 @@ with PdfPages(output_filename) as pdf:
             ax2 = axes[1, j]
             q_60 = quantiles_by_abl_ild[60][abs_ild]
             title_slopes = {}
+
+            # Determine min_RT_cut for this specific ILD
+            if does_min_RT_depend_on_ILD:
+                current_min_RT_cut = min_RT_cut_by_ILD.get(abs_ild, np.nan)
+            else:
+                current_min_RT_cut = min_RT_cut
             for abl in [20, 40]:
                 q_other = quantiles_by_abl_ild[abl][abs_ild]
                 if not np.any(np.isnan(q_60)) and not np.any(np.isnan(q_other)):
-                    mask = (q_60 >= min_RT_cut) & (q_60 <= max_RT_cut)
+                    mask = (q_60 >= current_min_RT_cut) & (q_60 <= max_RT_cut)
                     if np.sum(mask) >= 2:
                         # scatter plot
                         q_other_minus_60 = q_other - q_60
                         # ax2.plot(q_60, q_other - q_60, 'o' if abl==20 else 's', color=abl_colors[abl], alpha=0.2)
-                        ax2.plot(q_60[mask] - min_RT_cut, q_other_minus_60[mask] - q_other_minus_60[mask][0], 'o' if abl==20 else 's', color=abl_colors[abl], alpha=0.2, lw=1.5)
+                        ax2.plot(q_60[mask] - current_min_RT_cut, q_other_minus_60[mask] - q_other_minus_60[mask][0], 'o' if abl==20 else 's', color=abl_colors[abl], alpha=0.2, lw=1.5)
                         # fit and find slope
-                        x_fit_calc = q_60[mask] - min_RT_cut
+                        x_fit_calc = q_60[mask] - current_min_RT_cut
                         y_fit_calc = q_other_minus_60[mask]
                         y_intercept = y_fit_calc[0]
                         y_fit_calc_shifted = y_fit_calc - y_intercept
@@ -242,9 +250,9 @@ with PdfPages(output_filename) as pdf:
                     else:
                         slope = fit_results[abs_ild].get(abl, {}).get('slope')
                         if slope is not None and not np.isnan(slope) and (slope + 1) != 0:
-                            xvals = np.where(bin_centers > min_RT_cut, ((bin_centers - min_RT_cut) / (1 + slope)) + min_RT_cut, bin_centers)
+                            xvals = np.where(bin_centers > current_min_RT_cut, ((bin_centers - current_min_RT_cut) / (1 + slope)) + current_min_RT_cut, bin_centers)
                             multiplier = np.ones_like(rtd_hist)
-                            multiplier[bin_centers > min_RT_cut] = slope + 1
+                            multiplier[bin_centers > current_min_RT_cut] = slope + 1
                             rescaled_rtd = rtd_hist * multiplier
                             ax3.plot(xvals, rescaled_rtd, color=abl_colors[abl], lw=1.5)
                         else:
@@ -294,14 +302,20 @@ for batch_animal_pair, animal_data in tqdm(rtd_data.items(), desc="Aggregating d
             quant_arr = animal_data.get(stim_key, {}).get('quantiles', np.full_like(quantile_levels, np.nan))
             quantiles_by_abl_ild[abl][abs_ild] = quant_arr
 
+        # Determine min_RT_cut for this specific ILD
+        if does_min_RT_depend_on_ILD:
+            current_min_RT_cut = min_RT_cut_by_ILD.get(abs_ild, np.nan)
+        else:
+            current_min_RT_cut = min_RT_cut
+
         q_60 = quantiles_by_abl_ild[60][abs_ild]
         for abl in [20, 40]:
             q_other = quantiles_by_abl_ild[abl][abs_ild]
             if not np.any(np.isnan(q_60)) and not np.any(np.isnan(q_other)):
-                mask = (q_60 >= min_RT_cut) & (q_60 <= max_RT_cut)
+                mask = (q_60 >= current_min_RT_cut) & (q_60 <= max_RT_cut)
                 if np.sum(mask) >= 2:
                     q_other_minus_60 = q_other - q_60
-                    x_fit_calc = q_60[mask] - min_RT_cut
+                    x_fit_calc = q_60[mask] - current_min_RT_cut
                     y_fit_calc = q_other_minus_60[mask]
                     y_intercept = y_fit_calc[0]
                     y_fit_calc_shifted = y_fit_calc - y_intercept
@@ -332,9 +346,9 @@ for batch_animal_pair, animal_data in tqdm(rtd_data.items(), desc="Aggregating d
                 else:
                     slope = fit_results[abs_ild].get(abl, {}).get('slope')
                     if slope is not None and not np.isnan(slope) and (slope + 1) != 0:
-                        xvals = np.where(bin_centers > min_RT_cut, ((bin_centers - min_RT_cut) / (1 + slope)) + min_RT_cut, bin_centers)
+                        xvals = np.where(bin_centers > current_min_RT_cut, ((bin_centers - current_min_RT_cut) / (1 + slope)) + current_min_RT_cut, bin_centers)
                         multiplier = np.ones_like(rtd_hist)
-                        multiplier[bin_centers > min_RT_cut] = slope + 1
+                        multiplier[bin_centers > current_min_RT_cut] = slope + 1
                         rescaled_rtd = rtd_hist * multiplier
                     else: # no fit, use original
                         rescaled_rtd = rtd_hist
@@ -385,6 +399,134 @@ with PdfPages(avg_output_filename) as pdf:
 print(f'Average plot PDF saved to {avg_output_filename}')
 
 
+# %%
+print("Generating average animal Q-Q plot...")
+
+# --- 1. Aggregate Q-Q data from all animals ---
+aggregated_qq_data = {(abl, ild): [] for abl in [20, 40] for ild in abs_ILD_arr}
+quantile_levels = np.arange(0.01, 1.0, 0.01)
+
+for batch_animal_pair, animal_data in tqdm(rtd_data.items(), desc="Aggregating Q-Q data"):
+    # This part recalculates the Q-Q data exactly as in the per-animal plot section
+    quantiles_by_abl_ild = {abl: {ild: None for ild in abs_ILD_arr} for abl in ABL_arr}
+    for j, abs_ild in enumerate(abs_ILD_arr):
+        for abl in ABL_arr:
+            stim_key = (abl, abs_ild)
+            quant_arr = animal_data.get(stim_key, {}).get('quantiles', np.full_like(quantile_levels, np.nan))
+            quantiles_by_abl_ild[abl][abs_ild] = quant_arr
+
+        if does_min_RT_depend_on_ILD:
+            current_min_RT_cut = min_RT_cut_by_ILD.get(abs_ild, np.nan)
+        else:
+            current_min_RT_cut = min_RT_cut
+
+        q_60 = quantiles_by_abl_ild[60][abs_ild]
+        for abl in [20, 40]:
+            q_other = quantiles_by_abl_ild[abl][abs_ild]
+            if not np.any(np.isnan(q_60)) and not np.any(np.isnan(q_other)):
+                mask = (q_60 >= current_min_RT_cut) & (q_60 <= max_RT_cut)
+                if np.sum(mask) >= 2:
+                    q_other_minus_60 = q_other - q_60
+                    x_qq = q_60[mask] - current_min_RT_cut
+                    y_qq_raw = q_other_minus_60[mask]
+                    y_qq_shifted = y_qq_raw - y_qq_raw[0] # Shift to start at y=0
+                    
+                    # Store the (x, y) pairs for this animal
+                    aggregated_qq_data[(abl, abs_ild)].append({'x': x_qq, 'y': y_qq_shifted})
+
+# --- 2. Average the Q-Q data and the individual slopes ---
+
+# -- Part A: Interpolate and Average Q-Q data for plotting the average data curve --
+common_x_qq = np.linspace(0, max_RT_cut - min_RT_cut, 100)
+avg_qq_plots = {}
+
+for stim_key, all_animal_qqs in aggregated_qq_data.items():
+    interpolated_ys = []
+    for animal_qq in all_animal_qqs:
+        # np.interp requires at least 2 points for interpolation
+        if len(animal_qq['x']) > 1:
+            interp_y = np.interp(common_x_qq, animal_qq['x'], animal_qq['y'], left=np.nan, right=np.nan)
+            interpolated_ys.append(interp_y)
+    
+    if interpolated_ys:
+        y_matrix = np.vstack(interpolated_ys)
+        avg_y = np.nanmean(y_matrix, axis=0)
+        sem_y = np.nanstd(y_matrix, axis=0) / np.sqrt(np.sum(~np.isnan(y_matrix), axis=0))
+        avg_qq_plots[stim_key] = {'x': common_x_qq, 'avg_y': avg_y, 'sem_y': sem_y}
+
+# -- Part B: Average the slopes from individual animal fits for plotting the average fit line --
+avg_slope_fits = {}
+slopes_by_stim = defaultdict(list)
+
+# Collect all individual slopes from the per-animal fits (`all_fit_results`)
+for batch_animal_pair, fit_data in all_fit_results.items():
+    for abs_ild, abl_fits in fit_data.items():
+        for abl, results in abl_fits.items():
+            if 'slope' in results and not np.isnan(results['slope']):
+                stim_key = (abl, abs_ild)
+                slopes_by_stim[stim_key].append(results['slope'])
+
+# Calculate average and SEM of the collected slopes
+for stim_key, slopes in slopes_by_stim.items():
+    if slopes:
+        avg_slope = np.mean(slopes)
+        sem_slope = np.std(slopes) / np.sqrt(len(slopes))
+        avg_slope_fits[stim_key] = {'avg_slope': avg_slope, 'sem_slope': sem_slope, 'n_animals': len(slopes)}
+
+# --- 3. Plotting Average Q-Q Plot ---
+# --- 3. Plotting Average Q-Q Data and Average Slope Line ---
+fig, axes = plt.subplots(1, len(abs_ILD_arr), figsize=(15, 5), sharex=True, sharey=True)
+fig.suptitle('Average Q-Q Analysis', fontsize=16)
+
+for j, abs_ild in enumerate(abs_ILD_arr):
+    ax = axes[j]
+    ax.set_title(f'|ILD| = {abs_ild}')
+
+    for abl in [20, 40]:
+        stim_key = (abl, abs_ild)
+
+        # Plot 1: The averaged Q-Q data curve with SEM shading
+        if stim_key in avg_qq_plots:
+            plot_data = avg_qq_plots[stim_key]
+            x = plot_data['x']
+            y = plot_data['avg_y']
+            sem = plot_data['sem_y']
+            ax.plot(x, y, color=abl_colors[abl], lw=1, alpha=0.8, label=f'Data (ABL={abl})')
+            ax.fill_between(x, y - sem, y + sem, color=abl_colors[abl], alpha=0.2)
+
+        # Plot 2: The line based on the average of individual slopes
+        if stim_key in avg_slope_fits:
+            fit = avg_slope_fits[stim_key]
+            avg_slope = fit['avg_slope']
+            x_line = np.array([0, max_RT_cut - min_RT_cut])
+            y_line = avg_slope * x_line
+            ax.plot(x_line, y_line, color=abl_colors[abl], lw=2.5, linestyle='--', label=f'Fit (m={avg_slope:.3f})')
+
+    ax.axhline(0, color='k', linestyle='--', lw=1)
+    ax.set_xlabel('RT(q) - min_RT (s)')
+    if j == 0:
+        ax.set_ylabel('RT_other(q) - RT_60(q) (s)')
+    ax.legend()
+
+# Set common y-limits after all plotting is done
+y_lims = [ax.get_ylim() for ax in axes]
+min_y = min(lim[0] for lim in y_lims)
+max_y = max(lim[1] for lim in y_lims)
+for ax in axes:
+    ax.set_ylim(min_y, max_y)
+
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+avg_plot_filename = f'average_qq_plot_data_and_fit{FILENAME_SUFFIX}.pdf'
+fig.savefig(avg_plot_filename, dpi=300)
+plt.close(fig)
+
+print(f'Average Q-Q plot saved to {avg_plot_filename}')
+
+# Save all aggregated results
+output_data_filename = f'aggregated_qq_results{FILENAME_SUFFIX}.pkl'
+with open(output_data_filename, 'wb') as f:
+    pickle.dump({'aggregated_qq_data': aggregated_qq_data, 'avg_slope_fits': avg_slope_fits, 'avg_qq_plots': avg_qq_plots}, f)
+print(f"Saved all aggregated results to {output_data_filename}")
 # %% 
 
 # =============================================================================
@@ -421,6 +563,12 @@ for batch_animal_pair in tqdm(rtd_data.keys(), desc="Loading Raw RTs"):
     animal_fit_results = all_fit_results.get(batch_animal_pair, {})
 
     for abs_ild in abs_ILD_arr:
+        # Determine min_RT_cut for this specific ILD
+        if does_min_RT_depend_on_ILD:
+            current_min_RT_cut = min_RT_cut_by_ILD.get(abs_ild, np.nan)
+        else:
+            current_min_RT_cut = min_RT_cut
+
         # Create a copy for filtering
         df_animal['abs_ILD'] = np.abs(df_animal['ILD'])
         df_animal_ild = df_animal[df_animal['abs_ILD'] == abs_ild].copy()
@@ -449,7 +597,7 @@ for batch_animal_pair in tqdm(rtd_data.keys(), desc="Loading Raw RTs"):
                 
                 # Rescale the valid RTs and add them to the list, using the correct formula
                 if (1 + slope) != 0:
-                    rescaled_rts = np.where(valid_rts > min_RT_cut, ((valid_rts - min_RT_cut) / (1 + slope)) + min_RT_cut, valid_rts)
+                    rescaled_rts = np.where(valid_rts > current_min_RT_cut, ((valid_rts - current_min_RT_cut) / (1 + slope)) + current_min_RT_cut, valid_rts)
                     aggregated_raw_rescaled_rts[stim_key].extend(rescaled_rts)
                 else:
                     # If slope is -1, rescaling is undefined
