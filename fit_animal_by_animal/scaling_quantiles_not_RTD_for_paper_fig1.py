@@ -23,6 +23,8 @@ else:
     ABORT_EVENTS = [3]
     FILENAME_SUFFIX = ''
 
+min_RT_cut_by_ILD = {1: 0.0865, 2: 0.0865, 4: 0.0885, 8: 0.0785, 16: 0.0615}
+does_min_RT_depend_on_ILD = False
 # %%
 from collections import defaultdict
 
@@ -100,8 +102,8 @@ def get_animal_quantile_data(df, ABL, abs_ILD, plot_q_levels, fit_q_levels):
 ABL_arr = [20, 40, 60]
 abs_ILD_arr = [1, 2, 4, 8, 16]
 # plotting_quantiles = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
-plotting_quantiles = np.arange(0.01,0.91,0.01)
-# plotting_quantiles = np.array([0.1, 0.3, 0.5, 0.7, 0.9])
+# plotting_quantiles = np.arange(0.05,0.95,0.01)
+plotting_quantiles = np.array([0.1, 0.3, 0.5, 0.7, 0.9])
 fitting_quantiles = np.arange(0.01, 1.0, 0.01)
 min_RT_cut = 0.09 # for slope fitting
 max_RT_cut = 0.3 # for slope fitting
@@ -199,6 +201,11 @@ with PdfPages(output_filename) as pdf:
             scaled_q_abl_per_ild = []
             
             for ild_idx, abs_ild in enumerate(abs_ILD_arr):
+                # Determine min RT cut dynamically based on flag
+                if does_min_RT_depend_on_ILD:
+                    min_rt_cut = min_RT_cut_by_ILD.get(abs_ild, None)
+                else:
+                    min_rt_cut = min_RT_cut
                 # Use fitting quantiles for slope calculation
                 q_60_fit = q_60_fit_all_ilds[:, ild_idx]
                 q_other_fit = q_other_fit_all_ilds[:, ild_idx]
@@ -206,11 +213,11 @@ with PdfPages(output_filename) as pdf:
                 # --- Slope calculation using the original method with fine quantiles ---
                 slope = np.nan # Default slope
                 if not np.any(np.isnan(q_60_fit)) and not np.any(np.isnan(q_other_fit)):
-                    mask = (q_60_fit >= min_RT_cut) & (q_60_fit <= max_RT_cut)
+                    mask = (q_60_fit >= min_rt_cut) & (q_60_fit <= max_RT_cut)
                     if np.sum(mask) >= 2:
                         q_other_minus_60 = q_other_fit - q_60_fit
                         
-                        x_fit_calc = q_60_fit[mask] - min_RT_cut
+                        x_fit_calc = q_60_fit[mask] - min_rt_cut
                         y_fit_calc = q_other_minus_60[mask]
                         y_intercept = y_fit_calc[0]
                         y_fit_calc_shifted = y_fit_calc - y_intercept
@@ -224,8 +231,8 @@ with PdfPages(output_filename) as pdf:
                 q_other_plot = q_other_plot_all_ilds[:, ild_idx]
                 if not np.isnan(slope) and (1 + slope) != 0:
                     scaled_values = np.where(
-                        q_other_plot > min_RT_cut,
-                        ((q_other_plot - min_RT_cut) / (1 + slope)) + min_RT_cut,
+                        q_other_plot > min_rt_cut,
+                        ((q_other_plot - min_rt_cut) / (1 + slope)) + min_rt_cut,
                         q_other_plot
                     )
                     scaled_q_abl_per_ild.append(scaled_values)
