@@ -9,17 +9,28 @@ from scipy.optimize import curve_fit
 def sigmoid(x, lambda_L, lambda_R, k, x0):
     return lambda_L + (1 - lambda_L - lambda_R) / (1 + np.exp(-k * (x - x0)))
 
-# --- Load merged_valid as in make_all_animals_psycho_single_figure.py ---
-batch_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
-batch_files = [f for f in os.listdir(batch_dir) if f.endswith('_valid_and_aborts.csv')]
-merged_data = pd.concat([
-    pd.read_csv(os.path.join(batch_dir, fname)) for fname in batch_files
-], ignore_index=True)
-merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
+# --- Data loading ---
+# Define the batches you want to load
+DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even',  'LED1', 'Comparable'] # Excluded LED1 as per original logic
 
-#### To filter out specific batches, uncomment the following lines ######
-# DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
-# merged_valid = merged_valid[merged_valid['batch_name'].isin(DESIRED_BATCHES)].copy()
+csv_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
+
+# Construct file paths and load data
+batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
+all_data_list = []
+for fname in batch_files:
+    fpath = os.path.join(csv_dir, fname)
+    if os.path.exists(fpath):
+        print(f"Loading {fpath}...")
+        all_data_list.append(pd.read_csv(fpath))
+
+if not all_data_list:
+    raise FileNotFoundError(f"No batch CSV files found for {DESIRED_BATCHES} in '{csv_dir}'")
+
+merged_data = pd.concat(all_data_list, ignore_index=True)
+
+# --- Filter for valid trials ---
+merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
 
 ABLS = [20, 40, 60]
 
@@ -30,7 +41,7 @@ mean_psycho_slope = {}  # mean_psycho_slope[(batch_name, animal)] = k0
 merged_valid['animal_id'] = list(zip(merged_valid['batch_name'], merged_valid['animal']))
 all_animals = merged_valid['animal_id'].unique()
 allowed_ilds = np.sort(np.array([1., 2., 4., 8., 16., -1., -2., -4., -8., -16.]))
-
+print(f'Number of animals: {len(all_animals)}')
 for animal_id in all_animals:
     batch_name, animal = animal_id  # Unpack the tuple
     # 1. Fit sigmoid for each ABL
@@ -150,34 +161,47 @@ ax2.spines['right'].set_visible(False)
 
 plt.tight_layout()
 plt.show()
-
+# %%
 # --- NEW: Plot histogram of absolute differences ---
-plt.figure(figsize=(10,4))
-plt.subplot(1,2,1)
-plt.hist(diff_within, bins=bins_absdiff, color='tab:blue', alpha=0.7, density=True)
-plt.axvline(0, color='k', linestyle='--')
-plt.title('Within-rat (slope_ABL - mean_slope_rat)')
-plt.xlabel('difference')
-plt.ylabel('Density')
-plt.ylim(0, 4)
-ax1 = plt.gca()
+font = {'size': 18}
+plt.rc('font', **font)
+max_ylim = 8
+plt.figure(figsize=(12, 6))
+max_xlim = 0.4
+
+# Subplot 1: Within-rat differences
+ax1 = plt.subplot(1, 2, 1)
+plt.hist(diff_within, bins=bins_absdiff, color='grey', alpha=0.7, density=True)
+plt.axvline(0, color='k', linestyle=':')
+# plt.title('Within-rat', fontsize=18)
+plt.xlabel(r'$\mu_{ABL} - \mu_{rat}$', fontsize=18)
+plt.ylabel('Density', fontsize=18)
+plt.xlim(-max_xlim, max_xlim)
+plt.ylim(0, max_ylim)
+plt.xticks([-max_xlim, 0, max_xlim])
+plt.yticks([0, max_ylim])
 ax1.spines['top'].set_visible(False)
 ax1.spines['right'].set_visible(False)
+ax1.tick_params(axis='both', which='major', labelsize=18)
 
-plt.subplot(1,2,2)
-plt.hist(diff_across, bins=bins_absdiff, color='tab:orange', alpha=0.7, density=True)
-plt.axvline(0, color='k', linestyle='--')
-plt.title('Across-rat (mean_slope_rat - grand_mean)')
-plt.xlabel('difference')
-ax2 = plt.gca()
-ax2.set_ylabel("")
+
+# Subplot 2: Across-rat differences
+ax2 = plt.subplot(1, 2, 2)
+plt.hist(diff_across, bins=bins_absdiff, color='grey', alpha=0.7, density=True)
+plt.axvline(0, color='k', linestyle=':')
+# plt.title('Across-rat', fontsize=18)
+plt.xlabel(r'$\mu_{rat} - \mu_{grand}$', fontsize=18)
+plt.xlim(-max_xlim, max_xlim)
+plt.ylim(0, max_ylim)
+plt.xticks([-max_xlim, 0, max_xlim])
+plt.yticks([0, max_ylim])
 ax2.set_yticklabels([])
-ax2.set_yticks([])
-plt.ylim(0, 4)
 ax2.spines['top'].set_visible(False)
 ax2.spines['right'].set_visible(False)
+ax2.tick_params(axis='both', which='major', labelsize=18)
 
-plt.tight_layout()
+plt.tight_layout(rect=[0, 0, 1, 0.95]) # Adjust layout to prevent title overlap
+# plt.suptitle('Slope Differences', fontsize=18, y=1.02)
 plt.show()
 
 # %%
@@ -218,20 +242,21 @@ plt.show()
 # --- 7. Overlayed animal slopes for all ABLs ---
 COLORS = ['tab:blue', 'tab:orange', 'tab:green']
 animals = sorted(set().union(*[slopes[abl].keys() for abl in ABLS]))
+print(f'len of animals: {len(animals)}')
 fig, ax = plt.subplots(figsize=(6, 3))  # Compressed x-axis
 for idx, abl in enumerate(ABLS):
     color = COLORS[idx]
     y = [slopes[abl].get(animal, np.nan) for animal in animals]
     ax.scatter(range(len(animals)), y, color=color, s=40)
-# Remove all x-ticks and labels
-ax.set_xticks([])
+# Set x-ticks to represent each animal, but without labels
+ax.set_xticks(range(len(animals)))
 ax.set_xticklabels([])
 # Draw a horizontal line at y=0 (or at the bottom of the plot)
-ax.axhline(0, color='k', linewidth=1)
-ax.set_xlabel('')
-ax.set_ylabel('Slope (k)', fontsize=13)
+# ax.axhline(0, color='k', linewidth=1)
+ax.set_xlabel('Rat', fontsize=18)
+ax.set_ylabel('Slope (k)', fontsize=18)
 # Set y-ticks to 0.5 and 1
-ax.set_yticks([0.5, 1])
+ax.set_yticks([0.2, 1])
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 plt.tight_layout()
@@ -244,6 +269,7 @@ COLORS = ['tab:blue', 'tab:orange', 'tab:green']
 # If not already done, re-fit or re-extract x0 for each animal and ABL.
 # We'll re-fit here to guarantee x0 is available.
 biases = {abl: {} for abl in ABLS}  # biases[abl][(batch_name, animal)] = x0
+print(f'Number of animals: {len(animals)}')
 for animal_id in animals:
     batch_name, animal = animal_id
     for idx, abl in enumerate(ABLS):
@@ -507,7 +533,7 @@ for animal_id in animals:
 
 animal_labels = [f"{batch}_{animal}" for batch, animal in animals]
 x = np.arange(len(animals))
-
+print(f'len of animals: {len(animals)}')
 fig, ax = plt.subplots(figsize=(max(6, len(animals)//4), 3))
 for idx, abl in enumerate(ABLS):
     # Offset a bit for visibility, or just plot all at the same x

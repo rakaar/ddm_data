@@ -61,3 +61,4 @@
 - `qq_animals_and_average.py` - Q vs Q with min RT cut off
 - `fit_qq_animals_and_avg.py` - Q - Q_60 vs Q_60
 - `all_animals_rtd_cdf_plots.py` -CDF for cut off
+- `plot_slope_ratios_histograms.py` - psychometric slopes for weber law for fig 1
