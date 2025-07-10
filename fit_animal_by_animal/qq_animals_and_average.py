@@ -11,6 +11,9 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.ticker import NullFormatter, NullLocator, FormatStrFormatter
 from sklearn.neighbors import KernelDensity
 
+plotting_quantiles = np.arange(0.05, 1, 0.1)
+
+
 # Flag to include abort_event == 4. If True, data with these aborts is loaded
 # and filenames are updated accordingly.
 INCLUDE_ABORT_EVENT_4 = False
@@ -27,7 +30,17 @@ else:
 min_RT_cut_by_ILD = {1: 0.0865, 2: 0.0865, 4: 0.0885, 8: 0.0785, 16: 0.0615}
 does_min_RT_depend_on_ILD = True
 # %%
-from collections import defaultdict
+from scipy.stats import wilcoxon
+
+def r_squared(y_true, y_pred):
+    """Calculate the R-squared value."""
+    y_true = np.array(y_true)
+    y_pred = np.array(y_pred)
+    ss_res = np.sum((y_true - y_pred)**2)
+    ss_tot = np.sum((y_true - np.mean(y_true))**2)
+    if ss_tot == 0:
+        return 1.0  # Perfect fit if there is no variance in y_true
+    return 1 - (ss_res / ss_tot)
 
 # Define desired batches and paths
 DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even'] # Excluded LED1 as per original logic
@@ -103,7 +116,6 @@ def get_animal_quantile_data(df, ABL, abs_ILD, plot_q_levels, fit_q_levels):
 ABL_arr = [20, 40, 60]
 abs_ILD_arr = [1, 2, 4, 8, 16]
 
-plotting_quantiles = np.arange(0, 1, 0.1)
 
 # doesn't matter
 fitting_quantiles = np.array([0.5])
@@ -207,13 +219,18 @@ print(f'PDF saved to {output_filename}')
 #%%
 # --- Create and Save Average Plot ---
 
-# 1. Calculate average quantiles across all animals
+# 1. Calculate average quantiles and SEM across all animals
 avg_quantiles = {}
+sem_quantiles = {}
 for abl in ABL_arr:
     # Stack the list of 2D arrays into a 3D array (animals, quantiles, ilds)
     stacked_arrays = np.stack(avg_unscaled_collect[abl], axis=0)
     # Calculate the mean over the 'animals' axis, ignoring NaNs
     avg_quantiles[abl] = np.nanmean(stacked_arrays, axis=0)
+    # Calculate SEM
+    n_animals = np.sum(~np.isnan(stacked_arrays), axis=0)
+    std_dev = np.nanstd(stacked_arrays, axis=0)
+    sem_quantiles[abl] = np.divide(std_dev, np.sqrt(n_animals), where=n_animals > 0)
 
 # 2. Create the average Q-Q plot
 fig_avg, axes_avg = plt.subplots(1, 5, figsize=(25, 5), sharex=False, sharey=True)
@@ -231,15 +248,17 @@ for i, abs_ild in enumerate(abs_ILD_arr):
     q_20_avg = avg_quantiles[20][:, i]
 
     # Plot ABL 20 vs 60 and ABL 40 vs 60
-    ax.plot(q_60_avg, q_20_avg, marker='o', linestyle='-', color='tab:blue', label='ABL 20 vs 60')
-    ax.plot(q_60_avg, q_40_avg, marker='o', linestyle='-', color='tab:orange', label='ABL 40 vs 60')
+    # Get SEM for this specific ILD
+    sem_20 = sem_quantiles[20][:, i]
+    sem_40 = sem_quantiles[40][:, i]
+    sem_60 = sem_quantiles[60][:, i]
 
-    # Add a 1:1 reference line
-    all_q_avg = np.concatenate([q_60_avg, q_40_avg, q_20_avg])
-    min_val_avg = np.nanmin(all_q_avg)
-    max_val_avg = np.nanmax(all_q_avg)
-    if np.isfinite(min_val_avg) and np.isfinite(max_val_avg):
-        ax.plot([min_val_avg, max_val_avg], [min_val_avg, max_val_avg], color='k', linestyle='--', alpha=0.7)
+    # Plot ABL 20 vs 60 and ABL 40 vs 60 with error bars
+    ax.errorbar(q_60_avg, q_20_avg, xerr=sem_60, yerr=sem_20, marker='o', linestyle='none', color='tab:blue', label='ABL 20 vs 60', capsize=2)
+    ax.errorbar(q_60_avg, q_40_avg, xerr=sem_60, yerr=sem_40, marker='o', linestyle='none', color='tab:orange', label='ABL 40 vs 60', capsize=2)
+
+    # Add a consistent 1:1 reference line
+    ax.plot([global_min_val, global_max_val], [global_min_val, global_max_val], color='k', linestyle='--', alpha=0.7, zorder=0)
 
     # --- Publication Grade Styling ---
     ax.set_title('')
@@ -284,6 +303,9 @@ print(f'Average plot saved to {avg_output_filename}')
 # 1. Create the average Q-Q plot with ABL 40 as baseline
 fig_avg_v2, axes_avg_v2 = plt.subplots(1, 5, figsize=(25, 5), sharex=False, sharey=True)
 
+# Determine the global min/max for the 1:1 line to ensure consistency
+global_min_val = min(min_RT_cut_by_ILD.values())
+global_max_val = 0.5
 
 for i, abs_ild in enumerate(abs_ILD_arr):
     ax = axes_avg_v2[i]
@@ -293,16 +315,44 @@ for i, abs_ild in enumerate(abs_ILD_arr):
     q_40_avg = avg_quantiles[40][:, i]
     q_60_avg = avg_quantiles[60][:, i]
 
-    # Plot ABL 40 vs 20 and ABL 60 vs 20
-    ax.plot(q_40_avg, q_20_avg, marker='o', linestyle='-', color='tab:blue', label='ABL 40 vs 20')
-    ax.plot(q_40_avg, q_60_avg, marker='o', linestyle='-', color='tab:green', label='ABL 60 vs 20')
+    lower_lim = min_RT_cut_by_ILD[abs_ild]
 
-    # Add a 1:1 reference line
-    all_q_avg = np.concatenate([q_20_avg, q_40_avg, q_60_avg])
-    min_val_avg = np.nanmin(all_q_avg)
-    max_val_avg = np.nanmax(all_q_avg)
-    if np.isfinite(min_val_avg) and np.isfinite(max_val_avg):
-        ax.plot([min_val_avg, max_val_avg], [min_val_avg, max_val_avg], color='k', linestyle='--', alpha=0.7)
+    # --- Process and plot for ABL 40 vs 20 ---
+    valid_40_20 = ~np.isnan(q_40_avg) & ~np.isnan(q_20_avg)
+    if np.any(valid_40_20):
+        x_data, y_data = q_40_avg[valid_40_20], q_20_avg[valid_40_20]
+        x_sem = sem_quantiles[40][:, i][valid_40_20]
+        y_sem = sem_quantiles[20][:, i][valid_40_20]
+        mask = (x_data >= lower_lim) & (y_data >= lower_lim)
+        ax.errorbar(x_data[mask], y_data[mask], xerr=x_sem[mask], yerr=y_sem[mask], marker='o', linestyle='none', color='tab:blue', capsize=2)
+        if np.sum(mask) > 1:
+            x_fit, y_fit = x_data[mask], y_data[mask]
+            m, c = np.polyfit(x_fit, y_fit, 1)
+            y_pred = m * x_fit + c
+            r2 = r_squared(y_fit, y_pred)
+            fit_x = np.array([lower_lim, 0.5])
+            ax.plot(fit_x, m*fit_x + c, color='tab:blue')
+            # ax.text(0.05, 0.9, f'$R^2={r2:.2f}$', transform=ax.transAxes, color='tab:blue', fontsize=14)
+
+    # --- Process and plot for ABL 60 vs 20 ---
+    valid_40_60 = ~np.isnan(q_40_avg) & ~np.isnan(q_60_avg)
+    if np.any(valid_40_60):
+        x_data, y_data = q_40_avg[valid_40_60], q_60_avg[valid_40_60]
+        x_sem = sem_quantiles[40][:, i][valid_40_60]
+        y_sem = sem_quantiles[60][:, i][valid_40_60]
+        mask = (x_data >= lower_lim) & (y_data >= lower_lim)
+        ax.errorbar(x_data[mask], y_data[mask], xerr=x_sem[mask], yerr=y_sem[mask], marker='o', linestyle='none', color='tab:green', capsize=2)
+        if np.sum(mask) > 1:
+            x_fit, y_fit = x_data[mask], y_data[mask]
+            m, c = np.polyfit(x_fit, y_fit, 1)
+            y_pred = m * x_fit + c
+            r2 = r_squared(y_fit, y_pred)
+            fit_x = np.array([lower_lim, 0.5])
+            ax.plot(fit_x, m*fit_x + c, color='tab:green')
+            # ax.text(0.05, 0.8, f'$R^2={r2:.2f}$', transform=ax.transAxes, color='tab:green', fontsize=14)
+
+    # Add a consistent 1:1 reference line
+    ax.plot([global_min_val, global_max_val], [global_min_val, global_max_val], color='k', linestyle='--', alpha=0.7, zorder=0)
 
     # --- Publication Grade Styling ---
     ax.set_title('')
@@ -317,7 +367,6 @@ for i, abs_ild in enumerate(abs_ILD_arr):
 
     ax.tick_params(axis='both', which='major', labelsize=18)
 
-    lower_lim = min_RT_cut_by_ILD[abs_ild]
     upper_lim = 0.5
 
     ax.set_xlim(lower_lim, upper_lim)
@@ -343,4 +392,6 @@ avg_output_filename_v2 = f'average_qq_plot_abl20_baseline{FILENAME_SUFFIX}.png'
 fig_avg_v2.savefig(avg_output_filename_v2, dpi=300)
 plt.show(fig_avg_v2)
 
-print(f'Average plot (ABL20 baseline) saved to {avg_output_filename_v2}')
+print(f'Average plot (ABL40 on x-axis) saved to {avg_output_filename_v2}')
+
+# %%

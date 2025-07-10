@@ -25,7 +25,7 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
+
 from joblib import Parallel, delayed
 from tqdm import tqdm
 from scipy.optimize import curve_fit
@@ -47,8 +47,9 @@ ABL_VALUES = [20, 40, 60]
 ABS_ILD_VALUES = [1, 2, 4, 8, 16]
 
 # Output
-RTD_PDF = 'all_animals_rtd_1ms.pdf'
-CDF_PDF = 'all_animals_rtd_cdf_1ms.pdf'
+RTD_PNG = 'all_animals_rtd_1ms.png'
+CDF_PNG = 'all_animals_rtd_cdf_by_ild_1ms.png'
+DCDF_PNG = 'all_animals_dcdf_combined_1ms.png'
 
 # Plotting colours (consistent with other scripts)
 ABL_COLOURS = {20: 'tab:blue', 40: 'tab:orange', 60: 'tab:green'}
@@ -182,26 +183,25 @@ def detect_onset_moving_average(y: np.ndarray, *, window_bins: int = 5, threshol
 # -----------------------------------------------------------------------------
 
 def plot_average_rtd(agg: dict[tuple[int, int], list[np.ndarray]]):
-    with PdfPages(RTD_PDF) as pdf:
-        fig, axes = plt.subplots(1, len(ABS_ILD_VALUES), figsize=(18, 4), sharey=True)
-        fig.suptitle('Average RTD across animals (1 ms bins)')
+    fig, axes = plt.subplots(1, len(ABS_ILD_VALUES), figsize=(18, 4), sharey=True)
+    fig.suptitle('Average RTD across animals (1 ms bins)')
 
-        for j, ild in enumerate(ABS_ILD_VALUES):
-            ax = axes[j]
-            for abl in ABL_VALUES:
-                key = (abl, ild)
-                avg = np.nanmean(np.vstack(agg[key]), axis=0)
-                ax.plot(BIN_CENTERS, avg, color=ABL_COLOURS[abl], lw=1.5, label=f'ABL {abl}')
-            ax.set_title(f'|ILD|={ild}')
-            ax.set_xlim(0, 1)
-            if j == 0:
-                ax.set_ylabel('Density')
-            ax.set_xlabel('RT (s)')
-        axes[0].legend()
-        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-        pdf.savefig(fig)
-        plt.close(fig)
-    print(f"Saved average RTD plot → {RTD_PDF}")
+    for j, ild in enumerate(ABS_ILD_VALUES):
+        ax = axes[j]
+        for abl in ABL_VALUES:
+            key = (abl, ild)
+            avg = np.nanmean(np.vstack(agg[key]), axis=0)
+            ax.plot(BIN_CENTERS, avg, color=ABL_COLOURS[abl], lw=1.5, label=f'ABL {abl}')
+        ax.set_title(f'|ILD|={ild}')
+        ax.set_xlim(0, 1)
+        if j == 0:
+            ax.set_ylabel('Density')
+        ax.set_xlabel('RT (s)')
+    axes[0].legend()
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(RTD_PNG, dpi=300)
+    plt.close(fig)
+    print(f"Saved average RTD plot → {RTD_PNG}")
 
 # -----------------------------------------------------------------------------
 
@@ -210,101 +210,119 @@ def plot_average_cdf(agg: dict[tuple[int, int], list[np.ndarray]]):
     pair-wise CDF differences between ABLs (row 2).  Both rows share the same
     RT axis so users can directly compare spread between loudness levels.
     """
-    with PdfPages(CDF_PDF) as pdf:
-        # 2 rows: (0) CDF curves; (1) mean |ΔCDF| curves
-        fig, axes = plt.subplots(2, len(ABS_ILD_VALUES), figsize=(18, 8), sharey="row")
-        fig.suptitle("Average CDFs and mean pairwise differences (1 ms bins)")
-        # Store mean |ΔCDF| curves by |ILD|
-        mean_diff_by_ild = {}
+    # 2 rows: (0) CDF curves; (1) mean |ΔCDF| curves
+    fig, axes = plt.subplots(2, len(ABS_ILD_VALUES), figsize=(18, 8), sharey="row")
+    fig.suptitle("Average CDFs and mean pairwise differences (1 ms bins)")
+    # Store mean |ΔCDF| curves by |ILD|
+    mean_diff_by_ild = {}
 
-        for j, ild in enumerate(ABS_ILD_VALUES):
-            ax_cdf = axes[0, j]
-            ax_diff = axes[1, j]
+    for j, ild in enumerate(ABS_ILD_VALUES):
+        ax_cdf = axes[0, j]
+        ax_diff = axes[1, j]
 
-            # Store CDF curves for this |ILD| to compute pair-wise diffs
-            cdf_by_abl = {}
-            for abl in ABL_VALUES:
-                key = (abl, ild)
-                avg = np.nanmean(np.vstack(agg[key]), axis=0)
-                cdf = np.cumsum(avg) * BIN_SIZE
-                cdf_by_abl[abl] = cdf
-                ax_cdf.plot(
-                    BIN_CENTERS,
-                    cdf,
-                    color=ABL_COLOURS[abl],
-                    lw=1.5,
-                    label=f"ABL {abl}",
-                )
+        # Store CDF curves for this |ILD| to compute pair-wise diffs
+        cdf_by_abl = {}
+        for abl in ABL_VALUES:
+            key = (abl, ild)
+            avg = np.nanmean(np.vstack(agg[key]), axis=0)
+            cdf = np.cumsum(avg) * BIN_SIZE
+            cdf_by_abl[abl] = cdf
+            ax_cdf.plot(
+                BIN_CENTERS,
+                cdf,
+                color=ABL_COLOURS[abl],
+                lw=1.5,
+                label=f"ABL {abl}",
+            )
 
-            # Compute mean absolute pair-wise differences between CDF curves
-            diffs = [
-                np.abs(cdf_by_abl[20] - cdf_by_abl[40]),
-                np.abs(cdf_by_abl[40] - cdf_by_abl[60]),
-                np.abs(cdf_by_abl[20] - cdf_by_abl[60]),
-            ]
-            mean_diff = np.nanmean(np.vstack(diffs), axis=0)
-            ax_diff.plot(BIN_CENTERS, mean_diff, color="k", lw=1.5)
+        # Compute mean absolute pair-wise differences between CDF curves
+        diffs = [
+            np.abs(cdf_by_abl[20] - cdf_by_abl[40]),
+            np.abs(cdf_by_abl[40] - cdf_by_abl[60]),
+            np.abs(cdf_by_abl[20] - cdf_by_abl[60]),
+        ]
+        mean_diff = np.nanmean(np.vstack(diffs), axis=0)
+        ax_diff.plot(BIN_CENTERS, mean_diff, color="k", lw=1.5)
 
-            # Save for combined figure
-            mean_diff_by_ild[ild] = mean_diff
+        # Save for combined figure
+        mean_diff_by_ild[ild] = mean_diff
 
-            # Formatting
-            ax_cdf.set_title(f"|ILD|={ild}")
-            ax_cdf.set_xlim(0, 0.15)
-            ax_cdf.set_ylim(0, 1)
-            if j == 0:
-                ax_cdf.set_ylabel("Cumulative probability")
+        # Formatting
+        ax_cdf.set_title(f"|ILD|={ild}")
+        ax_cdf.set_xlim(0, 0.15)
+        ax_cdf.set_ylim(0, 1)
+        if j == 0:
+            ax_cdf.set_ylabel("Cumulative probability")
 
-            ax_cdf.set_xlabel("RT (s)")  # only visible for bottom row, but okay
+        ax_cdf.set_xlabel("RT (s)")  # only visible for bottom row, but okay
 
-            ax_diff.set_xlim(0, 0.15)
-            if j == 0:
-                ax_diff.set_ylabel("Mean |ΔCDF|")
-            ax_diff.set_xlabel("RT (s)")
+        ax_diff.set_xlim(0, 0.15)
+        if j == 0:
+            ax_diff.set_ylabel("Mean |ΔCDF|")
+        ax_diff.set_xlabel("RT (s)")
 
-        # --- Onset detection by moving-average criterion ---------------------------
-        onset_by_ild: dict[int, float] = {}
-        cmap = plt.cm.viridis
-        window_bins = int(0.010 / BIN_SIZE)  # 10-ms window
-        for idx, ild in enumerate(ABS_ILD_VALUES):
-            curve = mean_diff_by_ild[ild]
-            onset_idx = detect_onset_moving_average(curve, window_bins=window_bins, threshold=0.005)
-            onset_time = BIN_CENTERS[onset_idx] if onset_idx is not None else np.nan
-            onset_by_ild[ild] = onset_time
+    # --- Onset detection by moving-average criterion ---------------------------
+    onset_by_ild: dict[int, float] = {}
+    cmap = plt.cm.viridis
+    window_bins = int(0.010 / BIN_SIZE)  # 10-ms window
+    for idx, ild in enumerate(ABS_ILD_VALUES):
+        curve = mean_diff_by_ild[ild]
+        onset_idx = detect_onset_moving_average(curve, window_bins=window_bins, threshold=0.005)
+        onset_time = BIN_CENTERS[onset_idx] if onset_idx is not None else np.nan
+        onset_by_ild[ild] = onset_time
 
-        # Add vertical onset lines to each ΔCDF subplot
-        for j, ild in enumerate(ABS_ILD_VALUES):
-            onset = onset_by_ild.get(ild)
-            if onset and not np.isnan(onset):
-                color = plt.cm.viridis(j / (len(ABS_ILD_VALUES) - 1))
-                axes[1, j].axvline(onset, color=color, ls='--', lw=1)
+    # Add vertical onset lines to each ΔCDF subplot
+    for j, ild in enumerate(ABS_ILD_VALUES):
+        onset = onset_by_ild.get(ild)
+        if onset and not np.isnan(onset):
+            color = plt.cm.viridis(j / (len(ABS_ILD_VALUES) - 1))
+            axes[1, j].axvline(onset, color=color, ls='--', lw=1)
 
-        # Legends and layout
-        axes[0, 0].legend()
-        plt.tight_layout(rect=[0, 0.04, 1, 0.96])
-        pdf.savefig(fig)
-        plt.close(fig)
+    # Legends and layout
+    axes[0, 0].legend()
+    plt.tight_layout(rect=[0, 0.04, 1, 0.96])
+    plt.savefig(CDF_PNG, dpi=300)
+    plt.close(fig)
+    print(f"Saved CDF & ΔCDF plot → {CDF_PNG}")
 
-        # ---------------- Combined ΔCDF curves (all ILDs) ----------------
-        fig2, ax2 = plt.subplots(figsize=(6, 4))
-        colour_cycle = plt.cm.viridis(np.linspace(0, 1, len(ABS_ILD_VALUES)))
-        for ild, col in zip(ABS_ILD_VALUES, colour_cycle):
-            ax2.plot(BIN_CENTERS, mean_diff_by_ild[ild], color=col, lw=1.5, label=f"|ILD|={ild}")
-            onset = onset_by_ild.get(ild)
-            if onset and not np.isnan(onset):
-                ax2.axvline(onset, color=col, ls='--', lw=1)
-        ax2.set_xlim(0, 0.15)
-        ax2.set_xlabel("RT (s)")
-        ax2.set_ylabel("Mean |ΔCDF|")
-        ax2.set_title("Mean |ΔCDF| curves across ILDs")
-        ax2.legend()
-        plt.tight_layout()
-        pdf.savefig(fig2)
-        plt.close(fig2)
+    # ---------------- Combined ΔCDF curves (all ILDs) ----------------
+    fig2, ax2 = plt.subplots(figsize=(6, 4))
+    # Use greyscale, with darker colours for higher |ILD|s
+    colour_cycle = plt.cm.gray_r(np.linspace(0.1, 1, len(ABS_ILD_VALUES)))
+    for ild, col in zip(ABS_ILD_VALUES, colour_cycle):
+        ax2.plot(BIN_CENTERS, mean_diff_by_ild[ild], color=col, lw=2, label=f"|ILD|={ild}")
+        onset = onset_by_ild.get(ild)
+        if onset and not np.isnan(onset):
+            ax2.axvline(onset, color=col, ls='--', lw=1.5)
+
+    # --- Publication-grade formatting ---
+    font_size = 18
+    # Remove top and right spines
+    ax2.spines['right'].set_visible(False)
+    ax2.spines['top'].set_visible(False)
+
+    # Set axis limits and ticks
+    ax2.set_xlim(0, 0.12)
+    ax2.set_xticks([0, 0.12])
+    ax2.set_xticklabels(['0', '0.12'])
+    ax2.set_ylim(0, 0.2)
+    ax2.set_yticks([0, 0.2])
+    ax2.set_yticklabels(['0', '0.2'])
+
+    # Set labels and font sizes
+    ax2.set_xlabel("RT (s)", fontsize=font_size)
+    ax2.set_ylabel("Mean |ΔCDF|", fontsize=font_size)
+    ax2.tick_params(axis='both', which='major', labelsize=font_size)
+
+    # No title or legend
+
+    plt.tight_layout()
+    plt.savefig(DCDF_PNG, dpi=300, bbox_inches='tight')
+    plt.show(fig2)
+    print(f"Saved combined ΔCDF plot → {DCDF_PNG}")
 
     print("Onset times (s) by |ILD| (±10 ms windows):",
           {ild: (None if np.isnan(t) else round(float(t), 4)) for ild, t in onset_by_ild.items()})
-    print(f"Saved CDF & ΔCDF plot → {CDF_PDF}")
 
 # ==============================================================================
 # %%
