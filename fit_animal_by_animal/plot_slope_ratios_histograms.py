@@ -11,7 +11,8 @@ def sigmoid(x, lambda_L, lambda_R, k, x0):
 
 # --- Data loading ---
 # Define the batches you want to load
-DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even',  'LED1', 'Comparable'] # Excluded LED1 as per original logic
+# DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even',  'LED1', 'Comparable'] # Excluded LED1 as per original logic
+DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even'] # Excluded LED1 as per original logic
 
 csv_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
 
@@ -243,20 +244,21 @@ plt.show()
 COLORS = ['tab:blue', 'tab:orange', 'tab:green']
 animals = sorted(set().union(*[slopes[abl].keys() for abl in ABLS]))
 print(f'len of animals: {len(animals)}')
+print(animals)
 fig, ax = plt.subplots(figsize=(6, 3))  # Compressed x-axis
 for idx, abl in enumerate(ABLS):
     color = COLORS[idx]
     y = [slopes[abl].get(animal, np.nan) for animal in animals]
     ax.scatter(range(len(animals)), y, color=color, s=40)
 # Set x-ticks to represent each animal, but without labels
-ax.set_xticks(range(len(animals)))
+# ax.set_xticks(range(len(animals)))
 ax.set_xticklabels([])
 # Draw a horizontal line at y=0 (or at the bottom of the plot)
 # ax.axhline(0, color='k', linewidth=1)
 ax.set_xlabel('Rat', fontsize=18)
 ax.set_ylabel('Slope (k)', fontsize=18)
 # Set y-ticks to 0.5 and 1
-ax.set_yticks([0.2, 1])
+ax.set_yticks([0, 2])
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 plt.tight_layout()

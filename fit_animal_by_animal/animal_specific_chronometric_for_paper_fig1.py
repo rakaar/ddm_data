@@ -315,4 +315,81 @@ plt.savefig(summary_plot_filename, dpi=300, bbox_inches='tight')
 plt.show(fig)
 
 print(f"Summary plot saved to '{summary_plot_filename}'")
+
+# %%
+# --- New Plots: Mean RT vs ABL and Mean RT vs |ILD| ---
+
+# Plot 1: Mean RT vs ABL (collapsing across |ILD|)
+fig_abl, ax_abl = plt.subplots(figsize=(5, 5))
+
+# Aggregate data for specific ABLs
+plot_abls = [20, 40, 60]
+rt_vs_abl = all_chrono_data_df[all_chrono_data_df['ABL'].isin(plot_abls)].groupby('ABL')['mean'].agg(['mean', 'sem']).reset_index()
+
+ax_abl.errorbar(
+    x=range(len(rt_vs_abl)),  # Plot against indices for discrete points
+    y=rt_vs_abl['mean'],
+    yerr=rt_vs_abl['sem'],
+    fmt='o',  # Use 'o' for scatter plot markers
+    linestyle='None',  # Do not connect markers with a line
+    color='k',
+    capsize=5,
+    markersize=8
+)
+
+ax_abl.set_xticks(range(len(rt_vs_abl)))
+ax_abl.set_xticklabels(rt_vs_abl['ABL'].astype(int))
+
+ax_abl.set_xlabel('ABL (dB)', fontsize=18)
+# ax_abl.set_ylabel('Mean RT (s)', fontsize=18)
+# ax_abl.set_title('Mean Reaction Time vs. ABL', fontsize=16)
+ax_abl.set_yticks([0.18, 0.28])
+ax_abl.spines['top'].set_visible(False)
+ax_abl.spines['right'].set_visible(False)
+ax_abl.tick_params(axis='both', which='major', labelsize=18)
+
+plt.tight_layout()
+rt_vs_abl_filename = 'summary_rt_vs_abl.png'
+plt.savefig(rt_vs_abl_filename, dpi=300)
+plt.show()
+
+print(f"RT vs ABL plot saved to '{rt_vs_abl_filename}'")
+
+# %%
+# Plot 2: Mean RT vs |ILD| (collapsing across ABL)
+fig_ild, ax_ild = plt.subplots(figsize=(5, 4))
+
+# Aggregate data by abs_ILD
+rt_vs_ild = all_chrono_data_df.groupby('abs_ILD')['mean'].agg(['mean', 'sem']).reset_index()
+
+ax_ild.errorbar(
+    x=rt_vs_ild['abs_ILD'],
+    y=rt_vs_ild['mean'],
+    yerr=rt_vs_ild['sem'],
+    fmt='o',
+    color='k',
+    capsize=0, # No caps as requested in memory
+    markersize=8,
+    linewidth=2
+)
+
+ax_ild.set_xlabel('|ILD| (dB)', fontsize=18)
+ax_ild.set_ylabel('Mean RT (s)', fontsize=18)
+# ax_ild.set_title('Mean Reaction Time vs. |ILD|', fontsize=16)
+ax_ild.set_xscale('log')
+ax_ild.set_xticks(abs_ild_ticks)
+ax_ild.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+ax_ild.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
+ax_ild.spines['top'].set_visible(False)
+ax_ild.spines['right'].set_visible(False)
+ax_ild.tick_params(axis='both', which='major', labelsize=18)
+ax_ild.set_yticks([0.15, 0.28])
+
+plt.tight_layout()
+rt_vs_ild_filename = 'summary_rt_vs_ild.png'
+plt.savefig(rt_vs_ild_filename, dpi=300)
+plt.show()
+
+print(f"RT vs |ILD| plot saved to '{rt_vs_ild_filename}'")
+
 # %%
