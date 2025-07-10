@@ -54,3 +54,9 @@
 
 - `aggregate_psychometric_by_abl_for_paper_fig1.py` : Psychometric 1 x 4
 - `animal_specific_chronometric_for_paper_fig1.py`: Chronometric 1 x 4
+
+- `scaling_quantiles_not_RTD_for_paper_fig1.py` : Scaling quantiles not RTD
+- `animal_specific_rtd_plots_for_paper_for_fig1.py` : RTD plots, Q-Q plots, rescaled RTD for each animal, average, KDE
+
+- `qq_animals_and_average.py` - Q vs Q with min RT cut off
+- `fit_qq_animals_and_avg.py` - Q - Q_60 vs Q_60

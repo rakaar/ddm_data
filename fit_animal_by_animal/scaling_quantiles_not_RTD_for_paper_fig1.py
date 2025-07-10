@@ -284,7 +284,7 @@ with PdfPages(output_filename) as pdf:
         plt.close(fig2)
 
 print(f'PDF saved to {output_filename}')
-
+# %%
 # ================= Average-Across-Animals Plot =================
 print("Generating average (across animals) quantile plot…")
 
