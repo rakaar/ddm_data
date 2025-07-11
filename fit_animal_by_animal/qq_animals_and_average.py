@@ -10,6 +10,7 @@ import pickle
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.ticker import NullFormatter, NullLocator, FormatStrFormatter
 from sklearn.neighbors import KernelDensity
+from collections import defaultdict
 
 plotting_quantiles = np.arange(0.05, 1, 0.1)
 
@@ -238,6 +239,7 @@ fig_avg, axes_avg = plt.subplots(1, 5, figsize=(25, 5), sharex=False, sharey=Tru
 
 # Get average quantiles for the baseline ABL 60
 q_60_avg_matrix = avg_quantiles[60]
+global_min_val = min(min_RT_cut_by_ILD.values())
 
 for i, abs_ild in enumerate(abs_ILD_arr):
     ax = axes_avg[i]
