@@ -251,10 +251,7 @@ for idx, abl in enumerate(ABLS):
     y = [slopes[abl].get(animal, np.nan) for animal in animals]
     ax.scatter(range(len(animals)), y, color=color, s=40)
 # Set x-ticks to represent each animal, but without labels
-# ax.set_xticks(range(len(animals)))
-ax.set_xticklabels([])
-# Draw a horizontal line at y=0 (or at the bottom of the plot)
-# ax.axhline(0, color='k', linewidth=1)
+ax.set_xticks([])
 ax.set_xlabel('Rat', fontsize=18)
 ax.set_ylabel('Slope (k)', fontsize=18)
 # Set y-ticks to 0.5 and 1
@@ -262,7 +259,27 @@ ax.set_yticks([0, 2])
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 plt.tight_layout()
-plt.show()# %%
+plt.show()
+
+# --- Save data for external plotting ---
+slope_hist_data = {
+    'slopes': slopes,
+    'ABLS': ABLS,
+    'animals': animals,
+    'diff_within': diff_within,
+    'diff_across': diff_across,
+    'bins_absdiff': bins_absdiff,
+    'hist_xlim': 0.4, # from max_xlim
+    'hist_ylim': 8,   # from max_ylim
+    'plot_colors': ['tab:blue', 'tab:orange', 'tab:green']
+}
+
+output_pickle_path = 'fig1_slopes_hists_data.pkl'
+with open(output_pickle_path, 'wb') as f:
+    pickle.dump(slope_hist_data, f)
+print(f"\nSlope and histogram data saved to '{output_pickle_path}'")
+
+# %%
 
 # %% 
 # overlayed abs of bias for each ABL 

@@ -307,12 +307,18 @@ ax4.tick_params(axis='y', colors='#bbbbbb')
 
 
 # --- Save data for external plotting ---
+plot_abls = [20, 40, 60]
+rt_vs_abl = all_chrono_data_df[all_chrono_data_df['ABL'].isin(plot_abls)].groupby('ABL')['mean'].agg(['mean', 'sem']).reset_index()
+rt_vs_ild = all_chrono_data_df.groupby('abs_ILD')['mean'].agg(['mean', 'sem']).reset_index()
+
 chrono_plot_data = {
     'plot_abls': plot_abls,
     'all_chrono_data_df': all_chrono_data_df,
     'grand_means_data': grand_means_data,
     'abl_colors': abl_colors,
-    'abs_ild_ticks': abs_ild_ticks
+    'abs_ild_ticks': abs_ild_ticks,
+    'rt_vs_abl': rt_vs_abl, 
+    'rt_vs_ild': rt_vs_ild  
 }
 
 output_pickle_path = os.path.join(output_dir, 'fig1_chrono_plot_data.pkl')

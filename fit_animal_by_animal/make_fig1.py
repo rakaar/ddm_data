@@ -4,6 +4,18 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+import matplotlib as mpl
+# Add padding when saving figures to create whitespace around the entire figure
+mpl.rcParams["savefig.pad_inches"] = 0.6
+# --- Plotting Configuration ---
+TITLE_FONTSIZE = 18
+LABEL_FONTSIZE = 16
+TICK_FONTSIZE = 12
+LEGEND_FONTSIZE = 14
+SUPTITLE_FONTSIZE = 24
+# Increase gap between axis tick labels and axis titles
+plt.rcParams['axes.labelpad'] = 12
+
 # --- Sigmoid function (must match the one in the aggregation script) ---
 def sigmoid(x, upper, lower, x0, k):
     """Sigmoid function with explicit upper and lower asymptotes."""
@@ -27,7 +39,9 @@ all_sigmoid_curves_dict = plot_data['all_sigmoid_curves_dict']
 
 # --- Prepare figure using GridSpec for complex layout ---
 fig = plt.figure(figsize=(25, 30))
-gs = GridSpec(5, 5, figure=fig, hspace=0.4, wspace=0.3)
+# Add larger margins around the entire figure to avoid elements touching the edges
+fig.subplots_adjust(left=0.06, right=0.97, top=0.96, bottom=0.06)
+gs = GridSpec(5, 6, figure=fig, hspace=0.3, wspace=0.05, width_ratios=[1, 1, 1, 1, 1, 1])
 
 # Create axes for the psychometric plots in the second row (index 1)
 ax_psych_1 = fig.add_subplot(gs[1, 0])
@@ -37,6 +51,16 @@ ax_psych_4 = fig.add_subplot(gs[1, 3], sharey=ax_psych_1)
 
 # Group axes for easy iteration in the existing plotting loop
 axes = [ax_psych_1, ax_psych_2, ax_psych_3, ax_psych_4]
+
+# Ensure each psychometric plot is square shaped regardless of data limits
+for ax in axes:
+    # `set_box_aspect(1)` (Matplotlib ≥3.4) forces the axes box to be square.
+    # If running on an older Matplotlib version, fall back to an equal aspect ratio
+    # with the box adjustable so the axis limits remain unchanged.
+    if hasattr(ax, 'set_box_aspect'):
+        ax.set_box_aspect(1)
+    else:
+        ax.set_aspect('equal', adjustable='box')
 
 # Hide y-tick labels for shared axes to avoid clutter
 for ax in [ax_psych_2, ax_psych_3, ax_psych_4]:
@@ -77,16 +101,16 @@ for idx, (abl, color) in enumerate(zip(ABLS, COLORS)):
     ax.errorbar(ilds, mean_psycho, yerr=std_psycho, fmt='o', color=color, capsize=0, markersize=8.5, label='Mean ± std')
 
     # --- Formatting for first 3 plots ---
-    ax.set_title(f'ABL = {abl}', fontsize=18)
+    ax.set_title(f'ABL = {abl}', fontsize=TITLE_FONTSIZE)
     ax.axvline(0, color='gray', linestyle='--', alpha=0.7)
     ax.axhline(0.5, color='gray', linestyle='--', alpha=0.7)
     ax.set_ylim(0, 1)
     ax.set_xticks([-15, -5, 5, 15])
     ax.set_yticks([0, 0.5, 1])
-    ax.tick_params(axis='both', which='major', labelsize=12)
-    ax.set_xlabel('ILD', fontsize=18)
+    ax.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
+    ax.set_xlabel('ILD (dB)', fontsize=LABEL_FONTSIZE)
     if idx == 0:
-        ax.set_ylabel('P(Right)', fontsize=18)
+        ax.set_ylabel('P(Right)', fontsize=LABEL_FONTSIZE)
         ax.spines['left'].set_color('black')
         ax.yaxis.label.set_color('black')
         ax.tick_params(axis='y', colors='black')
@@ -126,14 +150,14 @@ for abl, color in zip(ABLS, COLORS):
             ax4.plot(x_smooth, mean_sigmoid, color=color, linewidth=2, label=f'ABL={abl} curve')
 
 # --- Formatting for 4th plot ---
-ax4.set_title('All ABLs', fontsize=18)
+ax4.set_title('All ABLs', fontsize=TITLE_FONTSIZE)
 ax4.axvline(0, color='gray', linestyle='--', alpha=0.7)
 ax4.axhline(0.5, color='gray', linestyle='--', alpha=0.7)
 ax4.set_ylim(0, 1)
 ax4.set_xticks([-15, -5, 5, 15])
 ax4.set_yticks([0, 0.5, 1])
-ax4.tick_params(axis='both', which='major', labelsize=16)
-ax4.set_xlabel('ILD', fontsize=18)
+ax4.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
+ax4.set_xlabel('ILD (dB)', fontsize=LABEL_FONTSIZE)
 ax4.spines['left'].set_color('#bbbbbb')
 ax4.yaxis.label.set_color('#bbbbbb')
 ax4.tick_params(axis='y', colors='#bbbbbb')
@@ -144,7 +168,7 @@ ax4.spines['right'].set_visible(False)
 for ax in axes:
     legend = ax.get_legend()
     if legend:
-        legend.prop.set_size(16)
+        legend.prop.set_size(LEGEND_FONTSIZE)
 
 # --- CHRONOMETRIC PLOTS --- 
 
@@ -166,6 +190,13 @@ try:
     ax_chrono_3 = fig.add_subplot(gs[2, 2], sharey=ax_chrono_1)
     ax_chrono_4 = fig.add_subplot(gs[2, 3], sharey=ax_chrono_1)
     chrono_axes = [ax_chrono_1, ax_chrono_2, ax_chrono_3, ax_chrono_4]
+
+    # Ensure each chronometric subplot is square shaped
+    for ax in chrono_axes:
+        if hasattr(ax, 'set_box_aspect'):
+            ax.set_box_aspect(1)
+        else:
+            ax.set_aspect('equal', adjustable='box')
 
     # Hide y-tick labels for shared axes
     for ax in [ax_chrono_2, ax_chrono_3, ax_chrono_4]:
@@ -189,9 +220,9 @@ try:
         )
 
         # Formatting
-        ax.set_xlabel('|ILD| (dB)', fontsize=18)
+        ax.set_xlabel('|ILD| (dB)', fontsize=LABEL_FONTSIZE)
         if i == 0:
-            ax.set_ylabel('Mean RT (s)', fontsize=18)
+            ax.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
             ax.spines['left'].set_color('black')
             ax.tick_params(axis='y', colors='black')
         else:
@@ -201,7 +232,7 @@ try:
         ax.set_xticks(abs_ild_ticks)
         ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
         ax.xaxis.set_minor_locator(plt.NullLocator())
-        ax.tick_params(axis='both', which='major', labelsize=12)
+        ax.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
         ax.set_ylim(0.1, 0.45)
         ax.set_yticks([0.1, 0.2, 0.3, 0.4])
         ax.spines['top'].set_visible(False)
@@ -216,21 +247,140 @@ try:
             linewidth=2.5, markersize=8.5, capsize=0
         )
     # Formatting
-    ax4_chrono.set_xlabel('|ILD| (dB)', fontsize=18)
+    ax4_chrono.set_xlabel('|ILD| (dB)', fontsize=LABEL_FONTSIZE)
     ax4_chrono.set_xscale('log')
     ax4_chrono.set_xticks(abs_ild_ticks)
     ax4_chrono.get_xaxis().set_major_formatter(plt.ScalarFormatter())
     ax4_chrono.xaxis.set_minor_locator(plt.NullLocator())
-    ax4_chrono.tick_params(axis='both', which='major', labelsize=12)
+    ax4_chrono.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
     ax4_chrono.spines['top'].set_visible(False)
     ax4_chrono.spines['right'].set_visible(False)
     ax4_chrono.spines['left'].set_color('#bbbbbb')
     ax4_chrono.tick_params(axis='y', colors='#bbbbbb')
 
+    # --- Add summary chronometric plots (RT vs |ILD| and RT vs ABL) ---
+    rt_vs_ild = chrono_data['rt_vs_ild']
+    rt_vs_abl = chrono_data['rt_vs_abl']
+
+    # Create a nested GridSpec in the 5th column of the chronometric row
+    gs_nested_chrono = gs[2, 5].subgridspec(1, 2, wspace=0.5)
+
+    # Left plot: Mean RT vs |ILD|
+    ax_ild = fig.add_subplot(gs_nested_chrono[0, 0])
+    ax_ild.errorbar(
+        x=rt_vs_ild['abs_ILD'], y=rt_vs_ild['mean'], yerr=rt_vs_ild['sem'],
+        fmt='o', color='k', capsize=0, markersize=6, linewidth=2
+    )
+    ax_ild.set_xlabel('|ILD|', fontsize=LABEL_FONTSIZE)
+    ax_ild.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
+    ax_ild.set_xscale('log')
+    ax_ild.set_xticks(abs_ild_ticks)
+    ax_ild.get_xaxis().set_major_formatter(plt.ScalarFormatter())
+    ax_ild.xaxis.set_minor_locator(plt.NullLocator())
+    ax_ild.spines['top'].set_visible(False)
+    ax_ild.spines['right'].set_visible(False)
+    ax_ild.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
+
+    # Right plot: Mean RT vs ABL (sharing y-axis)
+    ax_abl = fig.add_subplot(gs_nested_chrono[0, 1], sharey=ax_ild)
+    ax_abl.errorbar(
+        x=range(len(rt_vs_abl)), y=rt_vs_abl['mean'], yerr=rt_vs_abl['sem'],
+        fmt='o', linestyle='None', color='k', capsize=0, markersize=6 # Removed capsize
+    )
+    ax_abl.set_xticks(range(len(rt_vs_abl)))
+    ax_abl.set_xticklabels(rt_vs_abl['ABL'].astype(int))
+    ax_abl.set_xlabel('ABL', fontsize=LABEL_FONTSIZE)
+
+    # --- Final y-axis configuration as per user instruction ---
+    # Configure left plot (which controls the shared y-axis)
+    ax_ild.set_ylim(0.15, 0.30) # Adjusted ylim to better fit data
+    ax_ild.set_yticks([0.15, 0.3])
+    ax_ild.set_yticklabels(['0.15', '0.3'])
+    ax_ild.tick_params(axis='y', labelleft=True)
+
+    # Keep the right-hand plot label-free
+    plt.setp(ax_abl.get_yticklabels(), visible=False)
+
+    ax_abl.spines['top'].set_visible(False)
+    ax_abl.spines['right'].set_visible(False)
+    ax_abl.tick_params(axis='x', which='major', labelsize=TICK_FONTSIZE)
+
 except FileNotFoundError:
     print("\nChronometric data file not found. Skipping chronometric plots.")
 except Exception as e:
-    print(f"\nAn error occurred while plotting chronometric data: {e}")
+    print(f"\nAn error occurred while plotting psychometric data: {e}")
+
+# --- SLOPES AND HISTOGRAMS PLOTS ---
+try:
+    with open('fig1_slopes_hists_data.pkl', 'rb') as f:
+        slope_data = pickle.load(f)
+
+    # --- Extract data ---
+    slopes = slope_data['slopes']
+    ABLS = slope_data['ABLS']
+    animals = slope_data['animals']
+    diff_within = slope_data['diff_within']
+    diff_across = slope_data['diff_across']
+    bins_absdiff = slope_data['bins_absdiff']
+    hist_xlim = slope_data['hist_xlim']
+    hist_ylim = slope_data['hist_ylim']
+    plot_colors = slope_data['plot_colors']
+
+    # --- Create a nested GridSpec for the new layout in cell gs[1, 5] ---
+    # This nested grid has 2 rows (for slopes and histograms) and 2 columns (for the two histograms)
+    gs_nested = gs[1, 5].subgridspec(2, 2, height_ratios=[1, 1], hspace=0.3, wspace=0.2)
+
+    # --- 1. Slopes scatter plot (top row of nested grid, spanning both columns) ---
+    ax_slopes = fig.add_subplot(gs_nested[0, :])
+    for idx, abl in enumerate(ABLS):
+        color = plot_colors[idx]
+        y = [slopes[abl].get(animal, np.nan) for animal in animals]
+        ax_slopes.scatter(range(len(animals)), y, color=color, s=40)
+
+    # Formatting for slopes plot
+    ax_slopes.set_xticks([])
+    ax_slopes.set_ylabel('Slope (k)', fontsize=LEGEND_FONTSIZE)
+    ax_slopes.set_yticks([0, 2])
+    ax_slopes.spines['top'].set_visible(False)
+    ax_slopes.spines['right'].set_visible(False)
+    ax_slopes.set_title('Slopes', fontsize=LABEL_FONTSIZE)
+
+    # --- 2. Histograms (bottom row of nested grid, side-by-side) ---
+    ax_hist1 = fig.add_subplot(gs_nested[1, 0]) # Left histogram
+    ax_hist2 = fig.add_subplot(gs_nested[1, 1]) # Right histogram
+
+    # Left histogram: Within-rat differences
+    ax_hist1.hist(diff_within, bins=bins_absdiff, color='grey', alpha=0.7, density=True)
+    ax_hist1.set_xlabel(r'$\mu_{ABL} - \mu_{rat}$', fontsize=LABEL_FONTSIZE)
+
+    # Right histogram: Across-rat differences
+    ax_hist2.hist(diff_across, bins=bins_absdiff, color='grey', alpha=0.7, density=True)
+    ax_hist2.set_xlabel(r'$\mu_{rat} - \mu_{grand}$', fontsize=LABEL_FONTSIZE)
+
+    # --- Common formatting for both histograms ---
+    hist_xticks = [-0.4,  0,  0.4]
+    hist_xticklabels = ['-0.4', '0', '0.4']
+
+    for ax_hist, title in [(ax_hist1, 'Within-animal'), (ax_hist2, 'Across-animal')]:
+        ax_hist.set_title(title, fontsize=LEGEND_FONTSIZE)
+        ax_hist.set_ylim(0, hist_ylim)
+        ax_hist.set_xlim(-0.4, 0.4)
+        ax_hist.axvline(0, color='black', linestyle=':', linewidth=1)
+        ax_hist.spines['top'].set_visible(False)
+        ax_hist.spines['right'].set_visible(False)
+        ax_hist.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
+        ax_hist.set_xticks(hist_xticks)
+        ax_hist.set_xticklabels(hist_xticklabels)
+
+    # --- Specific y-axis formatting ---
+    ax_hist1.set_ylabel('Density', fontsize=LABEL_FONTSIZE)
+    ax_hist1.set_yticks([0, hist_ylim])
+    ax_hist2.set_yticks([])  # Remove y-ticks from the right plot for a cleaner look
+
+except FileNotFoundError:
+    print("\nSlope/histogram data file not found. Skipping these plots.")
+except Exception as e:
+    print(f"\nAn error occurred while plotting slopes/histograms: {e}")
 
 
 # --- RTD QUANTILE PLOTS (UNSCALED) ---
@@ -252,6 +402,13 @@ try:
     ax_quant_3 = fig.add_subplot(gs[3, 2], sharey=ax_quant_1)
     quantile_axes = [ax_quant_1, ax_quant_2, ax_quant_3]
 
+    # Ensure each quantile subplot is square shaped
+    for ax in quantile_axes:
+        if hasattr(ax, 'set_box_aspect'):
+            ax.set_box_aspect(1)
+        else:
+            ax.set_aspect('equal', adjustable='box')
+
     # Hide y-tick labels for shared axes
     for ax in [ax_quant_2, ax_quant_3]:
         plt.setp(ax.get_yticklabels(), visible=False)
@@ -272,16 +429,21 @@ try:
         ax.set_xticks(abs_ILD_arr)
         ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
         ax.xaxis.set_minor_locator(plt.NullLocator())
-        ax.tick_params(axis='both', which='major', labelsize=12)
+        ax.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
         ax.set_ylim(0, 0.6)
         ax.set_yticks([0, 0.25, 0.5])
-        ax.set_xlabel('|ILD| (dB)', fontsize=18)
+        ax.set_xlabel('|ILD| (dB)', fontsize=LABEL_FONTSIZE)
 
         if col == 0:
-            ax.set_ylabel('Mean RT(s)', fontsize=18)
+            ax.set_ylabel('Mean RT(s)', fontsize=LABEL_FONTSIZE)
 
     # --- Create and format the scaled quantile overlay plot ---
-    ax_overlay = fig.add_subplot(gs[3, 3])
+    ax_overlay = fig.add_subplot(gs[3, 4])
+    # Make overlay plot square as well for consistency
+    if hasattr(ax_overlay, 'set_box_aspect'):
+        ax_overlay.set_box_aspect(1)
+    else:
+        ax_overlay.set_aspect('equal', adjustable='box')
     mean_scaled = quantile_data['mean_scaled']
     sem_scaled = quantile_data['sem_scaled']
 
@@ -305,11 +467,11 @@ try:
     ax_overlay.set_xticks(abs_ILD_arr)
     ax_overlay.get_xaxis().set_major_formatter(plt.ScalarFormatter())
     ax_overlay.xaxis.set_minor_locator(plt.NullLocator())
-    ax_overlay.tick_params(axis='both', which='major', labelsize=12)
+    ax_overlay.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
     ax_overlay.set_ylim(0, 0.4)
     ax_overlay.set_yticks([0, 0.2, 0.4])
-    ax_overlay.set_xlabel('|ILD| (dB)', fontsize=18)
-    ax_overlay.set_ylabel('Scaled RT (s)', fontsize=18)
+    ax_overlay.set_xlabel('|ILD| (dB)', fontsize=LABEL_FONTSIZE)
+    ax_overlay.set_ylabel('Scaled RT (s)', fontsize=LABEL_FONTSIZE)
 
 except FileNotFoundError:
     print("\nQuantile data file not found. Skipping quantile plots.")
@@ -331,7 +493,10 @@ try:
     global_max_val = qq_data['global_max_val']
 
     # --- Create axes for the Q-Q plots in the fifth row (index 4) ---
-    qq_axes = [fig.add_subplot(gs[4, i]) for i in range(5)]
+    # We want the five Q–Q panels to sit flush together (no spacer gap).
+    # Build a nested 1×5 GridSpec inside the parent cell that spans columns 0–4.
+    gs_qq = gs[4, 0:5].subgridspec(1, 5, wspace=0.3)
+    qq_axes = [fig.add_subplot(gs_qq[0, i]) for i in range(5)]
 
     for i, abs_ild in enumerate(abs_ILD_arr_qq):
         ax = qq_axes[i]
@@ -366,22 +531,27 @@ try:
                 fit_x = np.array([lower_lim, 0.5])
                 ax.plot(fit_x, m*fit_x + c, color='tab:green')
 
-        # Formatting
-        ax.plot([global_min_val, global_max_val], [global_min_val, global_max_val], color='k', linestyle='--', alpha=0.7, zorder=0)
+        # --- Formatting for Q-Q plots ---
+        ax.set_aspect('equal', adjustable='box')
+        ax.plot([global_min_val, global_max_val], [global_min_val, global_max_val], 'k--', alpha=0.7, zorder=0) # Identity line
+        ax.set_xlim(global_min_val, global_max_val)
+        ax.set_ylim(global_min_val, global_max_val)
+        ax.set_title(f'|ILD| = {abs_ild}', fontsize=LABEL_FONTSIZE)
+        ax.set_xlabel('RT Quantiles (ABL 40)', fontsize=LABEL_FONTSIZE)
+        ax.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
-        ax.tick_params(axis='both', which='major', labelsize=12)
-        upper_lim = 0.5
-        ax.set_xlim(lower_lim, upper_lim)
-        ax.set_xticks([lower_lim, upper_lim])
-        ax.set_ylim(lower_lim, upper_lim)
-        ax.set_yticks([lower_lim, upper_lim])
-        ax.set_xlabel('RT Quantiles (ABL 40)', fontsize=14)
-        if i == 0:
-            ax.set_ylabel('RT Quantiles (ABL 20/60)', fontsize=14)
-        ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x:.2f}'))
-        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.2f}'))
-        ax.grid(False)
+        # Set ticks to be the same for x and y
+        ticks = np.linspace(round(global_min_val, 1), round(global_max_val, 1), 3)
+        ax.set_xticks(ticks)
+        ax.set_yticks(ticks)
+
+    # Common y-label for the first plot
+    qq_axes[0].set_ylabel('RT Quantiles (ABL 20/60)', fontsize=LABEL_FONTSIZE)
+
+    # Hide y-tick labels for other plots
+    for ax in qq_axes[1:]:
+        plt.setp(ax.get_yticklabels(), visible=False)
 
 except FileNotFoundError:
     print("\nQ-Q plot data file not found. Skipping Q-Q plots.")
@@ -391,7 +561,7 @@ except Exception as e:
 
 # --- Final global figure adjustments ---
 plt.tight_layout(rect=[0, 0, 1, 0.96], h_pad=3.0, w_pad=2.0)
-fig.suptitle('Figure 1', fontsize=24)
+fig.suptitle('Figure 1', fontsize=SUPTITLE_FONTSIZE)
 plt.savefig('fig1_from_pickle.png', dpi=300, bbox_inches='tight')
 plt.show()
 

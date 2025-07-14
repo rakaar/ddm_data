@@ -69,4 +69,5 @@
 - 1 x 3 unscaled quantiles: `scaling_quantiles_not_RTD_for_paper_fig1.py`
 - 1 x 5 line fit: `qq_animals_and_average.py`
 - 1 x 1 scaled quantile: `scaling_quantiles_not_RTD_for_paper_fig1.py`
-- 
+- slope vs animal, 2 histograms: `plot_slope_ratios_histograms.py`
+- mean RT vs ABL, ILD: `animal_specific_chronometric_for_paper_fig1.py`
