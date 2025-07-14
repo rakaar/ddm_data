@@ -62,3 +62,11 @@
 - `fit_qq_animals_and_avg.py` - Q - Q_60 vs Q_60
 - `all_animals_rtd_cdf_plots.py` -CDF for cut off
 - `plot_slope_ratios_histograms.py` - psychometric slopes for weber law for fig 1
+
+# fig 1
+- 1x4 psychometric: `aggregate_psychometric_by_abl_for_paper_fig1.py`
+- 1x4 chronometric: `animal_specific_chronometric_for_paper_fig1.py`
+- 1 x 3 unscaled quantiles: `scaling_quantiles_not_RTD_for_paper_fig1.py`
+- 1 x 5 line fit: `qq_animals_and_average.py`
+- 1 x 1 scaled quantile: `scaling_quantiles_not_RTD_for_paper_fig1.py`
+- 

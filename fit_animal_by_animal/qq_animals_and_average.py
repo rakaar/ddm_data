@@ -223,6 +223,8 @@ print(f'PDF saved to {output_filename}')
 # 1. Calculate average quantiles and SEM across all animals
 avg_quantiles = {}
 sem_quantiles = {}
+global_max_val = 0.5
+
 for abl in ABL_arr:
     # Stack the list of 2D arrays into a 3D array (animals, quantiles, ilds)
     stacked_arrays = np.stack(avg_unscaled_collect[abl], axis=0)
@@ -386,6 +388,26 @@ for i, abs_ild in enumerate(abs_ILD_arr):
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
     ax.grid(False)
+
+# --- Save data for external plotting ---
+output_dir = os.path.dirname(avg_output_filename_v2)
+if not output_dir:
+    output_dir = '.'
+
+qq_plot_data = {
+    'abs_ILD_arr': abs_ILD_arr,
+    'avg_quantiles': avg_quantiles,
+    'sem_quantiles': sem_quantiles,
+    'min_RT_cut_by_ILD': min_RT_cut_by_ILD,
+    'global_min_val': global_min_val,
+    'global_max_val': global_max_val,
+}
+
+output_pickle_path = os.path.join(output_dir, 'fig1_qq_plot_data.pkl')
+with open(output_pickle_path, 'wb') as f:
+    pickle.dump(qq_plot_data, f)
+print(f"\nQ-Q plot data saved to '{output_pickle_path}'")
+
 
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 

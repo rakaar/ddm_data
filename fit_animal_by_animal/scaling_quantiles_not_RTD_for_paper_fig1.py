@@ -341,6 +341,28 @@ for col, abl in enumerate(ABL_arr):
 for ax in axes_orig:
     ax.set_xlabel('|ILD| (dB)', fontsize=18)
 
+# --- Save data for external plotting ---
+output_dir = os.path.dirname(orig_output_filename)
+if not output_dir:
+    output_dir = '.'
+
+quantile_plot_data = {
+    'ABL_arr': ABL_arr,
+    'abs_ILD_arr': abs_ILD_arr,
+    'plotting_quantiles': plotting_quantiles,
+    'mean_unscaled': mean_unscaled,
+    'sem_unscaled': sem_unscaled,
+    'mean_scaled': mean_scaled,      # Add scaled data
+    'sem_scaled': sem_scaled,        # Add scaled data
+    'abl_colors': ['tab:blue', 'tab:orange', 'tab:green'] # Hardcoded from plot
+}
+
+output_pickle_path = os.path.join(output_dir, 'fig1_quantiles_plot_data.pkl')
+with open(output_pickle_path, 'wb') as f:
+    pickle.dump(quantile_plot_data, f)
+print(f"\nQuantile plot data saved to '{output_pickle_path}'")
+
+
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 fig_orig.savefig(orig_output_filename, dpi=300, bbox_inches='tight')
 plt.show(fig_orig)

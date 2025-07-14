@@ -306,6 +306,21 @@ ax4.spines['left'].set_color('#bbbbbb')
 ax4.tick_params(axis='y', colors='#bbbbbb')
 
 
+# --- Save data for external plotting ---
+chrono_plot_data = {
+    'plot_abls': plot_abls,
+    'all_chrono_data_df': all_chrono_data_df,
+    'grand_means_data': grand_means_data,
+    'abl_colors': abl_colors,
+    'abs_ild_ticks': abs_ild_ticks
+}
+
+output_pickle_path = os.path.join(output_dir, 'fig1_chrono_plot_data.pkl')
+with open(output_pickle_path, 'wb') as f:
+    pickle.dump(chrono_plot_data, f)
+print(f"\nChronometric plot data saved to '{output_pickle_path}'")
+
+
 # 5. Final figure adjustments and saving
 plt.tight_layout()
 plt.subplots_adjust(bottom=0.15, left=0.07, right=0.97, top=0.95)
