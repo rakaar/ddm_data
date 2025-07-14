@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import os
 from scipy.optimize import curve_fit
 from collections import defaultdict
+import pickle
 
 # --- Data loading (same as your other scripts) ---
 DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
@@ -65,6 +66,7 @@ mean_params_dict = {}  # Store mean sigmoid parameters for each ABL
 ilds_dict = {}         # Store ILDs for each ABL (for x axis in 4th plot)
 mean_sigmoid_dict = {} # Store mean-of-sigmoids y values for each ABL (for black_plot_as)
 x_smooth_dict = {}    # Store x_smooth for each ABL
+all_sigmoid_curves_dict = {} # Store all individual sigmoid curves for each ABL
 
 unique_animal_identifiers = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
 print(f'\nFound {len(unique_animal_identifiers)} unique animal-batch pairs to analyze.\n')
@@ -142,6 +144,7 @@ for idx, (abl, color) in enumerate(zip(ABLS, COLORS)):
             mean_sigmoid_dict[abl] = mean_sigmoid
             # ax.plot(ilds, mean_sigmoid, color='black', linewidth=3, label='Avg sigmoid fit')
             ax.plot(x_smooth, mean_sigmoid, color='black', linewidth=3, label='Avg sigmoid fit')
+    all_sigmoid_curves_dict[abl] = all_sigmoid_curves
 
     # Average data points and std
     all_psycho_points = np.array(all_psycho_points)
@@ -232,5 +235,24 @@ for ax in axes:
 plt.tight_layout()
 plt.subplots_adjust(bottom=0.15, left=0.07, right=0.97, top=0.88)
 plt.savefig('aggregate_psychometric_by_abl_for_paper_fig1.png', dpi=300, bbox_inches='tight')
+# --- Save data for external plotting ---
+plot_data = {
+    'ABLS': ABLS,
+    'COLORS': COLORS,
+    'black_plot_as': black_plot_as,
+    'ilds_dict': ilds_dict,
+    'mean_params_dict': mean_params_dict,
+    'mean_sigmoid_dict': mean_sigmoid_dict,
+    'x_smooth_dict': x_smooth_dict,
+    'all_sigmoid_curves_dict': all_sigmoid_curves_dict,
+    'unique_animal_identifiers': unique_animal_identifiers,
+    'merged_valid': merged_valid, # Pass the dataframe for the 4th plot recreation
+}
+
+with open('fig1_plot_data.pkl', 'wb') as f:
+    pickle.dump(plot_data, f)
+
+print("\nPlotting data saved to fig1_plot_data.pkl")
+
 plt.show()
 # %%
