@@ -7,6 +7,14 @@ from matplotlib.gridspec import GridSpec
 import matplotlib as mpl
 # Add padding when saving figures to create whitespace around the entire figure
 mpl.rcParams["savefig.pad_inches"] = 0.6
+
+# Helper to nudge a list of axes horizontally (dx in figure coordinates)
+
+def shift_axes(ax_list, dx):
+    """Shift axes in ax_list horizontally by dx (figure coordinate fraction)."""
+    for ax in ax_list:
+        pos = ax.get_position()
+        ax.set_position([pos.x0 + dx, pos.y0, pos.width, pos.height])
 # --- Plotting Configuration ---
 TITLE_FONTSIZE = 18
 LABEL_FONTSIZE = 16
@@ -41,7 +49,7 @@ all_sigmoid_curves_dict = plot_data['all_sigmoid_curves_dict']
 fig = plt.figure(figsize=(25, 30))
 # Add larger margins around the entire figure to avoid elements touching the edges
 fig.subplots_adjust(left=0.06, right=0.97, top=0.96, bottom=0.06)
-gs = GridSpec(5, 6, figure=fig, hspace=0.3, wspace=0.05, width_ratios=[1, 1, 1, 1, 1, 1])
+gs = GridSpec(5, 6, figure=fig, hspace=0.3, wspace=0.0, width_ratios=[1, 1, 1, 1, 1, 1])
 
 # Create axes for the psychometric plots in the second row (index 1)
 ax_psych_1 = fig.add_subplot(gs[1, 0])
@@ -283,6 +291,8 @@ try:
 
     # Right plot: Mean RT vs ABL (sharing y-axis)
     ax_abl = fig.add_subplot(gs_nested_chrono[0, 1], sharey=ax_ild)
+    # Reduce gap between column 4 and 5 for second row by nudging nested axes left
+    shift_axes([ax_ild, ax_abl], dx=-0.05)
     ax_abl.errorbar(
         x=range(len(rt_vs_abl)), y=rt_vs_abl['mean'], yerr=rt_vs_abl['sem'],
         fmt='o', linestyle='None', color='k', capsize=0, markersize=6 # Removed capsize
@@ -348,6 +358,8 @@ try:
     # --- 2. Histograms (bottom row of nested grid, side-by-side) ---
     ax_hist1 = fig.add_subplot(gs_nested[1, 0]) # Left histogram
     ax_hist2 = fig.add_subplot(gs_nested[1, 1]) # Right histogram
+    # Reduce gap between column 4 and 5 for first row by nudging nested axes left
+    shift_axes([ax_slopes, ax_hist1, ax_hist2], dx=-0.05)
 
     # Left histogram: Within-rat differences
     ax_hist1.hist(diff_within, bins=bins_absdiff, color='grey', alpha=0.7, density=True)
