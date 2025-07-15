@@ -270,11 +270,25 @@ try:
     rt_vs_ild = chrono_data['rt_vs_ild']
     rt_vs_abl = chrono_data['rt_vs_abl']
 
-    # Create a nested GridSpec in the 5th column of the chronometric row
-    gs_nested_chrono = gs[2, 5].subgridspec(1, 2, wspace=0.5)
+    # --- Add summary chronometric plots (RT vs |ILD| and RT vs ABL) ---
+    rt_vs_ild = chrono_data['rt_vs_ild']
+    rt_vs_abl = chrono_data['rt_vs_abl']
 
-    # Left plot: Mean RT vs |ILD|
-    ax_ild = fig.add_subplot(gs_nested_chrono[0, 0])
+    # Place summary axes in columns 5 and 6 so they match the size of the main chronometric panels
+    ax_ild = fig.add_subplot(gs[2, 4])
+    ax_abl = fig.add_subplot(gs[2, 5], sharey=ax_ild)
+
+    # Make them square like the other chronometric axes
+    for ax_sum in (ax_ild, ax_abl):
+        if hasattr(ax_sum, 'set_box_aspect'):
+            ax_sum.set_box_aspect(1)
+        else:
+            ax_sum.set_aspect('equal', adjustable='box')
+
+    # Nudge both left a touch to minimise the col-4/5 gap
+    shift_axes([ax_ild, ax_abl], dx=0.05)
+
+    # Mean RT vs |ILD|
     ax_ild.errorbar(
         x=rt_vs_ild['abs_ILD'], y=rt_vs_ild['mean'], yerr=rt_vs_ild['sem'],
         fmt='o', color='k', capsize=0, markersize=6, linewidth=2
@@ -289,17 +303,18 @@ try:
     ax_ild.spines['right'].set_visible(False)
     ax_ild.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
 
-    # Right plot: Mean RT vs ABL (sharing y-axis)
-    ax_abl = fig.add_subplot(gs_nested_chrono[0, 1], sharey=ax_ild)
-    # Reduce gap between column 4 and 5 for second row by nudging nested axes left
-    shift_axes([ax_ild, ax_abl], dx=-0.05)
+    # Mean RT vs ABL
     ax_abl.errorbar(
         x=range(len(rt_vs_abl)), y=rt_vs_abl['mean'], yerr=rt_vs_abl['sem'],
-        fmt='o', linestyle='None', color='k', capsize=0, markersize=6 # Removed capsize
+        fmt='o', linestyle='None', color='k', capsize=0, markersize=6
     )
     ax_abl.set_xticks(range(len(rt_vs_abl)))
     ax_abl.set_xticklabels(rt_vs_abl['ABL'].astype(int))
     ax_abl.set_xlabel('ABL', fontsize=LABEL_FONTSIZE)
+    plt.setp(ax_abl.get_yticklabels(), visible=False)
+    ax_abl.spines['top'].set_visible(False)
+    ax_abl.spines['right'].set_visible(False)
+    ax_abl.tick_params(axis='x', which='major', labelsize=TICK_FONTSIZE)
 
     # --- Final y-axis configuration as per user instruction ---
     # Configure left plot (which controls the shared y-axis)
