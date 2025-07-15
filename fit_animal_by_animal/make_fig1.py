@@ -54,9 +54,9 @@ gs = GridSpec(
     figure=fig,
     hspace=0.3,
     wspace=0.0,
-    width_ratios=[1, 1, 1, 1, 1, 1],
+    width_ratios=[1, 1, 1, 1, 1, 1.8],
     # Make psychometric (row 1) and chronometric (row 2) panels shorter
-    height_ratios=[1, 0.5, 0.5, 0.5, 0.5]
+    height_ratios=[1, 0.5, 0.5, 0.5, 0]
 )
 
 # Create a nested GridSpec for psychometric plots (row 1) with extra column spacing
@@ -281,23 +281,15 @@ try:
     rt_vs_ild = chrono_data['rt_vs_ild']
     rt_vs_abl = chrono_data['rt_vs_abl']
 
-    # --- Add summary chronometric plots (RT vs |ILD| and RT vs ABL) ---
-    rt_vs_ild = chrono_data['rt_vs_ild']
-    rt_vs_abl = chrono_data['rt_vs_abl']
+    # Stack the two summary axes vertically spanning columns 4 & 5
+    gs_summary = gs[2, 5].subgridspec(2, 1, hspace=0.6)
+    ax_ild = fig.add_subplot(gs_summary[0, 0])
+    ax_abl = fig.add_subplot(gs_summary[1, 0])
 
-    # Place summary axes in columns 5 and 6 so they match the size of the main chronometric panels
-    ax_ild = fig.add_subplot(gs[2, 4])
-    ax_abl = fig.add_subplot(gs[2, 5], sharey=ax_ild)
+    # Let Matplotlib decide aspect; we only keep same width by position
 
-    # Make them square like the other chronometric axes
-    for ax_sum in (ax_ild, ax_abl):
-        if hasattr(ax_sum, 'set_box_aspect'):
-            ax_sum.set_box_aspect(1)
-        else:
-            ax_sum.set_aspect('equal', adjustable='box')
-
-    # Nudge both left a touch to minimise the col-4/5 gap
-    shift_axes([ax_ild, ax_abl], dx=0.05)
+    # Optionally nudge a little left to reduce gap
+    shift_axes([ax_ild, ax_abl], dx=-0.05)
 
     # Mean RT vs |ILD|
     ax_ild.errorbar(
@@ -321,6 +313,7 @@ try:
     )
     ax_abl.set_xticks(range(len(rt_vs_abl)))
     ax_abl.set_xticklabels(rt_vs_abl['ABL'].astype(int))
+    ax_abl.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
     ax_abl.set_xlabel('ABL', fontsize=LABEL_FONTSIZE)
     plt.setp(ax_abl.get_yticklabels(), visible=False)
     ax_abl.spines['top'].set_visible(False)
@@ -334,12 +327,17 @@ try:
     ax_ild.set_yticklabels(['0.15', '0.3'])
     ax_ild.tick_params(axis='y', labelleft=True)
 
+    ax_abl.set_ylim(0.15, 0.30) # Adjusted ylim to better fit data
+    ax_abl.set_yticks([0.15, 0.3])
+    ax_abl.set_yticklabels(['0.15', '0.3'])
+    ax_abl.tick_params(axis='y', labelleft=True)
+
     # Keep the right-hand plot label-free
-    plt.setp(ax_abl.get_yticklabels(), visible=False)
+    # plt.setp(ax_abl.get_yticklabels(), visible=False)
 
     ax_abl.spines['top'].set_visible(False)
     ax_abl.spines['right'].set_visible(False)
-    ax_abl.tick_params(axis='x', which='major', labelsize=TICK_FONTSIZE)
+    ax_abl.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
 
 except FileNotFoundError:
     print("\nChronometric data file not found. Skipping chronometric plots.")
@@ -375,8 +373,9 @@ try:
 
     # Formatting for slopes plot
     ax_slopes.set_xticks([])
-    ax_slopes.set_ylabel('Slope (k)', fontsize=LEGEND_FONTSIZE)
+    ax_slopes.set_ylabel('Slope (k)', fontsize=LABEL_FONTSIZE)
     ax_slopes.set_yticks([0, 2])
+    ax_slopes.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
     ax_slopes.spines['top'].set_visible(False)
     ax_slopes.spines['right'].set_visible(False)
     ax_slopes.set_title('Slopes', fontsize=LABEL_FONTSIZE)
@@ -406,13 +405,17 @@ try:
         ax_hist.axvline(0, color='black', linestyle=':', linewidth=1)
         ax_hist.spines['top'].set_visible(False)
         ax_hist.spines['right'].set_visible(False)
-        ax_hist.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
+        # Hide left y-axis line
+        ax_hist.spines['left'].set_visible(False)
+        # Smaller tick font
+        ax_hist.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE - 4)
         ax_hist.set_xticks(hist_xticks)
         ax_hist.set_xticklabels(hist_xticklabels)
 
     # --- Specific y-axis formatting ---
-    ax_hist1.set_ylabel('Density', fontsize=LABEL_FONTSIZE)
-    ax_hist1.set_yticks([0, hist_ylim])
+    # Remove y-label
+    ax_hist1.set_ylabel('')
+    ax_hist1.set_yticks([])
     ax_hist2.set_yticks([])  # Remove y-ticks from the right plot for a cleaner look
 
 except FileNotFoundError:
@@ -516,6 +519,9 @@ except FileNotFoundError:
 except Exception as e:
     print(f"\nAn error occurred while plotting quantile data: {e}")
 
+######################################################
+###### NOTE: NOT IN THE FIGURE ANY MORE ##############
+######################################################
 
 # --- Q-Q PLOTS (ABL 40 Baseline) ---
 try:
@@ -586,6 +592,10 @@ try:
 
     # Common y-label for the first plot
     qq_axes[0].set_ylabel('RT Quantiles (ABL 20/60)', fontsize=LABEL_FONTSIZE)
+
+    # Hide y-tick labels for other plots
+    for ax in qq_axes:
+        ax.set_visible(False)
 
     # Hide y-tick labels for other plots
     for ax in qq_axes[1:]:
