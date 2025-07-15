@@ -78,7 +78,7 @@ for animal_id in all_animals:
                                    (merged_valid['ABL'].isin(ABLS))]
     if animal_df_all_abl.empty:
         continue
-    # Compute mean P(Right) at each ILD (across ABLs)
+    # Compute mean P(Right) at each ILD - no ABL concept
     ilds = np.sort(animal_df_all_abl['ILD'].unique())
     psycho = []
     for ild in ilds:
@@ -213,6 +213,47 @@ print(f'std(diff_across animals): {np.std(diff_across):.3f}')
 
 print(f'std(ratio_within animal) {np.std(ratios_within):.3f}')
 print(f'std(ratio_across animal) {np.std(ratios_across):.3f}')
+
+# %%
+####################################################
+##### SLOPE RAT - GRAND MEAN: CENTERED #########################
+######################################################
+# Create a figure with two subplots, sharing the y-axis
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 6), sharey=True, gridspec_kw={'width_ratios': [2, 1]})
+
+# Left plot: Deviation of each animal's mean slope from the grand mean
+ax1.plot(np.sort(diff_across), 'ko', markersize=8)
+ax1.axhline(0, color='k', linestyle=':', linewidth=2)  # Center line at zero
+ax1.get_xaxis().set_visible(False)  # Hide x-axis ticks and labels
+ax1.set_ylabel('Mean Slope - Grand Mean (k)')
+ax1.set_title('Deviation from Grand Mean')
+ax1.grid(axis='y', linestyle='--', alpha=0.7)
+
+# --- Publication Grade Adjustments ---
+# Remove top and right spines from the left plot
+ax1.spines['top'].set_visible(False)
+ax1.spines['right'].set_visible(False)
+ax1.spines['bottom'].set_visible(False)
+
+
+# Set specific y-ticks for the left plot
+ax1.set_yticks([-0.3, 0, 0.3])
+ax1.set_ylim([-0.4, 0.4])
+
+
+# Right plot: Horizontal histogram of the differences
+ax2.hist(diff_across, bins=bins_absdiff, color='gray', edgecolor='black', orientation='horizontal', density=True)
+
+# Remove all axes, labels, and ticks from the histogram plot
+ax2.axis('off')
+
+# Adjust layout
+plt.subplots_adjust(wspace=0.05)
+
+plt.tight_layout()
+plt.show()
+#
+
 # %%
 
 # %%
