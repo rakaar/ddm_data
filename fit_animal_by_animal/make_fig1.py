@@ -5,19 +5,27 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import matplotlib as mpl
+import matplotlib.font_manager as fm
 # Add padding when saving figures to create whitespace around the entire figure
 mpl.rcParams["savefig.pad_inches"] = 0.6
+# Use Helvetica or its open-source equivalent font throughout the figure.
+mpl.rcParams['font.family'] = 'sans-serif'
+mpl.rcParams['font.sans-serif'] = ['Helvetica Neue', 'Helvetica', 'TeX Gyre Heros', 'Arial', 'sans-serif']
 
+font_path = fm.findfont(mpl.font_manager.FontProperties(family=mpl.rcParams['font.sans-serif']))
+print(f"The font being used is: {font_path}") 
 # Helper to nudge a list of axes horizontally (dx in figure coordinates)
 
-def shift_axes(ax_list, dx):
-    """Shift axes in ax_list horizontally by dx (figure coordinate fraction)."""
+def shift_axes(ax_list, dx=0, dy=0):
+    """Shift axes in ax_list by dx and dy (figure coordinate fractions)."""
     for ax in ax_list:
         pos = ax.get_position()
-        ax.set_position([pos.x0 + dx, pos.y0, pos.width, pos.height])
+        new_pos = [pos.x0 + dx, pos.y0 + dy, pos.width, pos.height]
+        ax.set_position(new_pos)
+
 # --- Plotting Configuration ---
 TITLE_FONTSIZE = 24
-LABEL_FONTSIZE = 20
+LABEL_FONTSIZE = 25
 TICK_FONTSIZE = 24
 LEGEND_FONTSIZE = 16
 SUPTITLE_FONTSIZE = 24
@@ -46,6 +54,7 @@ merged_valid = plot_data['merged_valid']
 all_sigmoid_curves_dict = plot_data['all_sigmoid_curves_dict']
 
 # --- Prepare figure using GridSpec for complex layout ---
+
 fig = plt.figure(figsize=(25, 30))
 # Add larger margins around the entire figure to avoid elements touching the edges
 fig.subplots_adjust(left=0.06, right=0.97, top=0.96, bottom=0.06)
@@ -54,7 +63,7 @@ gs = GridSpec(
     figure=fig,
     hspace=0.3,
     wspace=0.0,
-    width_ratios=[1, 1, 1, 1, 1, 1.8],
+    width_ratios=[1, 1, 1, 1, 1, 1],
     # Make psychometric (row 1) and chronometric (row 2) panels shorter
     height_ratios=[1, 0.5, 0.5, 0.5, 0]
 )
@@ -68,6 +77,8 @@ ax_psych_4 = fig.add_subplot(gs_psych[0, 3], sharey=ax_psych_1)
 
 # Group axes for easy iteration in the existing plotting loop
 axes = [ax_psych_1, ax_psych_2, ax_psych_3, ax_psych_4]
+# Nudge the fourth psychometric panel right to align with overlay
+shift_axes([ax_psych_4], dx=0.04)
 
 # Ensure each psychometric plot is square shaped regardless of data limits
 for ax in axes:
@@ -209,6 +220,8 @@ try:
     ax_chrono_3 = fig.add_subplot(gs_chrono_main[0, 2], sharey=ax_chrono_1)
     ax_chrono_4 = fig.add_subplot(gs_chrono_main[0, 3], sharey=ax_chrono_1)
     chrono_axes = [ax_chrono_1, ax_chrono_2, ax_chrono_3, ax_chrono_4]
+    # Nudge the fourth chronometric panel right to align with overlay
+    shift_axes([ax_chrono_4], dx=0.04)
 
     # Ensure each chronometric subplot is square shaped
     for ax in chrono_axes:
@@ -288,8 +301,8 @@ try:
 
     # Let Matplotlib decide aspect; we only keep same width by position
 
-    # Optionally nudge a little left to reduce gap
-    shift_axes([ax_ild, ax_abl], dx=-0.05)
+    # Nudge left to reduce gap and shift down for arbitrary positioning
+    shift_axes([ax_ild, ax_abl], dx=0.04, dy=-0.04)
 
     # Mean RT vs |ILD|
     ax_ild.errorbar(
@@ -306,11 +319,14 @@ try:
     ax_ild.spines['right'].set_visible(False)
     ax_ild.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
 
-    # Mean RT vs ABL
-    ax_abl.errorbar(
-        x=range(len(rt_vs_abl)), y=rt_vs_abl['mean'], yerr=rt_vs_abl['sem'],
-        fmt='o', linestyle='None', color='k', capsize=0, markersize=6
-    )
+    # Mean RT vs ABL (with ABL-wise coloring)
+    for i, row in rt_vs_abl.iterrows():
+        abl = row['ABL']
+        color = abl_colors.get(abl, 'k')  # Use black as a fallback
+        ax_abl.errorbar(
+            x=i, y=row['mean'], yerr=row['sem'],
+            fmt='o', linestyle='None', color=color, capsize=0, markersize=8.5
+        )
     ax_abl.set_xticks(range(len(rt_vs_abl)))
     ax_abl.set_xticklabels(rt_vs_abl['ABL'].astype(int))
     ax_abl.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
@@ -347,7 +363,7 @@ except Exception as e:
 # --- SLOPES AND HISTOGRAMS PLOTS ---
 try:
     with open('fig1_slopes_hists_data.pkl', 'rb') as f:
-        slope_data = pickle.load(f)
+            slope_data = pickle.load(f)
 
     # --- Extract data ---
     slopes = slope_data['slopes']
@@ -378,13 +394,14 @@ try:
     ax_slopes.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
     ax_slopes.spines['top'].set_visible(False)
     ax_slopes.spines['right'].set_visible(False)
-    ax_slopes.set_title('Slopes', fontsize=LABEL_FONTSIZE)
+    # ax_slopes.set_title('Slopes', fontsize=LABEL_FONTSIZE)
 
     # --- 2. Histograms (bottom row of nested grid, side-by-side) ---
     ax_hist1 = fig.add_subplot(gs_nested[1, 0]) # Left histogram
     ax_hist2 = fig.add_subplot(gs_nested[1, 1]) # Right histogram
-    # Reduce gap between column 4 and 5 for first row by nudging nested axes left
-    shift_axes([ax_slopes, ax_hist1, ax_hist2], dx=-0.05)
+
+    # Nudge left to reduce gap and shift down for arbitrary positioning
+    shift_axes([ax_slopes, ax_hist1, ax_hist2], dx=0.05, dy=-0.012)
 
     # Left histogram: Within-rat differences
     ax_hist1.hist(diff_within, bins=bins_absdiff, color='grey', alpha=0.7, density=True)
@@ -395,8 +412,8 @@ try:
     ax_hist2.set_xlabel(r'$\mu_{rat} - \mu_{grand}$', fontsize=LABEL_FONTSIZE)
 
     # --- Common formatting for both histograms ---
-    hist_xticks = [-0.4,  0,  0.4]
-    hist_xticklabels = ['-0.4', '0', '0.4']
+    hist_xticks = [-0.3,  0,  0.3]
+    hist_xticklabels = ['-0.3', '0', '0.3']
 
     for ax_hist, title in [(ax_hist1, 'Within-animal'), (ax_hist2, 'Across-animal')]:
         ax_hist.set_title(title, fontsize=LEGEND_FONTSIZE)
@@ -438,10 +455,14 @@ try:
     abl_colors_quant = quantile_data['abl_colors']
 
     # --- Create axes for the quantile plots in the fourth row (index 3) ---
-    ax_quant_1 = fig.add_subplot(gs[3, 0])
-    ax_quant_2 = fig.add_subplot(gs[3, 1], sharey=ax_quant_1)
-    ax_quant_3 = fig.add_subplot(gs[3, 2], sharey=ax_quant_1)
+    # Use a nested 1×4 sub-GridSpec to match psychometric/chronometric sizing
+    gs_quant = gs[3, 0:4].subgridspec(1, 4, wspace=0.25)
+    ax_quant_1 = fig.add_subplot(gs_quant[0, 0])
+    ax_quant_2 = fig.add_subplot(gs_quant[0, 1], sharey=ax_quant_1)
+    ax_quant_3 = fig.add_subplot(gs_quant[0, 2], sharey=ax_quant_1)
     quantile_axes = [ax_quant_1, ax_quant_2, ax_quant_3]
+    # No horizontal nudge; keep alignment with psychometric and chronometric rows
+    # The 4th slot in gs_quant will hold the scaled overlay later
 
     # Ensure each quantile subplot is square shaped
     for ax in quantile_axes:
@@ -476,10 +497,12 @@ try:
         ax.set_xlabel('|ILD| (dB)', fontsize=LABEL_FONTSIZE)
 
         if col == 0:
-            ax.set_ylabel('Mean RT(s)', fontsize=LABEL_FONTSIZE)
+            ax.set_ylabel('RT(s)', fontsize=LABEL_FONTSIZE)
 
     # --- Create and format the scaled quantile overlay plot ---
-    ax_overlay = fig.add_subplot(gs[3, 4])
+    ax_overlay = fig.add_subplot(gs_quant[0, 3])
+    # Shift overlay plot right for extra gap
+    shift_axes([ax_overlay], dx=0.04)
     # Make overlay plot square as well for consistency
     if hasattr(ax_overlay, 'set_box_aspect'):
         ax_overlay.set_box_aspect(1)
