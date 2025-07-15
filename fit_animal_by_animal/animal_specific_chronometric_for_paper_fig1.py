@@ -337,6 +337,136 @@ plt.show(fig)
 
 print(f"Summary plot saved to '{summary_plot_filename}'")
 
+
+# --- STD PLOT ---
+# 2. Create the 1x4 subplot figure with STD
+
+
+
+fig, axes = plt.subplots(1, 4, figsize=(14, 4), sharey=True)
+plot_abls = [20, 40, 60]
+grand_means_data = {}  # To store the mean data for the last plot
+keep_grid = False
+
+# 3. Generate first 3 subplots
+for i, abl in enumerate(plot_abls):
+    ax = axes[i]
+    
+    # Filter data for the current ABL
+    abl_df = all_chrono_data_df[all_chrono_data_df['ABL'] == abl]
+    unique_animals_in_abl = abl_df[['batch_name', 'animal_id']].drop_duplicates().shape[0]
+    print(f'For ABL = {abl}: shape = {abl_df.shape}, unique animals = {unique_animals_in_abl}')
+    
+    # Plot individual animal lines in a light color
+    for (batch_name, animal_id), animal_df in abl_df.groupby(['batch_name', 'animal_id']):
+        animal_df = animal_df.sort_values('abs_ILD')
+        ax.plot(animal_df['abs_ILD'], animal_df['mean'], color='gray', alpha=0.4, linewidth=1.5)
+            
+    # Calculate and plot the grand mean with STD
+    grand_mean_stats = abl_df.groupby('abs_ILD')['mean'].agg(['mean', 'std']).reset_index().sort_values('abs_ILD')
+
+
+    # Store grand mean for the final plot
+    grand_means_data[abl] = grand_mean_stats
+    
+
+    # Plot mean line with error bars
+    ax.errorbar(
+        x=grand_mean_stats['abs_ILD'],
+        y=grand_mean_stats['mean'],
+        yerr=grand_mean_stats['std'],
+        fmt='o-',
+        color='black',
+        linewidth=2.5,
+        markersize=8.5,
+        capsize=0,
+        label='Population Mean'
+    )
+
+    # Formatting for each subplot
+    ax.set_xlabel('|ILD| (dB)', fontsize=18)
+    if i == 0:
+        ax.set_ylabel('Mean RT (s)', fontsize=18)
+        ax.spines['left'].set_color('black')
+        ax.yaxis.label.set_color('black')
+        ax.tick_params(axis='y', colors='black')
+    else:
+        ax.spines['left'].set_color('#bbbbbb')
+        ax.tick_params(axis='y', colors='#bbbbbb')
+
+    ax.set_xscale('log')
+    ax.set_xticks(abs_ild_ticks)
+    ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator()) # Most forceful way to remove minor ticks
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    ax.set_ylim(0.1, 0.45)
+    ax.set_yticks([0.1, 0.2, 0.3, 0.4])
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+
+# 4. Generate the 4th subplot (aggregation)
+ax4 = axes[3]
+for abl, stats_data in grand_means_data.items():
+
+    # Plot mean line with error bars
+    ax4.errorbar(
+        x=stats_data['abs_ILD'],
+        y=stats_data['mean'],
+        yerr=stats_data['std'],
+        fmt='o-',
+        color=abl_colors[abl],
+        label=f'{int(abl)} dB',
+        linewidth=2.5,
+        markersize=8.5,
+        capsize=0
+    )
+
+# Formatting for the 4th subplot
+ax4.set_xlabel('|ILD| (dB)', fontsize=18)
+# ax4.legend(title='ABL', fontsize=14)
+ax4.set_xscale('log')
+ax4.set_xticks(abs_ild_ticks)
+ax4.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+ax4.xaxis.set_minor_locator(matplotlib.ticker.NullLocator()) # Most forceful way to remove minor ticks
+ax4.tick_params(axis='both', which='major', labelsize=12)
+ax4.spines['top'].set_visible(False)
+ax4.spines['right'].set_visible(False)
+ax4.spines['left'].set_color('#bbbbbb')
+ax4.tick_params(axis='y', colors='#bbbbbb')
+
+
+# --- Save data for external plotting ---
+plot_abls = [20, 40, 60]
+rt_vs_abl = all_chrono_data_df[all_chrono_data_df['ABL'].isin(plot_abls)].groupby('ABL')['mean'].agg(['mean', 'std']).reset_index()
+rt_vs_ild = all_chrono_data_df.groupby('abs_ILD')['mean'].agg(['mean', 'std']).reset_index()
+
+chrono_plot_data = {
+    'plot_abls': plot_abls,
+    'all_chrono_data_df': all_chrono_data_df,
+    'grand_means_data': grand_means_data,
+    'abl_colors': abl_colors,
+    'abs_ild_ticks': abs_ild_ticks,
+    'rt_vs_abl': rt_vs_abl, 
+    'rt_vs_ild': rt_vs_ild  
+}
+
+output_pickle_path = os.path.join(output_dir, 'fig1_chrono_plot_data_std.pkl')
+with open(output_pickle_path, 'wb') as f:
+    pickle.dump(chrono_plot_data, f)
+print(f"\nChronometric plot data saved to '{output_pickle_path}'")
+
+
+# 5. Final figure adjustments and saving
+plt.tight_layout()
+plt.subplots_adjust(bottom=0.15, left=0.07, right=0.97, top=0.95)
+
+summary_plot_filename = os.path.join(output_dir, 'summary_chronometric_plot_by_abl_std.png')
+plt.savefig(summary_plot_filename, dpi=300, bbox_inches='tight')
+plt.show(fig)
+
+print(f"Summary plot saved to '{summary_plot_filename}'")
+
 # %%
 # --- New Plots: Mean RT vs ABL and Mean RT vs |ILD| ---
 

@@ -255,4 +255,138 @@ with open('fig1_plot_data.pkl', 'wb') as f:
 print("\nPlotting data saved to fig1_plot_data.pkl")
 
 plt.show()
+
 # %%
+# --- New Section: Plot with Standard Error of the Mean (SEM) ---
+print("\n" + "="*50)
+print("Generating plot with Standard Error of the Mean (SEM)")
+print("="*50 + "\n")
+
+from scipy.stats import sem
+
+# --- Prepare figure for SEM plot ---
+fig_sem, axes_sem = plt.subplots(1, 4, figsize=(14, 4), sharey=True)
+
+for idx, (abl, color) in enumerate(zip(ABLS, COLORS)):
+    ax = axes_sem[idx]
+    ilds = ilds_dict[abl]
+    
+    # We can reuse the previously calculated sigmoid curves and psycho points
+    all_sigmoid_curves = all_sigmoid_curves_dict[abl]
+    
+    # Re-calculate all_psycho_points for the current ABL to be safe
+    all_psycho_points_sem = []
+    for batch, animal in unique_animal_identifiers:
+        animal_df = merged_valid[(merged_valid['batch_name'] == batch) & (merged_valid['animal'] == animal) & (merged_valid['ABL'] == abl)]
+        if animal_df.empty:
+            continue
+        psycho_allowed = []
+        for ild in ilds:
+            sub = animal_df[animal_df['ILD'] == ild]
+            if len(sub) > 0:
+                psycho_allowed.append(np.mean(sub['choice'] == 1))
+            else:
+                psycho_allowed.append(np.nan)
+        all_psycho_points_sem.append(np.array(psycho_allowed))
+
+    all_psycho_points_sem = np.array(all_psycho_points_sem)
+    
+    # Plot individual sigmoid fits (thin lines)
+    x_smooth = x_smooth_dict.get(abl)
+    if x_smooth is not None and all_sigmoid_curves:
+        for y_fit in all_sigmoid_curves:
+            ax.plot(x_smooth, y_fit, color=color, alpha=0.3, linewidth=1)
+
+    # Black curve: mean of sigmoids
+    if black_plot_as == "mean_of_sigmoids":
+        if all_sigmoid_curves:
+            mean_sigmoid = np.nanmean(np.vstack(all_sigmoid_curves), axis=0)
+            ax.plot(x_smooth, mean_sigmoid, color='black', linewidth=3, label='Avg sigmoid fit')
+
+    # Average data points and SEM
+    mean_psycho = np.nanmean(all_psycho_points_sem, axis=0)
+    sem_psycho = sem(all_psycho_points_sem, axis=0, nan_policy='omit') # Calculate SEM
+    ax.errorbar(ilds, mean_psycho, yerr=sem_psycho, fmt='o', color=color, capsize=0, markersize=8.5, label='Mean ± SEM')
+    
+    # --- Formatting (same as before) ---
+    ax.set_title(f'ABL = {abl}', fontsize=18)
+    ax.axvline(0, color='gray', linestyle='--', alpha=0.7)
+    ax.axhline(0.5, color='gray', linestyle='--', alpha=0.7)
+    ax.set_ylim(0, 1)
+    ax.set_xticks([-15, -5, 5, 15])
+    ax.set_yticks([0, 0.5, 1])
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    ax.set_xlabel('ILD', fontsize=18)
+    if idx == 0:
+        ax.set_ylabel('P(Right)', fontsize=18)
+        ax.spines['left'].set_color('black')
+        ax.yaxis.label.set_color('black')
+        ax.tick_params(axis='y', colors='black')
+    else:
+        ax.spines['left'].set_color('#bbbbbb')
+        ax.yaxis.label.set_color('#bbbbbb')
+        ax.tick_params(axis='y', colors='#bbbbbb')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+# --- 4th plot: All ABLs together (with SEM) ---
+ax4_sem = axes_sem[3]
+for abl, color in zip(ABLS, COLORS):
+    ilds = ilds_dict[abl]
+    
+    # Re-calculate psycho points for this ABL
+    all_psycho_points_sem = []
+    for batch, animal in unique_animal_identifiers:
+        animal_df = merged_valid[(merged_valid['batch_name'] == batch) & (merged_valid['animal'] == animal) & (merged_valid['ABL'] == abl)]
+        if animal_df.empty:
+            continue
+        psycho = []
+        for ild in ilds:
+            sub = animal_df[animal_df['ILD'] == ild]
+            if len(sub) > 0:
+                psycho.append(np.mean(sub['choice'] == 1))
+            else:
+                psycho.append(np.nan)
+        all_psycho_points_sem.append(np.array(psycho))
+    
+    all_psycho_points_sem = np.array(all_psycho_points_sem)
+    mean_psycho = np.nanmean(all_psycho_points_sem, axis=0)
+    sem_psycho = sem(all_psycho_points_sem, axis=0, nan_policy='omit') # Calculate SEM
+    
+    ax4_sem.errorbar(ilds, mean_psycho, yerr=sem_psycho, fmt='o', color=color, capsize=0, markersize=8.5, label=f'ABL={abl} mean')
+    
+    # Plot sigmoid curve (reusing from original plot)
+    if black_plot_as == "mean_of_sigmoids":
+        mean_sigmoid = mean_sigmoid_dict.get(abl, None)
+        x_smooth = x_smooth_dict.get(abl, None)
+        if mean_sigmoid is not None and x_smooth is not None:
+            ax4_sem.plot(x_smooth, mean_sigmoid, color=color, linewidth=2, label=f'ABL={abl} curve')
+
+# --- Formatting for 4th plot (SEM) ---
+ax4_sem.set_title('All ABLs (SEM)', fontsize=18)
+ax4_sem.axvline(0, color='gray', linestyle='--', alpha=0.7)
+ax4_sem.axhline(0.5, color='gray', linestyle='--', alpha=0.7)
+ax4_sem.set_ylim(0, 1)
+ax4_sem.set_xticks([-15, -5, 5, 15])
+ax4_sem.set_yticks([0, 0.5, 1])
+ax4_sem.tick_params(axis='both', which='major', labelsize=16)
+ax4_sem.set_xlabel('ILD', fontsize=18)
+ax4_sem.spines['left'].set_color('#bbbbbb')
+ax4_sem.yaxis.label.set_color('#bbbbbb')
+ax4_sem.tick_params(axis='y', colors='#bbbbbb')
+ax4_sem.spines['top'].set_visible(False)
+ax4_sem.spines['right'].set_visible(False)
+
+# Set global font size for the legend and tight layout
+for ax in axes_sem:
+    legend = ax.get_legend()
+    if legend:
+        legend.prop.set_size(16)
+plt.tight_layout()
+plt.subplots_adjust(bottom=0.15, left=0.07, right=0.97, top=0.88)
+plt.savefig('aggregate_psychometric_by_abl_for_paper_fig1_sem.png', dpi=300, bbox_inches='tight')
+print("\nPlot with SEM saved to aggregate_psychometric_by_abl_for_paper_fig1_sem.png")
+
+plt.show()
+# %%
+sem_psycho
