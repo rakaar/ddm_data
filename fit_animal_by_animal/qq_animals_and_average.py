@@ -12,7 +12,7 @@ from matplotlib.ticker import NullFormatter, NullLocator, FormatStrFormatter
 from sklearn.neighbors import KernelDensity
 from collections import defaultdict
 
-plotting_quantiles = np.arange(0.05, 1, 0.1)
+plotting_quantiles = np.arange(0.1, 0.9, 0.1)
 
 
 # Flag to include abort_event == 4. If True, data with these aborts is loaded
@@ -373,11 +373,16 @@ for i, abs_ild in enumerate(abs_ILD_arr):
 
     upper_lim = 0.5
 
-    ax.set_xlim(lower_lim, upper_lim)
-    ax.set_xticks([lower_lim, upper_lim])
+    # ax.set_xlim(lower_lim, upper_lim)
+    ax.set_xlim(0.08, upper_lim)
+
+    # ax.set_xticks([lower_lim, upper_lim])
+    ax.set_xticks([0.08, upper_lim])
     
     ax.set_ylim(lower_lim, upper_lim)
     ax.set_yticks([lower_lim, upper_lim])
+
+    # ax.axvline(0.09)
 
     # xlabel
     ax.set_xlabel('RT Quantiles (ABL 40)', fontsize=18)
@@ -390,7 +395,7 @@ for i, abs_ild in enumerate(abs_ILD_arr):
     ax.grid(False)
 
 # --- Save data for external plotting ---
-output_dir = os.path.dirname(avg_output_filename_v2)
+output_dir = None
 if not output_dir:
     output_dir = '.'
 

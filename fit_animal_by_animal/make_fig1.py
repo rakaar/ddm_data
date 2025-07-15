@@ -16,10 +16,10 @@ def shift_axes(ax_list, dx):
         pos = ax.get_position()
         ax.set_position([pos.x0 + dx, pos.y0, pos.width, pos.height])
 # --- Plotting Configuration ---
-TITLE_FONTSIZE = 18
-LABEL_FONTSIZE = 16
-TICK_FONTSIZE = 12
-LEGEND_FONTSIZE = 14
+TITLE_FONTSIZE = 24
+LABEL_FONTSIZE = 20
+TICK_FONTSIZE = 24
+LEGEND_FONTSIZE = 16
 SUPTITLE_FONTSIZE = 24
 # Increase gap between axis tick labels and axis titles
 plt.rcParams['axes.labelpad'] = 12
@@ -49,13 +49,22 @@ all_sigmoid_curves_dict = plot_data['all_sigmoid_curves_dict']
 fig = plt.figure(figsize=(25, 30))
 # Add larger margins around the entire figure to avoid elements touching the edges
 fig.subplots_adjust(left=0.06, right=0.97, top=0.96, bottom=0.06)
-gs = GridSpec(5, 6, figure=fig, hspace=0.3, wspace=0.0, width_ratios=[1, 1, 1, 1, 1, 1])
+gs = GridSpec(
+    5, 6,
+    figure=fig,
+    hspace=0.3,
+    wspace=0.0,
+    width_ratios=[1, 1, 1, 1, 1, 1],
+    # Make psychometric (row 1) and chronometric (row 2) panels shorter
+    height_ratios=[1, 0.5, 0.5, 0.5, 0.5]
+)
 
-# Create axes for the psychometric plots in the second row (index 1)
-ax_psych_1 = fig.add_subplot(gs[1, 0])
-ax_psych_2 = fig.add_subplot(gs[1, 1], sharey=ax_psych_1)
-ax_psych_3 = fig.add_subplot(gs[1, 2], sharey=ax_psych_1)
-ax_psych_4 = fig.add_subplot(gs[1, 3], sharey=ax_psych_1)
+# Create a nested GridSpec for psychometric plots (row 1) with extra column spacing
+gs_psych = gs[1, 0:4].subgridspec(1, 4, wspace=0.25)
+ax_psych_1 = fig.add_subplot(gs_psych[0, 0])
+ax_psych_2 = fig.add_subplot(gs_psych[0, 1], sharey=ax_psych_1)
+ax_psych_3 = fig.add_subplot(gs_psych[0, 2], sharey=ax_psych_1)
+ax_psych_4 = fig.add_subplot(gs_psych[0, 3], sharey=ax_psych_1)
 
 # Group axes for easy iteration in the existing plotting loop
 axes = [ax_psych_1, ax_psych_2, ax_psych_3, ax_psych_4]
@@ -193,10 +202,12 @@ try:
     abs_ild_ticks = chrono_data['abs_ild_ticks']
 
     # --- Create axes for the chronometric plots in the third row (index 2) ---
-    ax_chrono_1 = fig.add_subplot(gs[2, 0])
-    ax_chrono_2 = fig.add_subplot(gs[2, 1], sharey=ax_chrono_1)
-    ax_chrono_3 = fig.add_subplot(gs[2, 2], sharey=ax_chrono_1)
-    ax_chrono_4 = fig.add_subplot(gs[2, 3], sharey=ax_chrono_1)
+    # Chronometric plots (row 2) – nested grid to add space between first three columns
+    gs_chrono_main = gs[2, 0:4].subgridspec(1, 4, wspace=0.25)
+    ax_chrono_1 = fig.add_subplot(gs_chrono_main[0, 0])
+    ax_chrono_2 = fig.add_subplot(gs_chrono_main[0, 1], sharey=ax_chrono_1)
+    ax_chrono_3 = fig.add_subplot(gs_chrono_main[0, 2], sharey=ax_chrono_1)
+    ax_chrono_4 = fig.add_subplot(gs_chrono_main[0, 3], sharey=ax_chrono_1)
     chrono_axes = [ax_chrono_1, ax_chrono_2, ax_chrono_3, ax_chrono_4]
 
     # Ensure each chronometric subplot is square shaped
@@ -570,8 +581,8 @@ try:
         ax.spines['right'].set_visible(False)
         # Set ticks to be the same for x and y
         ticks = np.linspace(round(global_min_val, 1), round(global_max_val, 1), 3)
-        ax.set_xticks(ticks)
-        ax.set_yticks(ticks)
+        ax.set_xticks([0.08, 0.5])
+        ax.set_yticks([0.06, 0.5])
 
     # Common y-label for the first plot
     qq_axes[0].set_ylabel('RT Quantiles (ABL 20/60)', fontsize=LABEL_FONTSIZE)
