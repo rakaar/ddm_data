@@ -3,12 +3,44 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import pickle
 from scipy.optimize import curve_fit
-import pickle 
 
-# --- Sigmoid function ---
+# --- Sigmoid function and JND calculation ---
 def sigmoid(x, lambda_L, lambda_R, k, x0):
     return lambda_L + (1 - lambda_L - lambda_R) / (1 + np.exp(-k * (x - x0)))
+
+def inverse_sigmoid(y, lambda_L, lambda_R, k, x0):
+    """Calculates the x-value for a given y-value of the sigmoid function."""
+    # The term inside the log can be negative if y is not between lambda_L and 1-lambda_R
+    log_arg = ((1 - lambda_L - lambda_R) / (y - lambda_L)) - 1
+    if log_arg <= 0:
+        return np.nan
+    return x0 - (1/k) * np.log(log_arg)
+
+def calculate_jnd(popt):
+    """
+    Calculates the Just Noticeable Difference (JND), accounting for lapses.
+    Instead of fixed 0.75/0.25, uses 0.75 * max_prob_right and 0.25 * (1 - min_prob_right),
+    where max_prob_right = sigmoid(+inf), min_prob_right = sigmoid(-inf)
+    popt: array of fitted parameters [lambda_L, lambda_R, k, x0]
+    """
+    lambda_L, lambda_R, k, x0 = popt
+    if k == 0:
+        return np.nan
+    # max and min probability of choosing right
+    max_prob_right = sigmoid(np.inf, lambda_L, lambda_R, k, x0)  # as x -> +inf
+    min_prob_right = sigmoid(-np.inf, lambda_L, lambda_R, k, x0) # as x -> -inf
+    # Use new thresholds
+    y_75 = 0.75 * max_prob_right
+    y_25 = 0.25 * (1 - min_prob_right)
+    ild_75 = inverse_sigmoid(y_75, lambda_L, lambda_R, k, x0)
+    ild_25 = inverse_sigmoid(y_25, lambda_L, lambda_R, k, x0)
+    if np.isnan(ild_75) or np.isnan(ild_25):
+        return np.nan
+    return (ild_75 - ild_25) / 2
+    # return np.log(3) / k
+
 
 # --- Data loading ---
 # Define the batches you want to load
@@ -36,9 +68,11 @@ merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
 
 ABLS = [20, 40, 60]
 
-# --- 1. Fit sigmoid for each rat and ABL, store slope (k) ---
-slopes = {abl: {} for abl in ABLS}  # slopes[abl][(batch_name, animal)] = k
-mean_psycho_slope = {}  # mean_psycho_slope[(batch_name, animal)] = k0
+# flag to tell if JND is averaged or pooled
+animal_jnd = 'averaged' # other option is pooled
+# --- 1. Fit sigmoid for each rat and ABL, store JND ---
+jnds = {abl: {} for abl in ABLS}  # jnds[abl][(batch_name, animal)] = jnd
+mean_jnd = {}  # mean_jnd[(batch_name, animal)] = jnd0
 # Create unique identifiers by combining batch_name and animal
 merged_valid['animal_id'] = list(zip(merged_valid['batch_name'], merged_valid['animal']))
 all_animals = merged_valid['animal_id'].unique()
@@ -68,82 +102,116 @@ for animal_id in all_animals:
                 p0 = [0.05, 0.05, 1, 0]
                 bounds = ([0, 0, -np.inf, -np.inf], [1, 1, np.inf, np.inf])
                 popt, _ = curve_fit(sigmoid, animal_ilds[mask], psycho[mask], p0=p0, bounds=bounds, maxfev=5000)
-                k = popt[2]
-                slopes[abl][animal_id] = k
+                jnd = calculate_jnd(popt)
+                if not np.isnan(jnd):
+                    jnds[abl][animal_id] = jnd
             except Exception as e:
                 continue
-    # 2. Fit sigmoid to mean psychometric (across all ABLs)
-    animal_df_all_abl = merged_valid[(merged_valid['batch_name'] == batch_name) & 
-                                   (merged_valid['animal'] == animal) & 
-                                   (merged_valid['ABL'].isin(ABLS))]
-    if animal_df_all_abl.empty:
-        continue
-    # Compute mean P(Right) at each ILD - no ABL concept
-    ilds = np.sort(animal_df_all_abl['ILD'].unique())
-    psycho = []
-    for ild in ilds:
-        sub = animal_df_all_abl[animal_df_all_abl['ILD'] == ild]
-        if len(sub) > 0:
-            psycho.append(np.mean(sub['choice'] == 1))
-        else:
-            psycho.append(np.nan)
-    psycho = np.array(psycho)
-    mask = ~np.isnan(psycho)
-    if np.sum(mask) > 3:
-        try:
-            popt, _ = curve_fit(sigmoid, ilds[mask], psycho[mask], p0=[1, 0, 1, 0], maxfev=5000)
-            k0 = popt[2]
-            mean_psycho_slope[animal_id] = k0
-        except Exception as e:
+    # 2. Compute mean JND for this animal depending on definition
+    if animal_jnd == 'pooled':
+        # Fit sigmoid to mean psychometric (across all ABLs) to get mean JND
+        animal_df_all_abl = merged_valid[(merged_valid['batch_name'] == batch_name) &
+                                         (merged_valid['animal'] == animal) &
+                                         (merged_valid['ABL'].isin(ABLS))]
+        if animal_df_all_abl.empty:
             continue
+        # Compute mean P(Right) at each ILD - collapsed across ABLs
+        ilds = np.sort(animal_df_all_abl['ILD'].unique())
+        psycho = []
+        for ild in ilds:
+            sub = animal_df_all_abl[animal_df_all_abl['ILD'] == ild]
+            psycho.append(np.mean(sub['choice'] == 1)) if len(sub) > 0 else psycho.append(np.nan)
+        psycho = np.array(psycho)
+        mask = ~np.isnan(psycho)
+        if np.sum(mask) > 3:
+            try:
+                popt, _ = curve_fit(sigmoid, ilds[mask], psycho[mask],
+                                    p0=[0.05, 0.05, 1, 0],
+                                    bounds=([0, 0, -np.inf, -np.inf], [1, 1, np.inf, np.inf]),
+                                    maxfev=5000)
+                jnd0 = calculate_jnd(popt)
+                if not np.isnan(jnd0):
+                    mean_jnd[animal_id] = jnd0
+            except Exception:
+                pass
+    elif animal_jnd == 'averaged':
+        # Average of per-ABL JNDs (take mean over ABLs where JND was successfully fit)
+        per_abl_jnds = [jnds[abl][animal_id] for abl in ABLS if animal_id in jnds[abl]]
+        if len(per_abl_jnds) > 0:
+            mean_jnd[animal_id] = np.mean(per_abl_jnds)
 
-# --- 2. log-ratio of slope at each ABL to mean psychometric slope for that rat ---
+# --- 2. log-ratio of JND at each ABL to mean JND for that rat ---
 log_ratios_within = []
 for animal_id in all_animals:
-    if animal_id not in mean_psycho_slope:
+    if animal_id not in mean_jnd:
         continue
-    k0 = mean_psycho_slope[animal_id]
+    jnd0 = mean_jnd[animal_id]
     for abl in ABLS:
-        if animal_id in slopes[abl]:
-            ratio = slopes[abl][animal_id] / k0
+        if animal_id in jnds[abl]:
+            # We want smaller JND to be better, so ratio should be JND0/JND
+            ratio = jnd0 / jnds[abl][animal_id]
             log_ratios_within.append(np.log(ratio))
 
-# --- 4. log-ratio of mean slope for each rat to grand mean ---
-# Only use animals present in mean_psycho_slope
-animals_with_mean = list(mean_psycho_slope.keys())
-grand_mean_k = np.mean([mean_psycho_slope[animal_id] for animal_id in animals_with_mean])
-log_ratios_across = [np.log(mean_psycho_slope[animal_id] / grand_mean_k) for animal_id in animals_with_mean]
+# --- 4. log-ratio of mean JND for each rat to grand mean ---
+# Only use animals present in mean_jnd
+animals_with_mean = list(mean_jnd.keys())
+grand_mean_jnd = np.mean([mean_jnd[animal_id] for animal_id in animals_with_mean])
+# We want smaller JND to be better, so ratio should be grand_mean/mean_jnd
+log_ratios_across = [np.log(grand_mean_jnd / mean_jnd[animal_id]) for animal_id in animals_with_mean]
 
 # --- 5. Plot histograms ---
 
 ratios_within = np.exp(log_ratios_within)
 ratios_across = np.exp(log_ratios_across)
 
-diff_within = []  # slope_ABL - mean_slope_rat
+diff_within = []  # jnd_ABL - mean_jnd_rat
 for animal_id in all_animals:
-    if animal_id not in mean_psycho_slope:
+    if animal_id not in mean_jnd:
         continue
-    k0 = mean_psycho_slope[animal_id]
+    jnd0 = mean_jnd[animal_id]
     for abl in ABLS:
-        if animal_id in slopes[abl]:
-            diff_within.append(slopes[abl][animal_id] - k0)
+        if animal_id in jnds[abl]:
+            diff_within.append(jnds[abl][animal_id] - jnd0)
 
-mean_slopes = np.array([mean_psycho_slope[animal_id] for animal_id in animals_with_mean])
-diff_across = mean_slopes - grand_mean_k  # mean_slope_rat - grand_mean
+mean_jnds = np.array([mean_jnd[animal_id] for animal_id in animals_with_mean])
+diff_across = mean_jnds - grand_mean_jnd  # mean_jnd_rat - grand_mean
 
-bins_within = np.arange(0, 2, 0.05)
-bins_across = np.arange(0, 2, 0.1)
-bins_diff = np.arange(-1, 1, 0.05)
-bins_absdiff = np.arange(-1, 1, 0.05)
+# --- Save data for external plotting ---
+jnd_data_for_plotting = {
+    'jnds': jnds,
+    'mean_jnd': mean_jnd,
+    'grand_mean_jnd': grand_mean_jnd,
+    'diff_within': diff_within,
+    'diff_across': diff_across,
+    'ratios_within': ratios_within,
+    'ratios_across': ratios_across,
+    'animals_with_mean': animals_with_mean,
+    'mean_jnds': mean_jnds,
+    'ABLS': ABLS,
+}
+
+output_dir = os.path.dirname(__file__)
+pickle_path = os.path.join(output_dir, 'jnd_analysis_data.pkl')
+
+print(f"Saving JND analysis data to {pickle_path}...")
+with open(pickle_path, 'wb') as f:
+    pickle.dump(jnd_data_for_plotting, f)
+
+print("Data saved successfully.")
+
+bins_within = np.arange(0, 4, 0.1)
+bins_across = np.arange(0, 4, 0.1)
+bins_diff = np.arange(-5, 5, 0.2)
+bins_absdiff = np.arange(-5, 5, 0.2)
 
 plt.figure(figsize=(10,4))
 plt.subplot(1,2,1)
 plt.hist(ratios_within, bins=bins_within, color='tab:blue', alpha=0.7, density=True)
 plt.axvline(1, color='k', linestyle='--')
-plt.title('Within-rat (slope_ABL / mean_slope_rat)')
-plt.xlabel('ratio')
+plt.title('Within-rat (mean_JND_rat / JND_ABL)')
+plt.xlabel('JND Ratio (smaller is worse)')
 plt.ylabel('Density')
-plt.ylim(0, 4)
+plt.ylim(0, 2)
 ax1 = plt.gca()
 ax1.spines['top'].set_visible(False)
 ax1.spines['right'].set_visible(False)
@@ -151,13 +219,13 @@ ax1.spines['right'].set_visible(False)
 plt.subplot(1,2,2)
 plt.hist(ratios_across, bins=bins_across, color='tab:orange', alpha=0.7, density=True)
 plt.axvline(1, color='k', linestyle='--')
-plt.title('Across-rat (mean_slope_rat / grand_mean)')
-plt.xlabel('ratio')
+plt.title('Across-rat (grand_mean_JND / mean_JND_rat)')
+plt.xlabel('JND Ratio (smaller is worse)')
 ax2 = plt.gca()
 ax2.set_ylabel("")
 ax2.set_yticklabels([])
 ax2.set_yticks([])
-plt.ylim(0, 4)
+plt.ylim(0, 2)
 ax2.spines['top'].set_visible(False)
 ax2.spines['right'].set_visible(False)
 
@@ -167,16 +235,16 @@ plt.show()
 # --- NEW: Plot histogram of absolute differences ---
 font = {'size': 18}
 plt.rc('font', **font)
-max_ylim = 8
+max_ylim = 1.5
 plt.figure(figsize=(12, 6))
-max_xlim = 0.4
+max_xlim = 4
 
 # Subplot 1: Within-rat differences
 ax1 = plt.subplot(1, 2, 1)
 plt.hist(diff_within, bins=bins_absdiff, color='grey', alpha=0.7, density=True)
 plt.axvline(0, color='k', linestyle=':')
 # plt.title('Within-rat', fontsize=18)
-plt.xlabel(r'$\mu_{ABL} - \mu_{rat}$', fontsize=18)
+plt.xlabel(r'$JND_{ABL} - JND_{rat}$', fontsize=18)
 plt.ylabel('Density', fontsize=18)
 plt.xlim(-max_xlim, max_xlim)
 plt.ylim(0, max_ylim)
@@ -192,7 +260,7 @@ ax2 = plt.subplot(1, 2, 2)
 plt.hist(diff_across, bins=bins_absdiff, color='grey', alpha=0.7, density=True)
 plt.axvline(0, color='k', linestyle=':')
 # plt.title('Across-rat', fontsize=18)
-plt.xlabel(r'$\mu_{rat} - \mu_{grand}$', fontsize=18)
+plt.xlabel(r'$JND_{rat} - JND_{grand}$', fontsize=18)
 plt.xlim(-max_xlim, max_xlim)
 plt.ylim(0, max_ylim)
 plt.xticks([-max_xlim, 0, max_xlim])
@@ -203,29 +271,45 @@ ax2.spines['right'].set_visible(False)
 ax2.tick_params(axis='both', which='major', labelsize=18)
 
 plt.tight_layout(rect=[0, 0, 1, 0.95]) # Adjust layout to prevent title overlap
-# plt.suptitle('Slope Differences', fontsize=18, y=1.02)
+# plt.suptitle('JND Differences', fontsize=18, y=1.02)
 plt.show()
 
 # %%
 # std of diff_with and diff_across
-print(f'std(diff_within animal): {np.std(diff_within):.3f}')
-print(f'std(diff_across animals): {np.std(diff_across):.3f}')
+print(f'std(JND diff_within animal): {np.std(diff_within):.3f}')
+print(f'std(JND diff_across animals): {np.std(diff_across):.3f}')
 
-print(f'std(ratio_within animal) {np.std(ratios_within):.3f}')
-print(f'std(ratio_across animal) {np.std(ratios_across):.3f}')
+print(f'std(JND ratio_within animal) {np.std(ratios_within):.3f}')
+print(f'std(JND ratio_across animal) {np.std(ratios_across):.3f}')
 
 # %%
-##### SLOPE RAT - GRAND MEAN: CENTERED #########################
+##### JND RAT - GRAND MEAN: CENTERED #########################
 ######################################################
 # Create a figure with two subplots, sharing the y-axis
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 6), sharey=True, gridspec_kw={'width_ratios': [2, 1]})
 
-# Left plot: Deviation of each animal's mean slope from the grand mean
-ax1.plot(np.sort(diff_across), 'ko', markersize=8)
+# Left plot: Deviation of each animal's mean and per-ABL JND from the grand mean
+COLORS = ['tab:blue', 'tab:orange', 'tab:green']
+# Sort animals based on their mean JND deviation for consistent plotting
+sorted_animal_indices = np.argsort(diff_across)
+sorted_animals = [animals_with_mean[i] for i in sorted_animal_indices]
+
+for i, animal_id in enumerate(sorted_animals):
+    # Plot mean JND deviation (sorted)
+    mean_deviation = mean_jnd[animal_id] - grand_mean_jnd
+    ax1.plot(i, mean_deviation, 'ko', markersize=8, label='Mean JND' if i == 0 else "")
+
+    # Plot per-ABL JND deviations
+    for j, abl in enumerate(ABLS):
+        if animal_id in jnds[abl]:
+            abl_deviation = jnds[abl][animal_id] - grand_mean_jnd
+            ax1.plot(i, abl_deviation, 'o', color=COLORS[j], markersize=5, alpha=0.8, label=f'ABL {abl}' if i == 0 else "")
+
 ax1.axhline(0, color='k', linestyle=':', linewidth=2)  # Center line at zero
 ax1.get_xaxis().set_visible(False)  # Hide x-axis ticks and labels
-ax1.set_ylabel('Mean Slope - Grand Mean (k)')
+ax1.set_ylabel('JND - Grand Mean JND')
 ax1.set_title('Deviation from Grand Mean')
+ax1.legend()
 ax1.grid(axis='y', linestyle='--', alpha=0.7)
 
 # --- Publication Grade Adjustments ---
@@ -236,8 +320,8 @@ ax1.spines['bottom'].set_visible(False)
 
 
 # Set specific y-ticks for the left plot
-ax1.set_yticks([-0.3, 0, 0.3])
-ax1.set_ylim([-0.4, 0.4])
+ax1.set_yticks([-2, 0, 2])
+ax1.set_ylim([-3, 3])
 
 
 # Right plot: Horizontal histogram of the differences
@@ -254,18 +338,28 @@ plt.show()
 #
 
 # %%
-##### PLOT OF MEAN SLOPES WITH GRAND MEAN & HISTOGRAM ##########
+##### PLOT OF MEAN JNDS WITH GRAND MEAN & HISTOGRAM ##########
 ################################################################
 # Create a figure with two subplots, sharing the y-axis
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 6), sharey=True, gridspec_kw={'width_ratios': [2, 1]})
 
-# Left plot: Each animal's mean slope
-ax1.plot(np.sort(mean_slopes), 'ko', markersize=8)
-ax1.axhline(grand_mean_k, color='k', linestyle=':', linewidth=2, label=f'Grand Mean = {grand_mean_k:.2f}')  # Grand mean line
+sorted_animal_indices = np.argsort(mean_jnds)
+sorted_animals = [animals_with_mean[i] for i in sorted_animal_indices]
+
+for i, animal_id in enumerate(sorted_animals):
+    ax1.plot(i, mean_jnd[animal_id], 'k_', markersize=12, mew=2) # 'k_' for black hline marker, mew for thickness
+
+    for j, abl in enumerate(ABLS):
+        if animal_id in jnds[abl]:
+            ax1.plot(i, jnds[abl][animal_id], 'o', color=COLORS[j], markersize=5, alpha=0.6)
+
+ax1.axhline(grand_mean_jnd, color='k', linestyle=':', linewidth=2, label=f'Grand Mean = {grand_mean_jnd:.2f}')  # Grand mean line
 ax1.get_xaxis().set_visible(False)  # Hide x-axis ticks and labels
-ax1.set_ylabel('Mean Slope (k)')
-ax1.set_title('Mean Slopes per Animal')
+ax1.set_ylabel('JND')
+ax1.set_title('JNDs per Animal')
 ax1.grid(axis='y', linestyle='--', alpha=0.7)
+ax1.set_yticks([0, 6])
+ax1.set_ylim([0, 6])
 
 # --- Publication Grade Adjustments ---
 # Remove top and right spines from the left plot
@@ -273,42 +367,137 @@ ax1.spines['top'].set_visible(False)
 ax1.spines['right'].set_visible(False)
 ax1.spines['bottom'].set_visible(False)
 
-# Right plot: Horizontal histogram of the mean slopes
-bins_mean_slopes = np.arange(0.2,0.8,0.05)
-ax2.hist(mean_slopes, bins=bins_mean_slopes, color='gray', edgecolor='black', orientation='horizontal', density=True)
+# Right plot: Horizontal histogram of the mean JNDs
+bins_mean_jnds = np.arange(0, 6, 0.5)
+ax2.hist(mean_jnds, bins=bins_mean_jnds, color='gray', edgecolor='black', orientation='horizontal', density=True)
 
 # Remove all axes, labels, and ticks from the histogram plot
 ax2.axis('off')
-
 # Adjust layout
 plt.subplots_adjust(wspace=0.05)
 
 plt.tight_layout()
 plt.show()
 # %%
-##### WITHIN-ANIMAL SLOPE VARIABILITY ##########################
+sorted_animals
+
+#
+# --- Plot psychometric curves (p(choose right) vs ILD) for each animal, ABL wise and mean ---
+ild_grid = np.arange(-16, 16.01, 0.1)
+COLORS = ['tab:blue', 'tab:orange', 'tab:green']
+
+n_animals = len(sorted_animals)
+ncols = 4
+nrows = int(np.ceil(n_animals / ncols))
+fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 4, nrows * 3), sharex=True, sharey=True)
+axes = axes.flatten()
+
+for idx, animal_id in enumerate(sorted_animals):
+    ax = axes[idx]
+    for j, abl in enumerate(ABLS):
+        if animal_id in jnds[abl]:
+            animal_df = merged_valid[(merged_valid['batch_name'] == animal_id[0]) &
+                                     (merged_valid['animal'] == animal_id[1]) &
+                                     (merged_valid['ABL'] == abl)]
+            animal_ilds = np.sort(animal_df['ILD'].unique())
+            psycho = []
+            for ild in animal_ilds:
+                sub = animal_df[animal_df['ILD'] == ild]
+                if len(sub) > 0:
+                    psycho.append(np.mean(sub['choice'] == 1))
+                else:
+                    psycho.append(np.nan)
+            psycho = np.array(psycho)
+            mask = ~np.isnan(psycho)
+            if np.sum(mask) > 3:
+                try:
+                    p0 = [0.05, 0.05, 1, 0]
+                    bounds = ([0, 0, -np.inf, -np.inf], [1, 1, np.inf, np.inf])
+                    popt, _ = curve_fit(sigmoid, animal_ilds[mask], psycho[mask], p0=p0, bounds=bounds, maxfev=5000)
+                    y = sigmoid(ild_grid, *popt)
+                    ax.plot(ild_grid, y, color=COLORS[j], label=f'ABL {abl}')
+                    # Draw vertical line at JND
+                    jnd = calculate_jnd(popt)
+                    if not np.isnan(jnd):
+                        ax.axvline(jnd, color=COLORS[j], linewidth=1)
+                except Exception as e:
+                    pass
+    # Mean psychometric (across ABLs)
+    animal_df_all_abl = merged_valid[(merged_valid['batch_name'] == animal_id[0]) &
+                                    (merged_valid['animal'] == animal_id[1]) &
+                                    (merged_valid['ABL'].isin(ABLS))]
+    ilds = np.sort(animal_df_all_abl['ILD'].unique())
+    psycho = []
+    for ild in ilds:
+        sub = animal_df_all_abl[animal_df_all_abl['ILD'] == ild]
+        if len(sub) > 0:
+            psycho.append(np.mean(sub['choice'] == 1))
+        else:
+            psycho.append(np.nan)
+    psycho = np.array(psycho)
+    mask = ~np.isnan(psycho)
+    if np.sum(mask) > 3:
+        try:
+            p0 = [0.05, 0.05, 1, 0]
+            bounds = ([0, 0, -np.inf, -np.inf], [1, 1, np.inf, np.inf])
+            popt, _ = curve_fit(sigmoid, ilds[mask], psycho[mask], p0=p0, bounds=bounds, maxfev=5000)
+            y = sigmoid(ild_grid, *popt)
+            ax.plot(ild_grid, y, 'k--', label='Mean (all ABLs)', linewidth=2)
+            # Draw vertical line at JND for mean
+            jnd = calculate_jnd(popt)
+            if not np.isnan(jnd):
+                ax.axvline(jnd, color='k', linewidth=1)
+        except Exception as e:
+            pass
+    ax.set_title(f'{animal_id}')
+    ax.set_xlim(2, 5)
+    # ax.set_xlim(-16, 16)
+
+    ax.set_ylim(-0.05, 1.05)
+    if idx % ncols == 0:
+        ax.set_ylabel('P(choose right)')
+    if idx >= (nrows-1)*ncols:
+        ax.set_xlabel('ILD (dB)')
+    ax.grid(True, linestyle='--', alpha=0.5)
+    ax.axhline(0.5, alpha=0.5)
+    ax.axvline(0, alpha=0.5)
+    # if idx == 0:
+    #     ax.legend()
+
+
+# Hide unused axes
+for idx in range(n_animals, nrows * ncols):
+    fig.delaxes(axes[idx])
+
+plt.tight_layout()
+plt.show()
+
+#
+
+# %%
+##### WITHIN-ANIMAL JND VARIABILITY ##########################
 ################################################################
 # Create a figure with two subplots, sharing the y-axis
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 6), sharey=True, gridspec_kw={'width_ratios': [2, 1]})
 
-# Left plot: Deviation of each ABL slope from the animal's mean slope
+# Left plot: Deviation of each ABL JND from the animal's mean JND
 COLORS = ['tab:blue', 'tab:orange', 'tab:green']
-animals_with_mean = list(mean_psycho_slope.keys())
+animals_with_mean = list(mean_jnd.keys())
 
 for i, animal_id in enumerate(animals_with_mean):
-    k0 = mean_psycho_slope[animal_id]
+    jnd0 = mean_jnd[animal_id]
     for j, abl in enumerate(ABLS):
-        if animal_id in slopes[abl]:
-            diff = slopes[abl][animal_id] - k0
+        if animal_id in jnds[abl]:
+            diff = jnds[abl][animal_id] - jnd0
             ax1.plot(i, diff, 'o', color=COLORS[j], markersize=8, alpha=0.7)
 
 ax1.axhline(0, color='k', linestyle=':', linewidth=2)  # Center line at zero
 ax1.get_xaxis().set_visible(False)  # Hide x-axis ticks and labels
-ax1.set_ylabel('Slope(ABL) - Mean Slope(Animal)')
-ax1.set_title('Within-Animal Slope Deviation by ABL')
+ax1.set_ylabel('JND(ABL) - Mean JND(Animal)')
+ax1.set_title('Within-Animal JND Deviation by ABL')
 ax1.grid(axis='y', linestyle='--', alpha=0.7)
-ax1.set_yticks([-0.25, 0, 0.25])
-ax1.set_ylim([-0.25, 0.25])
+ax1.set_yticks([-3, 0, 3])
+ax1.set_ylim([-3, 3])
 # --- Publication Grade Adjustments ---
 ax1.spines['top'].set_visible(False)
 ax1.spines['right'].set_visible(False)
@@ -325,20 +514,20 @@ plt.show()
 
 
 # %%
-# --- 6. Per-ABL slope plot for each animal ---
+# --- 6. Per-ABL JND plot for each animal ---
 COLORS = ['tab:blue', 'tab:orange', 'tab:green']
 fig, axes = plt.subplots(1, 3, figsize=(13, 4), sharey=True)
 for idx, abl in enumerate(ABLS):
     ax = axes[idx]
     color = COLORS[idx]
-    # Get animals with slope for this ABL
-    animals_ids = sorted([animal_id for animal_id in slopes[abl].keys()])
-    slope_vals = [slopes[abl][animal_id] for animal_id in animals_ids]
-    ax.scatter(range(len(animals_ids)), slope_vals, color=color, s=40)
+    # Get animals with JND for this ABL
+    animals_ids = sorted([animal_id for animal_id in jnds[abl].keys()])
+    jnd_vals = [jnds[abl][animal_id] for animal_id in animals_ids]
+    ax.scatter(range(len(animals_ids)), jnd_vals, color=color, s=40)
     ax.set_title(f'ABL = {abl}')
     ax.set_xlabel('Animal')
     if idx == 0:
-        ax.set_ylabel('Slope (k)')
+        ax.set_ylabel('JND')
     ax.set_xticks(range(len(animals_ids)))
     # Create readable labels by combining batch_name and animal
     animal_labels = [f"{batch}-{animal}" for batch, animal in animals_ids]
@@ -350,28 +539,28 @@ plt.show()
 
 
 # %%
-# --- 7. Overlayed animal slopes for all ABLs ---
+# --- 7. Overlayed animal JNDs for all ABLs ---
 COLORS = ['tab:blue', 'tab:orange', 'tab:green']
-animals = sorted(set().union(*[slopes[abl].keys() for abl in ABLS]))
+animals = sorted(set().union(*[jnds[abl].keys() for abl in ABLS]))
 print(f'len of animals: {len(animals)}')
 print(animals)
 fig, ax = plt.subplots(figsize=(6, 3))  # Compressed x-axis
 for idx, abl in enumerate(ABLS):
     color = COLORS[idx]
-    y = [slopes[abl].get(animal, np.nan) for animal in animals]
+    y = [jnds[abl].get(animal, np.nan) for animal in animals]
     ax.scatter(range(len(animals)), y, color=color, s=40)
 # Set x-ticks to represent each animal, but without labels
 ax.set_xticks([])
 ax.set_xlabel('Rat', fontsize=18)
-ax.set_ylabel('Slope (k)', fontsize=18)
-# Set y-ticks to 0.5 and 1
-ax.set_yticks([0, 2])
+ax.set_ylabel('JND', fontsize=18)
+# Set y-ticks
+ax.set_yticks([0, 5, 10])
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 plt.tight_layout()
 plt.show()
 
-# --- Save data for external plotting ---
+
 slope_hist_data = {
     'slopes': slopes,
     'ABLS': ABLS,

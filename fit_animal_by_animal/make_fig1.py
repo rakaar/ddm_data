@@ -310,7 +310,7 @@ try:
         fmt='o', color='k', capsize=0, markersize=6, linewidth=2
     )
     ax_ild.set_xlabel('|ILD|', fontsize=LABEL_FONTSIZE)
-    ax_ild.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
+    # ax_ild.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
     ax_ild.set_xscale('log')
     ax_ild.set_xticks(abs_ild_ticks)
     ax_ild.get_xaxis().set_major_formatter(plt.ScalarFormatter())
@@ -329,7 +329,7 @@ try:
         )
     ax_abl.set_xticks(range(len(rt_vs_abl)))
     ax_abl.set_xticklabels(rt_vs_abl['ABL'].astype(int))
-    ax_abl.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
+    # ax_abl.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
     ax_abl.set_xlabel('ABL', fontsize=LABEL_FONTSIZE)
     plt.setp(ax_abl.get_yticklabels(), visible=False)
     ax_abl.spines['top'].set_visible(False)
@@ -355,90 +355,151 @@ try:
     ax_abl.spines['right'].set_visible(False)
     ax_abl.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
 
+    # ----------------- Align summary chronometric axes with main chronometric row -----------------
+    # Align bottom of ax_abl with bottom of ax_chrono_1
+    fig.canvas.draw()
+    chrono_baseline = ax_chrono_1.get_position().y0
+    summary_bottom = ax_abl.get_position().y0
+    dy_summary = chrono_baseline - summary_bottom
+    shift_axes([ax_ild, ax_abl], dy=dy_summary)
+
+    # Align top of ax_ild with top of ax_chrono_1
+    fig.canvas.draw()
+    chrono_top = ax_chrono_1.get_position().y1
+    summary_top = ax_ild.get_position().y1
+    dh_summary = summary_top - chrono_top
+    if dh_summary > 0:
+        for ax in (ax_ild, ax_abl):
+            pos = ax.get_position()
+            ax.set_position([pos.x0, pos.y0, pos.width, pos.height - dh_summary])
+
+    # Reduce gap between the two summary plots
+    fig.canvas.draw()
+    gap_now_summ = ax_ild.get_position().y0 - ax_abl.get_position().y1
+    gap_desired_summ = 0.05  # figure fraction
+    delta_summ = gap_now_summ - gap_desired_summ
+    if delta_summ > 0:
+        shift_axes([ax_ild], dy=-(delta_summ/2))
+        shift_axes([ax_abl], dy=+(delta_summ/2))
+
 except FileNotFoundError:
     print("\nChronometric data file not found. Skipping chronometric plots.")
 except Exception as e:
     print(f"\nAn error occurred while plotting psychometric data: {e}")
 
-# --- SLOPES AND HISTOGRAMS PLOTS ---
+# --- JND PLOTS (REPLACING SLOPES) ---
 try:
-    with open('fig1_slopes_hists_data.pkl', 'rb') as f:
-            slope_data = pickle.load(f)
+    with open('jnd_analysis_data.pkl', 'rb') as f:
+        jnd_data = pickle.load(f)
 
     # --- Extract data ---
-    slopes = slope_data['slopes']
-    ABLS = slope_data['ABLS']
-    animals = slope_data['animals']
-    diff_within = slope_data['diff_within']
-    diff_across = slope_data['diff_across']
-    bins_absdiff = slope_data['bins_absdiff']
-    hist_xlim = slope_data['hist_xlim']
-    hist_ylim = slope_data['hist_ylim']
-    plot_colors = slope_data['plot_colors']
+    jnds = jnd_data['jnds']
+    mean_jnd = jnd_data['mean_jnd']
+    grand_mean_jnd = jnd_data['grand_mean_jnd']
+    ABLS = jnd_data['ABLS']
+    animals_with_mean = jnd_data['animals_with_mean']
+    mean_jnds = jnd_data['mean_jnds']
+    diff_within = jnd_data['diff_within']
+    plot_colors = ['tab:blue', 'tab:orange', 'tab:green']
 
-    # --- Create a nested GridSpec for the new layout in cell gs[1, 5] ---
-    # This nested grid has 2 rows (for slopes and histograms) and 2 columns (for the two histograms)
-    gs_nested = gs[1, 5].subgridspec(2, 2, height_ratios=[1, 1], hspace=0.3, wspace=0.2)
+    # --- Create a nested GridSpec for two vertical plots in the same row as psychometric ---
+    gs_nested = gs[1, 5].subgridspec(2, 1, hspace=0)
 
-    # --- 1. Slopes scatter plot (top row of nested grid, spanning both columns) ---
-    ax_slopes = fig.add_subplot(gs_nested[0, :])
-    for idx, abl in enumerate(ABLS):
-        color = plot_colors[idx]
-        y = [slopes[abl].get(animal, np.nan) for animal in animals]
-        ax_slopes.scatter(range(len(animals)), y, color=color, s=40)
+    # --- PLOT 1: JNDs per animal (top half) ---
+    gs_jnd_plot = gs_nested[0, 0].subgridspec(1, 2, width_ratios=[3, 1], wspace=0.05)
+    ax1_main = fig.add_subplot(gs_jnd_plot[0, 0])
+    ax1_hist = fig.add_subplot(gs_jnd_plot[0, 1], sharey=ax1_main)
 
-    # Formatting for slopes plot
-    ax_slopes.set_xticks([])
-    ax_slopes.set_ylabel('Slope (k)', fontsize=LABEL_FONTSIZE)
-    ax_slopes.set_yticks([0, 2])
-    ax_slopes.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
-    ax_slopes.spines['top'].set_visible(False)
-    ax_slopes.spines['right'].set_visible(False)
-    # ax_slopes.set_title('Slopes', fontsize=LABEL_FONTSIZE)
+    sorted_animal_indices = np.argsort(mean_jnds)
+    sorted_animals = [animals_with_mean[i] for i in sorted_animal_indices]
 
-    # --- 2. Histograms (bottom row of nested grid, side-by-side) ---
-    ax_hist1 = fig.add_subplot(gs_nested[1, 0]) # Left histogram
-    ax_hist2 = fig.add_subplot(gs_nested[1, 1]) # Right histogram
+    for i, animal_id in enumerate(sorted_animals):
+        ax1_main.plot(i, mean_jnd[animal_id], 'k_', markersize=6, mew=1.5)
+        for j, abl in enumerate(ABLS):
+            if animal_id in jnds[abl]:
+                ax1_main.plot(i, jnds[abl][animal_id], 'o', color=plot_colors[j], markersize=4, alpha=0.5, linewidth=2)
+    
+    ax1_main.axhline(grand_mean_jnd, color='k', linestyle=':', linewidth=1)
+    print(f'grand_mean_jnd: {grand_mean_jnd}')
+    ax1_main.set_xticks([])
+    ax1_main.set_ylabel('JND', fontsize=LABEL_FONTSIZE)
+    # ax1_main.set_title('JNDs per Animal', fontsize=LABEL_FONTSIZE)
+    ax1_main.spines['top'].set_visible(False)
+    ax1_main.spines['right'].set_visible(False)
+    ax1_main.spines['bottom'].set_visible(False)
+    ax1_main.tick_params(axis='y', labelsize=TICK_FONTSIZE)
+    ax1_main.set_ylim(0, 5)
+    ax1_main.set_yticks([0, 5])
 
-    # Nudge left to reduce gap and shift down for arbitrary positioning
-    shift_axes([ax_slopes, ax_hist1, ax_hist2], dx=0.05, dy=-0.012)
+    bins_mean_jnds = np.arange(0, 5.25, 0.25)
+    ax1_hist.hist(mean_jnds, bins=bins_mean_jnds, orientation='horizontal', color='grey', density=True)
+    ax1_hist.axis('off')
 
-    # Left histogram: Within-rat differences
-    ax_hist1.hist(diff_within, bins=bins_absdiff, color='grey', alpha=0.7, density=True)
-    ax_hist1.set_xlabel(r'$\mu_{ABL} - \mu_{rat}$', fontsize=LABEL_FONTSIZE)
+    # --- PLOT 2: Within-animal JND variability (bottom half) ---
+    gs_var_plot = gs_nested[1, 0].subgridspec(1, 2, width_ratios=[3, 1], wspace=0.05)
+    ax2_main = fig.add_subplot(gs_var_plot[0, 0])
+    ax2_hist = fig.add_subplot(gs_var_plot[0, 1], sharey=ax2_main)
 
-    # Right histogram: Across-rat differences
-    ax_hist2.hist(diff_across, bins=bins_absdiff, color='grey', alpha=0.7, density=True)
-    ax_hist2.set_xlabel(r'$\mu_{rat} - \mu_{grand}$', fontsize=LABEL_FONTSIZE)
+    for i, animal_id in enumerate(sorted_animals):
+        jnd0 = mean_jnd[animal_id]
+        for j, abl in enumerate(ABLS):
+            if animal_id in jnds[abl]:
+                diff = jnds[abl][animal_id] - jnd0
+                ax2_main.plot(i, diff, 'o', color=plot_colors[j], markersize=5, alpha=0.5)
 
-    # --- Common formatting for both histograms ---
-    hist_xticks = [-0.3,  0,  0.3]
-    hist_xticklabels = ['-0.3', '0', '0.3']
+    ax2_main.axhline(0, color='k', linestyle='-', linewidth=1)
+    ax2_main.set_xticks([])
+    ax2_main.set_ylabel(r'J$_{\text{ABL}}$ - J$_{\mu}$', fontsize=LABEL_FONTSIZE)
+    # ax2_main.set_title('Within-Animal Variability', fontsize=LABEL_FONTSIZE)
+    ax2_main.spines['top'].set_visible(False)
+    ax2_main.spines['right'].set_visible(False)
+    ax2_main.spines['bottom'].set_visible(False)
+    ax2_main.tick_params(axis='y', labelsize=TICK_FONTSIZE)
+    ax2_main.set_ylim(-2.5, 2.5)
+    ax2_main.set_yticks([-2.5, 0, 2.5])
 
-    for ax_hist, title in [(ax_hist1, 'Within-animal'), (ax_hist2, 'Across-animal')]:
-        ax_hist.set_title(title, fontsize=LEGEND_FONTSIZE)
-        ax_hist.set_ylim(0, hist_ylim)
-        ax_hist.set_xlim(-0.4, 0.4)
-        ax_hist.axvline(0, color='black', linestyle=':', linewidth=1)
-        ax_hist.spines['top'].set_visible(False)
-        ax_hist.spines['right'].set_visible(False)
-        # Hide left y-axis line
-        ax_hist.spines['left'].set_visible(False)
-        # Smaller tick font
-        ax_hist.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE - 4)
-        ax_hist.set_xticks(hist_xticks)
-        ax_hist.set_xticklabels(hist_xticklabels)
+    bins_absdiff = np.arange(-2.5, 2.75, 0.25)
+    ax2_hist.hist(diff_within, bins=bins_absdiff, orientation='horizontal', color='grey', density=True)
+    ax2_hist.axis('off')
 
-    # --- Specific y-axis formatting ---
-    # Remove y-label
-    ax_hist1.set_ylabel('')
-    ax_hist1.set_yticks([])
-    ax_hist2.set_yticks([])  # Remove y-ticks from the right plot for a cleaner look
+    # --- Align the bottom JND axis baseline with the psychometric ILD x-axis automatically ---
+    # First make sure layout is computed so that get_position() returns final coordinates
+    fig.canvas.draw()
+    # Baseline (bottom edge) of the psychometric panels – use the first one as reference
+    psycho_baseline = ax_psych_1.get_position().y0
+    # Current baseline of the bottom JND axis
+    jnd_baseline = ax2_main.get_position().y0
+    dy_align = psycho_baseline - jnd_baseline
+    # Keep the original slight horizontal nudge for aesthetics while vertically aligning
+    shift_axes([ax1_main, ax1_hist, ax2_main, ax2_hist], dx=0.05, dy=dy_align)
+
+    # ----------------- Top-edge alignment -----------------
+    # Re-draw to ensure new positions are registered
+    fig.canvas.draw()
+    psycho_top = ax_psych_1.get_position().y1
+    jnd_top = ax1_main.get_position().y1
+    dh = jnd_top - psycho_top
+    if dh > 0:
+        # Reduce heights of both JND sub-plots and their histograms by dh
+        for ax in (ax1_main, ax1_hist, ax2_main, ax2_hist):
+            pos = ax.get_position()
+            ax.set_position([pos.x0, pos.y0, pos.width, pos.height - dh])
+
+    # ----------------- Reduce inter-plot gap -----------------
+    fig.canvas.draw()
+    # Gap between bottom edge of top axis and top edge of bottom axis
+    gap_now = ax1_main.get_position().y0 - ax2_main.get_position().y1
+    gap_desired = 0.05/2  # figure fraction
+    delta_gap = gap_now - gap_desired
+    if delta_gap > 0:
+        # move top down and bottom up equally
+        shift_axes([ax1_main, ax1_hist], dy=-(delta_gap / 2))
+        shift_axes([ax2_main, ax2_hist], dy=+(delta_gap / 2))
 
 except FileNotFoundError:
-    print("\nSlope/histogram data file not found. Skipping these plots.")
+    print("\nJND data file ('jnd_analysis_data.pkl') not found. Skipping these plots.")
 except Exception as e:
-    print(f"\nAn error occurred while plotting slopes/histograms: {e}")
+    print(f"\nAn error occurred while plotting JNDs/histograms: {e}")
 
 
 # --- RTD QUANTILE PLOTS (UNSCALED) ---
