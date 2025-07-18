@@ -124,9 +124,13 @@ for idx, (abl, color) in enumerate(zip(ABLS, COLORS)):
             psycho_allowed.append(np.mean(sub['choice'] == 1) if len(sub) > 0 else np.nan)
         all_psycho_points.append(np.array(psycho_allowed))
     
+    # Convert to numpy array for easier calculations
+    all_psycho_points = np.array(all_psycho_points, dtype=float)
     mean_psycho = np.nanmean(all_psycho_points, axis=0)
-    std_psycho = np.nanstd(all_psycho_points, axis=0)
-    ax.errorbar(ilds, mean_psycho, yerr=std_psycho, fmt='o', color=color, capsize=0, markersize=8.5, label='Mean ± std')
+    # Standard Error of the Mean: std / sqrt(N) where N is number of non-nan observations per ILD
+    n_points = np.sum(~np.isnan(all_psycho_points), axis=0)
+    sem_psycho = np.nanstd(all_psycho_points, axis=0) / np.sqrt(n_points)
+    ax.errorbar(ilds, mean_psycho, yerr=sem_psycho, fmt='o', color=color, capsize=0, markersize=8.5, label='Mean ± SEM')
 
     # --- Formatting for first 3 plots ---
     ax.set_title(f'ABL = {abl}', fontsize=TITLE_FONTSIZE)
@@ -161,9 +165,12 @@ for abl, color in zip(ABLS, COLORS):
         psycho = [np.mean(animal_df[animal_df['ILD'] == ild]['choice'] == 1) if len(animal_df[animal_df['ILD'] == ild]) > 0 else np.nan for ild in ilds]
         all_psycho_points.append(psycho)
     
+    # Convert to numpy array for easier calculations
+    all_psycho_points = np.array(all_psycho_points, dtype=float)
     mean_psycho = np.nanmean(all_psycho_points, axis=0)
-    std_psycho = np.nanstd(all_psycho_points, axis=0)
-    ax4.errorbar(ilds, mean_psycho, yerr=std_psycho, fmt='o', color=color, capsize=0, markersize=8.5, label=f'ABL={abl} mean')
+    n_points = np.sum(~np.isnan(all_psycho_points), axis=0)
+    sem_psycho = np.nanstd(all_psycho_points, axis=0) / np.sqrt(n_points)
+    ax4.errorbar(ilds, mean_psycho, yerr=sem_psycho, fmt='o', color=color, capsize=0, markersize=8.5, label=f'ABL={abl} mean ± SEM')
 
     # Plot sigmoid using mean parameters or mean-of-sigmoids
     if black_plot_as == "mean_of_params" and abl in mean_params_dict:
@@ -242,13 +249,17 @@ try:
         # Plot individual animal lines
         for (batch_name, animal_id), animal_df in abl_df.groupby(['batch_name', 'animal_id']):
             animal_df = animal_df.sort_values('abs_ILD')
-            ax.plot(animal_df['abs_ILD'], animal_df['mean'], color='gray', alpha=0.4, linewidth=1.5)
+            ax.plot(animal_df['abs_ILD'], animal_df['mean'], color=abl_colors[abl], alpha=0.4, linewidth=1.5)
 
         # Plot grand mean with SEM
         grand_mean_stats = grand_means_data[abl]
+        # Plot colored dots, but black line and error bars
         ax.errorbar(
             x=grand_mean_stats['abs_ILD'], y=grand_mean_stats['mean'], yerr=grand_mean_stats['sem'],
-            fmt='o-', color='black', linewidth=2.5, markersize=8.5, capsize=0
+            fmt='o', color=abl_colors[abl], markersize=8.5, capsize=0, linewidth=0, zorder=3
+        )
+        ax.plot(
+            grand_mean_stats['abs_ILD'], grand_mean_stats['mean'], color='black', linewidth=2.5, zorder=2
         )
 
         # Formatting
@@ -273,10 +284,13 @@ try:
     # --- Recreate 4th chronometric plot ---
     ax4_chrono = chrono_axes[3]
     for abl, stats_data in grand_means_data.items():
+        # Plot colored dots, but black line and error bars
         ax4_chrono.errorbar(
             x=stats_data['abs_ILD'], y=stats_data['mean'], yerr=stats_data['sem'],
-            fmt='o-', color=abl_colors[abl], label=f'{int(abl)} dB',
-            linewidth=2.5, markersize=8.5, capsize=0
+            fmt='o-', color=abl_colors[abl], label=f'{int(abl)} dB', markersize=8.5, capsize=0, linewidth=0, zorder=3
+        )
+        ax4_chrono.plot(
+            stats_data['abs_ILD'], stats_data['mean'], color=abl_colors[abl], linewidth=2.5, zorder=2
         )
     # Formatting
     ax4_chrono.set_xlabel('|ILD| (dB)', fontsize=LABEL_FONTSIZE)
@@ -309,6 +323,8 @@ try:
         fmt='o', color='k', capsize=0, markersize=6, linewidth=2
     )
     ax_ild.set_xlabel('|ILD|', fontsize=LABEL_FONTSIZE, ha='right', x=1.4)
+    # Move xlabel slightly closer to the axis (higher on figure)
+    ax_ild.xaxis.set_label_coords(1.4, 0.1)
     # ax_ild.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
     ax_ild.set_xscale('log')
     ax_ild.set_xticks(abs_ild_ticks)
@@ -317,6 +333,7 @@ try:
     ax_ild.spines['top'].set_visible(False)
     ax_ild.spines['right'].set_visible(False)
     ax_ild.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
+    # after formatting ax_ild …
 
     # Mean RT vs ABL (with ABL-wise coloring)
     for i, row in rt_vs_abl.iterrows():
@@ -330,6 +347,8 @@ try:
     ax_abl.set_xticklabels(rt_vs_abl['ABL'].astype(int))
     # ax_abl.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
     ax_abl.set_xlabel('ABL', fontsize=LABEL_FONTSIZE, ha='right', x=1.4)
+    ax_abl.xaxis.set_label_coords(1.4, 0.1)
+
     plt.setp(ax_abl.get_yticklabels(), visible=False)
     ax_abl.spines['top'].set_visible(False)
     ax_abl.spines['right'].set_visible(False)
@@ -337,22 +356,23 @@ try:
 
     # --- Final y-axis configuration as per user instruction ---
     # Configure left plot (which controls the shared y-axis)
-    ax_ild.set_ylim(0.15, 0.30) # Adjusted ylim to better fit data
-    ax_ild.set_yticks([0.15, 0.3])
-    ax_ild.set_yticklabels(['0.15', '0.3'])
-    ax_ild.tick_params(axis='y', labelleft=True)
+    ax_ild.set_ylim(0.15, 0.26) # Adjusted ylim to better fit data
+    ax_ild.set_yticks([0.15, 0.25])
+    ax_ild.set_yticklabels(['0.15', '0.25'])
+    ax_ild.tick_params(axis='y', labelleft=True, length=0)
 
     ax_abl.set_ylim(0.15, 0.30) # Adjusted ylim to better fit data
     ax_abl.set_yticks([0.15, 0.3])
     ax_abl.set_yticklabels(['0.15', '0.3'])
     ax_abl.tick_params(axis='y', labelleft=True)
+    
 
     # Keep the right-hand plot label-free
     # plt.setp(ax_abl.get_yticklabels(), visible=False)
 
     ax_abl.spines['top'].set_visible(False)
     ax_abl.spines['right'].set_visible(False)
-    ax_abl.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
+    ax_abl.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE, length=0)
 
     # ----------------- Align summary chronometric axes with main chronometric row -----------------
     # Align bottom of ax_abl with bottom of ax_chrono_1
@@ -393,6 +413,15 @@ try:
     for ax in (ax_ild, ax_abl):
         pos = ax.get_position()
         ax.set_position([pos.x0, pos.y0, pos.width * width_factor, pos.height])
+
+    # -----------------------------------------------------------
+    # Add a common y-label centred between the two summary axes.
+    # -----------------------------------------------------------
+    fig.canvas.draw()
+    left_edge = ax_ild.get_position().x0 - 0.02
+    center_y = 0.5 * (ax_ild.get_position().y1 + ax_abl.get_position().y0)
+    fig.text(left_edge - 0.03, center_y, 'Mean RT (s)', rotation='vertical',
+             ha='center', va='center', fontsize=LABEL_FONTSIZE)
     # Keep x-labels aligned if available (helps vertical alignment only)
     # try:
     #     fig.align_xlabels(chrono_axes + [ax_abl])
@@ -421,7 +450,7 @@ try:
     plot_colors = ['tab:blue', 'tab:orange', 'tab:green']
 
     # --- Create a nested GridSpec for two vertical plots in the same row as psychometric ---
-    gs_nested = gs[1, 5].subgridspec(2, 1, hspace=0)
+    gs_nested = gs[1, 5].subgridspec(2, 1, hspace=-0.2)
 
     # --- PLOT 1: JNDs per animal (top half) ---
     gs_jnd_plot = gs_nested[0, 0].subgridspec(1, 2, width_ratios=[3, 1], wspace=0.05)
@@ -445,12 +474,18 @@ try:
     ax1_main.spines['top'].set_visible(False)
     ax1_main.spines['right'].set_visible(False)
     ax1_main.spines['bottom'].set_visible(False)
-    ax1_main.tick_params(axis='y', labelsize=TICK_FONTSIZE)
-    ax1_main.set_ylim(0, 5)
-    ax1_main.set_yticks([0, 5])
+    ax1_main.tick_params(axis='y', labelsize=TICK_FONTSIZE, length=0)
+    ax1_main.set_ylim(1, 5)
+    ax1_main.set_yticks([1, 5])
 
-    bins_mean_jnds = np.arange(0, 5.25, 0.25)
-    ax1_hist.hist(mean_jnds, bins=bins_mean_jnds, orientation='horizontal', color='grey', density=True)
+    # Replace histogram with a vertical bar spanning ±1 SD (length = 2 SD)
+    mu_mean = np.mean(mean_jnds)
+    sd_mean = np.std(mean_jnds)
+    # draw bar at x=0.5 (arbitrary small width panel)
+    x_bar = 0.05  # position of 2-SD bar within the tiny hist panel (0=left,1=right)
+    ax1_hist.plot([x_bar, x_bar], [mu_mean - sd_mean, mu_mean + sd_mean],
+                  color='grey', linewidth=3, solid_capstyle='butt')
+    ax1_hist.set_xlim(0, 1)
     ax1_hist.axis('off')
 
     # --- PLOT 2: Within-animal JND variability (bottom half) ---
@@ -472,12 +507,19 @@ try:
     ax2_main.spines['top'].set_visible(False)
     ax2_main.spines['right'].set_visible(False)
     ax2_main.spines['bottom'].set_visible(False)
-    ax2_main.tick_params(axis='y', labelsize=TICK_FONTSIZE)
-    ax2_main.set_ylim(-2.5, 2.5)
-    ax2_main.set_yticks([-2.5, 0, 2.5])
+    ax2_main.tick_params(axis='y', labelsize=TICK_FONTSIZE, length=0)
+    ax2_main.set_ylim(-2, 2)
+    ax2_main.set_yticks([-2, 0, 2])
+    ax2_main.set_yticklabels(['-2', '0', '2'])
 
-    bins_absdiff = np.arange(-2.5, 2.75, 0.25)
-    ax2_hist.hist(diff_within, bins=bins_absdiff, orientation='horizontal', color='grey', density=True)
+    # Replace histogram with 2-SD bar centred at mean difference (which is ~0)
+    mu_diff = np.mean(diff_within)
+    sd_diff = np.std(diff_within)
+    # ax2_hist.plot([0.5, 0.5], [mu_diff - sd_diff, mu_diff + sd_diff],
+    #               color='green', linewidth=3, solid_capstyle='butt')
+    ax2_hist.plot([x_bar, x_bar], [mu_diff - sd_diff, mu_diff + sd_diff],
+                  color='grey', linewidth=3, solid_capstyle='butt')
+    ax2_hist.set_xlim(0, 1)
     ax2_hist.axis('off')
 
     # --- Align the bottom JND axis baseline with the psychometric ILD x-axis automatically ---
@@ -712,7 +754,9 @@ except Exception as e:
 # --- Final global figure adjustments ---
 plt.tight_layout(rect=[0, 0, 1, 0.96], h_pad=3.0, w_pad=2.0)
 fig.suptitle('Figure 1', fontsize=SUPTITLE_FONTSIZE)
+# Save as PNG (high resolution) and PDF (vector format)
 plt.savefig('fig1_from_pickle.png', dpi=300, bbox_inches='tight')
+plt.savefig('fig1_from_pickle.pdf', bbox_inches='tight', format='pdf')
 plt.show()
 
-print("\nFigure saved as fig1_from_pickle.png")
+print("\nFigure saved as fig1_from_pickle.png and fig1_from_pickle.pdf")
