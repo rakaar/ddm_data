@@ -295,21 +295,20 @@ try:
     rt_vs_abl = chrono_data['rt_vs_abl']
 
     # Stack the two summary axes vertically spanning columns 4 & 5
-    gs_summary = gs[2, 5].subgridspec(2, 1, hspace=0.6)
+    gs_summary = gs[2, 5].subgridspec(2, 1, hspace=0.05)
     ax_ild = fig.add_subplot(gs_summary[0, 0])
     ax_abl = fig.add_subplot(gs_summary[1, 0])
 
     # Let Matplotlib decide aspect; we only keep same width by position
 
-    # Nudge left to reduce gap and shift down for arbitrary positioning
-    shift_axes([ax_ild, ax_abl], dx=0.04, dy=-0.04)
+   
 
     # Mean RT vs |ILD|
     ax_ild.errorbar(
         x=rt_vs_ild['abs_ILD'], y=rt_vs_ild['mean'], yerr=rt_vs_ild['sem'],
         fmt='o', color='k', capsize=0, markersize=6, linewidth=2
     )
-    ax_ild.set_xlabel('|ILD|', fontsize=LABEL_FONTSIZE)
+    ax_ild.set_xlabel('|ILD|', fontsize=LABEL_FONTSIZE, ha='right', x=1.4)
     # ax_ild.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
     ax_ild.set_xscale('log')
     ax_ild.set_xticks(abs_ild_ticks)
@@ -330,7 +329,7 @@ try:
     ax_abl.set_xticks(range(len(rt_vs_abl)))
     ax_abl.set_xticklabels(rt_vs_abl['ABL'].astype(int))
     # ax_abl.set_ylabel('Mean RT (s)', fontsize=LABEL_FONTSIZE)
-    ax_abl.set_xlabel('ABL', fontsize=LABEL_FONTSIZE)
+    ax_abl.set_xlabel('ABL', fontsize=LABEL_FONTSIZE, ha='right', x=1.4)
     plt.setp(ax_abl.get_yticklabels(), visible=False)
     ax_abl.spines['top'].set_visible(False)
     ax_abl.spines['right'].set_visible(False)
@@ -376,11 +375,30 @@ try:
     # Reduce gap between the two summary plots
     fig.canvas.draw()
     gap_now_summ = ax_ild.get_position().y0 - ax_abl.get_position().y1
-    gap_desired_summ = 0.05  # figure fraction
+    gap_desired_summ = 0.02  # figure fraction
     delta_summ = gap_now_summ - gap_desired_summ
     if delta_summ > 0:
         shift_axes([ax_ild], dy=-(delta_summ/2))
         shift_axes([ax_abl], dy=+(delta_summ/2))
+
+    # Nudge down slightly to match vertical placement; keep in last column
+    shift_axes([ax_ild, ax_abl], dx=0.05, dy=-0.01)
+
+    # -----------------------------------------------------------
+    # Reduce the width of the summary axes (last column) while
+    # keeping their left edges fixed.  A factor of ~0.6–0.7 looks
+    # visually balanced; tweak here if needed.
+    # -----------------------------------------------------------
+    width_factor = 0.65  # 1 → no change, <1 shrinks width
+    for ax in (ax_ild, ax_abl):
+        pos = ax.get_position()
+        ax.set_position([pos.x0, pos.y0, pos.width * width_factor, pos.height])
+    # Keep x-labels aligned if available (helps vertical alignment only)
+    # try:
+    #     fig.align_xlabels(chrono_axes + [ax_abl])
+    # except Exception:
+    #     pass
+
 
 except FileNotFoundError:
     print("\nChronometric data file not found. Skipping chronometric plots.")
