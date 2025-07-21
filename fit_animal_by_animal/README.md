@@ -71,3 +71,8 @@
 - 1 x 1 scaled quantile: `scaling_quantiles_not_RTD_for_paper_fig1.py`
 - slope vs animal, 2 histograms: `plot_slope_ratios_histograms.py`
 - mean RT vs ABL, ILD: `animal_specific_chronometric_for_paper_fig1.py`
+- **Ultimate**: `make_fig1.py`
+
+# fig template
+- `figure_template.py` - figure template class
+- `test_fig_template.py` - example of using the template
