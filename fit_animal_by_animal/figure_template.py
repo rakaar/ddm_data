@@ -77,7 +77,7 @@ def shift_axes(ax_list: Sequence[plt.Axes], dx: float = 0.0, dy: float = 0.0) ->
 class FigureBuilder:
     """A flexible figure skeleton with a parameterised GridSpec."""
 
-    sup_title: str = "Figure"
+    sup_title: str = ""
     figsize: Tuple[int, int] = (12, 8)
 
     # GridSpec parameters

@@ -5,7 +5,7 @@ import figure_template as ft      # your flexible builder
 
 # ── 0.  Build the blank 5 × 6 canvas ───────────────────────────────
 builder = ft.FigureBuilder(
-    sup_title="Demo – nested panel",
+    sup_title="Figure 2",
     n_rows=5,
     n_cols=6,
 )
