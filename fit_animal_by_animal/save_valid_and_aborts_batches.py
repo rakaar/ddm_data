@@ -135,6 +135,7 @@ for batch_name in batch_names:
         ].copy()
         # add batch_name column
         exp_df_batch['batch_name'] = batch_name
+        # print(exp_df_batch['repeat_trial'].unique()) # 0,2 are unique
     else:
         raise ValueError(f"Unknown batch_name: {batch_name}")
 

@@ -76,3 +76,7 @@
 # fig template
 - `figure_template.py` - figure template class
 - `test_fig_template.py` - example of using the template
+
+# fig 2
+- `see_only_quantile_avg_vs_avg_norm_and_vanila_for_fig2.py` - animal avg quantiles, vanilla, norm
+- `see_only_psycho_all_ILD_tied_for_paper_for_fig2.py` - animal avg psycho, vanilla, norm

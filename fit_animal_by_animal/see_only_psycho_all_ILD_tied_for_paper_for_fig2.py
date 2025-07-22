@@ -51,40 +51,42 @@ def fit_psychometric_sigmoid(ild_values, right_choice_probs):
         return None
 
 # %%
-DESIRED_BATCHES = ['SD', 'LED2', 'LED1', 'LED34', 'LED6', 'LED8', 'LED7']
+DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+batch_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
+batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
 
-# Base directory paths
-base_dir = os.path.dirname(os.path.abspath(__file__))
-csv_dir = os.path.join(base_dir, 'batch_csvs')
-results_dir = base_dir  # Directory containing the pickle files
+merged_data = pd.concat([
+    pd.read_csv(os.path.join(batch_dir, fname)) for fname in batch_files if os.path.exists(os.path.join(batch_dir, fname))
+], ignore_index=True)
 
-def find_batch_animal_pairs():
-    pairs = []
-    pattern = os.path.join(results_dir, 'results_*_animal_*.pkl')
-    pickle_files = glob.glob(pattern)
-    for pickle_file in pickle_files:
-        filename = os.path.basename(pickle_file)
-        parts = filename.split('_')
-        if len(parts) >= 4:
-            batch_index = parts.index('animal') - 1 if 'animal' in parts else 1
-            animal_index = parts.index('animal') + 1 if 'animal' in parts else 2
-            batch_name = parts[batch_index]
-            animal_id = parts[animal_index].split('.')[0]
-            if batch_name in DESIRED_BATCHES:
-                # Exclude animals 40, 41, 43 from LED2 batch
-                if not (batch_name == 'LED2' and animal_id in ['40', '41', '43']):
-                    pairs.append((batch_name, animal_id))
-        else:
-            print(f"Warning: Invalid filename format: {filename}")
-    return pairs
+merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
 
-batch_animal_pairs = find_batch_animal_pairs()
-# Use high slope animals
-# with open('high_slope_animals.pkl', 'rb') as f:
-    # batch_animal_pairs = pickle.load(f)
+# --- Print animal table ---
+batch_animal_pairs = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
 
-print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
+print(f"Found {len(batch_animal_pairs)} batch-animal pairs from {len(set(p[0] for p in batch_animal_pairs))} batches:")
 
+if batch_animal_pairs:
+    batch_to_animals = defaultdict(list)
+    for batch, animal in batch_animal_pairs:
+        # Ensure animal is a string and we don't add duplicates
+        animal_str = str(animal)
+        if animal_str not in batch_to_animals[batch]:
+            batch_to_animals[batch].append(animal_str)
+
+    # Determine column widths for formatting
+    max_batch_len = max(len(b) for b in batch_to_animals.keys()) if batch_to_animals else 0
+    animal_strings = {b: ', '.join(sorted(a)) for b, a in batch_to_animals.items()}
+    max_animals_len = max(len(s) for s in animal_strings.values()) if animal_strings else 0
+
+    # Header
+    print(f"{'Batch':<{max_batch_len}}  {'Animals'}")
+    print(f"{'=' * max_batch_len}  {'=' * max_animals_len}")
+
+    # Rows
+    for batch in sorted(animal_strings.keys()):
+        animals_str = animal_strings[batch]
+        print(f"{batch:<{max_batch_len}}  {animals_str}")
 # %%
 def get_params_from_animal_pkl_file(batch_name, animal_id):
     pkl_file = f'results_{batch_name}_animal_{animal_id}.pkl'
