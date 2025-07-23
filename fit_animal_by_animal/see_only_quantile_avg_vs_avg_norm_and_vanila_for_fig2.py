@@ -9,7 +9,7 @@ Set MODEL_TYPE = 'vanilla' or 'norm' at the top to switch between models.
 All downstream logic is automatically adjusted based on this flag.
 """
 # %%
-MODEL_TYPE = 'vanilla'
+MODEL_TYPE = 'norm'
 print(f"Processing MODEL_TYPE: {MODEL_TYPE}")
 
 
@@ -35,66 +35,45 @@ from collections import defaultdict
 import random
 from scipy.stats import gaussian_kde
 
-def get_simulation_RTD_KDE(
-    abort_params, tied_params, rate_norm_l, Z_E, ABL, ILD, t_stim_samples, N_sim, N_print, dt, n_jobs=30
-):
-    """
-    Run the simulation for given parameters and return KDE arrays for RTD.
-    Returns: x_vals, kde_vals
-    """
-    sim_results = Parallel(n_jobs=n_jobs)(
-        delayed(psiam_tied_data_gen_wrapper_rate_norm_fn)(
-            abort_params['V_A'], abort_params['theta_A'], ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'],
-            tied_params['theta_E'], Z_E, abort_params['t_A_aff'], tied_params['t_E_aff'], tied_params['del_go'],
-            t_stim_samples[iter_num], rate_norm_l, iter_num, N_print, dt
-        ) for iter_num in range(N_sim)
-    )
-    sim_results_df = pd.DataFrame(sim_results)
-    sim_results_df_valid = sim_results_df[sim_results_df['rt'] - sim_results_df['t_stim'] > -0.1]
-    sim_results_df_valid_lt_1 = sim_results_df_valid[sim_results_df_valid['rt'] - sim_results_df_valid['t_stim'] <= 1]
-    sim_rt = sim_results_df_valid_lt_1['rt'] - sim_results_df_valid_lt_1['t_stim']
-    kde = gaussian_kde(sim_rt)
-    x_vals = np.arange(-0.12, 1, 0.01)
-    kde_vals = kde(x_vals)
-    return x_vals, kde_vals
 
 # %%
 # Define desired batches
-# DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
+DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+batch_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
+batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
 
-DESIRED_BATCHES = ['LED7']
+merged_data = pd.concat([
+    pd.read_csv(os.path.join(batch_dir, fname)) for fname in batch_files if os.path.exists(os.path.join(batch_dir, fname))
+], ignore_index=True)
 
-# Base directory paths
-base_dir = os.path.dirname(os.path.abspath(__file__))
-csv_dir = os.path.join(base_dir, 'batch_csvs')
-results_dir = base_dir  # Directory containing the pickle files
+merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
 
-def find_batch_animal_pairs():
-    pairs = []
-    pattern = os.path.join(results_dir, 'results_*_animal_*.pkl')
-    pickle_files = glob.glob(pattern)
-    for pickle_file in pickle_files:
-        filename = os.path.basename(pickle_file)
-        parts = filename.split('_')
-        if len(parts) >= 4:
-            batch_index = parts.index('animal') - 1 if 'animal' in parts else 1
-            animal_index = parts.index('animal') + 1 if 'animal' in parts else 2
-            batch_name = parts[batch_index]
-            animal_id = parts[animal_index].split('.')[0]
-            if batch_name in DESIRED_BATCHES:
-                ### NOTE: TEMPO ####
-                if animal_id != '93':
-                    continue
-                pairs.append((batch_name, animal_id))
-        else:
-            print(f"Warning: Invalid filename format: {filename}")
-    return pairs
+# --- Print animal table ---
+batch_animal_pairs = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
 
-batch_animal_pairs = find_batch_animal_pairs()
-# with open('high_slope_animals.pkl', 'rb') as f:
-#     batch_animal_pairs = pickle.load(f)
+print(f"Found {len(batch_animal_pairs)} batch-animal pairs from {len(set(p[0] for p in batch_animal_pairs))} batches:")
 
-print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
+if batch_animal_pairs:
+    batch_to_animals = defaultdict(list)
+    for batch, animal in batch_animal_pairs:
+        # Ensure animal is a string and we don't add duplicates
+        animal_str = str(animal)
+        if animal_str not in batch_to_animals[batch]:
+            batch_to_animals[batch].append(animal_str)
+
+    # Determine column widths for formatting
+    max_batch_len = max(len(b) for b in batch_to_animals.keys()) if batch_to_animals else 0
+    animal_strings = {b: ', '.join(sorted(a)) for b, a in batch_to_animals.items()}
+    max_animals_len = max(len(s) for s in animal_strings.values()) if animal_strings else 0
+
+    # Header
+    print(f"{'Batch':<{max_batch_len}}  {'Animals'}")
+    print(f"{'=' * max_batch_len}  {'=' * max_animals_len}")
+
+    # Rows
+    for batch in sorted(animal_strings.keys()):
+        animals_str = animal_strings[batch]
+        print(f"{batch:<{max_batch_len}}  {animals_str}")
 
 # remove SD 49 due to issue in sensory delay
 # batch_animal_pairs = [(batch, animal) for batch, animal in batch_animal_pairs if not (batch == 'SD' and animal == '49')]

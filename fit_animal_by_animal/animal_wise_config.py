@@ -1,1 +1,1 @@
-T_trunc = 0.3
+T_trunc = 0.15

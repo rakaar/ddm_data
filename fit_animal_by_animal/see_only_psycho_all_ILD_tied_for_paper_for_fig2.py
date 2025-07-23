@@ -3,7 +3,7 @@ Unified analysis for psychometric curves using TIED models.
 Set IS_NORM_TIED = True for normalized TIED, False for vanilla TIED.
 """
 # %%
-IS_NORM_TIED = False  # Set to False for vanilla TIED
+IS_NORM_TIED = True  # Set to False for vanilla TIED
 
 from scipy.integrate import trapezoid
 import pandas as pd
@@ -31,17 +31,19 @@ import random
 def fit_psychometric_sigmoid(ild_values, right_choice_probs):
     from scipy.optimize import curve_fit
     # Define 4-parameter sigmoid function
-    def sigmoid(x, base, amplitude, inflection, slope):
-        values = base + amplitude / (1 + np.exp(-slope * (x - inflection)))
-        return np.clip(values, 0, 1)
-    p0 = [0.0, 1.0, 0.0, 1.0]
+    def sigmoid(x, upper, lower, x0, k):
+        """Sigmoid function with explicit upper and lower asymptotes."""
+        return lower + (upper - lower) / (1 + np.exp(-k*(x-x0)))
+
+    p0 = [1.0, 0.0, 0.0, 1.0]  # upper, lower, x0, k
+    bounds = ([0, 0, -np.inf, 0], [1, 1, np.inf, np.inf])
     valid_idx = ~np.isnan(right_choice_probs)
     if np.sum(valid_idx) < 4:
         return None
     x = ild_values[valid_idx]
     y = right_choice_probs[valid_idx]
     try:
-        popt, _ = curve_fit(sigmoid, x, y, p0=p0)
+        popt, _ = curve_fit(sigmoid, x, y, p0=p0, bounds=bounds)
         return {
             'params': popt,
             'sigmoid_fn': lambda x: np.clip(sigmoid(x, *popt), 0, 1)
@@ -87,6 +89,7 @@ if batch_animal_pairs:
     for batch in sorted(animal_strings.keys()):
         animals_str = animal_strings[batch]
         print(f"{batch:<{max_batch_len}}  {animals_str}")
+
 # %%
 def get_params_from_animal_pkl_file(batch_name, animal_id):
     pkl_file = f'results_{batch_name}_animal_{animal_id}.pkl'
@@ -774,22 +777,31 @@ for idx, key in enumerate(animal_keys):
 import matplotlib.pyplot as plt
 import numpy as np
 
+USE_SEM = True # True for Standard Error of Mean, False for Standard Deviation
+
 fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
 for i, abl in enumerate([20, 40, 60]):
     emp = empirical_agg[abl]  # shape: (n_animals, n_ilds)
     theo = theory_agg[abl]
     emp_mean = np.nanmean(emp, axis=0)
-    emp_std = np.nanstd(emp, axis=0)
     theo_mean = np.nanmean(theo, axis=0)
-    theo_std = np.nanstd(theo, axis=0)
+
+    if USE_SEM:
+        n_emp = np.sum(~np.isnan(emp), axis=0)
+        emp_err = np.nanstd(emp, axis=0) / np.sqrt(np.maximum(n_emp, 1))
+        n_theo = np.sum(~np.isnan(theo), axis=0)
+        theo_err = np.nanstd(theo, axis=0) / np.sqrt(np.maximum(n_theo, 1))
+    else:
+        emp_err = np.nanstd(emp, axis=0)
+        theo_err = np.nanstd(theo, axis=0)
 
     ax = axes[i]
     ilds = ILD_arr
-    # Empirical: blue dots with error bars (std), no caps
-    ax.errorbar(ilds, emp_mean, yerr=emp_std, fmt='o', color='blue', label='data', capsize=0)
+    # Empirical: blue dots with error bars, no caps
+    ax.errorbar(ilds, emp_mean, yerr=emp_err, fmt='o', color='blue', label='data', capsize=0)
     ax.plot(ilds, emp_mean, color='blue', linestyle='-', linewidth=2, alpha=0.7)  # Blue line joining dots
-    # Theoretical: red dots with error bars (std), no caps
-    ax.errorbar(ilds, theo_mean, yerr=theo_std, fmt='o', color='red', label='theory', capsize=0)
+    # Theoretical: red dots with error bars, no caps
+    ax.errorbar(ilds, theo_mean, yerr=theo_err, fmt='o', color='red', label='theory', capsize=0)
     ax.plot(ilds, theo_mean, color='red', linestyle='-', linewidth=2, alpha=0.7)  # Red line joining dots
     ax.set_title(f'ABL = {abl}')
     ax.set_xlabel('ILD (dB)')
@@ -899,14 +911,14 @@ for abl in [20, 40, 60]:
     if np.sum(valid_idx) >= 4:
         try:
             from scipy.optimize import curve_fit
-            def logistic(x, base, amplitude, inflection, slope):
-                values = base + amplitude / (1 + np.exp(-slope * (x - inflection)))
-                return np.clip(values, 0, 1)
-            p0 = [0.0, 1.0, 0.0, 1.0]
-            popt, _ = curve_fit(logistic, ilds[valid_idx], theo_mean[valid_idx], p0=p0)
+            def sigmoid(x, upper, lower, x0, k):
+                return lower + (upper - lower) / (1 + np.exp(-k*(x-x0)))
+            p0 = [1.0, 0.0, 0.0, 1.0] # upper, lower, x0, k
+            bounds = ([0, 0, -np.inf, 0], [1, 1, np.inf, np.inf])
+            popt, _ = curve_fit(sigmoid, ilds[valid_idx], theo_mean[valid_idx], p0=p0, bounds=bounds)
             ilds_smooth = np.linspace(min(ilds), max(ilds), 200)
-            fit_curve = logistic(ilds_smooth, *popt)
-            plt.plot(ilds_smooth, fit_curve, linestyle='-', color=colors[abl], label=f'Logistic fit (Theory) ABL={abl}', lw=0.5)
+            fit_curve = sigmoid(ilds_smooth, *popt)
+            plt.plot(ilds_smooth, fit_curve, linestyle='-', color=colors[abl], label=f'Theory fit ABL={abl}', lw=0.5)
         except Exception as e:
             print(f"Could not fit logistic for ABL={abl}: {e}")
     else:
