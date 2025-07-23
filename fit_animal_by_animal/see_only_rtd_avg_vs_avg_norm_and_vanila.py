@@ -8,7 +8,7 @@ Set MODEL_TYPE = 'vanilla' or 'norm' at the top to switch between models.
 All downstream logic is automatically adjusted based on this flag.
 """
 # %%
-MODEL_TYPE = 'vanilla'
+MODEL_TYPE = 'norm'
 print(f"Processing MODEL_TYPE: {MODEL_TYPE}")
 
 
@@ -59,41 +59,44 @@ def get_simulation_RTD_KDE(
 
 # %%
 # Define desired batches
-DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
-# DESIRED_BATCHES = ['LED7']
+DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+batch_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
+batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
 
-# Base directory paths
-base_dir = os.path.dirname(os.path.abspath(__file__))
-csv_dir = os.path.join(base_dir, 'batch_csvs')
-results_dir = base_dir  # Directory containing the pickle files
+merged_data = pd.concat([
+    pd.read_csv(os.path.join(batch_dir, fname)) for fname in batch_files if os.path.exists(os.path.join(batch_dir, fname))
+], ignore_index=True)
 
-def find_batch_animal_pairs():
-    pairs = []
-    pattern = os.path.join(results_dir, 'results_*_animal_*.pkl')
-    pickle_files = glob.glob(pattern)
-    for pickle_file in pickle_files:
-        filename = os.path.basename(pickle_file)
-        parts = filename.split('_')
-        if len(parts) >= 4:
-            batch_index = parts.index('animal') - 1 if 'animal' in parts else 1
-            animal_index = parts.index('animal') + 1 if 'animal' in parts else 2
-            batch_name = parts[batch_index]
-            animal_id = parts[animal_index].split('.')[0]
-            if batch_name in DESIRED_BATCHES:
-                pairs.append((batch_name, animal_id))
-        else:
-            print(f"Warning: Invalid filename format: {filename}")
-    return pairs
+merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
 
-batch_animal_pairs = find_batch_animal_pairs()
-# with open('high_slope_animals.pkl', 'rb') as f:
-#     batch_animal_pairs = pickle.load(f)
+# --- Print animal table ---
+batch_animal_pairs = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
 
-print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
+print(f"Found {len(batch_animal_pairs)} batch-animal pairs from {len(set(p[0] for p in batch_animal_pairs))} batches:")
 
-# remove SD 49 due to issue in sensory delay
-# batch_animal_pairs = [(batch, animal) for batch, animal in batch_animal_pairs if not (batch == 'SD' and animal == '49')]
-# print(f"Removed SD 49 due to issue in sensory delay. Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
+if batch_animal_pairs:
+    batch_to_animals = defaultdict(list)
+    for batch, animal in batch_animal_pairs:
+        # Ensure animal is a string and we don't add duplicates
+        animal_str = str(animal)
+        if animal_str not in batch_to_animals[batch]:
+            batch_to_animals[batch].append(animal_str)
+
+    # Determine column widths for formatting
+    max_batch_len = max(len(b) for b in batch_to_animals.keys()) if batch_to_animals else 0
+    animal_strings = {b: ', '.join(sorted(a)) for b, a in batch_to_animals.items()}
+    max_animals_len = max(len(s) for s in animal_strings.values()) if animal_strings else 0
+
+    # Header
+    print(f"{'Batch':<{max_batch_len}}  {'Animals'}")
+    print(f"{'=' * max_batch_len}  {'=' * max_animals_len}")
+
+    # Rows
+    for batch in sorted(animal_strings.keys()):
+        animals_str = animal_strings[batch]
+        print(f"{batch:<{max_batch_len}}  {animals_str}")
+
+# %%
 
 def get_animal_RTD_data(batch_name, animal_id, ABL, ILD, bins):
     file_name = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
@@ -430,34 +433,174 @@ plt.subplots_adjust(bottom=0.15)
 plt.savefig(f'rtd_average_by_abs_ILD_FOLDED_{MODEL_TYPE}.png', dpi=300, bbox_inches='tight')
 plt.show()
 
-
 # %%
-# issue in sensory delay  in one 8 animals  in rate norm model
-vanilla_sensory_delays = np.zeros((len(batch_animal_pairs),))
-norm_sensory_delays = np.zeros((len(batch_animal_pairs),))
+def get_quantiles_from_rtd(rtd, time_points, quantiles):
+    """Calculate quantiles from a given RTD."""
+    # Normalize RTD to get a PDF, then compute CDF
+    pdf = rtd / np.sum(rtd)
+    cdf = np.cumsum(pdf)
+    # Use interpolation to find the time points corresponding to the desired quantiles
+    # We use np.interp to find the x-values (time_points) for given y-values (quantiles) of the CDF.
+    # We need to provide interp with (x_new, x_old, y_old)
+    return np.interp(quantiles, cdf, time_points)
 
-MODEL_TYPE = 'vanilla'
-for idx, (batch, animal) in enumerate(batch_animal_pairs):
-    abort_params, tied_params, rate_norm_l, is_norm = get_params_from_animal_pkl_file(batch, int(animal))
-    vanilla_sensory_delays[idx] = tied_params['t_E_aff']
-    print(f'idx {idx}, batch {batch}, animal {animal}')
 
-MODEL_TYPE = 'norm'
-for idx, (batch, animal) in enumerate(batch_animal_pairs):
-    abort_params, tied_params, rate_norm_l, is_norm = get_params_from_animal_pkl_file(batch, int(animal))
-    norm_sensory_delays[idx] = tied_params['t_E_aff']
+# %% Quantile Plot from Averaged RTDs
+print("\nGenerating quantile plot from averaged RTDs...")
 
-# plot both the sensory delays
-plt.figure(figsize=(6, 4))
-plt.plot(vanilla_sensory_delays * 1000, 'ro', label='Vanilla')
-plt.plot(norm_sensory_delays * 1000, 'bo', label='Norm')
-# plot vertical line with mean of vanilla sensory delay and norm sensory delay
-plt.axhline(y=np.mean(vanilla_sensory_delays * 1000), color='k', linestyle='--', linewidth=1)
-plt.axhline(y=np.mean(norm_sensory_delays * 1000), color='k', linestyle='--', linewidth=1)
-plt.ylabel('Sensory Delay (ms)')
-plt.xlabel('Animal')
-plt.legend()
+QUANTILES_TO_PLOT = [0.1, 0.3, 0.5, 0.7, 0.9]
+
+# 1. Calculate quantiles from the averaged RTDs
+quantile_results = {abl: {abs_ild: {'empirical': [], 'theoretical': []} for abs_ild in abs_ILD_arr} for abl in ABL_arr}
+
+for i, abl in enumerate(ABL_arr):
+    for j, abs_ild in enumerate(abs_ILD_arr):
+        # This logic is similar to the RTD plot section to get averaged RTDs
+        empirical_rtds = []
+        theoretical_rtds = []
+        bin_centers = None
+        t_pts = None
+        
+        for ild in [abs_ild, -abs_ild]:
+            stim_key = (abl, ild)
+            for batch_animal_pair, animal_data in rtd_data.items():
+                if stim_key in animal_data:
+                    emp_data = animal_data[stim_key]['empirical']
+                    if not np.all(np.isnan(emp_data['rtd_hist'])):
+                        empirical_rtds.append(emp_data['rtd_hist'])
+                        bin_centers = emp_data['bin_centers']
+                    
+                    theo_data = animal_data[stim_key]['theoretical']
+                    if not np.all(np.isnan(theo_data['rtd'])):
+                        theoretical_rtds.append(theo_data['rtd'])
+                        t_pts = theo_data['t_pts']
+
+        if empirical_rtds and bin_centers is not None:
+            avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
+            emp_quantiles = get_quantiles_from_rtd(avg_empirical_rtd, bin_centers, QUANTILES_TO_PLOT)
+            quantile_results[abl][abs_ild]['empirical'] = emp_quantiles
+
+        if theoretical_rtds and t_pts is not None:
+            avg_theoretical_rtd = np.nanmean(theoretical_rtds, axis=0)
+            theo_quantiles = get_quantiles_from_rtd(avg_theoretical_rtd, t_pts, QUANTILES_TO_PLOT)
+            quantile_results[abl][abs_ild]['theoretical'] = theo_quantiles
+
+# 2. Plot the quantiles
+fig, axes = plt.subplots(1, len(ABL_arr), figsize=(12, 4), sharey=True)
+if len(ABL_arr) == 1: axes = [axes]  # Ensure axes is always iterable
+
+abs_ild_sorted = sorted(abs_ILD_arr)
+
+for i, abl in enumerate(ABL_arr):
+    ax = axes[i]
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    for q_idx, q in enumerate(QUANTILES_TO_PLOT):
+        emp_quantiles_for_abl = [quantile_results[abl][abs_ild]['empirical'][q_idx] for abs_ild in abs_ild_sorted]
+        theo_quantiles_for_abl = [quantile_results[abl][abs_ild]['theoretical'][q_idx] for abs_ild in abs_ild_sorted]
+        
+        valid_abs_ild_emp = [abs_ild for abs_ild in abs_ild_sorted]
+        valid_abs_ild_theo = [abs_ild for abs_ild in abs_ild_sorted]
+
+        # Plot empirical data
+        if emp_quantiles_for_abl:
+            ax.plot(valid_abs_ild_emp, emp_quantiles_for_abl, 'o-', color='b', markersize=4, label='Data' if q_idx == 0 else "")
+        
+        # Plot theoretical data
+        if theo_quantiles_for_abl:
+            ax.plot(valid_abs_ild_theo, theo_quantiles_for_abl, '^-', color='r', markersize=4, label='Theory' if q_idx == 0 else "")
+
+    ax.set_title(f'ABL = {abl}')
+    ax.set_xlabel('|ILD| (dB)')
+    ax.set_xscale('log', base=2)
+    ax.set_xticks(abs_ild_sorted)
+    ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
+
+axes[0].set_ylabel('RT Quantile (s)')
+if len(ABL_arr) > 1:
+    fig.legend(loc='upper right', bbox_to_anchor=(0.98, 0.95))
+
+plt.tight_layout(rect=[0, 0, 0.9, 1])
+plt.savefig(f'quantile_plot_from_avg_rtd_{MODEL_TYPE}.png', dpi=300)
 plt.show()
 
-# print batch 
+# %% RTD Plots with Quantiles Overlaid
+print("\nGenerating RTD plots with quantiles overlaid...")
+
+fig, axes = plt.subplots(len(ABL_arr), len(abs_ILD_arr), figsize=(20,6), sharex=True, sharey=True)
+for ax_row in axes:
+    for ax in ax_row:
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+for i, abl in enumerate(ABL_arr):
+    for j, abs_ild in enumerate(abs_ILD_arr):
+        ax = axes[i, j]
+        
+        # This logic is similar to the original RTD plot section to get averaged RTDs
+        empirical_rtds = []
+        theoretical_rtds = []
+        bin_centers = None
+        t_pts = None
+        
+        for ild in [abs_ild, -abs_ild]:
+            stim_key = (abl, ild)
+            for batch_animal_pair, animal_data in rtd_data.items():
+                if stim_key in animal_data:
+                    emp_data = animal_data[stim_key]['empirical']
+                    if not np.all(np.isnan(emp_data['rtd_hist'])):
+                        empirical_rtds.append(emp_data['rtd_hist'])
+                        bin_centers = emp_data['bin_centers']
+                    
+                    theo_data = animal_data[stim_key]['theoretical']
+                    if not np.all(np.isnan(theo_data['rtd'])):
+                        theoretical_rtds.append(theo_data['rtd'])
+                        t_pts = theo_data['t_pts']
+
+        # Plot RTDs
+        if empirical_rtds is not None and bin_centers is not None:
+            avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
+            ax.plot(bin_centers, avg_empirical_rtd, 'b-', linewidth=1.5, label='Data')
+        
+        if theoretical_rtds is not None and t_pts is not None:
+            avg_theoretical_rtd = np.nanmean(theoretical_rtds, axis=0)
+            ax.plot(t_pts, avg_theoretical_rtd, 'r-', linewidth=1.5, label='Theory')
+
+        # Overlay Quantiles
+        emp_quantiles = quantile_results[abl][abs_ild]['empirical']
+        if emp_quantiles is not None:
+            for q_val in emp_quantiles:
+                ax.axvline(x=q_val, color='b', linestyle='--', linewidth=1)
+
+        theo_quantiles = quantile_results[abl][abs_ild]['theoretical']
+        if theo_quantiles is not None:
+            for q_val in theo_quantiles:
+                ax.axvline(x=q_val, color='r', linestyle=':', linewidth=1)
+
+        # Formatting
+        if i == len(ABL_arr) - 1:
+            ax.set_xlabel('RT (s)', fontsize=12)
+            ax.set_xticks(np.arange(0, max_xlim_RT+0.1, 0.1))
+            ax.set_xticklabels([f'{x:.1f}' for x in np.arange(0, max_xlim_RT+0.1, 0.1)], fontsize=12)
+        ax.set_xlim(-0.1, max_xlim_RT)
+        ax.set_yticks([0, 12])
+        ax.set_ylim(0, 14)
+        ax.axvline(x=0, color='k', linestyle='--', linewidth=1)
+        if j == 0:
+            ax.set_ylabel(f'ABL={abl}', fontsize=12, rotation=0, ha='right', va='center')
+        if i == 0:
+            ax.set_title(f'|ILD|={abs_ild}', fontsize=12)
+
+for ax_row in axes:
+    for ax in ax_row:
+        ax.tick_params(axis='x', labelsize=12)
+        ax.tick_params(axis='y', labelsize=12)
+
+plt.tight_layout()
+plt.subplots_adjust(bottom=0.15)
+plt.savefig(f'rtd_average_with_quantiles_{MODEL_TYPE}.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+
 # %%
