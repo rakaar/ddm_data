@@ -799,174 +799,236 @@ animal_ids = df_valid_and_aborts['animal'].unique()
 
 # %%
 # for animal_idx in range(len(animal_ids)):
-for animal_idx in [2]:
+# for animal_idx in [2]:
+#     animal = animal_ids[animal_idx]
+
+#     df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal]
+#     df_aborts_animal = df_aborts[df_aborts['animal'] == animal]
+#     ######### NOTE: Sake of testing, remove half of trials ############
+#     # df_all_trials_animal = df_all_trials_animal.sample(frac=0.01)
+#     # df_aborts_animal = df_aborts_animal.sample(frac=0.01)
+#     ############ END NOTE ############################################
+
+#     print(f'Batch: {batch_name},sample animal: {animal}')
+#     # pdf_filename = f'results_{batch_name}_animal_{animal}.pdf'
+#     # pdf = PdfPages(pdf_filename)
+
+#     # --- Page 1: Batch Name and Animal ID ---
+#     fig_text = plt.figure(figsize=(8.5, 11)) # Standard page size looks better
+#     fig_text.clf() # Clear the figure
+#     fig_text.text(0.1, 0.9, f"Analysis Report", fontsize=20, weight='bold')
+#     fig_text.text(0.1, 0.8, f"Batch Name: {batch_name}", fontsize=14)
+#     fig_text.text(0.1, 0.75, f"Animal ID: {animal}", fontsize=14)
+#     fig_text.gca().axis("off")
+#     # pdf.savefig(fig_text, bbox_inches='tight')
+#     plt.close(fig_text)
+
+
+#     # find ABL and ILD
+#     ABL_arr = df_all_trials_animal['ABL'].unique()
+#     ILD_arr = df_all_trials_animal['ILD'].unique()
+
+
+#     # sort ILD arr in ascending order
+#     ILD_arr = np.sort(ILD_arr)
+#     ABL_arr = np.sort(ABL_arr)
+
+#     ####################################################
+#     ########### Abort Model ##############################
+#     ####################################################
+
+#     # V_A_0 = 3.3
+#     # theta_A_0 = 3.8
+#     # t_A_aff_0 = -0.27
+
+#     # x_0 = np.array([V_A_0, theta_A_0, t_A_aff_0])
+#     # vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on', 'max_fun_evals': 200 * (2 + 3)})    
+#     # # vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on'})
+
+#     # vp, results = vbmc.optimize()
+
+#     # # %%
+#     # vp_samples = vp.sample(int(1e6))[0]
+#     # V_A_samp = vp_samples[:,0]
+#     # theta_A_samp = vp_samples[:,1]
+#     # t_A_aff_samp = vp_samples[:,2]
+#     # # %%
+#     # V_A = vp_samples[:,0].mean()
+#     # theta_A = vp_samples[:,1].mean()
+#     # t_A_aff = vp_samples[:,2].mean()
+
+
+#     # print(f'theta_A: {theta_A}')
+#     # print(f't_A_aff: {t_A_aff}')
+
+#     # combined_samples = np.transpose(np.vstack((V_A_samp, theta_A_samp, t_A_aff_samp)))
+#     # param_labels = ['V_A', 'theta_A', 't_A_aff']
+#     # # Calculate log likelihood at the mean parameter values
+#     # aborts_loglike = vbmc_aborts_loglike_fn([V_A, theta_A, t_A_aff])
+#     # t_pts = np.arange(0, 2, 0.001)
+#     # pdf_samples = np.zeros((N_theory, len(t_pts)))
+
+#     # t_stim_samples_df = df_valid_and_aborts.sample(n=N_theory, replace=True).copy()
+#     # t_stim_samples = t_stim_samples_df['intended_fix'].values
+
+#     # for i, t_stim in enumerate(t_stim_samples):
+#     #     t_stim_idx = np.searchsorted(t_pts, t_stim)
+#     #     proactive_trunc_idx = np.searchsorted(t_pts, T_trunc)
+#     #     pdf_samples[i, :proactive_trunc_idx] = 0
+#     #     pdf_samples[i, t_stim_idx:] = 0
+#     #     t_btn = t_pts[proactive_trunc_idx:t_stim_idx-1]
+#     #     pdf_samples[i, proactive_trunc_idx:t_stim_idx-1] = rho_A_t_VEC_fn(t_btn - t_A_aff, V_A, theta_A) / (1 - cum_A_t_fn(T_trunc - t_A_aff, V_A, theta_A))
+#     # avg_pdf = np.mean(pdf_samples, axis=0)
+
+
+#     # Plotting
+#     fig_aborts_diag = plt.figure(figsize=(10, 5))
+#     bins = np.arange(0, 0.5, 0.01)
+
+#     # Get empirical abort RTs and filter by truncation time
+#     animal_abort_RT = df_aborts_animal['TotalFixTime'].dropna().values
+#     # Plot histogram of animal abort RTs
+#     fig_hist, ax = plt.subplots(figsize=(10, 5))
+#     ax.hist(animal_abort_RT, bins=np.arange(0, 0.5, 0.01), alpha=0.5, label='animal abort RTs')
+#     ax.axvline(0.5)
+#     ax.set_xlabel('RT (s)')
+#     ax.set_ylabel('Count')
+#     # ax.legend()
+#     ax.set_title(f'Animal {animal} Abort RTs')
+#     ax.axvline(0.15, color='r')
+#     fig_hist.savefig(f'test_34_animal_{animal}_aborts_hist.png', bbox_inches='tight')
+#     # plt.close(fig_hist)
+
+#     # animal_abort_RT_trunc = animal_abort_RT[animal_abort_RT > T_trunc]
+#     # print(animal_abort_RT.min(), animal_abort_RT.max())
+#     # # save hist
+#     # # Plot empirical histogram (scaled by fraction of aborts after truncation)
+#     # if len(animal_abort_RT_trunc) > 0:
+#     #     # Compute N_valid_and_trunc_aborts as in the reference code
+#     #     # Need df_all_trials_animal and df_before_trunc_animal
+#     #     if 'animal' in df_valid_and_aborts.columns:
+#     #         animal_id = df_aborts_animal['animal'].iloc[0] if len(df_aborts_animal) > 0 else None
+#     #         df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal_id]
+#     #     else:
+#     #         df_all_trials_animal = df_valid_and_aborts
+#     #     df_before_trunc_animal = df_aborts_animal[df_aborts_animal['TotalFixTime'] < T_trunc]
+#     #     N_valid_and_trunc_aborts = len(df_all_trials_animal) - len(df_before_trunc_animal)
+#     #     frac_aborts = len(animal_abort_RT_trunc) / N_valid_and_trunc_aborts if N_valid_and_trunc_aborts > 0 else 0
+#     #     aborts_hist, _ = np.histogram(animal_abort_RT_trunc, bins=bins, density=True)
+#     #     # Scale the histogram by frac_aborts
+#     #     plt.plot(bins[:-1], aborts_hist * frac_aborts, label='Data (Aborts > T_trunc)')
+#     # else:
+#     #     # Add a note if no data to plot
+#     #     plt.text(0.5, 0.5, 'No empirical abort data > T_trunc', 
+#     #              horizontalalignment='center', verticalalignment='center', 
+#     #              transform=plt.gca().transAxes)
+
+#     # # Plot theoretical PDF
+#     # plt.plot(t_pts, avg_pdf, 'r-', lw=2, label='Theory (Abort Model)')
+
+#     # plt.title('aborts ')
+#     # plt.xlabel('Reaction Time (s)')
+#     # plt.ylabel('Probability Density')
+#     # plt.legend()
+#     # plt.xlim([0, np.max(bins)]) # Limit x-axis to the bin range
+#     # # Add a reasonable upper limit to y-axis if needed, e.g., based on max density
+#     # if len(animal_abort_RT_trunc) > 0:
+#     #     max_density = np.max(aborts_hist * frac_aborts) if len(aborts_hist) > 0 else 1
+#     #     plt.ylim([0, max(np.max(avg_pdf), max_density) * 1.1])
+#     # elif np.any(avg_pdf > 0):
+#     #      plt.ylim([0, np.max(avg_pdf) * 1.1])
+#     # else:
+#     #     plt.ylim([0, 1]) # Default ylim if no data and no theory\
+#     # plt.savefig(f'test_34_aborts_{animal}.png')
+#     # break
+
+# # %%
+# t_pts = np.arange(0, 1, 0.01)
+
+
+# V_A, theta_A, t_A_aff = [1, 2, -0.01]
+
+# density = np.zeros_like(t_pts)
+# for i, rt in enumerate(t_pts):
+#     t_stim = np.random.choice(df_aborts_animal['intended_fix'].values)
+#     pdf_trunc_factor = 1 - cum_A_t_fn(T_trunc - t_A_aff, V_A, theta_A)
+
+#     if rt < T_trunc:
+#         density[i] = 0
+#     else:
+#         if rt < t_stim:
+#             density[i] =  rho_A_t_fn(rt - t_A_aff, V_A, theta_A) / pdf_trunc_factor
+#         elif rt > t_stim:
+#             if t_stim <= T_trunc:
+#                 density[i] = 1
+#             else:
+#                 density[i] = ( 1 - cum_A_t_fn(t_stim - t_A_aff, V_A, theta_A) ) / pdf_trunc_factor
+
+
+# plt.plot(t_pts, density)
+# plt.axvline(0.15, color='r')
+# plt.hist(animal_abort_RT, bins=np.arange(0, 0.5, 0.01), alpha=0.5, label='animal abort RTs', density=True);
+# plt.savefig(f'test_34_aborts_{animal}.png')
+# %%
+for animal_idx in [1]:
     animal = animal_ids[animal_idx]
 
     df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal]
     df_aborts_animal = df_aborts[df_aborts['animal'] == animal]
+
+    df_success_trials = df_all_trials_animal[df_all_trials_animal['success'].isin([1, -1])]
+    df_success_trials_1 = df_success_trials[df_success_trials['TotalFixTime'] - df_success_trials['intended_fix'] < 1]
+
+
     ######### NOTE: Sake of testing, remove half of trials ############
     # df_all_trials_animal = df_all_trials_animal.sample(frac=0.01)
     # df_aborts_animal = df_aborts_animal.sample(frac=0.01)
     ############ END NOTE ############################################
 
     print(f'Batch: {batch_name},sample animal: {animal}')
-    # pdf_filename = f'results_{batch_name}_animal_{animal}.pdf'
-    # pdf = PdfPages(pdf_filename)
-
-    # --- Page 1: Batch Name and Animal ID ---
-    fig_text = plt.figure(figsize=(8.5, 11)) # Standard page size looks better
-    fig_text.clf() # Clear the figure
-    fig_text.text(0.1, 0.9, f"Analysis Report", fontsize=20, weight='bold')
-    fig_text.text(0.1, 0.8, f"Batch Name: {batch_name}", fontsize=14)
-    fig_text.text(0.1, 0.75, f"Animal ID: {animal}", fontsize=14)
-    fig_text.gca().axis("off")
-    # pdf.savefig(fig_text, bbox_inches='tight')
-    plt.close(fig_text)
-
-
-    # find ABL and ILD
-    ABL_arr = df_all_trials_animal['ABL'].unique()
-    ILD_arr = df_all_trials_animal['ILD'].unique()
-
-
-    # sort ILD arr in ascending order
-    ILD_arr = np.sort(ILD_arr)
-    ABL_arr = np.sort(ABL_arr)
-
-    ####################################################
-    ########### Abort Model ##############################
-    ####################################################
-
-    # V_A_0 = 3.3
-    # theta_A_0 = 3.8
-    # t_A_aff_0 = -0.27
-
-    # x_0 = np.array([V_A_0, theta_A_0, t_A_aff_0])
-    # vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on', 'max_fun_evals': 200 * (2 + 3)})    
-    # # vbmc = VBMC(vbmc_joint_aborts_fn, x_0, aborts_lb, aborts_ub, aborts_plb, aborts_pub, options={'display': 'on'})
-
-    # vp, results = vbmc.optimize()
-
-    # # %%
-    # vp_samples = vp.sample(int(1e6))[0]
-    # V_A_samp = vp_samples[:,0]
-    # theta_A_samp = vp_samples[:,1]
-    # t_A_aff_samp = vp_samples[:,2]
-    # # %%
-    # V_A = vp_samples[:,0].mean()
-    # theta_A = vp_samples[:,1].mean()
-    # t_A_aff = vp_samples[:,2].mean()
-
-
-    # print(f'theta_A: {theta_A}')
-    # print(f't_A_aff: {t_A_aff}')
-
-    # combined_samples = np.transpose(np.vstack((V_A_samp, theta_A_samp, t_A_aff_samp)))
-    # param_labels = ['V_A', 'theta_A', 't_A_aff']
-    # # Calculate log likelihood at the mean parameter values
-    # aborts_loglike = vbmc_aborts_loglike_fn([V_A, theta_A, t_A_aff])
-    # t_pts = np.arange(0, 2, 0.001)
-    # pdf_samples = np.zeros((N_theory, len(t_pts)))
-
-    # t_stim_samples_df = df_valid_and_aborts.sample(n=N_theory, replace=True).copy()
-    # t_stim_samples = t_stim_samples_df['intended_fix'].values
-
-    # for i, t_stim in enumerate(t_stim_samples):
-    #     t_stim_idx = np.searchsorted(t_pts, t_stim)
-    #     proactive_trunc_idx = np.searchsorted(t_pts, T_trunc)
-    #     pdf_samples[i, :proactive_trunc_idx] = 0
-    #     pdf_samples[i, t_stim_idx:] = 0
-    #     t_btn = t_pts[proactive_trunc_idx:t_stim_idx-1]
-    #     pdf_samples[i, proactive_trunc_idx:t_stim_idx-1] = rho_A_t_VEC_fn(t_btn - t_A_aff, V_A, theta_A) / (1 - cum_A_t_fn(T_trunc - t_A_aff, V_A, theta_A))
-    # avg_pdf = np.mean(pdf_samples, axis=0)
-
-
-    # Plotting
-    fig_aborts_diag = plt.figure(figsize=(10, 5))
-    bins = np.arange(0, 0.5, 0.01)
-
-    # Get empirical abort RTs and filter by truncation time
+    # remove aborts RT < 0.15
+    df_aborts_animal = df_aborts_animal[df_aborts_animal['TotalFixTime'] > 0.15]
     animal_abort_RT = df_aborts_animal['TotalFixTime'].dropna().values
-    # Plot histogram of animal abort RTs
-    fig_hist, ax = plt.subplots(figsize=(10, 5))
-    ax.hist(animal_abort_RT, bins=np.arange(0, 0.5, 0.01), alpha=0.5, label='animal abort RTs')
-    ax.axvline(0.5)
-    ax.set_xlabel('RT (s)')
-    ax.set_ylabel('Count')
-    # ax.legend()
-    ax.set_title(f'Animal {animal} Abort RTs')
-    ax.axvline(0.15, color='r')
-    fig_hist.savefig(f'test_34_animal_{animal}_aborts_hist.png', bbox_inches='tight')
-    # plt.close(fig_hist)
+    print(f'len animal abort RTs = {len(animal_abort_RT)}')
 
-    # animal_abort_RT_trunc = animal_abort_RT[animal_abort_RT > T_trunc]
-    # print(animal_abort_RT.min(), animal_abort_RT.max())
-    # # save hist
-    # # Plot empirical histogram (scaled by fraction of aborts after truncation)
-    # if len(animal_abort_RT_trunc) > 0:
-    #     # Compute N_valid_and_trunc_aborts as in the reference code
-    #     # Need df_all_trials_animal and df_before_trunc_animal
-    #     if 'animal' in df_valid_and_aborts.columns:
-    #         animal_id = df_aborts_animal['animal'].iloc[0] if len(df_aborts_animal) > 0 else None
-    #         df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal_id]
-    #     else:
-    #         df_all_trials_animal = df_valid_and_aborts
-    #     df_before_trunc_animal = df_aborts_animal[df_aborts_animal['TotalFixTime'] < T_trunc]
-    #     N_valid_and_trunc_aborts = len(df_all_trials_animal) - len(df_before_trunc_animal)
-    #     frac_aborts = len(animal_abort_RT_trunc) / N_valid_and_trunc_aborts if N_valid_and_trunc_aborts > 0 else 0
-    #     aborts_hist, _ = np.histogram(animal_abort_RT_trunc, bins=bins, density=True)
-    #     # Scale the histogram by frac_aborts
-    #     plt.plot(bins[:-1], aborts_hist * frac_aborts, label='Data (Aborts > T_trunc)')
-    # else:
-    #     # Add a note if no data to plot
-    #     plt.text(0.5, 0.5, 'No empirical abort data > T_trunc', 
-    #              horizontalalignment='center', verticalalignment='center', 
-    #              transform=plt.gca().transAxes)
+    ABL_unique = df_all_trials_animal['ABL'].unique()
+    ILD_unique = df_all_trials_animal['ILD'].unique()
+    print(f'ABL_unique = {ABL_unique}')
+    print(f'ILD_unique = {ILD_unique}')
 
-    # # Plot theoretical PDF
-    # plt.plot(t_pts, avg_pdf, 'r-', lw=2, label='Theory (Abort Model)')
+    # for ABL in np.sort(ABL_unique):
+    for ABL in [40]:
 
-    # plt.title('aborts ')
-    # plt.xlabel('Reaction Time (s)')
-    # plt.ylabel('Probability Density')
-    # plt.legend()
-    # plt.xlim([0, np.max(bins)]) # Limit x-axis to the bin range
-    # # Add a reasonable upper limit to y-axis if needed, e.g., based on max density
-    # if len(animal_abort_RT_trunc) > 0:
-    #     max_density = np.max(aborts_hist * frac_aborts) if len(aborts_hist) > 0 else 1
-    #     plt.ylim([0, max(np.max(avg_pdf), max_density) * 1.1])
-    # elif np.any(avg_pdf > 0):
-    #      plt.ylim([0, np.max(avg_pdf) * 1.1])
-    # else:
-    #     plt.ylim([0, 1]) # Default ylim if no data and no theory\
-    # plt.savefig(f'test_34_aborts_{animal}.png')
-    # break
+        for ILD in np.sort(ILD_unique):
+            df_ABL_ILD_animal = df_success_trials_1[(df_success_trials_1['ABL'] == ABL) & (df_success_trials_1['ILD'] == ILD)]
+            # trunc factor area 
+            print(f'ABL = {ABL}, ILD = {ILD}')
+            num_total = len(df_ABL_ILD_animal) + len(df_aborts_animal[df_aborts_animal['TotalFixTime'] > 0.15])
+            num_ABL_ILD = len(df_ABL_ILD_animal)
+            trunc_factor = num_ABL_ILD / num_total
+            print(f'trunc factor = {trunc_factor}')
 
-# %%
-t_pts = np.arange(0, 1, 0.01)
+            # # area up and area down
+            # # response_poke == 3
+            df_ABL_ILD_up = df_ABL_ILD_animal[df_ABL_ILD_animal['response_poke'] == 3]
+            df_ABL_ILD_down = df_ABL_ILD_animal[df_ABL_ILD_animal['response_poke'] == 2]
+            n_up = len(df_ABL_ILD_up)
+            n_down = len(df_ABL_ILD_down)
+            area_up = n_up / num_total
+            area_down = n_down / num_total
+            print(f'area up = {area_up}, area down = {area_down}')
+            print(f'ratio of up + down / trunc = {(area_up + area_down)/trunc_factor}')
+            # df_ABL_ILD_animal_up = df_ABL_ILD_animal[df_ABL_ILD_animal['response_poke'] == 3]
+            # df_ABL_ILD_animal_down = df_ABL_ILD_animal[df_ABL_ILD_animal['response_poke'] == 2]
+            # n_up = len(df_ABL_ILD_animal_up)
+            # n_down = len(df_ABL_ILD_animal_down)
+            # area_up = n_up / num_total
+            # area_down = n_down / num_total
+            # print(f'area up = {area_up}, area down = {area_down}')
 
+            # print(f'ratio of up + down / trunc')
+            # print((area_up + area_down) / trunc_factor)
 
-V_A, theta_A, t_A_aff = [1, 2, -0.01]
-
-density = np.zeros_like(t_pts)
-for i, rt in enumerate(t_pts):
-    t_stim = np.random.choice(df_aborts_animal['intended_fix'].values)
-    pdf_trunc_factor = 1 - cum_A_t_fn(T_trunc - t_A_aff, V_A, theta_A)
-
-    if rt < T_trunc:
-        density[i] = 0
-    else:
-        if rt < t_stim:
-            density[i] =  rho_A_t_fn(rt - t_A_aff, V_A, theta_A) / pdf_trunc_factor
-        elif rt > t_stim:
-            if t_stim <= T_trunc:
-                density[i] = 1
-            else:
-                density[i] = ( 1 - cum_A_t_fn(t_stim - t_A_aff, V_A, theta_A) ) / pdf_trunc_factor
-
-
-plt.plot(t_pts, density)
-plt.axvline(0.15, color='r')
-plt.hist(animal_abort_RT, bins=np.arange(0, 0.5, 0.01), alpha=0.5, label='animal abort RTs', density=True);
-# plt.savefig(f'test_34_aborts_{animal}.png')
-# %%
+            
+        
+    

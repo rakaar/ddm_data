@@ -203,6 +203,34 @@ def calculate_theoretical_curves(df_valid_and_aborts, N_theory, t_pts, t_A_aff, 
     
     return P_A_mean, C_A_mean, t_stim_samples
 
+# def calculate_theoretical_PA_CA_truncated_curves(df_valid_and_aborts, N_theory, t_pts, t_A_aff, V_A, theta_A, rho_A_t_fn):
+#     """
+#     Calculate theoretical P_A_mean and C_A_mean curves.
+    
+#     Args:
+#         df_valid_and_aborts: Dataframe with valid trials and aborts
+#         N_theory: Number of samples for theoretical calculation
+#         t_pts: Time points for evaluation
+#         t_A_aff: Afferent time
+#         V_A: V_A parameter
+#         theta_A: theta_A parameter
+#         rho_A_t_fn: Function to compute rho_A_t
+        
+#     Returns:
+#         P_A_mean: Mean probability
+#         C_A_mean: Cumulative mean probability
+#         t_stim_samples: Samples used for calculation
+#     """
+#     t_stim_samples = df_valid_and_aborts['intended_fix'].sample(N_theory, replace=True).values
+    
+#     P_A_samples = np.zeros((N_theory, len(t_pts)))
+#     for idx, t_stim in enumerate(t_stim_samples):
+#         P_A_samples[idx, :] = [rho_A_t_fn(t + t_stim - t_A_aff, V_A, theta_A) for t in t_pts]
+    
+#     P_A_mean = np.mean(P_A_samples, axis=0)
+#     C_A_mean = cumtrapz(P_A_mean, t_pts, initial=0)
+    
+#     return P_A_mean, C_A_mean, t_stim_samples
 
 def plot_rt_distributions(sim_df_1, data_df_1, ILD_arr, ABL_arr, t_pts, P_A_mean, C_A_mean, 
                           t_stim_samples, V_A, theta_A, t_A_aff, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, 

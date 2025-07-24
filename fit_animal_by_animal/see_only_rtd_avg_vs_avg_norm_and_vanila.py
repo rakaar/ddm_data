@@ -101,9 +101,9 @@ if batch_animal_pairs:
 def get_animal_RTD_data(batch_name, animal_id, ABL, ILD, bins):
     file_name = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
     df = pd.read_csv(file_name)
-    # df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['ILD'] == ILD) & (df['success'].isin([1, -1]))]
-    df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['ILD'] == ILD) \
-        & ((df['RTwrtStim'] <= 1) & (df['RTwrtStim'] >= -0.1))]
+    df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['ILD'] == ILD) & (df['success'].isin([1, -1]))]
+    # df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['ILD'] == ILD) \
+    #     & ((df['RTwrtStim'] <= 1) & (df['RTwrtStim'] >= -0.1))]
 
     bin_centers = (bins[:-1] + bins[1:]) / 2
     if df.empty:
@@ -180,10 +180,13 @@ def get_P_A_C_A(batch, animal_id, abort_params):
     )
     return P_A_mean, C_A_mean, t_stim_samples
 
-def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, rate_norm_l, is_norm, ABL, ILD):
+def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, rate_norm_l, is_norm, ABL, ILD, batch_name, animal_id):
     phi_params_obj = np.nan
     K_max = 10
-    T_trunc = 0.3
+    if batch_name == 'LED34_even':
+        T_trunc = 0.15
+    else:
+        T_trunc = 0.3
     t_pts = np.arange(-2, 2, 0.001)
     trunc_fac_samples = np.zeros((len(t_stim_samples)))
     Z_E = (tied_params['w'] - 0.5) * 2 * tied_params['theta_E']
@@ -195,12 +198,14 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
             phi_params_obj, rate_norm_l, 
             is_norm, False, K_max) \
             - cum_pro_and_reactive_time_vary_fn(
-            t_stim - 0.1, T_trunc,
+            t_stim, T_trunc,
             abort_params['V_A'], abort_params['theta_A'], abort_params['t_A_aff'],
             t_stim, ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E, tied_params['t_E_aff'],
             phi_params_obj, rate_norm_l, 
             is_norm, False, K_max) + 1e-10
     trunc_factor = np.mean(trunc_fac_samples)
+    # if batch_name == 'LED34_even':
+    #     print(f"Trunc factor for {batch_name}, {animal_id} = {trunc_factor}")
     up_mean = np.array([up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
         t, 1,
         P_A_mean[i], C_A_mean[i],
@@ -213,37 +218,47 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
         ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E, tied_params['t_E_aff'], tied_params['del_go'],
         phi_params_obj, rate_norm_l, 
         is_norm, False, K_max) for i, t in enumerate(t_pts)])
-    mask_0_1 = (t_pts >= -0.1) & (t_pts <= 1)
+    mask_0_1 = (t_pts >= 0) & (t_pts <= 1)
     t_pts_0_1 = t_pts[mask_0_1]
     up_mean_0_1 = up_mean[mask_0_1]
     down_mean_0_1 = down_mean[mask_0_1]
+    if batch_name == 'LED34_even' and animal_id == 52:
+        print('=================')
+        print('ABL = ', ABL)
+        print('ILD = ', ILD)
+        print(f'batch_name = {batch_name}, animal_id = {animal_id}')
+        print(f'area up = {np.trapz(up_mean_0_1, t_pts_0_1)}')
+        print(f'area down = {np.trapz(down_mean_0_1, t_pts_0_1)}')
+        print(f'trunc factor = {trunc_factor}')
+        print('=================')
     up_theory_mean_norm = up_mean_0_1 / trunc_factor
     down_theory_mean_norm = down_mean_0_1 / trunc_factor
     up_plus_down_mean = up_theory_mean_norm + down_theory_mean_norm
+
     return t_pts_0_1, up_plus_down_mean
 
 # %%
 # Main analysis loop
 ABL_arr = [20, 40, 60]
 ILD_arr = [-16., -8., -4., -2., -1., 1., 2., 4., 8., 16.]
-rt_bins = np.arange(-0.12, 1.02, 0.02)  # 0 to 1 second in 0.02s bins
+rt_bins = np.arange(0, 1.02, 0.02)  # 0 to 1 second in 0.02s bins
 
 def process_batch_animal(batch_animal_pair):
     batch_name, animal_id = batch_animal_pair
-    print(f"Processing batch {batch_name}, animal {animal_id}")
+    # print(f"Processing batch {batch_name}, animal {animal_id}")
     animal_rtd_data = {}
     try:
         abort_params, tied_params, rate_norm_l, is_norm = get_params_from_animal_pkl_file(batch_name, int(animal_id))
         p_a, c_a, ts_samp = get_P_A_C_A(batch_name, int(animal_id), abort_params)
         for abl in ABL_arr:
-            print(f"Animal = {batch_name},{animal_id}, Processing ABL {abl}")
+            # print(f"Animal = {batch_name},{animal_id}, Processing ABL {abl}")
             for ild in ILD_arr:
                 stim_key = (abl, ild)
                 try:
                     bin_centers, rtd_hist = get_animal_RTD_data(batch_name, int(animal_id), abl, ild, rt_bins)
                     try:
                         t_pts_0_1, up_plus_down = get_theoretical_RTD_from_params(
-                            p_a, c_a, ts_samp, abort_params, tied_params, rate_norm_l, is_norm, abl, ild
+                            p_a, c_a, ts_samp, abort_params, tied_params, rate_norm_l, is_norm, abl, ild, batch_name, animal_id
                         )
                     except Exception as e:
                         print(f"  Error calculating theoretical RTD for ABL={abl}, ILD={ild}: {str(e)}")
@@ -281,7 +296,7 @@ def process_batch_animal(batch_animal_pair):
                         },
                         'simulation': sim_dict
                     }
-                    print(f"  Processed stimulus ABL={abl}, ILD={ild}")
+                    # print(f"  Processed stimulus ABL={abl}, ILD={ild}")
                 except Exception as e:
                     print(f"  Error processing stimulus ABL={abl}, ILD={ild}: {str(e)}")
                     continue
@@ -314,6 +329,7 @@ for i, abl in enumerate(ABL_arr):
         stim_key = (abl, ild)
         empirical_rtds = []
         theoretical_rtds = []
+        theoretical_rtd_areas = []
         bin_centers = None
         t_pts = None
         sim_kdes = []
@@ -328,27 +344,40 @@ for i, abl in enumerate(ABL_arr):
                 if not np.all(np.isnan(theo_data['rtd'])):
                     theoretical_rtds.append(theo_data['rtd'])
                     t_pts = theo_data['t_pts']
+                    area = np.trapz(theo_data['rtd'], t_pts)
+                    if area > 1.1:
+                        print('++++++++++++++++++++++++++=')
+                        print(f'ABL={abl}, ILD={ild}: Theoretical Area = {area:.4f}, animal {batch_animal_pair}')
+                    theoretical_rtd_areas.append(area)
                 sim_data = animal_data[stim_key].get('simulation', None)
                 if sim_data is not None and sim_data['x_vals'].size > 0:
                     sim_kdes.append(sim_data['kde_vals'])
                     sim_x_vals = sim_data['x_vals']  # All should be the same
+        # ax = axes[i, j]
+        # if empirical_rtds and bin_centers is not None:
+        #     avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
+        #     ax.plot(bin_centers, avg_empirical_rtd, 'b-', linewidth=1.5, label='Data')
+        # if theoretical_rtds and t_pts is not None:
+        #     avg_theoretical_rtd = np.nanmean(theoretical_rtds, axis=0)
+        #     ax.plot(t_pts, avg_theoretical_rtd, 'r-', linewidth=1.5, label='Theory')
+        # if sim_kdes and sim_x_vals is not None:
+        #     avg_sim_kde = np.nanmean(sim_kdes, axis=0)
+        #     ax.plot(sim_x_vals, avg_sim_kde, color='green', alpha=0.3, lw=3, label='Simulation')
         ax = axes[i, j]
         if empirical_rtds and bin_centers is not None:
             avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
             ax.plot(bin_centers, avg_empirical_rtd, 'b-', linewidth=1.5, label='Data')
+            # print area 
+            bin_width = np.diff(bin_centers)[0]
+            empirical_area = np.sum(avg_empirical_rtd * bin_width)
+            # print(f"ABL={abl}, ILD={ild}: Empirical Area = {empirical_area:.4f}")
         if theoretical_rtds and t_pts is not None:
             avg_theoretical_rtd = np.nanmean(theoretical_rtds, axis=0)
             ax.plot(t_pts, avg_theoretical_rtd, 'r-', linewidth=1.5, label='Theory')
-        if sim_kdes and sim_x_vals is not None:
-            avg_sim_kde = np.nanmean(sim_kdes, axis=0)
-            ax.plot(sim_x_vals, avg_sim_kde, color='green', alpha=0.3, lw=3, label='Simulation')
-        ax = axes[i, j]
-        if empirical_rtds and bin_centers is not None:
-            avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
-            ax.plot(bin_centers, avg_empirical_rtd, 'b-', linewidth=1.5, label='Data')
-        if theoretical_rtds and t_pts is not None:
-            avg_theoretical_rtd = np.nanmean(theoretical_rtds, axis=0)
-            ax.plot(t_pts, avg_theoretical_rtd, 'r-', linewidth=1.5, label='Theory')
+            # print area 
+            t_width = np.diff(t_pts)[0]
+            theoretical_area = np.sum(avg_theoretical_rtd * t_width)
+            print(f"ABL={abl}, ILD={ild}: Theoretical Area = {theoretical_area:.4f}")
         ax.set_title(f'ABL={abl}, ILD={ild}', fontsize=10)
         if i == 2:
             ax.set_xlabel('RT (s)')
@@ -360,11 +389,12 @@ plt.tight_layout()
 plt.subplots_adjust(bottom=0.15)
 plt.savefig(f'rtd_average_by_stimulus_{MODEL_TYPE}.png', dpi=300, bbox_inches='tight')
 plt.show()
-
+# %%
+plt.hist(theoretical_rtd_areas);
 # %%
 abs_ILD_arr = [abs(ild) for ild in ILD_arr]
 abs_ILD_arr = sorted(list(set(abs_ILD_arr)))
-max_xlim_RT = 0.6
+max_xlim_RT = 1
 fig, axes = plt.subplots(len(ABL_arr), len(abs_ILD_arr), figsize=(10,6), sharex=True, sharey=True)
 for ax_row in axes:
     for ax in ax_row:
@@ -398,25 +428,21 @@ for i, abl in enumerate(ABL_arr):
         ax = axes[i, j]
         if empirical_rtds and bin_centers is not None:
             avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
-            ax.plot(bin_centers, avg_empirical_rtd, 'b-', linewidth=1.5, label='Data')
+            ax.plot(bin_centers, avg_empirical_rtd, 'b-', linewidth=0.5, label='Data')
+            bin_width = np.diff(bin_centers)[0]
+            empirical_area = np.sum(avg_empirical_rtd * bin_width)
+            print(f"ABL={abl}, |ILD|={abs_ild}: Empirical Area = {empirical_area:.4f}")
         if theoretical_rtds and t_pts is not None:
             avg_theoretical_rtd = np.nanmean(theoretical_rtds, axis=0)
-            ax.plot(t_pts, avg_theoretical_rtd, 'r-', linewidth=1.5, label='Theory')
-        if sim_kdes and sim_x_vals is not None:
-            avg_sim_kde = np.nanmean(sim_kdes, axis=0)
-            ax.plot(sim_x_vals, avg_sim_kde, color='green', alpha=0.4, lw=3, label='Simulation')
-        ax = axes[i, j]
-        if empirical_rtds and bin_centers is not None:
-            avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
-            ax.plot(bin_centers, avg_empirical_rtd, 'b-', linewidth=1.5, label='Data')
-        if theoretical_rtds and t_pts is not None:
-            avg_theoretical_rtd = np.nanmean(theoretical_rtds, axis=0)
-            ax.plot(t_pts, avg_theoretical_rtd, 'r-', linewidth=1.5, label='Theory')
+            ax.plot(t_pts, avg_theoretical_rtd, 'r-', linewidth=0.5, label='Theory')
+            t_width = np.diff(t_pts)[0]
+            theoretical_area = np.sum(avg_theoretical_rtd * t_width)
+            print(f"ABL={abl}, |ILD|={abs_ild}: Theoretical Area = {theoretical_area:.4f}")
         if i == len(ABL_arr) - 1:
             ax.set_xlabel('RT (s)', fontsize=12)
-            ax.set_xticks([-0.1, max_xlim_RT])
-            ax.set_xticklabels(['-0.1', max_xlim_RT], fontsize=12)
-        ax.set_xlim(-0.1, max_xlim_RT)
+            ax.set_xticks([0, max_xlim_RT])
+            ax.set_xticklabels(['0', max_xlim_RT], fontsize=12)
+        ax.set_xlim(0, max_xlim_RT)
         ax.set_yticks([0, 12])
         ax.set_ylim(0, 14)
         ax.axvline(x=0, color='k', linestyle='--', linewidth=1)
@@ -583,7 +609,7 @@ for i, abl in enumerate(ABL_arr):
             ax.set_xlabel('RT (s)', fontsize=12)
             ax.set_xticks(np.arange(0, max_xlim_RT+0.1, 0.1))
             ax.set_xticklabels([f'{x:.1f}' for x in np.arange(0, max_xlim_RT+0.1, 0.1)], fontsize=12)
-        ax.set_xlim(-0.1, max_xlim_RT)
+        ax.set_xlim(0, max_xlim_RT)
         ax.set_yticks([0, 12])
         ax.set_ylim(0, 14)
         ax.axvline(x=0, color='k', linestyle='--', linewidth=1)
@@ -600,6 +626,78 @@ for ax_row in axes:
 plt.tight_layout()
 plt.subplots_adjust(bottom=0.15)
 plt.savefig(f'rtd_average_with_quantiles_{MODEL_TYPE}.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# %% CDF of RTDs
+print("\nGenerating CDF plots...")
+
+fig, axes = plt.subplots(len(ABL_arr), len(abs_ILD_arr), figsize=(20, 6), sharex=True, sharey=True)
+for ax_row in axes:
+    for ax in ax_row:
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+for i, abl in enumerate(ABL_arr):
+    for j, abs_ild in enumerate(abs_ILD_arr):
+        ax = axes[i, j]
+        
+        # This logic is similar to the original RTD plot section to get averaged RTDs
+        empirical_rtds = []
+        theoretical_rtds = []
+        bin_centers = None
+        t_pts = None
+        
+        for ild in [abs_ild, -abs_ild]:
+            stim_key = (abl, ild)
+            for batch_animal_pair, animal_data in rtd_data.items():
+                if stim_key in animal_data:
+                    emp_data = animal_data[stim_key]['empirical']
+                    if not np.all(np.isnan(emp_data['rtd_hist'])):
+                        empirical_rtds.append(emp_data['rtd_hist'])
+                        bin_centers = emp_data['bin_centers']
+                    
+                    theo_data = animal_data[stim_key]['theoretical']
+                    if not np.all(np.isnan(theo_data['rtd'])):
+                        theoretical_rtds.append(theo_data['rtd'])
+                        t_pts = theo_data['t_pts']
+
+        # Calculate and Plot CDFs
+        if empirical_rtds and bin_centers is not None:
+            avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
+            bin_width = np.diff(bin_centers)[0]
+            empirical_cdf = np.cumsum(avg_empirical_rtd * bin_width)
+            ax.plot(bin_centers, empirical_cdf, 'b-', linewidth=1.5, label='Data CDF')
+        
+        if theoretical_rtds and t_pts is not None:
+            avg_theoretical_rtd = np.nanmean(theoretical_rtds, axis=0)
+            t_width = np.diff(t_pts)[0]
+            theoretical_cdf = np.cumsum(avg_theoretical_rtd * t_width)
+            ax.plot(t_pts, theoretical_cdf, 'r-', linewidth=1.5, label='Theory CDF')
+
+        # Add horizontal line for 0.9 quantile
+        ax.axhline(y=0.9, color='k', linestyle='--', linewidth=1, label='0.9 Quantile')
+
+        # Formatting
+        if i == len(ABL_arr) - 1:
+            ax.set_xlabel('RT (s)', fontsize=12)
+            ax.set_xticks(np.arange(0, max_xlim_RT+0.1, 0.1))
+            ax.set_xticklabels([f'{x:.1f}' for x in np.arange(0, max_xlim_RT+0.1, 0.1)], fontsize=12)
+        ax.set_xlim(0, max_xlim_RT)
+        ax.set_ylim(0, 1.05)
+        ax.set_yticks([0, 0.5, 1.0])
+        ax.axvline(x=0, color='k', linestyle=':', linewidth=1)
+        if j == 0:
+            ax.set_ylabel(f'ABL={abl}', fontsize=12, rotation=0, ha='right', va='center')
+        if i == 0:
+            ax.set_title(f'|ILD|={abs_ild}', fontsize=12)
+
+# Common legend for the figure
+lines, labels = fig.axes[-1].get_legend_handles_labels()
+# fig.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, 0.98), ncol=3, fontsize=12)
+
+plt.tight_layout(rect=[0, 0, 1, 0.95]) # Adjust layout to make space for the legend
+plt.subplots_adjust(bottom=0.15)
+plt.savefig(f'cdf_average_{MODEL_TYPE}.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 
