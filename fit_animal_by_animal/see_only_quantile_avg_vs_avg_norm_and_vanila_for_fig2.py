@@ -83,15 +83,13 @@ def get_animal_RTD_data(batch_name, animal_id, ABL, ILD, bins):
     file_name = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
     df = pd.read_csv(file_name)
     df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['ILD'] == ILD) & (df['success'].isin([1, -1]))]
-    # df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['ILD'] == ILD) \
-    #     & ((df['RTwrtStim'] <= 1) & (df['RTwrtStim'] >= -0.1))]
 
     bin_centers = (bins[:-1] + bins[1:]) / 2
     if df.empty:
         print(f"No data found for batch {batch_name}, animal {animal_id}, ABL {ABL}, ILD {ILD}. Returning NaNs.")
         rtd_hist = np.full_like(bin_centers, np.nan)
         return bin_centers, rtd_hist
-    df = df[df['RTwrtStim'] <= 1]
+    df = df[(df['RTwrtStim'] >= 0) & (df['RTwrtStim'] <= 1)]
     if len(df) == 0:
         print(f"No trials with RTwrtStim <= 1 for batch {batch_name}, animal {animal_id}, ABL {ABL}, ILD {ILD}. Returning NaNs.")
         rtd_hist = np.full_like(bin_centers, np.nan)
@@ -161,10 +159,13 @@ def get_P_A_C_A(batch, animal_id, abort_params):
     )
     return P_A_mean, C_A_mean, t_stim_samples
 
-def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, rate_norm_l, is_norm, ABL, ILD):
+def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, rate_norm_l, is_norm, ABL, ILD, batch_name):
     phi_params_obj = np.nan
     K_max = 10
-    T_trunc = 0.3
+    if batch_name == 'LED34_even':
+        T_trunc = 0.15
+    else:
+        T_trunc = 0.3
     t_pts = np.arange(-2, 2, 0.001)
     trunc_fac_samples = np.zeros((len(t_stim_samples)))
     Z_E = (tied_params['w'] - 0.5) * 2 * tied_params['theta_E']
@@ -176,7 +177,7 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
             phi_params_obj, rate_norm_l, 
             is_norm, False, K_max) \
             - cum_pro_and_reactive_time_vary_fn(
-            t_stim - 0.1, T_trunc,
+            t_stim, T_trunc,
             abort_params['V_A'], abort_params['theta_A'], abort_params['t_A_aff'],
             t_stim, ABL, ILD, tied_params['rate_lambda'], tied_params['T_0'], tied_params['theta_E'], Z_E, tied_params['t_E_aff'],
             phi_params_obj, rate_norm_l, 
@@ -217,7 +218,7 @@ def get_animal_raw_RTs(batch_name, animal_id, ABL, ILD):
     file_name = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
     df = pd.read_csv(file_name)
     df_stim = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['ILD'] == ILD) & (df['success'].isin([1, -1]))]
-    df_stim = df_stim[df_stim['RTwrtStim'] <= 1]
+    df_stim = df_stim[(df_stim['RTwrtStim'] >= 0) & (df_stim['RTwrtStim'] <= 1)]
     return df_stim['RTwrtStim'].values
 
 def find_quantile_from_cdf(q, cdf, x_axis):
@@ -256,7 +257,7 @@ def process_animal_for_quantiles(batch_animal_pair):
                 # --- Theoretical Quantiles ---
                 try:
                     t_pts, rtd = get_theoretical_RTD_from_params(
-                        p_a, c_a, ts_samp, abort_params, tied_params, rate_norm_l, is_norm, abl, ild
+                        p_a, c_a, ts_samp, abort_params, tied_params, rate_norm_l, is_norm, abl, ild, batch_name
                     )
                     if np.all(np.isnan(rtd)) or len(t_pts) < 2:
                         raise ValueError("Theoretical RTD is all NaN or too short")

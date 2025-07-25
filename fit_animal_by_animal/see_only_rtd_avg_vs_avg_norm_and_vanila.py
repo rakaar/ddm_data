@@ -49,11 +49,11 @@ def get_simulation_RTD_KDE(
         ) for iter_num in range(N_sim)
     )
     sim_results_df = pd.DataFrame(sim_results)
-    sim_results_df_valid = sim_results_df[sim_results_df['rt'] - sim_results_df['t_stim'] > -0.1]
-    sim_results_df_valid_lt_1 = sim_results_df_valid[sim_results_df_valid['rt'] - sim_results_df_valid['t_stim'] <= 1]
-    sim_rt = sim_results_df_valid_lt_1['rt'] - sim_results_df_valid_lt_1['t_stim']
+    sim_rt_wrt_stim = sim_results_df['rt'] - sim_results_df['t_stim']
+    sim_results_df_valid = sim_results_df[(sim_rt_wrt_stim >= 0) & (sim_rt_wrt_stim <= 1)]
+    sim_rt = sim_results_df_valid['rt'] - sim_results_df_valid['t_stim']
     kde = gaussian_kde(sim_rt)
-    x_vals = np.arange(-0.12, 1, 0.01)
+    x_vals = np.arange(0, 1.01, 0.01)
     kde_vals = kde(x_vals)
     return x_vals, kde_vals
 
@@ -102,15 +102,13 @@ def get_animal_RTD_data(batch_name, animal_id, ABL, ILD, bins):
     file_name = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
     df = pd.read_csv(file_name)
     df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['ILD'] == ILD) & (df['success'].isin([1, -1]))]
-    # df = df[(df['animal'] == animal_id) & (df['ABL'] == ABL) & (df['ILD'] == ILD) \
-    #     & ((df['RTwrtStim'] <= 1) & (df['RTwrtStim'] >= -0.1))]
 
     bin_centers = (bins[:-1] + bins[1:]) / 2
     if df.empty:
         print(f"No data found for batch {batch_name}, animal {animal_id}, ABL {ABL}, ILD {ILD}. Returning NaNs.")
         rtd_hist = np.full_like(bin_centers, np.nan)
         return bin_centers, rtd_hist
-    df = df[df['RTwrtStim'] <= 1]
+    df = df[(df['RTwrtStim'] >= 0) & (df['RTwrtStim'] <= 1)]
     if len(df) == 0:
         print(f"No trials with RTwrtStim <= 1 for batch {batch_name}, animal {animal_id}, ABL {ABL}, ILD {ILD}. Returning NaNs.")
         rtd_hist = np.full_like(bin_centers, np.nan)
