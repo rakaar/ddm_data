@@ -803,7 +803,7 @@ print('####################################')
 
 # %%
 # for animal_idx in range(len(animal_ids)):
-for animal_idx in [2,3]:
+for animal_idx in [1]:
     animal = animal_ids[animal_idx]
 
     df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal]

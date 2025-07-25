@@ -8,7 +8,7 @@ Set MODEL_TYPE = 'vanilla' or 'norm' at the top to switch between models.
 All downstream logic is automatically adjusted based on this flag.
 """
 # %%
-MODEL_TYPE = 'norm'
+MODEL_TYPE = 'vanilla'
 print(f"Processing MODEL_TYPE: {MODEL_TYPE}")
 
 
@@ -184,7 +184,10 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
     phi_params_obj = np.nan
     K_max = 10
     if batch_name == 'LED34_even':
-        T_trunc = 0.15
+        if int(animal_id) == 52:
+            T_trunc = 0.17
+        else:
+            T_trunc = 0.15
     else:
         T_trunc = 0.3
     t_pts = np.arange(-2, 2, 0.001)
@@ -204,8 +207,7 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
             phi_params_obj, rate_norm_l, 
             is_norm, False, K_max) + 1e-10
     trunc_factor = np.mean(trunc_fac_samples)
-    # if batch_name == 'LED34_even':
-    #     print(f"Trunc factor for {batch_name}, {animal_id} = {trunc_factor}")
+    
     up_mean = np.array([up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn(
         t, 1,
         P_A_mean[i], C_A_mean[i],
@@ -222,20 +224,22 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
     t_pts_0_1 = t_pts[mask_0_1]
     up_mean_0_1 = up_mean[mask_0_1]
     down_mean_0_1 = down_mean[mask_0_1]
-    if batch_name == 'LED34_even' and animal_id == 52:
-        print('=================')
-        print('ABL = ', ABL)
-        print('ILD = ', ILD)
-        print(f'batch_name = {batch_name}, animal_id = {animal_id}')
-        print(f'area up = {np.trapz(up_mean_0_1, t_pts_0_1)}')
-        print(f'area down = {np.trapz(down_mean_0_1, t_pts_0_1)}')
-        print(f'trunc factor = {trunc_factor}')
-        print('=================')
+    trunc_factor = np.trapz(up_mean_0_1, t_pts_0_1) + np.trapz(down_mean_0_1, t_pts_0_1)
+    # if batch_name == 'LED34_even' and animal_id == 52:
+    #     print('=================')
+    #     print('ABL = ', ABL)
+    #     print('ILD = ', ILD)
+    #     print(f'batch_name = {batch_name}, animal_id = {animal_id}')
+    #     print(f'area up = {np.trapz(up_mean_0_1, t_pts_0_1)}')
+    #     print(f'area down = {np.trapz(down_mean_0_1, t_pts_0_1)}')
+    #     print(f'trunc factor = {trunc_factor}')
+    #     print('=================')
     up_theory_mean_norm = up_mean_0_1 / trunc_factor
     down_theory_mean_norm = down_mean_0_1 / trunc_factor
     up_plus_down_mean = up_theory_mean_norm + down_theory_mean_norm
 
     return t_pts_0_1, up_plus_down_mean
+# %%
 
 # %%
 # Main analysis loop
@@ -377,7 +381,7 @@ for i, abl in enumerate(ABL_arr):
             # print area 
             t_width = np.diff(t_pts)[0]
             theoretical_area = np.sum(avg_theoretical_rtd * t_width)
-            print(f"ABL={abl}, ILD={ild}: Theoretical Area = {theoretical_area:.4f}")
+            # print(f"ABL={abl}, ILD={ild}: Theoretical Area = {theoretical_area:.4f}")
         ax.set_title(f'ABL={abl}, ILD={ild}', fontsize=10)
         if i == 2:
             ax.set_xlabel('RT (s)')
@@ -390,7 +394,8 @@ plt.subplots_adjust(bottom=0.15)
 plt.savefig(f'rtd_average_by_stimulus_{MODEL_TYPE}.png', dpi=300, bbox_inches='tight')
 plt.show()
 # %%
-plt.hist(theoretical_rtd_areas);
+plt.hist(theoretical_rtd_areas,bins=np.arange(0.9, 1.4, 0.01));
+plt.yticks([0,1,5,10, 20])
 # %%
 abs_ILD_arr = [abs(ild) for ild in ILD_arr]
 abs_ILD_arr = sorted(list(set(abs_ILD_arr)))
