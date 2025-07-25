@@ -184,10 +184,7 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
     phi_params_obj = np.nan
     K_max = 10
     if batch_name == 'LED34_even':
-        if int(animal_id) == 52:
-            T_trunc = 0.17
-        else:
-            T_trunc = 0.15
+        T_trunc = 0.15
     else:
         T_trunc = 0.3
     t_pts = np.arange(-2, 2, 0.001)

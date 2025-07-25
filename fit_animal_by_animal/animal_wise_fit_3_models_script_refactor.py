@@ -110,11 +110,11 @@ def vbmc_joint_aborts_fn(params):
 ######## BOUNDS ########
 V_A_bounds = [0.1, 10]
 theta_A_bounds = [0.1, 10]
-t_A_aff_bounds = [-5, 0.1]
+t_A_aff_bounds = [-0.5, 0.1]
 
 V_A_plausible_bounds = [0.5, 4]
 theta_A_plausible_bounds = [0.5, 4]
-t_A_aff_plausible_bounds = [-2, 0.06]
+t_A_aff_plausible_bounds = [-0.2, 0.06]
 
 ## bounds array
 aborts_lb = [V_A_bounds[0], theta_A_bounds[0], t_A_aff_bounds[0]]
