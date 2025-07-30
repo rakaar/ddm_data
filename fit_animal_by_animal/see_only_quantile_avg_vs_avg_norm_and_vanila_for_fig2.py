@@ -356,6 +356,9 @@ plt.savefig(f'quantile_plot_separate_abls_{MODEL_TYPE}.png', dpi=300)
 plt.show()
 
 # %% --- Plotting: Aggregating across ABLs (Concatenation) ---
+LABEL_FONTSIZE: int = 25
+TICK_FONTSIZE: int = 24
+
 fig, ax = plt.subplots(1, 1, figsize=(6, 5))
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
@@ -380,19 +383,19 @@ for q_idx, q in enumerate(QUANTILES_TO_PLOT):
         theo_sems.append(sem(all_abl_theo_quantiles, nan_policy='omit'))
 
     # Plot empirical with error bars
-    ax.errorbar(abs_ild_sorted, emp_means, yerr=emp_sems, fmt='o-', color='b', markersize=4, capsize=3, label='Data' if q_idx == 0 else "")
+    ax.errorbar(abs_ild_sorted, emp_means, yerr=emp_sems, fmt='o-', color='b', markersize=4, capsize=3)
     # Plot theoretical with error bars
-    ax.errorbar(abs_ild_sorted, theo_means, yerr=theo_sems, fmt='^-', color='r', markersize=4, capsize=3, label='Theory' if q_idx == 0 else "")
+    ax.errorbar(abs_ild_sorted, theo_means, yerr=theo_sems, fmt='^-', color='r', markersize=4, capsize=3)
 
-ax.set_title('RT Quantiles Aggregate across ABLs')
-ax.set_xlabel('|ILD| (dB)')
-ax.set_ylabel('RT Quantile (s)')
+ax.set_xlabel('|ILD| (dB)', fontsize=LABEL_FONTSIZE)
+ax.set_ylabel('RT Quantile (s)', fontsize=LABEL_FONTSIZE)
 ax.set_xscale('log', base=2)
 ax.set_xticks(abs_ild_sorted)
+ax.set_yticks([0.1, 0.2, 0.3, 0.4])
 ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
+ax.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
 
-fig.legend(loc='upper right', bbox_to_anchor=(0.95, 0.95))
-plt.tight_layout(rect=[0, 0, 0.9, 1])
+plt.tight_layout()
 plt.savefig(f'quantile_plot_with_errorbars_{MODEL_TYPE}.png', dpi=300)
 plt.show()
 
@@ -402,51 +405,51 @@ plt.show()
 # The standard error of an average of N means (m_i) with individual standard errors (s_i) is:
 # SEM_avg = (1/N) * sqrt(s_1^2 + s_2^2 + ... + s_N^2)
 
-fig, ax = plt.subplots(1, 1, figsize=(6, 5))
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
+# fig, ax = plt.subplots(1, 1, figsize=(6, 5))
+# ax.spines['top'].set_visible(False)
+# ax.spines['right'].set_visible(False)
 
-for q_idx, q in enumerate(QUANTILES_TO_PLOT):
-    avg_emp_means, prop_emp_sems = [], []
-    avg_theo_means, prop_theo_sems = [], []
+# for q_idx, q in enumerate(QUANTILES_TO_PLOT):
+#     avg_emp_means, prop_emp_sems = [], []
+#     avg_theo_means, prop_theo_sems = [], []
 
-    for abs_ild in abs_ild_sorted:
-        # For each ILD, get the mean and sem for each ABL
-        abl_emp_means, abl_emp_sems = [], []
-        abl_theo_means, abl_theo_sems = [], []
+#     for abs_ild in abs_ild_sorted:
+#         # For each ILD, get the mean and sem for each ABL
+#         abl_emp_means, abl_emp_sems = [], []
+#         abl_theo_means, abl_theo_sems = [], []
 
-        for abl in ABL_arr:
-            emp_quantiles = np.array(plot_data[abl][abs_ild]['empirical'])[:, q_idx]
-            theo_quantiles = np.array(plot_data[abl][abs_ild]['theoretical'])[:, q_idx]
+#         for abl in ABL_arr:
+#             emp_quantiles = np.array(plot_data[abl][abs_ild]['empirical'])[:, q_idx]
+#             theo_quantiles = np.array(plot_data[abl][abs_ild]['theoretical'])[:, q_idx]
 
-            abl_emp_means.append(np.nanmean(emp_quantiles))
-            abl_emp_sems.append(sem(emp_quantiles, nan_policy='omit'))
+#             abl_emp_means.append(np.nanmean(emp_quantiles))
+#             abl_emp_sems.append(sem(emp_quantiles, nan_policy='omit'))
             
-            abl_theo_means.append(np.nanmean(theo_quantiles))
-            abl_theo_sems.append(sem(theo_quantiles, nan_policy='omit'))
+#             abl_theo_means.append(np.nanmean(theo_quantiles))
+#             abl_theo_sems.append(sem(theo_quantiles, nan_policy='omit'))
 
-        # Average the means and propagate the SEMs
-        avg_emp_means.append(np.nanmean(abl_emp_means))
-        prop_emp_sems.append(np.sqrt(np.nansum(np.square(abl_emp_sems))) / len(ABL_arr))
+#         # Average the means and propagate the SEMs
+#         avg_emp_means.append(np.nanmean(abl_emp_means))
+#         prop_emp_sems.append(np.sqrt(np.nansum(np.square(abl_emp_sems))) / len(ABL_arr))
 
-        avg_theo_means.append(np.nanmean(abl_theo_means))
-        prop_theo_sems.append(np.sqrt(np.nansum(np.square(abl_theo_sems))) / len(ABL_arr))
+#         avg_theo_means.append(np.nanmean(abl_theo_means))
+#         prop_theo_sems.append(np.sqrt(np.nansum(np.square(abl_theo_sems))) / len(ABL_arr))
 
-    # Plot empirical with error bars
-    ax.errorbar(abs_ild_sorted, avg_emp_means, yerr=prop_emp_sems, fmt='o-', color='b', markersize=4, capsize=3, label='Data' if q_idx == 0 else "")
-    # Plot theoretical with error bars
-    ax.errorbar(abs_ild_sorted, avg_theo_means, yerr=prop_theo_sems, fmt='^-', color='r', markersize=4, capsize=3, label='Theory' if q_idx == 0 else "")
+#     # Plot empirical with error bars
+#     ax.errorbar(abs_ild_sorted, avg_emp_means, yerr=prop_emp_sems, fmt='o-', color='b', markersize=4, capsize=3, label='Data' if q_idx == 0 else "")
+#     # Plot theoretical with error bars
+#     ax.errorbar(abs_ild_sorted, avg_theo_means, yerr=prop_theo_sems, fmt='^-', color='r', markersize=4, capsize=3, label='Theory' if q_idx == 0 else "")
 
-ax.set_title('RT Quantiles (Averaged ABL Means)')
-ax.set_xlabel('|ILD| (dB)')
-ax.set_ylabel('RT Quantile (s)')
-ax.set_xscale('log', base=2)
-ax.set_xticks(abs_ild_sorted)
-ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
+# ax.set_title('RT Quantiles (Averaged ABL Means)')
+# ax.set_xlabel('|ILD| (dB)')
+# ax.set_ylabel('RT Quantile (s)')
+# ax.set_xscale('log', base=2)
+# ax.set_xticks(abs_ild_sorted)
+# ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
 
-fig.legend(loc='upper right', bbox_to_anchor=(0.95, 0.95))
-plt.tight_layout(rect=[0, 0, 0.9, 1])
-plt.savefig(f'quantile_plot_avg_of_means_{MODEL_TYPE}.png', dpi=300)
-plt.show()
+# fig.legend(loc='upper right', bbox_to_anchor=(0.95, 0.95))
+# plt.tight_layout(rect=[0, 0, 0.9, 1])
+# plt.savefig(f'quantile_plot_avg_of_means_{MODEL_TYPE}.png', dpi=300)
+# plt.show()
 
 # %%
