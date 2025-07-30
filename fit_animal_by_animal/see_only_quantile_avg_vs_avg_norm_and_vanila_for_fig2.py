@@ -9,7 +9,7 @@ Set MODEL_TYPE = 'vanilla' or 'norm' at the top to switch between models.
 All downstream logic is automatically adjusted based on this flag.
 """
 # %%
-MODEL_TYPE = 'norm'
+MODEL_TYPE = 'vanilla'
 print(f"Processing MODEL_TYPE: {MODEL_TYPE}")
 
 
@@ -314,8 +314,8 @@ for animal_data in all_animal_results:
             if theo_quantiles_combined:
                 plot_data[abl][abs_ild]['theoretical'].append(np.nanmean(theo_quantiles_combined, axis=0))
 
-# %% --- Plotting ---
-print("Generating quantile plot...")
+# %% --- Plotting: ABLs separate ---
+print("Generating quantile plot (separate ABLs)...")
 fig, axes = plt.subplots(1, len(ABL_arr), figsize=(12, 4), sharey=True)
 if len(ABL_arr) == 1: axes = [axes] # Ensure axes is always iterable
 
@@ -352,5 +352,101 @@ for i, abl in enumerate(ABL_arr):
 axes[0].set_ylabel('RT Quantile (s)')
 # fig.legend(loc='upper right', bbox_to_anchor=(0.95, 0.95))
 plt.tight_layout(rect=[0, 0, 0.95, 1])
+plt.savefig(f'quantile_plot_separate_abls_{MODEL_TYPE}.png', dpi=300)
+plt.show()
+
+# %% --- Plotting: Aggregating across ABLs (Concatenation) ---
+fig, ax = plt.subplots(1, 1, figsize=(6, 5))
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+for q_idx, q in enumerate(QUANTILES_TO_PLOT):
+    emp_means, emp_sems = [], []
+    theo_means, theo_sems = [], []
+
+    for abs_ild in abs_ild_sorted:
+        # Aggregate across all ABLs for this ILD and quantile
+        all_abl_emp_quantiles = np.concatenate([
+            np.array(plot_data[abl][abs_ild]['empirical'])[:, q_idx] for abl in ABL_arr
+        ])
+        all_abl_theo_quantiles = np.concatenate([
+            np.array(plot_data[abl][abs_ild]['theoretical'])[:, q_idx] for abl in ABL_arr
+        ])
+
+        emp_means.append(np.nanmean(all_abl_emp_quantiles))
+        emp_sems.append(sem(all_abl_emp_quantiles, nan_policy='omit'))
+        
+        theo_means.append(np.nanmean(all_abl_theo_quantiles))
+        theo_sems.append(sem(all_abl_theo_quantiles, nan_policy='omit'))
+
+    # Plot empirical with error bars
+    ax.errorbar(abs_ild_sorted, emp_means, yerr=emp_sems, fmt='o-', color='b', markersize=4, capsize=3, label='Data' if q_idx == 0 else "")
+    # Plot theoretical with error bars
+    ax.errorbar(abs_ild_sorted, theo_means, yerr=theo_sems, fmt='^-', color='r', markersize=4, capsize=3, label='Theory' if q_idx == 0 else "")
+
+ax.set_title('RT Quantiles Aggregate across ABLs')
+ax.set_xlabel('|ILD| (dB)')
+ax.set_ylabel('RT Quantile (s)')
+ax.set_xscale('log', base=2)
+ax.set_xticks(abs_ild_sorted)
+ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
+
+fig.legend(loc='upper right', bbox_to_anchor=(0.95, 0.95))
+plt.tight_layout(rect=[0, 0, 0.9, 1])
 plt.savefig(f'quantile_plot_with_errorbars_{MODEL_TYPE}.png', dpi=300)
 plt.show()
+
+# %% --- Plotting: Averaging the ABL means ---
+
+# To average the means from each ABL, we also need to propagate the standard errors.
+# The standard error of an average of N means (m_i) with individual standard errors (s_i) is:
+# SEM_avg = (1/N) * sqrt(s_1^2 + s_2^2 + ... + s_N^2)
+
+fig, ax = plt.subplots(1, 1, figsize=(6, 5))
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+for q_idx, q in enumerate(QUANTILES_TO_PLOT):
+    avg_emp_means, prop_emp_sems = [], []
+    avg_theo_means, prop_theo_sems = [], []
+
+    for abs_ild in abs_ild_sorted:
+        # For each ILD, get the mean and sem for each ABL
+        abl_emp_means, abl_emp_sems = [], []
+        abl_theo_means, abl_theo_sems = [], []
+
+        for abl in ABL_arr:
+            emp_quantiles = np.array(plot_data[abl][abs_ild]['empirical'])[:, q_idx]
+            theo_quantiles = np.array(plot_data[abl][abs_ild]['theoretical'])[:, q_idx]
+
+            abl_emp_means.append(np.nanmean(emp_quantiles))
+            abl_emp_sems.append(sem(emp_quantiles, nan_policy='omit'))
+            
+            abl_theo_means.append(np.nanmean(theo_quantiles))
+            abl_theo_sems.append(sem(theo_quantiles, nan_policy='omit'))
+
+        # Average the means and propagate the SEMs
+        avg_emp_means.append(np.nanmean(abl_emp_means))
+        prop_emp_sems.append(np.sqrt(np.nansum(np.square(abl_emp_sems))) / len(ABL_arr))
+
+        avg_theo_means.append(np.nanmean(abl_theo_means))
+        prop_theo_sems.append(np.sqrt(np.nansum(np.square(abl_theo_sems))) / len(ABL_arr))
+
+    # Plot empirical with error bars
+    ax.errorbar(abs_ild_sorted, avg_emp_means, yerr=prop_emp_sems, fmt='o-', color='b', markersize=4, capsize=3, label='Data' if q_idx == 0 else "")
+    # Plot theoretical with error bars
+    ax.errorbar(abs_ild_sorted, avg_theo_means, yerr=prop_theo_sems, fmt='^-', color='r', markersize=4, capsize=3, label='Theory' if q_idx == 0 else "")
+
+ax.set_title('RT Quantiles (Averaged ABL Means)')
+ax.set_xlabel('|ILD| (dB)')
+ax.set_ylabel('RT Quantile (s)')
+ax.set_xscale('log', base=2)
+ax.set_xticks(abs_ild_sorted)
+ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
+
+fig.legend(loc='upper right', bbox_to_anchor=(0.95, 0.95))
+plt.tight_layout(rect=[0, 0, 0.9, 1])
+plt.savefig(f'quantile_plot_avg_of_means_{MODEL_TYPE}.png', dpi=300)
+plt.show()
+
+# %%
