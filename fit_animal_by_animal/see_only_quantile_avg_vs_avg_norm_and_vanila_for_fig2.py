@@ -9,7 +9,7 @@ Set MODEL_TYPE = 'vanilla' or 'norm' at the top to switch between models.
 All downstream logic is automatically adjusted based on this flag.
 """
 # %%
-MODEL_TYPE = 'vanilla'
+MODEL_TYPE = 'norm'
 print(f"Processing MODEL_TYPE: {MODEL_TYPE}")
 
 
@@ -383,9 +383,9 @@ for q_idx, q in enumerate(QUANTILES_TO_PLOT):
         theo_sems.append(sem(all_abl_theo_quantiles, nan_policy='omit'))
 
     # Plot empirical with error bars
-    ax.errorbar(abs_ild_sorted, emp_means, yerr=emp_sems, fmt='o-', color='b', markersize=4, capsize=3)
+    ax.errorbar(abs_ild_sorted, emp_means, yerr=emp_sems, fmt='o-', color='black', markersize=4, capsize=0)
     # Plot theoretical with error bars
-    ax.errorbar(abs_ild_sorted, theo_means, yerr=theo_sems, fmt='^-', color='r', markersize=4, capsize=3)
+    ax.errorbar(abs_ild_sorted, theo_means, yerr=theo_sems, fmt='^-', color='tab:red', markersize=4, capsize=0)
 
 ax.set_xlabel('|ILD| (dB)', fontsize=LABEL_FONTSIZE)
 ax.set_ylabel('RT Quantile (s)', fontsize=LABEL_FONTSIZE)

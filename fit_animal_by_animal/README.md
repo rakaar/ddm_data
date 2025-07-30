@@ -80,3 +80,5 @@
 # fig 2
 - `see_only_quantile_avg_vs_avg_norm_and_vanila_for_fig2.py` - animal avg quantiles, vanilla, norm
 - `see_only_psycho_all_ILD_tied_for_paper_for_fig2.py` - animal avg psycho, vanilla, norm
+- `compare_gamma_from_cond_fit_and_norm_model_fit_for_paper.py` - gamma: cond by cond fit vs model fit
+(but cond by cond fit is done here - `fit_single_rat_condn_by_condn_fix_t_E_w_del_go_all_animals_loop_for_paper.py`)

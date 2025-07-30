@@ -15,44 +15,51 @@ from led_off_gamma_omega_pdf_utils import cum_pro_and_reactive_trunc_fn, up_or_d
 from led_off_gamma_omega_pdf_utils import cum_pro_and_reactive, up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_fn,\
          rho_A_t_VEC_fn, up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_P_A_C_A_wrt_stim_fn
 from led_off_gamma_omega_pdf_utils import up_or_down_RTs_fit_OPTIM_V_A_change_gamma_omega_with_w_PA_CA_fn
+from collections import defaultdict
 
 # %%
 # collect animals
-# DESIRED_BATCHES = ['SD', 'LED2', 'LED1', 'LED34', 'LED6', 'LED8', 'LED7']
-DESIRED_BATCHES = ['LED1']
+# --- Get Batch-Animal Pairs ---
+DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+batch_dir = '/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/batch_csvs'
+batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
 
-# Base directory paths
-base_dir = os.path.dirname(os.path.abspath(__file__))
-csv_dir = os.path.join(base_dir, 'batch_csvs')
-results_dir = base_dir  # Directory containing the pickle files
+merged_data = pd.concat([
+    pd.read_csv(os.path.join(batch_dir, fname)) for fname in batch_files if os.path.exists(os.path.join(batch_dir, fname))
+], ignore_index=True)
 
-def find_batch_animal_pairs():
-    pairs = []
-    pattern = os.path.join(results_dir, '../fit_animal_by_animal/results_*_animal_*.pkl')
-    pickle_files = glob.glob(pattern)
-    for pickle_file in pickle_files:
-        filename = os.path.basename(pickle_file)
-        parts = filename.split('_')
-        if len(parts) >= 4:
-            batch_index = parts.index('animal') - 1 if 'animal' in parts else 1
-            animal_index = parts.index('animal') + 1 if 'animal' in parts else 2
-            batch_name = parts[batch_index]
-            animal_id = parts[animal_index].split('.')[0]
-            if batch_name in DESIRED_BATCHES:
-                # Exclude animals 40, 41, 43 from LED2 batch
-                if not (batch_name == 'LED2' and animal_id in ['40', '41', '43']):
-                    pairs.append((batch_name, animal_id))
-        else:
-            print(f"Warning: Invalid filename format: {filename}")
-    return pairs
+merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
 
-batch_animal_pairs = find_batch_animal_pairs()
+# --- Print animal table ---
+batch_animal_pairs = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
 
-print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
+print(f"Found {len(batch_animal_pairs)} batch-animal pairs from {len(set(p[0] for p in batch_animal_pairs))} batches:")
+
+if batch_animal_pairs:
+    batch_to_animals = defaultdict(list)
+    for batch, animal in batch_animal_pairs:
+        # Ensure animal is a string and we don't add duplicates
+        animal_str = str(animal)
+        if animal_str not in batch_to_animals[batch]:
+            batch_to_animals[batch].append(animal_str)
+
+    # Determine column widths for formatting
+    max_batch_len = max(len(b) for b in batch_to_animals.keys()) if batch_to_animals else 0
+    animal_strings = {b: ', '.join(sorted(a)) for b, a in batch_to_animals.items()}
+    max_animals_len = max(len(s) for s in animal_strings.values()) if animal_strings else 0
+
+    # Header
+    print(f"{'Batch':<{max_batch_len}}  {'Animals'}")
+    print(f"{'=' * max_batch_len}  {'=' * max_animals_len}")
+
+    # Rows
+    for batch in sorted(animal_strings.keys()):
+        animals_str = animal_strings[batch]
+        print(f"{batch:<{max_batch_len}}  {animals_str}")
 
 # %%
 def get_params_from_animal_pkl_file(batch_name, animal_id):
-    pkl_file = f'../fit_animal_by_animal/results_{batch_name}_animal_{animal_id}.pkl'
+    pkl_file = f'/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/results_{batch_name}_animal_{animal_id}.pkl'
     with open(pkl_file, 'rb') as f:
         fit_results_data = pickle.load(f)
     vbmc_aborts_param_keys_map = {
@@ -179,6 +186,7 @@ vbmc_fit_saving_path = '/home/rlab/raghavendra/ddm_data/fit_each_condn/each_anim
 K_max = 10
 
 for batch_name, animal_id in batch_animal_pairs:
+
     print('##########################################')
     print(f'Batch: {batch_name}, Animal: {animal_id}')
     print('##########################################')
@@ -213,6 +221,13 @@ for batch_name, animal_id in batch_animal_pairs:
 
     for cond_ABL in all_ABLs_cond:
         for cond_ILD in all_ILDs_cond:
+            pkl_file = os.path.join(vbmc_fit_saving_path, f'vbmc_cond_by_cond_{batch_name}_{animal_id}_{cond_ABL}_ILD_{cond_ILD}_FIX_t_E_w_del_go_same_as_parametric.pkl')
+            if os.path.exists(pkl_file):
+                print(f'{pkl_file} already exists, skipping')
+                continue
+            else:
+                print(f'{pkl_file} NOT EXISTS, fitting')
+
             print('********************************')
             print(f'ABL: {cond_ABL}, ILD: {cond_ILD}')
             print('********************************')
@@ -228,11 +243,8 @@ for batch_name, animal_id in batch_animal_pairs:
                 continue
             def vbmc_loglike_fn(params):
                 gamma, omega = params
-                print(f'@@@ len of df_animal_cond_filter={len(df_animal_cond_filter)}')
-
                 all_loglike = Parallel(n_jobs=30)(delayed(compute_loglike_trial)(row, gamma, omega) \
                                                 for _, row in df_animal_cond_filter.iterrows())
-                # print(f'np.sum = {np.sum(all_loglike)}')
                 return np.sum(all_loglike)
 
             def vbmc_joint_fn(params):
