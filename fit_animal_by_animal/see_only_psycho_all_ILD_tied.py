@@ -1,9 +1,10 @@
+# %%
 """
 Unified analysis for psychometric curves using TIED models.
 Set IS_NORM_TIED = True for normalized TIED, False for vanilla TIED.
 """
 # %%
-IS_NORM_TIED = False  # Set to False for vanilla TIED
+IS_NORM_TIED = True  # Set to False for vanilla TIED
 
 from scipy.integrate import trapezoid
 import pandas as pd
@@ -30,57 +31,72 @@ import random
 # %%
 def fit_psychometric_sigmoid(ild_values, right_choice_probs):
     from scipy.optimize import curve_fit
-    # Define 4-parameter sigmoid function
-    def sigmoid(x, base, amplitude, inflection, slope):
-        values = base + amplitude / (1 + np.exp(-slope * (x - inflection)))
-        return np.clip(values, 0, 1)
-    p0 = [0.0, 1.0, 0.0, 1.0]
+    import numpy as np
+
+    def sigmoid(x, upper, lower, x0, k):
+        """Sigmoid function with explicit upper and lower asymptotes."""
+        return lower + (upper - lower) / (1 + np.exp(-k*(x-x0)))
+
     valid_idx = ~np.isnan(right_choice_probs)
     if np.sum(valid_idx) < 4:
         return None
+
     x = ild_values[valid_idx]
     y = right_choice_probs[valid_idx]
+
+    min_psycho = np.min(y)
+    max_psycho = np.max(y)
+    # Initial guess for [upper, lower, x0, k]
+    p0 = [max_psycho, min_psycho, np.median(x), 0.1]
+    bounds = ([0, 0, -np.inf, -np.inf], [1, 1, np.inf, np.inf])
+
     try:
-        popt, _ = curve_fit(sigmoid, x, y, p0=p0)
+        popt, _ = curve_fit(sigmoid, x, y, p0=p0, bounds=bounds, maxfev=10000)
         return {
             'params': popt,
-            'sigmoid_fn': lambda x: np.clip(sigmoid(x, *popt), 0, 1)
+            'sigmoid_fn': lambda x: sigmoid(x, *popt)
         }
     except Exception as e:
         print(f"Error fitting sigmoid: {str(e)}")
         return None
 
 # %%
-DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
-# DESIRED_BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED6']
+DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+batch_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
+batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
-csv_dir = os.path.join(base_dir, 'batch_csvs')
-results_dir = base_dir
+merged_data = pd.concat([
+    pd.read_csv(os.path.join(batch_dir, fname)) for fname in batch_files if os.path.exists(os.path.join(batch_dir, fname))
+], ignore_index=True)
 
-def find_batch_animal_pairs():
-    pairs = []
-    pattern = os.path.join(results_dir, 'results_*_animal_*.pkl')
-    pickle_files = glob.glob(pattern)
-    for pickle_file in pickle_files:
-        filename = os.path.basename(pickle_file)
-        parts = filename.split('_')
-        if len(parts) >= 4:
-            batch_index = parts.index('animal') - 1 if 'animal' in parts else 1
-            animal_index = parts.index('animal') + 1 if 'animal' in parts else 2
-            batch_name = parts[batch_index]
-            animal_id = parts[animal_index].split('.')[0]
-            if batch_name in DESIRED_BATCHES:
-                pairs.append((batch_name, animal_id))
-        else:
-            print(f"Warning: Invalid filename format: {filename}")
-    return pairs
-batch_animal_pairs = find_batch_animal_pairs()
-# Use high slope animals
-# with open('high_slope_animals.pkl', 'rb') as f:
-    # batch_animal_pairs = pickle.load(f)
+merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
 
-print(f"Found {len(batch_animal_pairs)} batch-animal pairs: {batch_animal_pairs}")
+# --- Print animal table ---
+batch_animal_pairs = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
+
+print(f"Found {len(batch_animal_pairs)} batch-animal pairs from {len(set(p[0] for p in batch_animal_pairs))} batches:")
+
+if batch_animal_pairs:
+    batch_to_animals = defaultdict(list)
+    for batch, animal in batch_animal_pairs:
+        # Ensure animal is a string and we don't add duplicates
+        animal_str = str(animal)
+        if animal_str not in batch_to_animals[batch]:
+            batch_to_animals[batch].append(animal_str)
+
+    # Determine column widths for formatting
+    max_batch_len = max(len(b) for b in batch_to_animals.keys()) if batch_to_animals else 0
+    animal_strings = {b: ', '.join(sorted(a)) for b, a in batch_to_animals.items()}
+    max_animals_len = max(len(s) for s in animal_strings.values()) if animal_strings else 0
+
+    # Header
+    print(f"{'Batch':<{max_batch_len}}  {'Animals'}")
+    print(f"{'=' * max_batch_len}  {'=' * max_animals_len}")
+
+    # Rows
+    for batch in sorted(animal_strings.keys()):
+        animals_str = animal_strings[batch]
+        print(f"{batch:<{max_batch_len}}  {animals_str}")
 
 # %%
 def get_params_from_animal_pkl_file(batch_name, animal_id):
@@ -458,10 +474,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Load vanilla and norm model pickles
-# with open('theoretical_psychometric_data_vanilla.pkl', 'rb') as f:
-#     vanilla_psychometric_data = pickle.load(f)
-# with open('theoretical_psychometric_data_norm.pkl', 'rb') as f:
-#     norm_psychometric_data = pickle.load(f)
+with open('theoretical_psychometric_data_vanilla.pkl', 'rb') as f:
+    vanilla_psychometric_data = pickle.load(f)
+with open('theoretical_psychometric_data_norm.pkl', 'rb') as f:
+    norm_psychometric_data = pickle.load(f)
 
 # Helper: extract slopes for a dict of psychometric data
 def extract_slopes(data_dict):
@@ -530,20 +546,7 @@ plt.subplots_adjust(wspace=0.15, left=0.05, right=0.98, top=0.90, bottom=0.23)
 plt.show()
 
 # %%
-### Find and print (batch, animal) pairs with avg slope > 0.7 in data
-# high_slope_animals = []
-# for ba in common_pairs:
-#     avg = np.nanmean([slopes_data[ba][a] for a in [20, 40, 60]])
-#     if avg > 0.6:
-#         high_slope_animals.append(ba)
-#         # print(f"Batch: {ba[0]}, Animal: {ba[1]}, AvgSlope: {avg:.3f}")
-# with open('high_slope_animals.pkl', 'wb') as f:
-#     pickle.dump(high_slope_animals, f)
-# print(f"High slope animals saved to 'high_slope_animals.pkl'")
-
-# %%
 # --- Data vs Model Mean Slope Scatter Plots ---
-fig2, axes2 = plt.subplots(1, 2, figsize=(8, 4), sharey=True)
 
 # Calculate mean slopes for each animal (same order as common_pairs_sorted)
 data_means = np.array([np.nanmean([slopes_data[ba][a] for a in abl_names]) for ba in common_pairs_sorted])
@@ -552,41 +555,88 @@ norm_means = np.array([np.nanmean([slopes_norm[ba][a] for a in abl_names]) for b
 
 from sklearn.metrics import r2_score
 
-# Data vs Vanilla
-ax = axes2[0]
-ax.scatter(data_means, vanilla_means, color='k', marker='X', s=60, alpha=0.7)
-ax.set_xlabel('Data', fontsize=20)
-ax.set_ylabel('w/o Normalization', fontsize=20)
-ax.set_xticks([0.1, 0.5, 0.9])
-ax.set_yticks([0.1, 0.5, 0.9])
-ax.set_xlim(0.1, 0.9)
-ax.set_ylim(0.1, 0.9)
-ax.tick_params(axis='both', labelsize=18)
-plt.setp(ax.get_xticklabels())
-plt.setp(ax.get_yticklabels())
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-ax.plot([0.1, 0.9], [0.1, 0.9], color='grey', alpha=0.5, linestyle='--', linewidth=2, zorder=0)
+# --- Figure 1: Data vs Vanilla ---
+fig_vanilla, ax_vanilla = plt.subplots(figsize=(4, 4))
+ax_vanilla.scatter(data_means, vanilla_means, color='k', marker='X', s=60, alpha=0.7)
+ax_vanilla.set_xlabel('Data', fontsize=20)
+ax_vanilla.set_ylabel('Model', fontsize=20)
+ax_vanilla.set_xticks([0.1, 0.5, 0.9])
+ax_vanilla.set_yticks([0.1, 0.5, 0.9])
+ax_vanilla.set_xlim(0.1, 0.9)
+ax_vanilla.set_ylim(0.1, 0.9)
+ax_vanilla.tick_params(axis='both', labelsize=18)
+ax_vanilla.spines['top'].set_visible(False)
+ax_vanilla.spines['right'].set_visible(False)
+ax_vanilla.plot([0.1, 0.9], [0.1, 0.9], color='grey', alpha=0.5, linestyle='--', linewidth=2, zorder=0)
 r2_vanilla = r2_score(data_means, vanilla_means)
-ax.legend([f'$R^2$ = {r2_vanilla:.2f}'], loc='upper left', frameon=False, fontsize=15)
+# ax_vanilla.legend([f'$R^2$ = {r2_vanilla:.2f}'], loc='upper left', frameon=False, fontsize=15)
+plt.show()
 
-# Data vs Norm
-ax = axes2[1]
-ax.scatter(data_means, norm_means, color='k', marker='X', s=60, alpha=0.7)
-ax.set_xlabel('Data', fontsize=20)
-ax.set_ylabel('Normalization', fontsize=20)
-ax.set_xticks([0.1, 0.5, 0.9])
-ax.set_yticks([0.1, 0.5, 0.9])
-ax.set_xlim(0.1, 0.9)
-ax.set_ylim(0.1, 0.9)
-ax.tick_params(axis='both', labelsize=18)
-plt.setp(ax.get_xticklabels())
-plt.setp(ax.get_yticklabels())
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-ax.plot([0.1, 0.9], [0.1, 0.9], color='grey', alpha=0.5, linestyle='--', linewidth=2, zorder=0)
+# --- Figure 2: Data vs Norm ---
+fig_norm, ax_norm = plt.subplots(figsize=(4, 4))
+ax_norm.scatter(data_means, norm_means, color='k', marker='X', s=60, alpha=0.7)
+ax_norm.set_xlabel('Data', fontsize=20)
+ax_norm.set_ylabel('Model', fontsize=20)
+ax_norm.set_xticks([0.1, 0.5, 0.9])
+ax_norm.set_yticks([0.1, 0.5, 0.9])
+ax_norm.set_xlim(0.1, 0.9)
+ax_norm.set_ylim(0.1, 0.9)
+ax_norm.tick_params(axis='both', labelsize=18)
+ax_norm.spines['top'].set_visible(False)
+ax_norm.spines['right'].set_visible(False)
+ax_norm.plot([0.1, 0.9], [0.1, 0.9], color='grey', alpha=0.5, linestyle='--', linewidth=2, zorder=0)
 r2_norm = r2_score(data_means, norm_means)
-ax.legend([f'$R^2$ = {r2_norm:.2f}'], loc='upper left', frameon=False, fontsize=15)
+# ax.legend([f'$R^2$ = {r2_norm:.2f}'], loc='upper left', frameon=False, fontsize=15)
+# %%
+# --- Combined Plots: Absolute Difference and Data Slopes ---
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 8), sharey=True)
+
+# --- Plot 1: Absolute Difference (Data vs Vanilla) ---
+abs_diff = np.abs(data_means - vanilla_means)
+mean_diff = np.mean(abs_diff)
+sorted_indices_diff = np.argsort(abs_diff)
+sorted_abs_diff = abs_diff[sorted_indices_diff]
+sorted_labels_diff = [f"{b}-{a}" for b, a in np.array(common_pairs_sorted)[sorted_indices_diff]]
+
+ax1.scatter(range(len(sorted_labels_diff)), sorted_abs_diff, color='gray', alpha=0.7, label='|Data - Vanilla|')
+ax1.axhline(mean_diff, color='r', linestyle='-', linewidth=2, label=f'Mean = {mean_diff:.2f}')
+percentiles = [5, 10, 50, 90, 95]
+p_values = np.percentile(sorted_abs_diff, percentiles)
+colors = ['blue', 'green', 'purple', 'green', 'blue']
+for p, val, c in zip(percentiles, p_values, colors):
+    ax1.axhline(val, color=c, linestyle=':', linewidth=1.5, label=f'{p}%ile = {val:.2f}')
+
+ax1.set_ylabel('Absolute Slope Difference', fontsize=14)
+ax1.set_title('Absolute Difference between Data and Vanilla Model Slopes (Sorted)', fontsize=16)
+ax1.set_xticks(range(len(sorted_labels_diff)))
+ax1.set_xticklabels(sorted_labels_diff, rotation=90, fontsize=16)
+ax1.spines['top'].set_visible(False)
+ax1.spines['right'].set_visible(False)
+# ax1.legend(frameon=False, fontsize=10)
+
+# --- Plot 2: Data Slopes (Sorted) ---
+sorted_indices_data = np.argsort(data_means)
+sorted_data_slopes = data_means[sorted_indices_data]
+sorted_labels_data = [f"{b}-{a}" for b, a in np.array(common_pairs_sorted)[sorted_indices_data]]
+
+ax2.scatter(range(len(sorted_labels_data)), sorted_data_slopes, color='k', alpha=0.7, label='Data Slope')
+mean_data = np.mean(sorted_data_slopes)
+ax2.axhline(mean_data, color='r', linestyle='-', linewidth=2, label=f'Mean = {mean_data:.2f}')
+p_values_data = np.percentile(sorted_data_slopes, percentiles)
+for p, val, c in zip(percentiles, p_values_data, colors):
+    ax2.axhline(val, color=c, linestyle=':', linewidth=1.5, label=f'{p}%ile = {val:.2f}')
+
+ax2.set_ylabel('Data Slope', fontsize=14)
+ax2.set_title('Data Slopes (Sorted)', fontsize=16)
+ax2.set_xticks(range(len(sorted_labels_data)))
+ax2.set_xticklabels(sorted_labels_data, rotation=90, fontsize=16)
+ax2.spines['top'].set_visible(False)
+ax2.spines['right'].set_visible(False)
+# ax2.legend(frameon=False, fontsize=10)
+
+plt.tight_layout()
+plt.show()
+
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
@@ -623,7 +673,7 @@ ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.plot([0.1, 0.9], [0.1, 0.9], color='grey', alpha=0.5, linestyle='--', linewidth=2, zorder=0)
 r2_vanilla = r2_score(data_means, vanilla_means)
-ax.legend([f'$R^2$ = {r2_vanilla:.2f}'], loc='upper left', frameon=False, fontsize=15)
+# ax.legend([f'$R^2$ = {r2_vanilla:.2f}'], loc='upper left', frameon=False, fontsize=15)
 
 # Data vs Norm (with labels)
 ax = axes3[1]
