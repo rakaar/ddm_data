@@ -2,8 +2,8 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import glob
-import os
+import pandas as pd
+import json
 from joblib import Parallel, delayed
 from tqdm import tqdm
 import pickle
@@ -117,7 +117,7 @@ def process_batch_animal(batch_animal_pair, animal_df):
                 # Compute quantiles directly from raw RTs (no binning)
                 condition_df = animal_df[(animal_df['ABL'] == abl) & (animal_df['ILD'].abs() == abs_ild) &
                                           (animal_df['RTwrtStim'] >= 0) & (animal_df['RTwrtStim'] <= 1) & (animal_df['success'].isin([1, -1]))]
-                quantile_levels = np.arange(0.05, 1, 0.01)
+                quantile_levels = np.arange(0.05, 0.95, 0.01)
                 if len(condition_df) > 0:
                     quantiles = condition_df['RTwrtStim'].quantile(quantile_levels).values
                 else:
@@ -231,7 +231,7 @@ with PdfPages(output_filename) as pdf:
 
             ax.set_xlim(0, max_RT_cut)
             ax.axhline(0, color='k', linestyle='--')
-            if j == 0: ax.set_ylabel('RT Diff (s)')
+            if j == 0: ax.set_ylabel('RT Difference (s)')
 
             ax.set_xlabel('RT (s)')
 
@@ -256,7 +256,8 @@ print(f'PDF saved to {output_filename}')
 
 # Create a figure for the averaged plot
 fig_avg, axes_avg = plt.subplots(1, len(abs_ILD_arr), figsize=(15, 5), sharex=True, sharey=True)
-fig_avg.suptitle('Average Q-Q Across Animals(for Fitting)', fontsize=16)
+# fig_avg.suptitle('Average Q-Q Across Animals(for Fitting)', fontsize=16)
+
 
 # Define a common x-axis for interpolation
 common_x = np.linspace(0, max_RT_cut, 100) 
@@ -305,6 +306,32 @@ for j, abs_ild in enumerate(abs_ILD_arr):
     ax.set_xlabel('RT (s)')
     if j == 0:
         ax.set_ylabel('RT Diff (s)')
+
+    # Publication-grade styling
+    TITLE_FONTSIZE: int = 24
+    LABEL_FONTSIZE: int = 25
+    TICK_FONTSIZE: int = 24
+
+    ax.set_xlim(0, 0.3)
+    ax.set_xticks([0, 0.3])
+    ax.set_xticklabels(['0', '0.3'])
+    ax.set_ylim(0, 0.2)
+    ax.set_yticks([0, 0.2])
+    if j == 0:
+        ax.set_yticklabels(['0', '0.2'])
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['left'].set_color('k')
+    ax.spines['bottom'].set_color('k')
+
+    ax.title.set_fontsize(TITLE_FONTSIZE)
+    ax.xaxis.label.set_fontsize(LABEL_FONTSIZE)
+    ax.yaxis.label.set_fontsize(LABEL_FONTSIZE)
+
+    for label in (ax.get_xticklabels() + ax.get_yticklabels()):
+        label.set_fontsize(TICK_FONTSIZE)
+
     # ax.legend()
 
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
@@ -315,3 +342,4 @@ fig_avg.savefig(average_plot_filename)
 print(f'Average plot saved to {average_plot_filename}')
 
 plt.show(fig_avg)
+# %%

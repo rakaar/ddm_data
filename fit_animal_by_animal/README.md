@@ -86,3 +86,4 @@
 
 # Potential supplementary
 - `all_animals_rtd_cdf_plots.py` - CDF for min RT Cut off
+- `fit_qq_animals_and_avg.py` - Q - Q_60 vs Q_60
