@@ -36,7 +36,8 @@ from scipy.optimize import curve_fit
 INCLUDE_ABORT_EVENT_4 = False
 
 # Batches to analyse (identical to original script, minus LED1)
-DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+# DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+DESIRED_BATCHES = ['LED7']
 
 # Bin resolution (seconds) – 1 ms
 BIN_SIZE = 0.001
@@ -79,6 +80,8 @@ def load_data() -> pd.DataFrame:
     merged['abs_ILD'] = merged['ILD'].abs()
     # Keep only sensible RTs (0–1 s as in the original script)
     merged = merged[(merged['RTwrtStim'] >= 0) & (merged['RTwrtStim'] <= 1) & (merged['success'].isin([1, -1]))]
+    # NOTE filter animal 
+    merged = merged[merged['animal'] == 92]
     return merged
 
 # -----------------------------------------------------------------------------
@@ -267,7 +270,8 @@ def plot_average_cdf(agg: dict[tuple[int, int], list[np.ndarray]]):
     window_bins = int(0.010 / BIN_SIZE)  # 10-ms window
     for idx, ild in enumerate(ABS_ILD_VALUES):
         curve = mean_diff_by_ild[ild]
-        onset_idx = detect_onset_moving_average(curve, window_bins=window_bins, threshold=0.005)
+        # NOTE: threshold
+        onset_idx = detect_onset_moving_average(curve, window_bins=window_bins, threshold=0.01/2)
         onset_time = BIN_CENTERS[onset_idx] if onset_idx is not None else np.nan
         onset_by_ild[ild] = onset_time
 
@@ -302,9 +306,9 @@ def plot_average_cdf(agg: dict[tuple[int, int], list[np.ndarray]]):
     ax2.spines['top'].set_visible(False)
 
     # Set axis limits and ticks
-    ax2.set_xlim(0, 0.12)
-    ax2.set_xticks([0, 0.12])
-    ax2.set_xticklabels(['0', '0.12'])
+    ax2.set_xlim(0, 0.15)
+    ax2.set_xticks([0, 0.15])
+    ax2.set_xticklabels(['0', '0.15'])
     ax2.set_ylim(0, 0.2)
     ax2.set_yticks([0, 0.2])
     ax2.set_yticklabels(['0', '0.2'])
