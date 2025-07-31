@@ -1,4 +1,8 @@
 # %%
+# TODO - 
+# when plotting QQ plots for data/model, 
+# we put just the points with error bars for data and a continuous line for the model, 
+# like in the 2019 paper: https://static-content.springer.com/esm/art%3A10.1038%2Fs41593-019-0439-7/MediaObjects/41593_2019_439_MOESM1_ESM.pdf#page=11.43
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt

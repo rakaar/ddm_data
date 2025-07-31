@@ -362,6 +362,9 @@ def compute_loglike_norm_fn(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff_slow, t
     if np.isnan(pdf):
         print(f'row["abort_event"] = {row["abort_event"]}')
         print(f'row["RTwrtStim"] = {row["RTwrtStim"]}')
+
+    return np.log(pdf)
+     
 def vbmc_norm_tied_loglike_fn(params):
     rate_lambda, T_0, theta_E, w, t_E_aff_slow, t_E_aff_fast, del_go, rate_norm_l = params
     Z_E = (w - 0.5) * 2 * theta_E
@@ -369,6 +372,12 @@ def vbmc_norm_tied_loglike_fn(params):
                                        for _, row in df_valid_animal_less_than_1.iterrows() )
     return np.sum(all_loglike)
 
+# def vbmc_norm_tied_loglike_fn_2(params):
+#     rate_lambda, T_0, theta_E, w, t_E_aff_slow, t_E_aff_fast, del_go, rate_norm_l = params
+#     Z_E = (w - 0.5) * 2 * theta_E
+#     all_loglike = Parallel(n_jobs=30)(delayed(compute_loglike_norm_fn)(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff_slow, t_E_aff_fast, del_go, rate_norm_l)\
+#                                        for _, row in df_valid_animal_less_than_1.iterrows() )
+#     return all_loglike
 
 def vbmc_prior_norm_tied_fn(params):
     rate_lambda, T_0, theta_E, w, t_E_aff_slow, t_E_aff_fast, del_go, rate_norm_l = params
@@ -828,7 +837,10 @@ exp_df_batch = exp_df[
     # (exp_df['batch_name'] == 'LED34') &
     (exp_df['LED_trial'].isin([np.nan, 0])) &
     (exp_df['animal'].isin([92])) &
-    (exp_df['session_type'].isin([1,2]))  
+    (exp_df['session_type'].isin([7])) &
+    (exp_df['training_level'].isin([16])) &
+    (exp_df['repeat_trial'].isin([0, 2, np.nan]))
+     
 ].copy()
 
 # aborts don't have choice, so assign random 
@@ -1184,7 +1196,7 @@ for animal_idx in range(len(animal_ids)):
     w_0 = 0.51
     t_E_aff_slow_0 = 0.071
     t_E_aff_fast_0 = 0.071
-    del_go_0 = 0.19
+    del_go_0 = 0.12
     rate_norm_l_0 = 0.95
 
     x_0 = np.array([
