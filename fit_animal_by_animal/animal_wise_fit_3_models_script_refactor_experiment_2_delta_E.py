@@ -20,8 +20,8 @@ from time_vary_norm_utils import (
     rho_A_t_VEC_fn, up_or_down_RTs_fit_wrt_stim_fn, rho_A_t_fn, cum_A_t_fn)
 import corner
 from scipy.integrate import trapezoid as trapz
-from time_vary_and_norm_simulators import (
-    psiam_tied_data_gen_wrapper_rate_norm_time_vary_fn
+from refactored_tied_model_functions import (
+    psiam_tied_data_gen_wrapper_rate_norm_time_vary_refactored_fn
 )
 from scipy.integrate import cumulative_trapezoid as cumtrapz
 from time_vary_norm_utils import up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn
@@ -1310,9 +1310,9 @@ for animal_idx in range(len(animal_ids)):
 
     
     sim_results = Parallel(n_jobs=30)(
-        delayed(psiam_tied_data_gen_wrapper_rate_norm_time_vary_fn)(
+        delayed(psiam_tied_data_gen_wrapper_rate_norm_time_vary_refactored_fn)(
             V_A, theta_A, ABL_samples[iter_num], ILD_samples[iter_num], rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff_slow, t_E_aff_fast, del_go, 
-            t_stim_samples[iter_num], phi_params_obj, rate_norm_l, iter_num, N_print, dt
+            t_stim_samples[iter_num], rate_norm_l, iter_num, N_print, phi_params_obj, dt
         ) for iter_num in tqdm(range(N_sim))
     )
     sim_results_df = pd.DataFrame(sim_results)
