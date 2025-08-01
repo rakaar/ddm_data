@@ -229,6 +229,49 @@ def plot_rt_distributions_refactored(sim_df_1, data_df_1, ILD_arr, ABL_arr, t_pt
 
 
 ### Time vary
+##################################################
+############### time varying evidence ############
+#################################################
+##### Functions related to phi(t) - decaying evid over time ############
+def K0(y, h, a, b):
+    # a*sin(2*pi/h*(y-b)) where (y-b)>=0 and (y-b)<h/4, else 0
+    return a * np.sin(2 * np.pi/h * (y - b)) * ((y - b) >= 0) * ((y - b) < h/4)
+
+def K1(y, h, a, b):
+    # (1+a*sin(2*pi/h*(y-b))) for (y-b) in [h/4, h/2)
+    return (1 + a * np.sin(2 * np.pi/h * (y - b))) * ((y - b) >= h/4) * ((y - b) < h/2)
+
+def K2(y, h, a, b):
+    # (1 - a*(y-b)/h * exp(1 - (y-b)/h)) for (y-b)>=0
+    return (1 - a * (y - b) / h * np.exp(1 - (y - b)/h)) * ((y - b) >= 0)
+
+def phi_t_fn(y, h1, a1, b1, h2, a2):
+    # Combination of K0, K1, and K2 functions
+    return K0(y, h1, 1 + a1, b1) + K1(y, h1, a1, b1) + K2(y, h2, a2, b1 + h1/2)
+
+def I0(y, h, a, b):
+    # a*h/pi * sin(pi/h*(y-b))^2 for (y-b)>=0 and (y-b)<=h/4
+    return a * h/np.pi * (np.sin(np.pi/h * (y - b))**2) * ((y - b) >= 0) * ((y - b) <= h/4)
+
+def I1(y, h, a, b):
+    # I0 evaluated at b+h/4 plus extra terms for y in (b+h/4, b+h/2]
+    term1 = I0(b + h/4, h, 1 + a, b)
+    term2 = y - (b + h/4)
+    term3 = a * h/(2 * np.pi) * np.cos(2 * np.pi/h * (y - b))
+    return (term1 + term2 - term3) * ((y - b) > h/4) * ((y - b) <= h/2)
+
+def I2(y, h1, a1, b1, h2, a2, b2):
+    # I1 evaluated at b2 plus extra terms for y > b2
+    term1 = I1(b2, h1, a1, b1)
+    term2 = y - b2
+    # The expression: -a2*h2*(-exp(1-(y-b2)/h2).*((y-b2)/h2+1)+exp(1))
+    term3 = a2 * h2 * (-np.exp(1 - (y - b2)/h2) * ((y - b2)/h2 + 1) + np.exp(1))
+    return (term1 + term2 - term3) * ((y - b2) > 0)
+
+def int_phi_fn(y, h1, a1, b1, h2, a2):
+    # Combination of I0, I1, and I2 functions with b2 = b1+h1/2
+    b2 = b1 + h1/2
+    return I0(y, h1, 1 + a1, b1) + I1(y, h1, a1, b1) + I2(y, h1, a1, b1, h2, a2, b2)
 
 def psiam_tied_data_gen_wrapper_rate_norm_time_vary_refactored_fn(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff_slow, t_E_aff_fast, del_go, \
                                 t_stim, rate_norm_l,iter_num, N_print, phi_params, dt):
