@@ -450,17 +450,8 @@ plt.show()
 # %% --- Plotting: Aggregating across ABLs (Concatenation) ---
 # Fig 2
 
-quantile_plot_data = {
-    'plot_data': plot_data,
-    'continuous_plot_data': continuous_plot_data,
-    'QUANTILES_TO_PLOT': QUANTILES_TO_PLOT,
-    'abs_ild_sorted': abs_ild_sorted,
-    'continuous_abs_ild': continuous_abs_ild,
-    'ABL_arr': ABL_arr,
-    'MODEL_TYPE': MODEL_TYPE
-}
-with open('vanila_quant_fig2_data.pkl', 'wb') as f:
-    pickle.dump(quantile_plot_data, f)
+# We will populate quantile_summary after computing aggregated means/SEMs below.
+quantile_summary = []
 
 LABEL_FONTSIZE: int = 25
 TICK_FONTSIZE: int = 24
@@ -495,6 +486,17 @@ for q_idx, q in enumerate(QUANTILES_TO_PLOT):
             theo_sems.append(sem(all_abl_theo_quantiles, nan_policy='omit'))
             continuous_abs_ild_valid.append(abs_ild)
 
+    # Save aggregated statistics for this quantile
+    quantile_summary.append({
+        'q': q,
+        'emp_abs_ild': abs_ild_sorted,
+        'emp_means': emp_means,
+        'emp_sems': emp_sems,
+        'theo_abs_ild': continuous_abs_ild_valid,
+        'theo_means': theo_means,
+        'theo_sems': theo_sems
+    })
+
     # Plot empirical with error bars (discrete points)
     ax.errorbar(abs_ild_sorted, emp_means, yerr=emp_sems, fmt='o-', color='black', markersize=4, capsize=0)
     
@@ -518,6 +520,21 @@ ax.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
 plt.tight_layout()
 plt.savefig(f'quantile_plot_with_errorbars_{MODEL_TYPE}.png', dpi=300)
 plt.show()
+
+# ---------------- Save all necessary data for Fig 2 ---------------- #
+quantile_plot_data = {
+    'plot_data': plot_data,
+    'continuous_plot_data': continuous_plot_data,
+    'quantile_summary': quantile_summary,
+    'QUANTILES_TO_PLOT': QUANTILES_TO_PLOT,
+    'abs_ild_sorted': abs_ild_sorted,
+    'continuous_abs_ild': continuous_abs_ild,
+    'ABL_arr': ABL_arr,
+    'MODEL_TYPE': MODEL_TYPE
+}
+with open('vanila_quant_fig2_data.pkl', 'wb') as f:
+    pickle.dump(quantile_plot_data, f)
+
 
 # %% --- Plotting: Averaging the ABL means ---
 

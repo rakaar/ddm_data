@@ -83,6 +83,8 @@ def plot_psychometric(ax, data):
 def plot_quantiles(ax, data):
     """Plots the RT quantiles with both empirical and theoretical curves."""
     plot_data = data['plot_data']
+    continuous_plot_data = data.get('continuous_plot_data', None)
+    continuous_abs_ild = data.get('continuous_abs_ild', None)
     QUANTILES_TO_PLOT = data['QUANTILES_TO_PLOT']
     abs_ild_sorted = data['abs_ild_sorted']
     ABL_arr = data['ABL_arr']
@@ -90,28 +92,49 @@ def plot_quantiles(ax, data):
     for q_idx, q in enumerate(QUANTILES_TO_PLOT):
         emp_means, emp_sems = [], []
         theo_means, theo_sems = [], []
+        theo_abs_ild_plot = []  # x-axis for theory
 
+        # --- Aggregate empirical (discrete ILD) ---
         for abs_ild in abs_ild_sorted:
-            # Aggregate across all ABLs for this ILD and quantile
             all_abl_emp_quantiles = np.concatenate([
                 np.array(plot_data[abl][abs_ild]['empirical'])[:, q_idx] for abl in ABL_arr
             ])
-            all_abl_theo_quantiles = np.concatenate([
-                np.array(plot_data[abl][abs_ild]['theoretical'])[:, q_idx] for abl in ABL_arr
-            ])
-
             emp_means.append(np.nanmean(all_abl_emp_quantiles))
             emp_sems.append(sem(all_abl_emp_quantiles, nan_policy='omit'))
-            
-            theo_means.append(np.nanmean(all_abl_theo_quantiles))
-            theo_sems.append(sem(all_abl_theo_quantiles, nan_policy='omit'))
 
-        # Plot empirical with error bars
-        ax.errorbar(abs_ild_sorted, emp_means, yerr=emp_sems, fmt='o-', color='black', 
-                   markersize=4, capsize=0, label=f'Data q={q:.2f}' if q_idx == 0 else "_nolegend_")
-        # Plot theoretical with error bars
-        ax.errorbar(abs_ild_sorted, theo_means, yerr=theo_sems, fmt='^-', color='tab:red', 
-                   markersize=4, capsize=0, label=f'Theory q={q:.2f}' if q_idx == 0 else "_nolegend_")
+        # --- Aggregate theoretical (continuous ILD if available) ---
+        if continuous_plot_data is not None and continuous_abs_ild is not None:
+            for abs_ild in continuous_abs_ild:
+                all_abl_theo_q = []
+                for abl in ABL_arr:
+                    if len(continuous_plot_data[abl][abs_ild]['theoretical']) > 0:
+                        all_abl_theo_q.extend(np.array(continuous_plot_data[abl][abs_ild]['theoretical'])[:, q_idx])
+                if len(all_abl_theo_q) > 0:
+                    theo_abs_ild_plot.append(abs_ild)
+                    theo_means.append(np.nanmean(all_abl_theo_q))
+                    theo_sems.append(sem(all_abl_theo_q, nan_policy='omit'))
+        else:
+            # Fallback to discrete theoretical (old behaviour)
+            for abs_ild in abs_ild_sorted:
+                all_abl_theo_quantiles = np.concatenate([
+                    np.array(plot_data[abl][abs_ild]['theoretical'])[:, q_idx] for abl in ABL_arr
+                ])
+                theo_abs_ild_plot.append(abs_ild)
+                theo_means.append(np.nanmean(all_abl_theo_quantiles))
+                theo_sems.append(sem(all_abl_theo_quantiles, nan_policy='omit'))
+
+        # Plot empirical with error bars (discrete points)
+        ax.errorbar(abs_ild_sorted, emp_means, yerr=emp_sems, fmt='o-', color='black',
+                    markersize=4, capsize=0, label=f'Data q={q:.2f}' if q_idx == 0 else "_nolegend_")
+
+        # Plot theoretical continuous curve + SEM shading
+        if len(theo_abs_ild_plot) > 0:
+            ax.plot(theo_abs_ild_plot, theo_means, '-', color='tab:red', linewidth=1.5,
+                    label=f'Theory q={q:.2f}' if q_idx == 0 else "_nolegend_")
+            ax.fill_between(theo_abs_ild_plot,
+                             np.array(theo_means) - np.array(theo_sems),
+                             np.array(theo_means) + np.array(theo_sems),
+                             color='tab:red', alpha=0.2, linewidth=0)
 
     ax.set_xlabel('|ILD| (dB)', fontsize=ft.STYLE.LABEL_FONTSIZE)
     ax.set_ylabel('RT Quantile (s)', fontsize=ft.STYLE.LABEL_FONTSIZE)
