@@ -4,7 +4,7 @@ Unified analysis for psychometric curves using TIED models.
 Set IS_NORM_TIED = True for normalized TIED, False for vanilla TIED.
 """
 # %%
-IS_NORM_TIED = True  # Set to False for vanilla TIED
+IS_NORM_TIED = False  # Set to False for vanilla TIED
 
 from scipy.integrate import trapezoid
 import pandas as pd
@@ -426,7 +426,7 @@ def plot_theoretical_psychometric_data(theoretical_psychometric_data):
 
 # %%
 # Get theoretical and empirical data
-theoretical_psychometric_data = run_theoretical_psychometric_processing()
+# theoretical_psychometric_data = run_theoretical_psychometric_processing()
 psychometric_data = run_psychometric_processing()
 # print(f'len of theory psycho data = {len(theoretical_psychometric_data)}')
 print(f'len of empirical psycho data = {len(psychometric_data)}')
@@ -546,12 +546,19 @@ plt.subplots_adjust(wspace=0.15, left=0.05, right=0.98, top=0.90, bottom=0.23)
 plt.show()
 
 # %%
-# --- Data vs Model Mean Slope Scatter Plots ---
+# Fig 2--- Data vs Model Mean Slope Scatter Plots ---
 
 # Calculate mean slopes for each animal (same order as common_pairs_sorted)
 data_means = np.array([np.nanmean([slopes_data[ba][a] for a in abl_names]) for ba in common_pairs_sorted])
 vanilla_means = np.array([np.nanmean([slopes_vanilla[ba][a] for a in abl_names]) for ba in common_pairs_sorted])
 norm_means = np.array([np.nanmean([slopes_norm[ba][a] for a in abl_names]) for ba in common_pairs_sorted])
+
+slope_plot_data = {
+    'data_means': data_means,
+    'vanilla_means': vanilla_means
+}
+with open('vanila_slopes_fig2_data.pkl', 'wb') as f:
+    pickle.dump(slope_plot_data, f)
 
 from sklearn.metrics import r2_score
 

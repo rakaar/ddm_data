@@ -456,6 +456,17 @@ plt.show()
 # FOR FIG 2 paper - Gamma vanilla and omega seperate
 
 # 3. Gamma plot for vanilla model
+gamma_plot_data = {
+    'all_ABL': all_ABL,
+    'gamma_cond_by_cond_fit_all_animals': gamma_cond_by_cond_fit_all_animals,
+    'all_ILD_sorted': all_ILD_sorted,
+    'batch_animal_pairs': batch_animal_pairs,
+    'ILD_pts': ILD_pts,
+    'gamma_vanilla_model_fit_theoretical_all_animals': gamma_vanilla_model_fit_theoretical_all_animals
+}
+with open('vanila_gamma_fig2_data.pkl', 'wb') as f:
+    pickle.dump(gamma_plot_data, f)
+
 fig, ax = plt.subplots(1, 1, figsize=(5, 5))
 
 # Plot condition by condition fit gamma

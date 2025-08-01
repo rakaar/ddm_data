@@ -3,7 +3,7 @@ Unified analysis for psychometric curves using TIED models.
 Set IS_NORM_TIED = True for normalized TIED, False for vanilla TIED.
 """
 # %%
-IS_NORM_TIED = True  # Set to False for vanilla TIED
+IS_NORM_TIED = False  # Set to False for vanilla TIED
 
 from scipy.integrate import trapezoid
 import pandas as pd
@@ -886,10 +886,20 @@ axes[1].legend()
 plt.tight_layout()
 plt.show()
 # %%
-# Plot all three ABLs in a single figure: data (dotted), theory (solid), each ABL a color
-
+# FIG 2 - Plot all three ABLs in a single figure: data (dotted), theory (solid), each ABL a color
+import pickle
 import matplotlib.pyplot as plt
 import numpy as np
+
+# Save data for plotting
+plot_data = {
+    'empirical_agg': empirical_agg,
+    'theory_agg': theory_agg,
+    'ILD_arr': ILD_arr,
+}
+with open('vanila_psy_fig2_data.pkl', 'wb') as f:
+    pickle.dump(plot_data, f)
+
 
 colors = {20: 'tab:blue', 40: 'tab:orange', 60: 'tab:green'}
 plt.figure(figsize=(4, 3))  # Smaller figure for publication

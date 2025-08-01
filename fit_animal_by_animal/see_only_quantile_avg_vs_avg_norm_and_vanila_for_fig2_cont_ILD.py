@@ -236,7 +236,11 @@ def find_quantile_from_cdf(q, cdf, x_axis):
     return x1 + (x2 - x1) * (q - y1) / (y2 - y1)
 
 def process_animal_for_quantiles(batch_animal_pair):
-    """Processes a single animal to get empirical and theoretical quantiles for all stimuli."""
+    """Processes a single animal to get empirical and theoretical quantiles.
+    
+    Empirical quantiles are calculated for discrete ILD values present in the data.
+    Theoretical quantiles are calculated for continuous ILD values from -16 to 16 in steps of 0.1.
+    """
     batch_name, animal_id = batch_animal_pair
     print(f"Processing {batch_name} / {animal_id}...")
     animal_quantile_data = {}
@@ -244,18 +248,27 @@ def process_animal_for_quantiles(batch_animal_pair):
         abort_params, tied_params, rate_norm_l, is_norm = get_params_from_animal_pkl_file(batch_name, int(animal_id))
         p_a, c_a, ts_samp = get_P_A_C_A(batch_name, int(animal_id), abort_params)
 
+        # --- Empirical Quantiles (discrete ILD values from data) ---
         for abl in ABL_arr:
             for ild in ILD_arr:
                 stim_key = (abl, ild)
                 
-                # --- Empirical Quantiles ---
                 raw_rts = get_animal_raw_RTs(batch_name, int(animal_id), abl, ild)
                 if len(raw_rts) > 5: # Need a few trials to be meaningful
                     emp_quantiles = np.quantile(raw_rts, QUANTILES_TO_PLOT)
                 else:
                     emp_quantiles = [np.nan] * len(QUANTILES_TO_PLOT)
-
-                # --- Theoretical Quantiles ---
+                
+                animal_quantile_data[stim_key] = {
+                    'empirical': emp_quantiles,
+                }
+        
+        # --- Theoretical Quantiles (continuous ILD values) ---
+        # Create continuous ILD array from -16 to 16 in steps of 0.1
+        continuous_ild_values = np.arange(-16.0, 16.1, 0.1)
+        
+        for abl in ABL_arr:
+            for ild in continuous_ild_values:
                 try:
                     t_pts, rtd = get_theoretical_RTD_from_params(
                         p_a, c_a, ts_samp, abort_params, tied_params, rate_norm_l, is_norm, abl, ild, batch_name
@@ -270,20 +283,33 @@ def process_animal_for_quantiles(batch_animal_pair):
                         raise ValueError("Theoretical CDF sum is close to zero")
                     
                     theo_quantiles = [find_quantile_from_cdf(q, cdf, t_pts) for q in QUANTILES_TO_PLOT]
+                    
+                    # Store continuous theoretical quantiles with a special key
+                    continuous_key = (abl, ild, 'continuous')
+                    animal_quantile_data[continuous_key] = {
+                        'theoretical': theo_quantiles
+                    }
+                    
+                    # Also update discrete ILD entries if they match (within tolerance)
+                    for discrete_ild in ILD_arr:
+                        if abs(ild - discrete_ild) < 0.05:  # Match within 0.05 tolerance
+                            discrete_key = (abl, discrete_ild)
+                            if discrete_key in animal_quantile_data:
+                                animal_quantile_data[discrete_key]['theoretical'] = theo_quantiles
+                            break
+                    
                 except Exception as e:
-                    # print(f"  Warn: Theoretical quantiles failed for {stim_key}: {e}")
-                    theo_quantiles = [np.nan] * len(QUANTILES_TO_PLOT)
-                
-                animal_quantile_data[stim_key] = {
-                    'empirical': emp_quantiles,
-                    'theoretical': theo_quantiles
-                }
+                    # Silently skip failed theoretical quantiles for continuous values
+                    pass
+                    
     except Exception as e:
         print(f"ERROR processing animal {batch_name}/{animal_id}: {e}")
     
     return animal_quantile_data
 
-# %% --- Main Execution ---
+# %% 
+# LONG TIME TAKING --- Main Execution ---
+
 n_jobs = max(1, os.cpu_count() - 1)
 print(f"Running parallel processing with {n_jobs} jobs...")
 
@@ -291,35 +317,83 @@ all_animal_results = Parallel(n_jobs=n_jobs, verbose=10)(
     delayed(process_animal_for_quantiles)(pair) for pair in batch_animal_pairs
 )
 
-# %% --- Data Aggregation ---
+# %% 
+# === Debugging: inspect stored theoretical stim keys ===
+# Rounding off messes things up, so have to round off
+# Example of issue:
+# First 10 negative ILDs (raw):  [-16.0, -15.9, -15.8, -15.700000000000001, -15.600000000000001, -15.500000000000002, -15.400000000000002, -15.300000000000002, -15.200000000000003, -15.100000000000003]
+# First 10 negative ILDs (rounded): [-16.0, -15.9, -15.8, -15.7, -15.6, -15.5, -15.4, -15.3, -15.2, -15.1]
+# Last 10 positive ILDs  (raw):  [15.099999999999888, 15.19999999999989, 15.29999999999989, 15.399999999999888, 15.499999999999886, 15.599999999999888, 15.69999999999989, 15.799999999999887, 15.899999999999885, 15.999999999999886]
+# Last 10 positive ILDs  (rounded): [15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7, 15.8, 15.9, 16.0]
+
+
+
+# Inspect keys for one ABL: show positive and negative ILD entries separately
+abl_to_inspect = ABL_arr[0] if len(ABL_arr) else None
+if abl_to_inspect is not None:
+    # take first non-empty animal
+    for animal_data in all_animal_results:
+        if not animal_data:
+            continue
+        ild_vals = sorted([k[1] for k in animal_data.keys()
+                           if isinstance(k, tuple) and len(k)==3
+                           and k[2]=='continuous' and k[0]==abl_to_inspect])
+        neg_vals = [v for v in ild_vals if v < 0][:10]
+        pos_vals = [v for v in ild_vals if v > 0][-10:]
+        neg_vals_round = [round(v,1) for v in neg_vals]
+        pos_vals_round = [round(v,1) for v in pos_vals]
+        print(f"\nDetailed key sample for ABL {abl_to_inspect} (animal):")
+        print("First 10 negative ILDs (raw): ", neg_vals)
+        print("First 10 negative ILDs (rounded):", neg_vals_round)
+        print("Last 10 positive ILDs  (raw): ", pos_vals)
+        print("Last 10 positive ILDs  (rounded):", pos_vals_round)
+        break
+
+# %%
+# data aggregate for plot
 print("Aggregating data for plotting...")
 abs_ild_sorted = sorted(list(set(abs(ild) for ild in ILD_arr)))
+
+# Create continuous abs_ild array for theoretical curves (absolute values only for plotting)
+continuous_abs_ild = np.round(np.arange(1.0, 16.1, 0.1), 1)
+
 def _create_innermost_dict():
     return {'empirical': [], 'theoretical': []}
 
 def _create_inner_defaultdict():
     return defaultdict(_create_innermost_dict)
 
+# Discrete data for empirical quantiles
 plot_data = defaultdict(_create_inner_defaultdict)
+
+# Continuous data for theoretical quantiles
+continuous_plot_data = defaultdict(_create_inner_defaultdict)
 
 for animal_data in all_animal_results:
     if not animal_data: continue
+    
+    # Process discrete empirical data
     for abl in ABL_arr:
         for abs_ild in abs_ild_sorted:
             # Combine data from ILD and -ILD
             emp_quantiles_combined = []
-            theo_quantiles_combined = []
             for ild_sign in [abs_ild, -abs_ild]:
                 stim_key = (abl, ild_sign)
                 if stim_key in animal_data:
                     emp_quantiles_combined.append(animal_data[stim_key]['empirical'])
-                    theo_quantiles_combined.append(animal_data[stim_key]['theoretical'])
-            
-            # Average the quantiles for this animal across +/- ILD
+            # Average empirical quantiles across ±ILD for this animal
             if emp_quantiles_combined:
                 plot_data[abl][abs_ild]['empirical'].append(np.nanmean(emp_quantiles_combined, axis=0))
-            if theo_quantiles_combined:
-                plot_data[abl][abs_ild]['theoretical'].append(np.nanmean(theo_quantiles_combined, axis=0))
+    
+    # Process continuous theoretical data (iterate over keys to avoid float mismatch)
+    for abl in ABL_arr:
+        # select this animal's continuous keys for current ABL
+        abl_cont_keys = [k for k in animal_data.keys() if isinstance(k, tuple) and len(k)==3 and k[2]=='continuous' and k[0]==abl]
+        for key in abl_cont_keys:
+            ild_val = key[1]
+            rounded_abs = np.round(abs(ild_val), 1)  # plotting key
+            continuous_plot_data[abl][rounded_abs]['theoretical'].append(animal_data[key]['theoretical'])
+
 
 # %% --- Plotting: ABLs separate ---
 print("Generating quantile plot (separate ABLs)...")
@@ -332,23 +406,34 @@ for i, abl in enumerate(ABL_arr):
     ax.spines['right'].set_visible(False)
 
     for q_idx, q in enumerate(QUANTILES_TO_PLOT):
+        # Empirical data (discrete points)
         emp_means, emp_sems = [], []
-        theo_means, theo_sems = [], []
-
         for abs_ild in abs_ild_sorted:
             emp_quantiles_across_animals = np.array(plot_data[abl][abs_ild]['empirical'])[:, q_idx]
-            theo_quantiles_across_animals = np.array(plot_data[abl][abs_ild]['theoretical'])[:, q_idx]
-
             emp_means.append(np.nanmean(emp_quantiles_across_animals))
             emp_sems.append(sem(emp_quantiles_across_animals, nan_policy='omit'))
-            
-            theo_means.append(np.nanmean(theo_quantiles_across_animals))
-            theo_sems.append(sem(theo_quantiles_across_animals, nan_policy='omit'))
+        
+        # Theoretical data (continuous curve)
+        theo_means, theo_sems = [], []
+        continuous_abs_ild_valid = []
+        for abs_ild in continuous_abs_ild:
+            if len(continuous_plot_data[abl][abs_ild]['theoretical']) > 0:
+                theo_quantiles_across_animals = np.array(continuous_plot_data[abl][abs_ild]['theoretical'])[:, q_idx]
+                theo_means.append(np.nanmean(theo_quantiles_across_animals))
+                theo_sems.append(sem(theo_quantiles_across_animals, nan_policy='omit'))
+                continuous_abs_ild_valid.append(abs_ild)
 
-        # Plot empirical with error bars
+        # Plot empirical with error bars (discrete points)
         ax.errorbar(abs_ild_sorted, emp_means, yerr=emp_sems, fmt='o-', color='b', markersize=4, capsize=3, label='Data' if q_idx == 0 else "")
-        # Plot theoretical with error bars
-        ax.errorbar(abs_ild_sorted, theo_means, yerr=theo_sems, fmt='^-', color='r', markersize=4, capsize=3, label='Theory' if q_idx == 0 else "")
+        
+        # Plot theoretical as smooth curve (continuous)
+        if len(continuous_abs_ild_valid) > 0:
+            ax.plot(continuous_abs_ild_valid, theo_means, '-', color='r', linewidth=1.5, label='Theory' if q_idx == 0 else "")
+            # SEM shading around theoretical curve
+            ax.fill_between(continuous_abs_ild_valid,
+                             np.array(theo_means) - np.array(theo_sems),
+                             np.array(theo_means) + np.array(theo_sems),
+                             color='r', alpha=0.2, linewidth=0)
 
     ax.set_title(f'ABL = {abl}')
     ax.set_xlabel('|ILD| (dB)')
@@ -367,8 +452,10 @@ plt.show()
 
 quantile_plot_data = {
     'plot_data': plot_data,
+    'continuous_plot_data': continuous_plot_data,
     'QUANTILES_TO_PLOT': QUANTILES_TO_PLOT,
     'abs_ild_sorted': abs_ild_sorted,
+    'continuous_abs_ild': continuous_abs_ild,
     'ABL_arr': ABL_arr,
     'MODEL_TYPE': MODEL_TYPE
 }
@@ -383,28 +470,42 @@ ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 
 for q_idx, q in enumerate(QUANTILES_TO_PLOT):
+    # Empirical data (discrete points)
     emp_means, emp_sems = [], []
-    theo_means, theo_sems = [], []
-
     for abs_ild in abs_ild_sorted:
         # Aggregate across all ABLs for this ILD and quantile
         all_abl_emp_quantiles = np.concatenate([
             np.array(plot_data[abl][abs_ild]['empirical'])[:, q_idx] for abl in ABL_arr
         ])
-        all_abl_theo_quantiles = np.concatenate([
-            np.array(plot_data[abl][abs_ild]['theoretical'])[:, q_idx] for abl in ABL_arr
-        ])
-
         emp_means.append(np.nanmean(all_abl_emp_quantiles))
         emp_sems.append(sem(all_abl_emp_quantiles, nan_policy='omit'))
+    
+    # Theoretical data (continuous curve)
+    theo_means, theo_sems = [], []
+    continuous_abs_ild_valid = []
+    for abs_ild in continuous_abs_ild:
+        # Aggregate across all ABLs for this continuous ILD and quantile
+        all_abl_theo_quantiles = []
+        for abl in ABL_arr:
+            if len(continuous_plot_data[abl][abs_ild]['theoretical']) > 0:
+                all_abl_theo_quantiles.extend(np.array(continuous_plot_data[abl][abs_ild]['theoretical'])[:, q_idx])
         
-        theo_means.append(np.nanmean(all_abl_theo_quantiles))
-        theo_sems.append(sem(all_abl_theo_quantiles, nan_policy='omit'))
+        if len(all_abl_theo_quantiles) > 0:
+            theo_means.append(np.nanmean(all_abl_theo_quantiles))
+            theo_sems.append(sem(all_abl_theo_quantiles, nan_policy='omit'))
+            continuous_abs_ild_valid.append(abs_ild)
 
-    # Plot empirical with error bars
+    # Plot empirical with error bars (discrete points)
     ax.errorbar(abs_ild_sorted, emp_means, yerr=emp_sems, fmt='o-', color='black', markersize=4, capsize=0)
-    # Plot theoretical with error bars
-    ax.errorbar(abs_ild_sorted, theo_means, yerr=theo_sems, fmt='^-', color='tab:red', markersize=4, capsize=0)
+    
+    # Plot theoretical as smooth curve (continuous)
+    if len(continuous_abs_ild_valid) > 0:
+        ax.plot(continuous_abs_ild_valid, theo_means, '-', color='tab:red', linewidth=1.5)
+        # SEM shading around theoretical curve
+        ax.fill_between(continuous_abs_ild_valid,
+                         np.array(theo_means) - np.array(theo_sems),
+                         np.array(theo_means) + np.array(theo_sems),
+                         color='tab:red', alpha=0.2, linewidth=0)
 
 ax.set_xlabel('|ILD| (dB)', fontsize=LABEL_FONTSIZE)
 ax.set_ylabel('RT Quantile (s)', fontsize=LABEL_FONTSIZE)
