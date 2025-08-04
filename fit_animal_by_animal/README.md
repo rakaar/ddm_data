@@ -77,6 +77,9 @@
 - `figure_template.py` - figure template class
 - `test_fig_template.py` - example of using the template
 
+# proving that vanilla works for small ILDs
+- `prove_vanila_works_for_small_ILD.py` - Vanilla TIED fit and diagnose on abs ILD 1,2,4
+
 # fig 2
 - `fig2_all_using_template.py` - figure 2 - all figures in one panel
 - `see_only_quantile_avg_vs_avg_norm_and_vanila_for_fig2.py` - animal avg quantiles, vanilla, norm
