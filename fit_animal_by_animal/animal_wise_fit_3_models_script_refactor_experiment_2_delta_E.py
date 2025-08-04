@@ -1310,7 +1310,7 @@ for animal_idx in range(len(animal_ids)):
 
     
     sim_results = Parallel(n_jobs=30)(
-        delayed(psiam_tied_data_gen_wrapper_rate_norm_time_vary_refactored_fn)(
+        delayed(psiam_tied_data_gen_wrapper_rate_norm_fn_refactored)(
             V_A, theta_A, ABL_samples[iter_num], ILD_samples[iter_num], rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff_slow, t_E_aff_fast, del_go, 
             t_stim_samples[iter_num], rate_norm_l, iter_num, N_print, phi_params_obj, dt
         ) for iter_num in tqdm(range(N_sim))
@@ -1512,14 +1512,14 @@ for animal_idx in range(len(animal_ids)):
     }
     
     ################################################
-    ######## Vanilla TIED Model Diagnostics #######
+    ######## Time varying Normalized TIED Model Diagnostics #######
     ################################################
     print(f'Rate norm is {rate_norm_l}, bump height is {bump_height}, bump width is {bump_width}, dip height is {dip_height}, dip width is {dip_width}')
     
     sim_results = Parallel(n_jobs=30)(
-        delayed(psiam_tied_data_gen_wrapper_rate_norm_fn_refactored)(
+        delayed(psiam_tied_data_gen_wrapper_rate_norm_time_vary_refactored_fn)(
             V_A, theta_A, ABL_samples[iter_num], ILD_samples[iter_num], rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff_slow, t_E_aff_fast, del_go, 
-            t_stim_samples[iter_num], rate_norm_l, iter_num, N_print, dt
+            t_stim_samples[iter_num], rate_norm_l, iter_num, N_print, phi_params_obj, dt
         ) for iter_num in tqdm(range(N_sim))
     )
 
@@ -1534,14 +1534,14 @@ for animal_idx in range(len(animal_ids)):
     theory_results_up_and_down, theory_time_axis, bins, bin_centers = plot_rt_distributions_refactored(
         sim_df_1, data_df_1, ILD_arr, ABL_arr, t_pts, P_A_mean, C_A_mean, 
         t_stim_samples_for_diag, V_A, theta_A, t_A_aff, rate_lambda, T_0, theta_E, Z_E, t_E_aff_slow, t_E_aff_fast, del_go,
-        phi_params_obj, rate_norm_l, True, True, K_max, T_trunc,
+        phi_params_obj, rate_norm_l, is_norm, is_time_vary, K_max, T_trunc,
         cum_pro_and_reactive_time_vary_fn, up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn,
-        animal, pdf, model_name="Vanilla Tied"
+        animal, pdf, model_name="Time varying Normalized Tied"
     )
     
     plot_tachometric_curves(
         sim_df_1, data_df_1, ILD_arr, ABL_arr, theory_results_up_and_down,
-        theory_time_axis, bins, animal, pdf, model_name="Vanilla Tied"
+        theory_time_axis, bins, animal, pdf, model_name="Time varying Normalized Tied"
     )
     
     plot_grand_summary(
@@ -1549,7 +1549,7 @@ for animal_idx in range(len(animal_ids)):
         animal, pdf, model_name="Vanilla Tied"
     )
 
-    #### end of vanilla tied ##############
+    #### end of time vary norm tied ##############
 
     # Create model tables and add them to the PDF
     # These functions are now imported from animal_wise_plotting_utils
