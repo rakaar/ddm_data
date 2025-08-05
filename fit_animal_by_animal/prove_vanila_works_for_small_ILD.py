@@ -213,7 +213,8 @@ vanilla_pub = np.array([
 
 # %%
 # Read 30 animals
-DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+# DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+DESIRED_BATCHES = ['LED34_even']
 batch_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
 batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
 
