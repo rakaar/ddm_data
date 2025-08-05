@@ -82,6 +82,7 @@
 - `see_only_quantile_avg_vs_avg_norm_and_vanila_for_fig2_small_ILDs_only.py` - animal avg quantiles, vanilla for small ILDs
 - `see_only_psycho_all_ILD_tied_for_paper_for_fig2_small_ILDs_only.py`- animal avg psycho, vanilla for small ILDs
 - `see_only_psycho_all_ILD_tied_only_small_ILDs.py` - psychometric slopes, vanilla for small ILDs
+- `see_only_quantile_avg_vs_avg_norm_and_vanila_for_fig2_cont_ILD_small_ILDs.py` - animal avg quantiles, vanilla but on continous ILD for small ILDs
 
 # fig 2
 - `fig2_all_using_template.py` - figure 2 - all figures in one panel
