@@ -9,7 +9,7 @@ Set MODEL_TYPE = 'vanilla' or 'norm' at the top to switch between models.
 All downstream logic is automatically adjusted based on this flag.
 """
 # %%
-MODEL_TYPE = 'vanilla'
+MODEL_TYPE = 'norm'
 print(f"Processing MODEL_TYPE: {MODEL_TYPE}")
 
 
@@ -532,7 +532,7 @@ quantile_plot_data = {
     'ABL_arr': ABL_arr,
     'MODEL_TYPE': MODEL_TYPE
 }
-with open('vanila_quant_fig2_data.pkl', 'wb') as f:
+with open(f'{MODEL_TYPE}_quant_fig2_data.pkl', 'wb') as f:
     pickle.dump(quantile_plot_data, f)
 
 

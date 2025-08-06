@@ -508,7 +508,20 @@ ax.set_ylim(-3, 3)
 plt.tight_layout()
 plt.savefig('gamma_cond_fit_vs_vanilla_model.png', dpi=300, bbox_inches='tight')
 plt.show()
+# %%
 
+gamma_plot_data = {
+    'all_ABL': all_ABL,
+    'gamma_cond_by_cond_fit_all_animals': gamma_cond_by_cond_fit_all_animals,
+    'all_ILD_sorted': all_ILD_sorted,
+    'batch_animal_pairs': batch_animal_pairs,
+    'ILD_pts': ILD_pts,
+    'gamma_norm_model_fit_theoretical_all_animals': gamma_norm_model_fit_theoretical_all_animals
+}
+with open('norm_gamma_fig2_data.pkl', 'wb') as f:
+    pickle.dump(gamma_plot_data, f)
+
+print(f'saved to norm_gamma_fig2_data.pkl')
 # 4. Gamma plot for norm model
 fig, ax = plt.subplots(1, 1, figsize=(5, 5))
 

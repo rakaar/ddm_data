@@ -426,9 +426,9 @@ def plot_theoretical_psychometric_data(theoretical_psychometric_data):
 
 # %%
 # Get theoretical and empirical data
-# theoretical_psychometric_data = run_theoretical_psychometric_processing()
 psychometric_data = run_psychometric_processing()
-# print(f'len of theory psycho data = {len(theoretical_psychometric_data)}')
+theoretical_psychometric_data = run_theoretical_psychometric_processing()
+
 print(f'len of empirical psycho data = {len(psychometric_data)}')
 
 # %%
@@ -499,8 +499,6 @@ slopes_data = extract_slopes(psychometric_data)
 # Get all batch-animal pairs present in all three, EXCLUDING animal 41
 common_pairs = set(slopes_vanilla) & set(slopes_norm) & set(slopes_data)
 # Remove animal 41 from the set
-common_pairs = [ba for ba in common_pairs if str(ba[1]) != '41']
-
 # Sort animals by average slope in data (ascending)
 avg_slope_data = {ba: np.nanmean([slopes_data[ba][a] for a in [20,40,60]]) for ba in common_pairs}
 common_pairs_sorted = sorted(common_pairs, key=lambda ba: avg_slope_data[ba])
@@ -559,7 +557,7 @@ slope_plot_data = {
 }
 with open('vanila_slopes_fig2_data.pkl', 'wb') as f:
     pickle.dump(slope_plot_data, f)
-
+print(f'saved to vanila_slopes_fig2_data.pkl')
 from sklearn.metrics import r2_score
 
 # --- Figure 1: Data vs Vanilla ---
@@ -579,6 +577,14 @@ r2_vanilla = r2_score(data_means, vanilla_means)
 # ax_vanilla.legend([f'$R^2$ = {r2_vanilla:.2f}'], loc='upper left', frameon=False, fontsize=15)
 plt.show()
 
+slope_data = {
+    'data_means': data_means,
+    'norm_means': norm_means,
+}
+
+with open('norm_slopes_fig2_data.pkl', 'wb') as f:
+    pickle.dump(slope_data, f)
+print(f'saved to norm_slopes_fig2_data.pkl')
 # --- Figure 2: Data vs Norm ---
 fig_norm, ax_norm = plt.subplots(figsize=(4, 4))
 ax_norm.scatter(data_means, norm_means, color='k', marker='X', s=60, alpha=0.7)

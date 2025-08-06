@@ -1312,7 +1312,7 @@ for animal_idx in range(len(animal_ids)):
     sim_results = Parallel(n_jobs=30)(
         delayed(psiam_tied_data_gen_wrapper_rate_norm_fn_refactored)(
             V_A, theta_A, ABL_samples[iter_num], ILD_samples[iter_num], rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff_slow, t_E_aff_fast, del_go, 
-            t_stim_samples[iter_num], rate_norm_l, iter_num, N_print, phi_params_obj, dt
+            t_stim_samples[iter_num], rate_norm_l, iter_num, N_print, dt
         ) for iter_num in tqdm(range(N_sim))
     )
     sim_results_df = pd.DataFrame(sim_results)

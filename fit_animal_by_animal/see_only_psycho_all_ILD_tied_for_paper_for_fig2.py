@@ -4,7 +4,10 @@ Set IS_NORM_TIED = True for normalized TIED, False for vanilla TIED.
 """
 # %%
 IS_NORM_TIED = False  # Set to False for vanilla TIED
-
+if IS_NORM_TIED:
+    MODEL_TYPE = 'norm'
+else:
+    MODEL_TYPE = 'vanilla'
 from scipy.integrate import trapezoid
 import pandas as pd
 import numpy as np
@@ -418,26 +421,27 @@ def plot_theoretical_psychometric_data(theoretical_psychometric_data):
 
 # %%
 # Get theoretical and empirical data
-theoretical_psychometric_data = run_theoretical_psychometric_processing()
 psychometric_data = run_psychometric_processing()
+theoretical_psychometric_data = run_theoretical_psychometric_processing()
 # print(f'len of theory psycho data = {len(theoretical_psychometric_data)}')
 print(f'len of empirical psycho data = {len(psychometric_data)}')
+
 
 # %%
 # Save theoretical data in pickle file
 # uncomment when no pkl files
-# import copy
-# theory_psycho_data_to_save = copy.deepcopy(theoretical_psychometric_data)
-# for batch_animal_pair, animal_data in theory_psycho_data_to_save.items():
-#     for abl, abl_data in animal_data.items():
-#         fit = abl_data.get('fit')
-#         if fit is not None and 'sigmoid_fn' in fit:
-#             del fit['sigmoid_fn']
+import copy
+theory_psycho_data_to_save = copy.deepcopy(theoretical_psychometric_data)
+for batch_animal_pair, animal_data in theory_psycho_data_to_save.items():
+    for abl, abl_data in animal_data.items():
+        fit = abl_data.get('fit')
+        if fit is not None and 'sigmoid_fn' in fit:
+            del fit['sigmoid_fn']
 
-# pickle_filename = f"theoretical_psychometric_data_{'norm' if IS_NORM_TIED else 'vanilla'}.pkl"
-# with open(pickle_filename, 'wb') as f:
-#     pickle.dump(theory_psycho_data_to_save, f)
-# print(f"Saved theoretical psychometric data to {pickle_filename}")
+pickle_filename = f"theoretical_psychometric_data_{'norm' if IS_NORM_TIED else 'vanilla'}.pkl"
+with open(pickle_filename, 'wb') as f:
+    pickle.dump(theory_psycho_data_to_save, f)
+print(f"Saved theoretical psychometric data to {pickle_filename}")
 
 
 
@@ -466,11 +470,11 @@ for batch_animal_pair, abl_dict in list(psychometric_data.items())[:1]:
 # import matplotlib.pyplot as plt
 # import numpy as np
 
-# # Load vanilla and norm model pickles
-# # with open('theoretical_psychometric_data_vanilla.pkl', 'rb') as f:
-# #     vanilla_psychometric_data = pickle.load(f)
-# # with open('theoretical_psychometric_data_norm.pkl', 'rb') as f:
-# #     norm_psychometric_data = pickle.load(f)
+# Load vanilla and norm model pickles
+with open('theoretical_psychometric_data_vanilla.pkl', 'rb') as f:
+    vanilla_psychometric_data = pickle.load(f)
+# with open('theoretical_psychometric_data_norm.pkl', 'rb') as f:
+#     norm_psychometric_data = pickle.load(f)
 
 # # Helper: extract slopes for a dict of psychometric data
 # def extract_slopes(data_dict):
@@ -664,7 +668,7 @@ for batch_animal_pair, abl_dict in list(psychometric_data.items())[:1]:
 # %%
 # Compare vanilla/norm and data psychometric curves
 # theoretical psychometric data can be vanilla or norm. Comment,Uncomment accordingly
-# theoretical_psychometric_data = vanilla_psychometric_data
+theoretical_psychometric_data = vanilla_psychometric_data
 # theoretical_psychometric_data = norm_psychometric_data
 
 # Get all animal keys and determine grid size
@@ -897,9 +901,9 @@ plot_data = {
     'theory_agg': theory_agg,
     'ILD_arr': ILD_arr,
 }
-with open('vanila_psy_fig2_data.pkl', 'wb') as f:
+with open(f'{MODEL_TYPE}_psy_fig2_data.pkl', 'wb') as f:
     pickle.dump(plot_data, f)
-
+print(f"Saved {MODEL_TYPE}_psy_fig2_data.pkl")
 
 colors = {20: 'tab:blue', 40: 'tab:orange', 60: 'tab:green'}
 plt.figure(figsize=(4, 3))  # Smaller figure for publication
@@ -912,9 +916,9 @@ for abl in [20, 40, 60]:
     theo_mean = np.array(theo_mean)
     # Empirical: dotted line
     n_emp = np.sum(~np.isnan(emp), axis=0)
-    print(f'emp n valid: {n_emp}')
+    # print(f'emp n valid: {n_emp}')
     emp_sem = np.nanstd(emp, axis=0) / np.sqrt(np.maximum(n_emp - 1, 1))
-    print(f'denominator: {np.sqrt(np.maximum(n_emp - 1, 1))}')
+    # print(f'denominator: {np.sqrt(np.maximum(n_emp - 1, 1))}')
     plt.errorbar(ilds, emp_mean, yerr=emp_sem, fmt='o', color=colors[abl], label=f'Data ABL={abl}', capsize=0, markersize=4)
     # Logistic fit to theory: solid line
     valid_idx = ~np.isnan(theo_mean)

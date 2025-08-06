@@ -18,13 +18,13 @@ def _create_inner_defaultdict():
 # --- Data Loading ---
 def load_data():
     """Loads all necessary data from pickle files."""
-    with open('vanilla_psy_fig2_data.pkl', 'rb') as f:
+    with open('norm_psy_fig2_data.pkl', 'rb') as f:
         psy_data = pickle.load(f)
-    with open('vanila_quant_fig2_data.pkl', 'rb') as f:
+    with open('norm_quant_fig2_data.pkl', 'rb') as f:
         quant_data = pickle.load(f)
-    with open('../fit_each_condn/vanila_gamma_fig2_data.pkl', 'rb') as f:
+    with open('../fit_each_condn/norm_gamma_fig2_data.pkl', 'rb') as f:
         gamma_data = pickle.load(f)
-    with open('vanila_slopes_fig2_data.pkl', 'rb') as f:
+    with open('norm_slopes_fig2_data.pkl', 'rb') as f:
         slopes_data = pickle.load(f)
     return psy_data, quant_data, gamma_data, slopes_data
 
@@ -149,13 +149,13 @@ def plot_quantiles(ax, data):
     ax.spines['left'].set_visible(True)
 
 def plot_gamma(ax, data):
-    """Plots the gamma curves with condition fit and vanilla model."""
+    """Plots the gamma curves with condition fit and norm model."""
     all_ABL = data['all_ABL']
     gamma_cond_by_cond_fit_all_animals = data['gamma_cond_by_cond_fit_all_animals']
     all_ILD_sorted = data['all_ILD_sorted']
     batch_animal_pairs = data['batch_animal_pairs']
     ILD_pts = data['ILD_pts']
-    gamma_vanilla_model_fit_theoretical_all_animals = data['gamma_vanilla_model_fit_theoretical_all_animals']
+    gamma_norm_model_fit_theoretical_all_animals = data['gamma_norm_model_fit_theoretical_all_animals']
 
     # Plot condition by condition fit gamma
     for ABL in all_ABL:
@@ -168,18 +168,18 @@ def plot_gamma(ax, data):
                    color=f'tab:{["blue", "orange", "green"][ABL//20-1]}', 
                    label=f'ABL={ABL} (cond fit)', capsize=0, markersize=8)
 
-    # Plot theoretical vanilla model gamma
+    # Plot theoretical norm model gamma
     for ABL in all_ABL:
         # Get gamma values for this ABL
         gamma_for_ABL = np.full((len(batch_animal_pairs), len(ILD_pts)), np.nan)
         for animal_idx in range(len(batch_animal_pairs)):
-            gamma_for_ABL[animal_idx] = gamma_vanilla_model_fit_theoretical_all_animals[animal_idx]
+            gamma_for_ABL[animal_idx] = gamma_norm_model_fit_theoretical_all_animals[animal_idx]
         
         mean_gamma = np.nanmean(gamma_for_ABL, axis=0)
         sem_gamma = np.nanstd(gamma_for_ABL, axis=0) / np.sqrt(np.sum(~np.isnan(gamma_for_ABL), axis=0))
         
         ax.plot(ILD_pts, mean_gamma, color=f'tab:{["blue", "orange", "green"][ABL//20-1]}', 
-                label=f'ABL={ABL} (vanilla)', linestyle='--')
+                label=f'ABL={ABL} (norm)', linestyle='--')
         ax.fill_between(ILD_pts, mean_gamma - sem_gamma, mean_gamma + sem_gamma, 
                         color=f'tab:{["blue", "orange", "green"][ABL//20-1]}', alpha=0.2)
 
@@ -195,9 +195,9 @@ def plot_gamma(ax, data):
 def plot_slopes(ax, data):
     """Plots the slopes scatter plot comparing data vs model."""
     data_means = data['data_means']
-    vanilla_means = data['vanilla_means']
+    norm_means = data['norm_means']
     
-    ax.scatter(data_means, vanilla_means, marker='o', s=64, facecolors='w', edgecolors='k', linewidths=1.5)
+    ax.scatter(data_means, norm_means, marker='o', s=64, facecolors='w', edgecolors='k', linewidths=1.5)
     ax.set_xlabel('Data', fontsize=ft.STYLE.LABEL_FONTSIZE)
     ax.set_ylabel('Model', fontsize=ft.STYLE.LABEL_FONTSIZE)
     ax.set_xticks([0.1, 0.5, 0.9])
@@ -210,8 +210,8 @@ def plot_slopes(ax, data):
     ax.plot([0.1, 0.9], [0.1, 0.9], color='grey', alpha=0.5, linestyle='--', linewidth=2, zorder=0)
     
     # Calculate and display R²
-    r2_vanilla = r2_score(data_means, vanilla_means)
-    # ax.legend([f'$R^2$ = {r2_vanilla:.2f}'], loc='upper left', frameon=False, fontsize=15)
+    r2_norm = r2_score(data_means, norm_means)
+    print(f"R² for norm model: {r2_norm:.2f}")
 
 # %%
 # Load data and create figure
