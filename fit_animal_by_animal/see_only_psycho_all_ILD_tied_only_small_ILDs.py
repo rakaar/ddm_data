@@ -586,6 +586,34 @@ ax_vanilla.plot([0.1, 0.9], [0.1, 0.9], color='grey', alpha=0.5, linestyle='--',
 r2_vanilla = r2_score(data_means, vanilla_means)
 # ax_vanilla.legend([f'$R^2$ = {r2_vanilla:.2f}'], loc='upper left', frameon=False, fontsize=15)
 plt.show()
+
+# %%
+# Fig 2--- ABL wise Data vs Model Mean Slope Scatter Plots ---
+fig_abl, axes_abl = plt.subplots(1, 3, figsize=(12, 4))
+for idx, abl in enumerate(abl_names):
+    ax = axes_abl[idx]
+    data_vals = np.array([slopes_data[ba][abl] for ba in common_pairs_sorted])
+    model_vals = np.array([slopes_vanilla[ba][abl] for ba in common_pairs_sorted])
+    mask = ~np.isnan(data_vals) & ~np.isnan(model_vals)
+    ax.scatter(data_vals[mask], model_vals[mask], facecolors='none', edgecolors='k', marker='o', s=45, alpha=0.7)
+    ax.set_title(f'ABL {abl}', fontsize=16)
+    ax.set_xlabel('Data', fontsize=14)
+    if idx == 0:
+        ax.set_ylabel('Model', fontsize=14)
+    ax.set_xticks([0.1, 0.5, 0.9])
+    ax.set_yticks([0.1, 0.5, 0.9])
+    ax.set_xlim(0.1, 0.9)
+    ax.set_ylim(0.1, 0.9)
+    ax.tick_params(axis='both', labelsize=12)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.plot([0.1, 0.9], [0.1, 0.9], color='grey', alpha=0.5, linestyle='--', linewidth=2, zorder=0)
+    # Optionally compute and use R^2 per ABL:
+    # if np.any(mask):
+    #     _ = r2_score(data_vals[mask], model_vals[mask])
+plt.tight_layout()
+plt.show()
+
 # %%
 # --- Figure 2: Data vs Norm ---
 fig_norm, ax_norm = plt.subplots(figsize=(4, 4))

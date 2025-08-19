@@ -836,7 +836,7 @@ exp_df.loc[mask_nan & mask_success_neg1 & mask_ild_neg, 'response_poke'] = 3
 exp_df_batch = exp_df[
     # (exp_df['batch_name'] == 'LED34') &
     (exp_df['LED_trial'].isin([np.nan, 0])) &
-    (exp_df['animal'].isin([92])) &
+    # (exp_df['animal'].isin([93])) &
     (exp_df['session_type'].isin([7])) &
     (exp_df['training_level'].isin([16])) &
     (exp_df['repeat_trial'].isin([0, 2, np.nan]))
