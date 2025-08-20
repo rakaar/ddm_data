@@ -13,7 +13,7 @@ Tied parameters come from either results PKL (means) or psycho-fit VBMC (means),
 # %%
 MODEL_TYPE = 'vanilla'  # 'vanilla' or 'norm'
 PARAM_SOURCE = 'psycho'  # 'results' or 'psycho'
-MAX_ANIMALS = 8  # set to None for all
+MAX_ANIMALS = None # set to None for all
 # Configuration knobs
 K_MAX = 10          # series truncation for theory computation
 T_TRUNC = 0.3       # truncation window for normalization factor
@@ -23,9 +23,11 @@ print(f"Per-animal RTD | MODEL_TYPE={MODEL_TYPE}, PARAM_SOURCE={PARAM_SOURCE}, M
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 import os
 import pickle
 from collections import defaultdict
+import concurrent.futures as cf
 from time_vary_and_norm_simulators import psiam_tied_data_gen_wrapper_rate_norm_fn  # imported for parity with main script
 from animal_wise_plotting_utils import calculate_theoretical_curves
 from time_vary_norm_utils import (
@@ -43,6 +45,25 @@ ABL_arr = [20, 40, 60]
 ILD_arr = [-16., -8., -4., -2., -1., 1., 2., 4., 8., 16.]
 rt_bins = np.arange(0, 1.02, 0.02)
 
+# Parallel settings
+PARALLEL = True
+N_WORKERS = max(1, (os.cpu_count() or 4) - 1)
+
+# Common axes for consistent averaging
+EMP_BIN_CENTERS = (rt_bins[:-1] + rt_bins[1:]) / 2
+THEO_T_AXIS = np.arange(0, 1.0001, 0.001)  # 0..1 inclusive, matches internal theory grid (1001 pts)
+
+# Aggregated plotting toggles
+PLOT_OVERLAY_ALL_STIM = False  # overlay of all stimuli in one axes (off by default)
+PLOT_AVG_GRID = True           # 3x10 grid style averaged across animals (on by default)
+
+# Output controls
+SAVE_MULTIPAGE_PDF = True
+OUTPUT_PDF = f"rtd_by_stimulus_ALL_ANIMALS_{MODEL_TYPE}_{PARAM_SOURCE}.pdf"
+SHOW_FIGS = False  # when saving to PDF, keep False to avoid interactive windows
+fig_avg = None  # will hold the averaged 3x10 figure
+per_animal_figs = []  # collect per-animal figures for multipage PDF
+
 # --- Data helpers ---
 
 def get_animal_RTD_data(batch_name, animal_id, ABL, ILD, bins):
@@ -57,6 +78,28 @@ def get_animal_RTD_data(batch_name, animal_id, ABL, ILD, bins):
         return bin_centers, np.full_like(bin_centers, np.nan)
     rtd_hist, _ = np.histogram(df['RTwrtStim'], bins=bins, density=True)
     return bin_centers, rtd_hist
+
+# Optimized empirical histogram computation (avoid repeated CSV reads per panel)
+def get_empirical_hist_map(df_animal, ABL_list, ILD_list, bins):
+    bin_centers = (bins[:-1] + bins[1:]) / 2
+    out = {}
+    if df_animal is None or df_animal.empty:
+        for abl in ABL_list:
+            for ild in ILD_list:
+                out[(abl, ild)] = (bin_centers, np.full_like(bin_centers, np.nan))
+        return out
+    dfv = df_animal[df_animal['success'].isin([1, -1])]
+    dfv = dfv[dfv['RTwrtStim'] <= 1]
+    for abl in ABL_list:
+        dfa = dfv[dfv['ABL'] == abl]
+        for ild in ILD_list:
+            dfi = dfa[dfa['ILD'] == ild]
+            if dfi.empty:
+                out[(abl, ild)] = (bin_centers, np.full_like(bin_centers, np.nan))
+            else:
+                rtd_hist, _ = np.histogram(dfi['RTwrtStim'], bins=bins, density=True)
+                out[(abl, ild)] = (bin_centers, rtd_hist)
+    return out
 
 # --- Psycho VBMC helpers ---
 
@@ -234,6 +277,17 @@ def get_theoretical_RTD_from_params(P_A_mean, C_A_mean, t_stim_samples, abort_pa
     up_plus_down_mean = up_theory_mean_norm + down_theory_mean_norm
     return t_pts_0_1, up_plus_down_mean
 
+# Worker for parallel theory computation (one panel)
+def _theory_worker(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, rate_norm_l, is_norm, abl, ild, K_max):
+    try:
+        t_pts_0_1, up_plus_down = get_theoretical_RTD_from_params(
+            P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, rate_norm_l, is_norm, abl, ild, K_max
+        )
+    except Exception as e:
+        t_pts_0_1 = THEO_T_AXIS
+        up_plus_down = np.full_like(t_pts_0_1, np.nan)
+    return abl, ild, t_pts_0_1, up_plus_down
+
 # --- Build batch-animal list ---
 
 batch_dir = '/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/batch_csvs'
@@ -251,6 +305,10 @@ print(f"Processing {len(pairs_to_process)} animals...")
 
 # --- Per-animal plotting ---
 
+# Aggregators for animal-averaged plot
+agg_emp = defaultdict(list)   # key: (ABL, ILD) -> list of empirical hist arrays (len EMP_BIN_CENTERS)
+agg_theo = defaultdict(list)  # key: (ABL, ILD) -> list of theory arrays (len THEO_T_AXIS)
+
 for batch_name, animal_id in pairs_to_process:
     print(f"\n=== Animal: batch={batch_name}, animal={animal_id} ===")
     try:
@@ -260,6 +318,53 @@ for batch_name, animal_id in pairs_to_process:
         print(f"  Skipping (param extraction failed): {e}")
         continue
 
+    # Preload data once per animal for faster empirical histograms
+    try:
+        df_file = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
+        df_all = pd.read_csv(df_file)
+        df_animal = df_all[df_all['animal'] == animal_id]
+    except Exception as e:
+        print(f"  Failed reading CSV for empirical histograms: {e}")
+        df_animal = pd.DataFrame()
+
+    emp_map = get_empirical_hist_map(df_animal, ABL_arr, ILD_arr, rt_bins)
+
+    # Compute theory in parallel across the 3x10 grid
+    theory_map = {}
+    cond_list = [(abl, ild) for abl in ABL_arr for ild in ILD_arr]
+    if PARALLEL and len(cond_list) > 1:
+        with cf.ProcessPoolExecutor(max_workers=N_WORKERS) as ex:
+            futs = {
+                ex.submit(
+                    _theory_worker,
+                    P_A_mean, C_A_mean, t_stim_samples,
+                    abort_params, tied_params, rate_norm_l, is_norm,
+                    abl, ild, K_MAX
+                ): (abl, ild) for (abl, ild) in cond_list
+            }
+            for fut in cf.as_completed(futs):
+                abl, ild = futs[fut]
+                try:
+                    abl_out, ild_out, t_pts_0_1, up_plus_down = fut.result()
+                    theory_map[(abl_out, ild_out)] = (t_pts_0_1, up_plus_down)
+                except Exception as e:
+                    print(f"    Theory failed for ABL={abl}, ILD={ild}: {e}")
+                    t_pts_0_1 = np.linspace(0, 1, 100)
+                    theory_map[(abl, ild)] = (t_pts_0_1, np.full_like(t_pts_0_1, np.nan))
+    else:
+        # Sequential fallback
+        for (abl, ild) in cond_list:
+            try:
+                t_pts_0_1, up_plus_down = get_theoretical_RTD_from_params(
+                    P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, rate_norm_l, is_norm, abl, ild
+                )
+            except Exception as e:
+                print(f"    Theory failed for ABL={abl}, ILD={ild}: {e}")
+                t_pts_0_1 = THEO_T_AXIS
+                up_plus_down = np.full_like(t_pts_0_1, np.nan)
+            theory_map[(abl, ild)] = (t_pts_0_1, up_plus_down)
+
+    # Plot on the main thread
     fig, axes = plt.subplots(3, 10, figsize=(20, 8), sharex=True, sharey=True)
     for ax_row in axes:
         for ax in ax_row:
@@ -270,26 +375,19 @@ for batch_name, animal_id in pairs_to_process:
         for j, ild in enumerate(ILD_arr):
             ax = axes[i, j]
             try:
-                bin_centers, rtd_hist = get_animal_RTD_data(batch_name, animal_id, abl, ild, rt_bins)
-                try:
-                    t_pts_0_1, up_plus_down = get_theoretical_RTD_from_params(
-                        P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, rate_norm_l, is_norm, abl, ild
-                    )
-                except Exception as e:
-                    print(f"    Theory failed for ABL={abl}, ILD={ild}: {e}")
-                    t_pts_0_1 = np.linspace(0, 1, 100)
-                    up_plus_down = np.full_like(t_pts_0_1, np.nan)
+                bin_centers, rtd_hist = emp_map.get((abl, ild), (None, None))
+                t_pts_0_1, up_plus_down = theory_map.get((abl, ild), (None, None))
 
-                if not np.all(np.isnan(rtd_hist)):
+                if bin_centers is not None and rtd_hist is not None and not np.all(np.isnan(rtd_hist)):
                     ax.plot(bin_centers, rtd_hist, 'b-', linewidth=1.5, label='Data')
-                if not np.all(np.isnan(up_plus_down)):
+                if t_pts_0_1 is not None and up_plus_down is not None and not np.all(np.isnan(up_plus_down)):
                     ax.plot(t_pts_0_1, up_plus_down, 'r-', linewidth=1.5, label='Theory')
                 ax.set_title(f'ABL={abl}, ILD={ild}', fontsize=10)
                 if i == 2:
                     ax.set_xlabel('RT (s)')
-                    ax.set_xticks([0, 1])
-                    ax.set_xticklabels(['0', '1'], fontsize=12)
-                ax.set_xlim(0, 1)
+                    ax.set_xticks([0, 0.6])
+                    ax.set_xticklabels(['0', '0.6'], fontsize=12)
+                ax.set_xlim(0, 0.6)
                 if j == 0:
                     ax.set_ylabel('Density')
             except Exception as e:
@@ -301,7 +399,147 @@ for batch_name, animal_id in pairs_to_process:
         fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, 0.05), ncol=2)
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.15)
-    out_png = f'rtd_by_stimulus_PER_ANIMAL_{MODEL_TYPE}_{PARAM_SOURCE}_{batch_name}_{animal_id}.png'
-    plt.savefig(out_png, dpi=300, bbox_inches='tight')
-    plt.show()
-    print(f"  Saved {out_png}")
+    # out_png = f'rtd_by_stimulus_PER_ANIMAL_{MODEL_TYPE}_{PARAM_SOURCE}_{batch_name}_{animal_id}.png'
+    # plt.savefig(out_png, dpi=300, bbox_inches='tight')
+    if SAVE_MULTIPAGE_PDF:
+        try:
+            per_animal_figs
+        except NameError:
+            per_animal_figs = []
+        per_animal_figs.append(fig)
+    if SHOW_FIGS:
+        plt.show()
+
+    # Collect per-stimulus arrays for animal-averaged plot
+    for (abl, ild) in cond_list:
+        # Empirical
+        bc, rtd_hist = emp_map.get((abl, ild), (None, None))
+        if rtd_hist is None:
+            emp_arr = np.full_like(EMP_BIN_CENTERS, np.nan)
+        else:
+            # ensure consistent length
+            if bc is None or len(bc) != len(EMP_BIN_CENTERS) or not np.allclose(bc, EMP_BIN_CENTERS):
+                # interpolate onto EMP_BIN_CENTERS if needed
+                if bc is not None and len(bc) > 1 and np.any(np.isfinite(rtd_hist)):
+                    valid = np.isfinite(rtd_hist)
+                    if np.sum(valid) >= 2:
+                        emp_arr = np.interp(EMP_BIN_CENTERS, bc[valid], rtd_hist[valid])
+                    else:
+                        emp_arr = np.full_like(EMP_BIN_CENTERS, np.nan)
+                else:
+                    emp_arr = np.full_like(EMP_BIN_CENTERS, np.nan)
+            else:
+                emp_arr = rtd_hist
+        agg_emp[(abl, ild)].append(emp_arr)
+
+        # Theory
+        t_pts, theo = theory_map.get((abl, ild), (None, None))
+        if theo is None:
+            theo_arr = np.full_like(THEO_T_AXIS, np.nan)
+        else:
+            if t_pts is None or len(t_pts) != len(THEO_T_AXIS) or not np.allclose(t_pts, THEO_T_AXIS):
+                # interpolate onto THEO_T_AXIS if possible
+                if t_pts is not None and len(t_pts) > 1 and np.any(np.isfinite(theo)):
+                    valid = np.isfinite(theo)
+                    if np.sum(valid) >= 2:
+                        theo_arr = np.interp(THEO_T_AXIS, t_pts[valid], theo[valid])
+                    else:
+                        theo_arr = np.full_like(THEO_T_AXIS, np.nan)
+                else:
+                    theo_arr = np.full_like(THEO_T_AXIS, np.nan)
+            else:
+                theo_arr = theo
+        agg_theo[(abl, ild)].append(theo_arr)
+
+# --- Aggregated across animals plots ---
+
+# Optional overlay of all stimuli in one axes
+if PLOT_OVERLAY_ALL_STIM:
+    fig, ax = plt.subplots(figsize=(10, 5))
+    added_data_lbl = False
+    added_theory_lbl = False
+    for abl in ABL_arr:
+        for ild in ILD_arr:
+            key = (abl, ild)
+            emp_list = agg_emp.get(key, [])
+            theo_list = agg_theo.get(key, [])
+            if len(emp_list) == 0 and len(theo_list) == 0:
+                continue
+            emp_avg = np.nanmean(np.vstack(emp_list), axis=0) if len(emp_list) > 0 else np.full_like(EMP_BIN_CENTERS, np.nan)
+            theo_avg = np.nanmean(np.vstack(theo_list), axis=0) if len(theo_list) > 0 else np.full_like(THEO_T_AXIS, np.nan)
+
+            if not np.all(np.isnan(emp_avg)):
+                ax.plot(EMP_BIN_CENTERS, emp_avg, '-', linewidth=1.5, alpha=0.9, label=('Data' if not added_data_lbl else None))
+                added_data_lbl = True
+            if not np.all(np.isnan(theo_avg)):
+                ax.plot(THEO_T_AXIS, theo_avg, '--', linewidth=1.5, alpha=0.9, label=('Theory' if not added_theory_lbl else None))
+                added_theory_lbl = True
+
+    ax.set_title('Animal-averaged RTD across stimuli (Data solid, Theory dashed)')
+    ax.set_xlabel('RT (s)')
+    ax.set_ylabel('Density')
+    ax.set_xlim(0, 0.6)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.legend(loc='upper right', frameon=False)
+    plt.tight_layout()
+    if SHOW_FIGS:
+        plt.show()
+
+# 3x10 grid averaged across animals (matching per-animal style)
+if PLOT_AVG_GRID:
+    fig_avg, axes_avg = plt.subplots(3, 10, figsize=(20, 8), sharex=True, sharey=True)
+    for ax_row in axes_avg:
+        for axx in ax_row:
+            axx.spines['top'].set_visible(False)
+            axx.spines['right'].set_visible(False)
+
+    for i, abl in enumerate(ABL_arr):
+        for j, ild in enumerate(ILD_arr):
+            axx = axes_avg[i, j]
+            key = (abl, ild)
+            emp_list = agg_emp.get(key, [])
+            theo_list = agg_theo.get(key, [])
+            emp_avg = np.nanmean(np.vstack(emp_list), axis=0) if len(emp_list) > 0 else np.full_like(EMP_BIN_CENTERS, np.nan)
+            theo_avg = np.nanmean(np.vstack(theo_list), axis=0) if len(theo_list) > 0 else np.full_like(THEO_T_AXIS, np.nan)
+
+            if not np.all(np.isnan(emp_avg)):
+                axx.plot(EMP_BIN_CENTERS, emp_avg, 'b-', linewidth=1.5, label='Data')
+            if not np.all(np.isnan(theo_avg)):
+                axx.plot(THEO_T_AXIS, theo_avg, 'r-', linewidth=1.5, label='Theory')
+            axx.set_title(f'ABL={abl}, ILD={ild}', fontsize=10)
+            if i == 2:
+                axx.set_xlabel('RT (s)')
+                axx.set_xticks([0, 0.6])
+                axx.set_xticklabels(['0', '0.6'], fontsize=12)
+            axx.set_xlim(0, 0.6)
+            if j == 0:
+                axx.set_ylabel('Density')
+
+    handles_avg, labels_avg = axes_avg[0, 0].get_legend_handles_labels()
+    if handles_avg:
+        fig_avg.legend(handles_avg, labels_avg, loc='upper center', bbox_to_anchor=(0.5, 0.05), ncol=2)
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.15)
+    # do not show unless requested; we'll save to PDF later
+    if SHOW_FIGS:
+        plt.show()
+
+# --- Save multi-page PDF (first: averaged grid, then: each animal) ---
+if SAVE_MULTIPAGE_PDF:
+    try:
+        with PdfPages(OUTPUT_PDF) as pdf:
+            if fig_avg is not None:
+                pdf.savefig(fig_avg, bbox_inches='tight')
+            for fig in per_animal_figs:
+                pdf.savefig(fig, bbox_inches='tight')
+            info = pdf.infodict()
+            info['Title'] = f'RTD by Stimulus — Averaged + Per Animal ({MODEL_TYPE}, {PARAM_SOURCE})'
+            info['Creator'] = 'decoding_conf_psy_fit_see_rtds_per_animal.py'
+        print(f"Saved multi-page PDF: {OUTPUT_PDF} with {1 if fig_avg is not None else 0} + {len(per_animal_figs)} pages")
+    finally:
+        if not SHOW_FIGS:
+            if fig_avg is not None:
+                plt.close(fig_avg)
+            for fig in per_animal_figs:
+                plt.close(fig)

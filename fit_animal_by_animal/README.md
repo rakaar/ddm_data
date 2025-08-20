@@ -95,6 +95,8 @@
 
 
 - `decoding_conf_NEW_psychometric_fit_vbmc_all_animals_pot_supp_for_paper.py` - psychometric ONLY fits
+- `decoding_conf_psy_fit_see_rtds_per_animal.py`: RTDs of above fit, per animal
+- `decoding_conf_psy_fit_see_rtds_supp_for_paper.py` - RTDs of above fit, average of all animals
 
 # Potential supplementary
 - `all_animals_rtd_cdf_plots.py` - CDF for min RT Cut off
