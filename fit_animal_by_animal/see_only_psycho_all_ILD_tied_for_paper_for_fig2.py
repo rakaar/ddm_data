@@ -3,7 +3,7 @@ Unified analysis for psychometric curves using TIED models.
 Set IS_NORM_TIED = True for normalized TIED, False for vanilla TIED.
 """
 # %%
-IS_NORM_TIED = False  # Set to False for vanilla TIED
+IS_NORM_TIED = True  # Set to False for vanilla TIED
 if IS_NORM_TIED:
     MODEL_TYPE = 'norm'
 else:
@@ -273,7 +273,7 @@ def get_theoretical_psychometric_data(batch_name, animal_id, ABL):
         for ild in ild_values:
             try:
                 t_pts_0_1, up_mean, down_mean = get_theoretical_RTD_up_down(
-                    p_a, c_a, ts_samp, abort_params, tied_params, ABL, ild
+                    p_a, c_a, ts_samp, abort_params, tied_params, ABL, ild, batch_name
                 )
                 up_area = trapezoid(up_mean, t_pts_0_1)
                 down_area = trapezoid(down_mean, t_pts_0_1)
@@ -291,7 +291,7 @@ def get_theoretical_psychometric_data(batch_name, animal_id, ABL):
         return None
 
 # %%
-def get_theoretical_RTD_up_down(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, ABL, ILD):
+def get_theoretical_RTD_up_down(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, ABL, ILD, batch_name):
     phi_params_obj = np.nan
     if IS_NORM_TIED:
         rate_norm_l = tied_params.get('rate_norm_l', np.nan)
@@ -301,7 +301,10 @@ def get_theoretical_RTD_up_down(P_A_mean, C_A_mean, t_stim_samples, abort_params
         is_norm = False
     is_time_vary = False
     K_max = 10
-    T_trunc = 0.3
+    if batch_name == 'LED34_even':
+        T_trunc = 0.15
+    else:
+        T_trunc = 0.3
     t_pts = np.arange(-2, 2, 0.001)
     trunc_fac_samples = np.zeros((len(t_stim_samples)))
     Z_E = (tied_params['w'] - 0.5) * 2 * tied_params['theta_E']
@@ -471,10 +474,14 @@ for batch_animal_pair, abl_dict in list(psychometric_data.items())[:1]:
 # import numpy as np
 
 # Load vanilla and norm model pickles
-with open('theoretical_psychometric_data_vanilla.pkl', 'rb') as f:
-    vanilla_psychometric_data = pickle.load(f)
-# with open('theoretical_psychometric_data_norm.pkl', 'rb') as f:
-#     norm_psychometric_data = pickle.load(f)
+if IS_NORM_TIED == False:
+    with open('theoretical_psychometric_data_vanilla.pkl', 'rb') as f:
+        vanilla_psychometric_data = pickle.load(f)
+    print(f'read vanilla pkl')
+else:
+    with open('theoretical_psychometric_data_norm.pkl', 'rb') as f:
+        norm_psychometric_data = pickle.load(f)
+    print(f'read norm pkl')
 
 # # Helper: extract slopes for a dict of psychometric data
 # def extract_slopes(data_dict):
@@ -668,8 +675,12 @@ with open('theoretical_psychometric_data_vanilla.pkl', 'rb') as f:
 # %%
 # Compare vanilla/norm and data psychometric curves
 # theoretical psychometric data can be vanilla or norm. Comment,Uncomment accordingly
-theoretical_psychometric_data = vanilla_psychometric_data
-# theoretical_psychometric_data = norm_psychometric_data
+if IS_NORM_TIED == False:
+    theoretical_psychometric_data = vanilla_psychometric_data
+    print(f'using vanilla pkl')
+else:
+    theoretical_psychometric_data = norm_psychometric_data
+    print(f'using norm pkl')
 
 # Get all animal keys and determine grid size
 animal_keys = list(psychometric_data.keys())

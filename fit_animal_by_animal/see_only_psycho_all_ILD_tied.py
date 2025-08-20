@@ -4,7 +4,7 @@ Unified analysis for psychometric curves using TIED models.
 Set IS_NORM_TIED = True for normalized TIED, False for vanilla TIED.
 """
 # %%
-IS_NORM_TIED = False  # Set to False for vanilla TIED
+IS_NORM_TIED = True  # Set to False for vanilla TIED
 
 from scipy.integrate import trapezoid
 import pandas as pd
@@ -278,7 +278,7 @@ def get_theoretical_psychometric_data(batch_name, animal_id, ABL):
         for ild in ild_values:
             try:
                 t_pts_0_1, up_mean, down_mean = get_theoretical_RTD_up_down(
-                    p_a, c_a, ts_samp, abort_params, tied_params, ABL, ild
+                    p_a, c_a, ts_samp, abort_params, tied_params, ABL, ild, batch_name
                 )
                 up_area = trapezoid(up_mean, t_pts_0_1)
                 down_area = trapezoid(down_mean, t_pts_0_1)
@@ -296,7 +296,7 @@ def get_theoretical_psychometric_data(batch_name, animal_id, ABL):
         return None
 
 # %%
-def get_theoretical_RTD_up_down(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, ABL, ILD):
+def get_theoretical_RTD_up_down(P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, ABL, ILD, batch_name):
     phi_params_obj = np.nan
     if IS_NORM_TIED:
         rate_norm_l = tied_params.get('rate_norm_l', np.nan)
@@ -306,7 +306,10 @@ def get_theoretical_RTD_up_down(P_A_mean, C_A_mean, t_stim_samples, abort_params
         is_norm = False
     is_time_vary = False
     K_max = 10
-    T_trunc = 0.3
+    if batch_name == 'LED34_even':
+        T_trunc = 0.15
+    else:
+        T_trunc = 0.3
     t_pts = np.arange(-2, 2, 0.001)
     trunc_fac_samples = np.zeros((len(t_stim_samples)))
     Z_E = (tied_params['w'] - 0.5) * 2 * tied_params['theta_E']
@@ -445,6 +448,7 @@ for batch_animal_pair, animal_data in theory_psycho_data_to_save.items():
 pickle_filename = f"theoretical_psychometric_data_{'norm' if IS_NORM_TIED else 'vanilla'}.pkl"
 with open(pickle_filename, 'wb') as f:
     pickle.dump(theory_psycho_data_to_save, f)
+    
 print(f"Saved theoretical psychometric data to {pickle_filename}")
 
 
