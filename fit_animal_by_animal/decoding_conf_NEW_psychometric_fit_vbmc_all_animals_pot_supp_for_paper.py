@@ -174,7 +174,10 @@ def fit_psychometric_for_animal(batch_name, animal_id_str):
         # Setup for integration
         t_stim_arr = np.arange(0.2, 2.2, 0.1)
         t_pts_pa = np.arange(-1,2,0.001)
-        t_trunc = 0.3
+        if batch_name == 'LED34_even':
+            t_trunc = 0.15
+        else:
+            t_trunc = 0.3
         PA_vs_t_stim_dict = {}
         CA_vs_t_stim_dict = {}
         print(f'starting integral for multiple t_stim')

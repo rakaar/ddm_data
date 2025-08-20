@@ -94,6 +94,8 @@
 - `see_only_psycho_all_ILD_tied.py` - psychometric slope model vs data - vanilla, norm
 
 
+- `decoding_conf_NEW_psychometric_fit_vbmc_all_animals_pot_supp_for_paper.py` - psychometric ONLY fits
+
 # Potential supplementary
 - `all_animals_rtd_cdf_plots.py` - CDF for min RT Cut off
 - `fit_qq_animals_and_avg.py` - Q - Q_60 vs Q_60
