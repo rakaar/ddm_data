@@ -100,6 +100,8 @@
 - `fit_animal_by_animal/decoding_conf_psy_fit_see_psycho_for_supp_for_paper.py` - psycho only fit diagnostics by plotting only psychometrics
 - `decoding_conf_psy_fit_see_quantiles_supp_for_paper.py` - psycho only diagnostics by plotting only quantiles
 
+- `decoding_conf_NEW_psychometric_fit_vbmc_all_animals_pot_supp_for_paper_T0_also_fixed.py` - psychometric fits, T_0 also fixed
+
 # Potential supplementary
 - `all_animals_rtd_cdf_plots.py` - CDF for min RT Cut off
 - `fit_qq_animals_and_avg.py` - Q - Q_60 vs Q_60
