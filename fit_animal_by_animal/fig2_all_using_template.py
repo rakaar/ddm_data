@@ -22,7 +22,7 @@ def load_data():
         psy_data = pickle.load(f)
     with open('vanila_quant_fig2_data.pkl', 'rb') as f:
         quant_data = pickle.load(f)
-    with open('../fit_each_condn/vanila_gamma_fig2_data.pkl', 'rb') as f:
+    with open('../fit_each_condn/vanilla_gamma_fig2_data.pkl', 'rb') as f:
         gamma_data = pickle.load(f)
     with open('vanila_slopes_fig2_data.pkl', 'rb') as f:
         slopes_data = pickle.load(f)

@@ -4,6 +4,7 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
+from collections import defaultdict
 
 with open('vanila_psy_fig2_data.pkl', 'rb') as f:
     plot_data = pickle.load(f)
@@ -66,6 +67,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import sem
 
+# Helper functions for unpickling defaultdict-based structure
+def _create_innermost_dict():
+    return {'empirical': [], 'theoretical': []}
+
+def _create_inner_defaultdict():
+    return defaultdict(_create_innermost_dict)
+
 with open('vanila_quant_fig2_data.pkl', 'rb') as f:
     quantile_plot_data = pickle.load(f)
 
@@ -125,7 +133,7 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
-with open('../fit_each_condn/vanila_gamma_fig2_data.pkl', 'rb') as f:
+with open('../fit_each_condn/vanilla_gamma_fig2_data.pkl', 'rb') as f:
     gamma_plot_data = pickle.load(f)
 
 all_ABL = gamma_plot_data['all_ABL']

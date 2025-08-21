@@ -464,7 +464,7 @@ gamma_plot_data = {
     'ILD_pts': ILD_pts,
     'gamma_vanilla_model_fit_theoretical_all_animals': gamma_vanilla_model_fit_theoretical_all_animals
 }
-with open('vanila_gamma_fig2_data.pkl', 'wb') as f:
+with open('vanilla_gamma_fig2_data.pkl', 'wb') as f:
     pickle.dump(gamma_plot_data, f)
 
 fig, ax = plt.subplots(1, 1, figsize=(5, 5))
