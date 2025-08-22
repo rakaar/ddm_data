@@ -101,7 +101,9 @@
 - `decoding_conf_psy_fit_see_quantiles_supp_for_paper.py` - psycho only diagnostics by plotting only quantiles
 
 - `decoding_conf_NEW_psychometric_fit_vbmc_all_animals_pot_supp_for_paper_T0_also_fixed.py` - psychometric fits, T_0 also fixed
-- `decoding_conf_psy_fit_see_psycho_for_supp_for_paper_fixed_T_0.py` - psy fits, T_0 fixed, diagnostics-psy
+- `decoding_conf_psy_fit_see_psycho_for_supp_for_paper_fixed_T_0.py` - psy fits diagnostics, T_0 fixed, diagnostics-psy
+- `decoding_conf_psy_fit_see_rtds_supp_for_paper_T_0_fixed.py` - psy fits diagnose, T_0 fixed, diagnostics-rtds
+
 
 
 # Potential supplementary
