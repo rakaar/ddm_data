@@ -106,6 +106,7 @@
 - `decoding_conf_psy_fit_see_rtds_supp_for_paper_T_0_fixed.py` - psy fits diagnose, T_0 fixed, diagnostics-rtds
 
 - `decoding_conf_psy_fit_see_quantiles_supp_for_paper_T_0_fixed.py` - psycho diagnostics, T_0 fixed, plotting only quantiles
+- `decoding_conf_psy_fit_see_rtds_per_animal_T_0_also_fixed.py` - psycho diagnostics, T_0 fixed, plotting RTDs per animal
 
 # Potential supplementary
 - `all_animals_rtd_cdf_plots.py` - CDF for min RT Cut off
