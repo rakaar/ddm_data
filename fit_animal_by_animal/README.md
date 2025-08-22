@@ -93,18 +93,19 @@
 (but cond by cond fit is done here - `fit_single_rat_condn_by_condn_fix_t_E_w_del_go_all_animals_loop_for_paper.py`)
 - `see_only_psycho_all_ILD_tied.py` - psychometric slope model vs data - vanilla, norm
 
-
+### psycho fit, del E,go fixed
 - `decoding_conf_NEW_psychometric_fit_vbmc_all_animals_pot_supp_for_paper.py` - psychometric ONLY fits
 - `decoding_conf_psy_fit_see_rtds_per_animal.py`: RTDs of above fit, per animal
 - `decoding_conf_psy_fit_see_rtds_supp_for_paper.py` - RTDs of above fit, average of all animals
 - `fit_animal_by_animal/decoding_conf_psy_fit_see_psycho_for_supp_for_paper.py` - psycho only fit diagnostics by plotting only psychometrics
 - `decoding_conf_psy_fit_see_quantiles_supp_for_paper.py` - psycho only diagnostics by plotting only quantiles
 
-- `decoding_conf_NEW_psychometric_fit_vbmc_all_animals_pot_supp_for_paper_T0_also_fixed.py` - psychometric fits, T_0 also fixed
+### psycho fit , T_0 ALSO fixed
+-`decoding_conf_NEW_psychometric_fit_vbmc_all_animals_pot_supp_for_paper_T0_also_fixed.py` - psychometric fits, T_0 also fixed
 - `decoding_conf_psy_fit_see_psycho_for_supp_for_paper_fixed_T_0.py` - psy fits diagnostics, T_0 fixed, diagnostics-psy
 - `decoding_conf_psy_fit_see_rtds_supp_for_paper_T_0_fixed.py` - psy fits diagnose, T_0 fixed, diagnostics-rtds
 
-
+- `decoding_conf_psy_fit_see_quantiles_supp_for_paper_T_0_fixed.py` - psycho diagnostics, T_0 fixed, plotting only quantiles
 
 # Potential supplementary
 - `all_animals_rtd_cdf_plots.py` - CDF for min RT Cut off
