@@ -17,8 +17,8 @@ font_family = "Helvetica"
 
 # Color definitions
 COLOR_CURVE_1 = 'black'
-COLOR_CURVE_2 = 'grey'
-COLOR_CURVE_3 = 'darkgrey'
+COLOR_CURVE_2 = '#9467bd'
+COLOR_CURVE_3 = '#8c564b'
 
 # ILD parameters
 BIG_ILD = 16
