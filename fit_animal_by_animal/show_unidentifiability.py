@@ -15,6 +15,11 @@ LEGEND_FONTSIZE = 16
 SUPTITLE_FONTSIZE = 24
 font_family = "Helvetica"
 
+# Color definitions
+COLOR_CURVE_1 = 'black'
+COLOR_CURVE_2 = 'grey'
+COLOR_CURVE_3 = 'darkgrey'
+
 # ILD parameters
 BIG_ILD = 16
 SMALL_ILD = 4
@@ -66,10 +71,10 @@ line_big = slope_m * ild_vals_big
 # %%
 # Plot
 fig, ax = plt.subplots(figsize=(6, 4))
-# Using purple and brown colors to avoid the restricted palette
-ax.plot(ild_vals_small, gama_ild_1, label=f"tanh: λ={lam1:g}, θ={theta1:g}", lw=2, color='purple')
-ax.plot(ild_vals_big, gama_ild_2, label=f"tanh: λ={lam2:g}, θ={theta2:.3g}", lw=2, color='purple')
-ax.plot(ild_vals_big, gama_ild_3, label=f"tanh: λ={lam3:.3g}, θ={theta3:.3g}", lw=2, color='teal')
+# Using black and grey colors to avoid the restricted palette
+ax.plot(ild_vals_small, gama_ild_1, label=f"tanh: λ={lam1:g}, θ={theta1:g}", lw=2, color=COLOR_CURVE_1)
+ax.plot(ild_vals_big, gama_ild_2, label=f"tanh: λ={lam2:g}, θ={theta2:.3g}", lw=2, color=COLOR_CURVE_2)
+ax.plot(ild_vals_big, gama_ild_3, label=f"tanh: λ={lam3:.3g}, θ={theta3:.3g}", lw=2, color=COLOR_CURVE_3)
 
 # Plot tanh curves with different styles: solid from -SMALL_ILD to SMALL_ILD, dotted outside
 # Using the same parameters as the main curves for consistency
@@ -97,8 +102,8 @@ ild_scatter = np.array([-BIG_ILD, -8, -SMALL_ILD, -2, -1, 1, 2, SMALL_ILD, 8, BI
 gamma_scatter_1 = gama(lam1, theta1, ild_scatter)
 gamma_scatter_2 = gama(lam2, theta2, ild_scatter)
 gamma_scatter_3 = gama(lam3, theta3, ild_scatter)
-ax.scatter(ild_scatter, gamma_scatter_2, color='purple', s=50, zorder=5, marker='o')
-ax.scatter(ild_scatter, gamma_scatter_3, color='teal', s=50, zorder=5, marker='o')
+ax.scatter(ild_scatter, gamma_scatter_2, color=COLOR_CURVE_2, s=50, zorder=5, marker='o')
+ax.scatter(ild_scatter, gamma_scatter_3, color=COLOR_CURVE_3, s=50, zorder=5, marker='o')
 
 # Styling adjustments for publication grade plot
 ax.set_xlabel("ILD (dB)", fontsize=LABEL_FONTSIZE)
@@ -116,6 +121,21 @@ ax.spines['left'].set_visible(False)
 # Remove y-axis ticks and labels
 ax.set_yticks([])
 ax.set_ylabel('')
+
+# Add lambda values as colored text BELOW the plot on the right, matching curve colors
+text_x, text_y = 0.98, 0.6  # below the axes; right-aligned
+line_h = 0.12  # vertical spacing between lines (in axes fraction)
+lambda_lines = [
+    # (f"λ={lam1:.2f}", COLOR_CURVE_1),
+    (f"λ={lam3:.2f}", COLOR_CURVE_3),
+    (f"λ={lam2:.2f}", COLOR_CURVE_2),
+]
+for i, (txt, col) in enumerate(lambda_lines):
+    ax.text(
+        text_x, text_y - i * line_h, txt,
+        transform=ax.transAxes, ha='right', va='top', fontsize=14, color=col,
+        bbox=dict(facecolor='white', alpha=0.9, edgecolor='none', pad=1.5)
+    )
 
 # Remove title and legend as requested
 # ax.set_title("Same central slope: γ'0=θλ/17.37")
