@@ -111,3 +111,6 @@
 # Potential supplementary
 - `all_animals_rtd_cdf_plots.py` - CDF for min RT Cut off
 - `fit_qq_animals_and_avg.py` - Q - Q_60 vs Q_60
+
+## to show not non-identifiability of params in vanilla 
+- `show_unidentifiability.py` - gamma linear, sigmoid overlapping
