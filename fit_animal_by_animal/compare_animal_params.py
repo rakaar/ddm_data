@@ -6,10 +6,12 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+import pandas as pd
 
 # Directory containing the results
 RESULTS_DIR = os.path.dirname(__file__)
-BATCHES = ['Comparable', 'SD', 'LED2', 'LED1', 'LED34', 'LED7']
+DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+
 
 # Define simple, high-contrast colors for each batch
 BATCH_COLORS = {
@@ -19,25 +21,58 @@ BATCH_COLORS = {
     'LED1': 'orange',
     'LED34': 'purple',
     'LED7': 'black',
+    'LED34_even': 'blue',
 }
 
-# Find all animal pickle files from all batches
+# %%
+# Build animal list from CSVs for DESIRED_BATCHES
+batch_dir = os.path.join(RESULTS_DIR, 'batch_csvs')
+batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
+dfs = []
+for fname in batch_files:
+    fpath = os.path.join(batch_dir, fname)
+    if os.path.exists(fpath):
+        dfs.append(pd.read_csv(fpath))
+if len(dfs) > 0:
+    merged_data = pd.concat(dfs, ignore_index=True)
+    merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
+    batch_animal_pairs = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
+    print(f"Found {len(batch_animal_pairs)} batch-animal pairs from CSVs.")
+else:
+    print('Warning: No batch CSVs found for DESIRED_BATCHES. Falling back to scanning PKL files in RESULTS_DIR.')
+    batch_animal_pairs = []
+
+# Build animal tuples from CSV-derived set if available; otherwise fallback to directory scan
 animal_batch_tuples = []  # List of (batch, animal_number)
 pkl_files = []  # List of (batch, animal_number, filename)
-for fname in os.listdir(RESULTS_DIR):
-    if fname.startswith('results_') and fname.endswith('.pkl'):
-        for batch in BATCHES:
-            prefix = f'results_{batch}_animal_'
-            if fname.startswith(prefix):
-                try:
-                    animal_id = int(fname.split('_')[-1].replace('.pkl', ''))
-                    animal_batch_tuples.append((batch, animal_id))
-                    pkl_files.append((batch, animal_id, fname))
-                except Exception:
-                    continue
+if batch_animal_pairs:
+    for (batch, animal) in batch_animal_pairs:
+        try:
+            animal_id = int(animal)
+        except Exception:
+            # Skip non-integer animal identifiers as PKL files use integer IDs
+            continue
+        fname = f'results_{batch}_animal_{animal_id}.pkl'
+        pkl_path = os.path.join(RESULTS_DIR, fname)
+        if os.path.exists(pkl_path):
+            animal_batch_tuples.append((batch, animal_id))
+            pkl_files.append((batch, animal_id, fname))
+else:
+    for fname in os.listdir(RESULTS_DIR):
+        if fname.startswith('results_') and fname.endswith('.pkl'):
+            for batch in DESIRED_BATCHES:
+                prefix = f'results_{batch}_animal_'
+                if fname.startswith(prefix):
+                    try:
+                        animal_id = int(fname.split('_')[-1].replace('.pkl', ''))
+                        animal_batch_tuples.append((batch, animal_id))
+                        pkl_files.append((batch, animal_id, fname))
+                    except Exception:
+                        continue
+
 # Sort by batch then animal number
 animal_batch_tuples = sorted(animal_batch_tuples, key=lambda x: (x[0], x[1]))
-
+# %%
 # Model configs: (model_key, param_keys, param_labels, plot_title)
 model_configs = [
     ('vbmc_aborts_results',
@@ -57,6 +92,8 @@ model_configs = [
         ['rate_lambda', 'T_0', 'theta_E', 'w', 't_E_aff', 'del_go', 'rate_norm_l', 'bump_height', 'bump_width', 'dip_height', 'dip_width'],
         'Time-Varying Norm TIED Model'),
 ]
+
+overall_param_means = {}
 
 for model_key, param_keys, param_labels, plot_title in model_configs:
     means = {param: [] for param in param_keys}
@@ -86,12 +123,21 @@ for model_key, param_keys, param_labels, plot_title in model_configs:
             ci_lows[param].append(ci_lower)
             ci_highs[param].append(ci_upper)
 
+    # Aggregate mean across animals per parameter for this model
+    overall_param_means[plot_title] = {}
+    for p_key, p_label in zip(param_keys, param_labels):
+        vals = np.array(means[p_key], dtype=float)
+        overall_param_means[plot_title][p_label] = float(np.nanmean(vals)) if vals.size > 0 else float('nan')
+
     from matplotlib.backends.backend_pdf import PdfPages
     outname = f'compare_animals_all_batches_{model_key}.pdf'
     with PdfPages(os.path.join(RESULTS_DIR, outname)) as pdf:
         for i, param in enumerate(param_keys):
             # Sort by mean value (descending)
             zipped = list(zip(means[param], ci_lows[param], ci_highs[param], valid_labels, batch_colors, valid_animals))
+            if len(zipped) == 0:
+                # No data for this parameter in this model; skip plotting
+                continue
             zipped.sort(key=lambda x: x[0], reverse=True)
             sorted_means, sorted_ci_lows, sorted_ci_highs, sorted_labels, sorted_colors, sorted_animals = zip(*zipped)
             y_pos = np.arange(len(sorted_labels))
@@ -215,3 +261,14 @@ plt.tight_layout()
 plt.savefig(os.path.join(RESULTS_DIR, 'compare_animals_elbo_loglike_all_batches.pdf'))
 print('Saved: compare_animals_elbo_loglike_all_batches.pdf')
 plt.close(fig)
+
+# %%
+# Print overall mean of each parameter across animals for each model
+print("\n=== Mean parameter values across animals (by model) ===")
+for model_title, param_means in overall_param_means.items():
+    print(f"[{model_title}]")
+    for label, value in param_means.items():
+        try:
+            print(f"  {label}: {value:.6g}")
+        except Exception:
+            print(f"  {label}: {value}")
