@@ -387,3 +387,58 @@ if len(labels) > 0:
     # plt.close(fig)
 else:
     print('No overlapping animals found with both Vanilla TIED and Norm TIED LOG-LIKELIHOODs to compute percent increase.')
+
+# %%
+# Build per-model parameter tables (CSV): rows = Rat 1, Rat 2, ...; columns = params with "mean ± SD"
+def _format_mean_sd(mean, sd, sig=3):
+    try:
+        if not np.isfinite(mean) or not np.isfinite(sd):
+            return ''
+    except Exception:
+        return ''
+    # Use 3 significant figures; yields styles like 0.076 ± 0.010 or 50.7 ± 6.8
+    return f"{mean:.3g} ± {sd:.3g}"
+
+for model_key, param_keys, param_labels, plot_title in model_configs:
+    table_rows = []
+    per_param_means_across_rats = {label: [] for label in param_labels}
+    rat_counter = 0
+    for batch, animal_id in animal_batch_tuples:
+        pkl_fname = f'results_{batch}_animal_{animal_id}.pkl'
+        pkl_path = os.path.join(RESULTS_DIR, pkl_fname)
+        if not os.path.exists(pkl_path):
+            continue
+        with open(pkl_path, 'rb') as f:
+            results = pickle.load(f)
+        if model_key not in results:
+            continue
+        rat_counter += 1
+        row = {'Rat': f'Rat {rat_counter}'}
+        for p_key, p_label in zip(param_keys, param_labels):
+            samples = np.asarray(results[model_key][p_key]).astype(float).ravel()
+            samples = samples[np.isfinite(samples)]
+            if samples.size == 0:
+                mean_val, sd_val = np.nan, np.nan
+            else:
+                mean_val = float(np.mean(samples))
+                sd_val = float(np.std(samples))
+            row[p_label] = _format_mean_sd(mean_val, sd_val)
+            if np.isfinite(mean_val):
+                per_param_means_across_rats[p_label].append(mean_val)
+        table_rows.append(row)
+    # Append an 'All' row summarizing across rats (mean ± SD of per-rat means)
+    if len(table_rows) > 0:
+        all_row = {'Rat': 'Avg'}
+        for p_label in param_labels:
+            vals = np.array(per_param_means_across_rats[p_label], dtype=float)
+            if vals.size > 0:
+                all_row[p_label] = _format_mean_sd(float(np.nanmean(vals)), float(np.nanstd(vals)))
+            else:
+                all_row[p_label] = ''
+        table_rows.append(all_row)
+        df = pd.DataFrame(table_rows, columns=['Rat'] + param_labels)
+        csv_name = f"table_params_{model_key}.csv"
+        df.to_csv(os.path.join(RESULTS_DIR, csv_name), index=False)
+        print(f"Saved: {csv_name}")
+    else:
+        print(f"No animals found for model {model_key}; no CSV written.")
