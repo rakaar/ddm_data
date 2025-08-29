@@ -11,3 +11,6 @@ fit_each_condn/each_cond_data/*
 *.docx
 *.png
 *.mat
+*.aux
+*.log
+*.tex

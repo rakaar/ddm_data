@@ -114,3 +114,7 @@
 
 ## to show not non-identifiability of params in vanilla 
 - `show_unidentifiability.py` - gamma linear, sigmoid overlapping
+
+## supp
+- `corner_cum_animal_params_for_paper.py` - corner style, mean and sample covariance ellipse
+- `compare_animal_params_for_paper.py` - for each model, for each animal, param analysis - tables, descending order plots, ELBO & loglike comparison

@@ -7,6 +7,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import pandas as pd
+import shutil
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+import subprocess
 
 # Directory containing the results
 RESULTS_DIR = os.path.dirname(__file__)
@@ -396,8 +402,188 @@ def _format_mean_sd(mean, sd, sig=3):
             return ''
     except Exception:
         return ''
-    # Use 3 significant figures; yields styles like 0.076 ± 0.010 or 50.7 ± 6.8
-    return f"{mean:.3g} ± {sd:.3g}"
+    # Use fixed 3 decimals
+    return f"{mean:.3f} ± {sd:.3f}"
+
+def _save_params_table_pdf(df: pd.DataFrame, title: str, out_pdf_path: str) -> None:
+    """Save a styled table PDF for the given DataFrame using ReportLab.
+
+    - A4 landscape page
+    - Repeating header row on page breaks
+    - Alternating row backgrounds
+    - Center-aligned text with thin grid
+    """
+    # Page geometry
+    page_size = landscape(A4)
+    left_margin = right_margin = top_margin = bottom_margin = 18  # 0.25 inch margins
+    page_w, _ = page_size
+    usable_w = page_w - left_margin - right_margin
+
+    # Column widths and font sizing
+    n_cols = len(df.columns)
+    if n_cols <= 8:
+        font_size = 10
+    elif n_cols <= 10:
+        font_size = 9
+    elif n_cols <= 12:
+        font_size = 8
+    elif n_cols <= 14:
+        font_size = 7
+    else:
+        font_size = 6
+    col_width = usable_w / max(1, n_cols)
+    col_widths = [col_width] * n_cols
+
+    # Build table data (ensure strings)
+    header = list(df.columns)
+    body = [["" if (v is None) else str(v) for v in row] for row in df.values.tolist()]
+    data = [header] + body
+
+    styles = getSampleStyleSheet()
+    title_para = Paragraph(f"<b>{title}</b>", styles['Title'])
+
+    table = Table(data, colWidths=col_widths, repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.black),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), font_size),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 1), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
+        ('GRID', (0, 0), (-1, -1), 0.25, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.HexColor('#EEEEEE')]),
+    ]))
+
+    doc = SimpleDocTemplate(
+        out_pdf_path,
+        pagesize=page_size,
+        leftMargin=left_margin,
+        rightMargin=right_margin,
+        topMargin=top_margin,
+        bottomMargin=bottom_margin,
+    )
+    doc.build([title_para, Spacer(1, 6), table])
+
+def _latex_header_for_param(label: str) -> str:
+    """Map internal parameter labels to LaTeX-friendly column headers."""
+    mapping = {
+        'rate_lambda': '$\\lambda$',
+        'theta_E': '$\\vartheta_e$',
+        'T_0': '$T_0$ (ms)',
+        't_E_aff': '$t_{E,aff}$ (ms)',
+        'del_go': '$\\Delta_{go}$ (ms)',
+        'w': 'w',
+        'rate_norm_l': '$\\ell$',
+        'bump_height': 'bump\\_height',
+        'bump_width': 'bump\\_width',
+        'dip_height': 'dip\\_height',
+        'dip_width': 'dip\\_width',
+        'V_A': '$V_A$',
+        'theta_A': '$\\theta_A$',
+        't_A_aff': '$t_{A,aff}$ (ms)',
+    }
+    return mapping.get(label, label.replace('_', '\\_'))
+
+def _format_mean_sd_tex(mean, sd, sig=3) -> str:
+    """Return a LaTeX math-mode mean ± sd string or empty if invalid."""
+    try:
+        if not np.isfinite(mean) or not np.isfinite(sd):
+            return ''
+    except Exception:
+        return ''
+    return f"${mean:.3f} \\pm {sd:.3f}$"
+
+def _save_params_table_latex(df: pd.DataFrame, model_key: str, param_labels: list, plot_title: str, compile_pdf: bool = True) -> None:
+    """Write a standalone LaTeX file for the table and optionally compile to PDF.
+
+    Produces two files in RESULTS_DIR:
+    - table_params_{model_key}.tex
+    - table_params_{model_key}_latex.pdf (if pdflatex is available)
+    """
+    # Build header row labels (use LaTeX mapping for parameter columns)
+    header_cells = ['']  # blank top-left header similar to sample style
+    for p in param_labels:
+        header_cells.append(_latex_header_for_param(p))
+
+    # Build table rows
+    lines = []
+    ms_params = set()  # All time params (T_0, t_E_aff, del_go) are already in ms in df
+    for _, row in df.iterrows():
+        cells = [str(row['Rat'])]
+        for p in param_labels:
+            val = row.get(p, '')
+            if isinstance(val, str) and '±' in val:
+                try:
+                    left, right = val.split('±')
+                    m = float(left.strip())
+                    s = float(right.strip())
+                    # No further rescaling here; values are already in desired display units
+                    cell = _format_mean_sd_tex(m, s)
+                except Exception:
+                    cell = val.replace('±', '$ \\pm $')
+            else:
+                cell = str(val)
+            cells.append(cell)
+        lines.append(' & '.join(cells) + ' \\\\')
+
+    col_spec = 'l' + 'c' * len(param_labels)
+    # Use ASCII-safe em-dash for pdfLaTeX
+    caption = f"Model parameters --- {plot_title}"
+    label = f"tab:params_{model_key}"
+
+    tex = []
+    tex.append(r"\documentclass{article}")
+    tex.append(r"\usepackage[margin=1in]{geometry}")
+    tex.append(r"\usepackage[utf8]{inputenc}")
+    tex.append(r"\usepackage[T1]{fontenc}")
+    tex.append(r"\usepackage{graphicx}")
+    tex.append(r"\usepackage{amsmath}")
+    tex.append(r"\usepackage{booktabs}")
+    tex.append(r"\begin{document}")
+    tex.append(r"\begin{table}[h!]")
+    tex.append(r"\centering")
+    tex.append(r"\resizebox{\textwidth}{!}{%")
+    tex.append(fr"\begin{{tabular}}{{{col_spec}}}")
+    tex.append(r"\toprule")
+    tex.append(' & '.join(header_cells) + ' \\\\')
+    tex.append(r"\midrule")
+    tex.extend(lines)
+    tex.append(r"\bottomrule")
+    tex.append(r"\end{tabular}")
+    tex.append(r"}")
+    tex.append(fr"\caption{{{caption}}}")
+    tex.append(fr"\label{{{label}}}")
+    tex.append(r"\end{table}")
+    tex.append(r"\end{document}")
+
+    tex_name = f"table_params_{model_key}.tex"
+    tex_path = os.path.join(RESULTS_DIR, tex_name)
+    with open(tex_path, 'w') as f:
+        f.write('\n'.join(tex))
+    print(f"Saved: {tex_name}")
+
+    if compile_pdf and shutil.which('pdflatex') is not None:
+        try:
+            subprocess.run(
+                ['pdflatex', '-interaction=nonstopmode', '-halt-on-error', tex_name],
+                cwd=RESULTS_DIR,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+            base = os.path.splitext(tex_name)[0]
+            # Rename/move resulting PDF to have _latex suffix to distinguish from ReportLab
+            src_pdf = os.path.join(RESULTS_DIR, base + '.pdf')
+            dst_pdf = os.path.join(RESULTS_DIR, f"table_params_{model_key}_latex.pdf")
+            if os.path.exists(src_pdf):
+                if src_pdf != dst_pdf:
+                    os.replace(src_pdf, dst_pdf)
+                print(f"Saved: {os.path.basename(dst_pdf)}")
+        except Exception as e:
+            print(f"pdflatex compilation failed: {e}")
 
 for model_key, param_keys, param_labels, plot_title in model_configs:
     table_rows = []
@@ -422,6 +608,12 @@ for model_key, param_keys, param_labels, plot_title in model_configs:
             else:
                 mean_val = float(np.mean(samples))
                 sd_val = float(np.std(samples))
+            # Convert time params to ms for output tables (T_0, t_E_aff, del_go)
+            if p_label in ('T_0', 't_E_aff', 'del_go'):
+                if np.isfinite(mean_val):
+                    mean_val *= 1000.0
+                if np.isfinite(sd_val):
+                    sd_val *= 1000.0
             row[p_label] = _format_mean_sd(mean_val, sd_val)
             if np.isfinite(mean_val):
                 per_param_means_across_rats[p_label].append(mean_val)
@@ -440,5 +632,11 @@ for model_key, param_keys, param_labels, plot_title in model_configs:
         csv_name = f"table_params_{model_key}.csv"
         df.to_csv(os.path.join(RESULTS_DIR, csv_name), index=False)
         print(f"Saved: {csv_name}")
+        # Also save a nicely formatted table as PDF per model
+        pdf_name = f"table_params_{model_key}.pdf"
+        _save_params_table_pdf(df, title=plot_title, out_pdf_path=os.path.join(RESULTS_DIR, pdf_name))
+        print(f"Saved: {pdf_name}")
+        # And save a LaTeX table (and compile to PDF if pdflatex exists)
+        _save_params_table_latex(df, model_key=model_key, param_labels=param_labels, plot_title=plot_title, compile_pdf=True)
     else:
         print(f"No animals found for model {model_key}; no CSV written.")
