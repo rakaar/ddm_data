@@ -101,6 +101,14 @@ PARAM_TEX_LABELS: Dict[str, str] = {
 
 MODEL_KEY = 'vbmc_norm_tied_results'
 
+# Optional default axis ranges to keep ticks simple (endpoints only)
+DEFAULT_AXIS_RANGES: Dict[str, Tuple[float, float]] = {
+    'rate_lambda': (0.9, 3.3),
+    'T_0': (0.04, 0.3),
+    'theta_E': (1.2, 3.4),
+    'rate_norm_l': (0.8, 1.0),
+}
+
 
 def discover_animals(results_dir: str, desired_batches: List[str]) -> List[Tuple[str, int]]:
     """Return sorted list of (batch, animal_id) that have PKL results files.
@@ -396,6 +404,11 @@ def corner_plot(
     use_kde: bool = False,
     kde_bw: Optional[float] = None,
     kde_n: int = 1000,
+    diag_ranked: bool = False,
+    diag_ranked_ci: float = 95.0,
+    tick_labelsize: Optional[float] = None,
+    label_fontsize: Optional[float] = None,
+    axis_ranges: Optional[Dict[str, Tuple[float, float]]] = None,
 ):
     """Make lower-triangular corner-style scatter matrix of per-animal means.
 
@@ -409,54 +422,108 @@ def corner_plot(
     # Precompute limits per param
     lims: Dict[str, Tuple[float, float]] = {}
     for p in params:
-        lims[p] = _axis_limits(means.get(p, []))
+        if axis_ranges is not None and p in axis_ranges:
+            lims[p] = tuple(axis_ranges[p])  # type: ignore[assignment]
+        else:
+            lims[p] = _axis_limits(means.get(p, []))
 
     fig, axes = plt.subplots(n, n, figsize=(3.2*n, 3.2*n), squeeze=False)
+
+    # Fixed sizes unless explicitly overridden
+    eff_tick = float(tick_labelsize) if tick_labelsize is not None else 20.0
+    eff_label = float(label_fontsize) if label_fontsize is not None else 25.0
 
     for i, py in enumerate(params):
         for j, px in enumerate(params):
             ax = axes[i, j]
             if i == j:
-                # Diagonal: histogram (default) or KDE of per-animal means for this param
-                vals = np.asarray(means.get(px, []), dtype=float)
-                vals = vals[np.isfinite(vals)]
-                drew_kde = False
-                if use_kde and vals.size > 1:
-                    try:
-                        bw = kde_bw if kde_bw is not None else None
-                        kde = gaussian_kde(vals, bw_method=bw)
-                        _kde_n = int(kde_n) if kde_n is not None else 256
-                        _kde_n = max(64, min(10000, _kde_n))
-                        xs = np.linspace(lims[px][0], lims[px][1], _kde_n)
-                        ys = kde(xs)
-                        ax.plot(xs, ys, color='#2b6cb0', linewidth=1.5)
-                        drew_kde = True
-                    except Exception:
-                        drew_kde = False
-                if not drew_kde:
-                    if vals.size > 0:
-                        ax.hist(
-                            vals,
-                            bins=min(20, max(5, int(np.sqrt(vals.size)))),
-                            histtype='step',
-                            color='#2b6cb0',
-                            linewidth=1.2,
-                        )
-                ax.set_xlim(lims[px])
-                # No y-ticks on histogram/KDE panels
-                ax.set_yticks([])
-                # Only two x-ticks on histogram/KDE panels
-                _xt = np.linspace(lims[px][0], lims[px][1], 2)
-                ax.set_xticks(_xt)
-                ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+                # Diagonal panel modes
+                if diag_ranked and ellipses_from_grouped is not None and len(ellipses_from_grouped) > 0:
+                    # Ranked per-animal posterior means with CI from percentiles
+                    stats = []  # (label, mean, lo, hi)
+                    ci = float(diag_ranked_ci)
+                    ci = min(max(ci, 0.0), 100.0)
+                    lo_p = 0.5 * (100.0 - ci)
+                    hi_p = 100.0 - lo_p
+                    for lab, pdata in ellipses_from_grouped.items():
+                        arr = np.asarray(pdata.get(px, []), dtype=float)
+                        arr = arr[np.isfinite(arr)]
+                        if arr.size < 2:
+                            continue
+                        m = float(np.mean(arr))
+                        try:
+                            lo = float(np.percentile(arr, lo_p))
+                            hi = float(np.percentile(arr, hi_p))
+                        except Exception:
+                            # Fallback to mean +/- 1.96*std if percentile fails
+                            sd = float(np.std(arr)) if arr.size > 1 else 0.0
+                            lo, hi = m - 1.96 * sd, m + 1.96 * sd
+                        stats.append((lab, m, lo, hi))
+                    if len(stats) > 0:
+                        stats.sort(key=lambda t: t[1], reverse=True)  # descending by mean
+                        # Plot horizontal error bars; x is value, y is rank index
+                        for k, (lab, m, lo, hi) in enumerate(stats):
+                            # Fixed red color for all animals (no per-animal/batch coloring)
+                            col = '#8B0000'
+                            xerr_low = max(0.0, m - lo)
+                            xerr_high = max(0.0, hi - m)
+                            ax.errorbar(
+                                m, k,
+                                xerr=[[xerr_low], [xerr_high]],
+                                fmt='o', color=col, ecolor=col,
+                                elinewidth=1.4, capsize=0, markersize=4,
+                                markeredgecolor='k', linewidth=1.0, alpha=0.95,
+                            )
+                        ax.set_xlim(lims[px])
+                        ax.set_ylim(-0.5, len(stats) - 0.5)
+                        # Hide animal ticks (y); show two x ticks at endpoints
+                        ax.set_yticks([])
+                        _xt = np.linspace(lims[px][0], lims[px][1], 2)
+                        ax.set_xticks(_xt)
+                        ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+                    else:
+                        ax.axis('off')
+                else:
+                    # Histogram (default) or KDE of per-animal means for this param
+                    vals = np.asarray(means.get(px, []), dtype=float)
+                    vals = vals[np.isfinite(vals)]
+                    drew_kde = False
+                    if use_kde and vals.size > 1:
+                        try:
+                            bw = kde_bw if kde_bw is not None else None
+                            kde = gaussian_kde(vals, bw_method=bw)
+                            _kde_n = int(kde_n) if kde_n is not None else 256
+                            _kde_n = max(64, min(10000, _kde_n))
+                            xs = np.linspace(lims[px][0], lims[px][1], _kde_n)
+                            ys = kde(xs)
+                            ax.plot(xs, ys, color='#2b6cb0', linewidth=1.5)
+                            drew_kde = True
+                        except Exception:
+                            drew_kde = False
+                    if not drew_kde:
+                        if vals.size > 0:
+                            ax.hist(
+                                vals,
+                                bins=min(20, max(5, int(np.sqrt(vals.size)))),
+                                histtype='step',
+                                color='#2b6cb0',
+                                linewidth=1.2,
+                            )
+                    ax.set_xlim(lims[px])
+                    # No y-ticks on histogram/KDE panels
+                    ax.set_yticks([])
+                    # Only two x-ticks on histogram/KDE panels
+                    _xt = np.linspace(lims[px][0], lims[px][1], 2)
+                    ax.set_xticks(_xt)
+                    ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
             elif i > j:
                 # Lower triangle: scatter of (px mean, py mean)
                 xs = means.get(px, [])
                 ys = means.get(py, [])
                 if plot_scatter and len(xs) == len(ys) == len(colors):
                     ax.scatter(xs, ys, s=point_size, c=colors, alpha=alpha, edgecolor='k', linewidths=0.3)
-                # Draw filled covariance ellipses per animal if requested
-                if ellipses_from_grouped is not None and len(ellipses_from_grouped) > 0:
+                # Draw filled covariance ellipses per animal if requested (only when not plotting scatter)
+                if (ellipses_from_grouped is not None and len(ellipses_from_grouped) > 0 and not plot_scatter):
                     # chi2 quantile for df=2 has closed form: s = -2 ln(1 - q)
                     q = float(ellipse_quantile)
                     if not (0.0 < q < 1.0):
@@ -534,9 +601,32 @@ def corner_plot(
             else:
                 ax.set_xticklabels([])
             if j == 0:
-                ax.set_ylabel(PARAM_TEX_LABELS.get(py, py))
+                # For diagonal ranked panels (horizontal), suppress y label (no animal ticks/label)
+                if not (i == j and diag_ranked):
+                    ax.set_ylabel(PARAM_TEX_LABELS.get(py, py))
             else:
                 ax.set_yticklabels([])
+
+            # Apply larger tick label size
+            ax.tick_params(axis='both', which='major', labelsize=eff_tick)
+            # Apply larger axis label size
+            try:
+                ax.xaxis.label.set_size(eff_label)
+                ax.yaxis.label.set_size(eff_label)
+            except Exception:
+                pass
+
+            # Uniform subplot borders: avoid double-drawn shared edges
+            spine_lw = 1.0
+            for side in ('left', 'bottom', 'right', 'top'):
+                ax.spines[side].set_linewidth(spine_lw)
+                ax.spines[side].set_visible(True)
+            # Hide right spine only if the right neighbor is a visible panel (i >= j+1)
+            if j < n - 1 and i >= j + 1:
+                ax.spines['right'].set_visible(False)
+            # Hide top spine only if the upper neighbor is a visible panel ((i-1) >= j)
+            if i > 0 and (i - 1) >= j:
+                ax.spines['top'].set_visible(False)
 
             ax.grid(True, linestyle=':', alpha=0.4)
 
@@ -623,6 +713,12 @@ def parse_args(argv=None) -> argparse.Namespace:
                         help='KDE bandwidth: numeric factor or "scott"/"silverman" (default: auto)')
     parser.add_argument('--kde-n', type=int, default=1000,
                         help='Number of evaluation points for KDE on diagonals (default: 1000)')
+    parser.add_argument('--diag-ranked', action='store_true', default=True,
+                        help='On diagonal, show ranked per-animal posterior means with CI instead of histogram/KDE (default: on)')
+    parser.add_argument('--no-diag-ranked', action='store_false', dest='diag_ranked',
+                        help='Disable ranked diagonals and fall back to histogram/KDE')
+    parser.add_argument('--diag-ci', type=float, default=95.0,
+                        help='CI percentage for --diag-ranked (e.g., 95)')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for sampling indices')
     # When run inside Jupyter/VSCode cells, sys.argv may contain kernel flags like: -f /path/kernel.json
     # Clean these out so boolean flags like --fit-ellipses don't accidentally consume them.
@@ -718,9 +814,17 @@ def main():
                 use_kde=args.kde,
                 kde_bw=kde_bw_parsed,
                 kde_n=args.kde_n,
+                diag_ranked=args.diag_ranked,
+                diag_ranked_ci=args.diag_ci,
+                axis_ranges=DEFAULT_AXIS_RANGES,
             )
         else:
             title = f'Norm TIED: posterior samples per animal (n={args.n_samples} each)'
+            grouped_for_diag = None
+            if args.diag_ranked:
+                grouped_for_diag, _lab_g, _col_g = load_samples_grouped_for_norm_tied(
+                    RESULTS_DIR, animal_tuples, params, n_samples_per_animal=args.n_samples, seed=args.seed
+                )
             corner_plot(
                 means=values,
                 labels=labels,
@@ -732,9 +836,13 @@ def main():
                 alpha=args.alpha,
                 show_legend=False,
                 overlay_means=means_overlay,
+                ellipses_from_grouped=grouped_for_diag,
                 use_kde=args.kde,
                 kde_bw=kde_bw_parsed,
                 kde_n=args.kde_n,
+                diag_ranked=args.diag_ranked,
+                diag_ranked_ci=args.diag_ci,
+                axis_ranges=DEFAULT_AXIS_RANGES,
             )
     else:
         # Default mean mode
@@ -743,8 +851,13 @@ def main():
             print('No animals with Norm TIED results found for selected batches/params.')
             return
         # Use a single color for all animals
-        colors = ['#1f77b4'] * len(labels)
+        colors = ['#8B0000'] * len(labels)
         title = 'Norm TIED: per-animal parameter means'
+        grouped_for_diag = None
+        if args.diag_ranked:
+            grouped_for_diag, _lab_g, _col_g = load_samples_grouped_for_norm_tied(
+                RESULTS_DIR, animal_tuples, params, n_samples_per_animal=args.n_samples, seed=args.seed
+            )
         corner_plot(
             means=means,
             labels=labels,
@@ -755,9 +868,13 @@ def main():
             point_size=args.point_size,
             alpha=args.alpha,
             show_legend=False,
+            ellipses_from_grouped=grouped_for_diag,
             use_kde=args.kde,
             kde_bw=kde_bw_parsed,
             kde_n=args.kde_n,
+            diag_ranked=args.diag_ranked,
+            diag_ranked_ci=args.diag_ci,
+            axis_ranges=DEFAULT_AXIS_RANGES,
         )
         if args.csv_out:
             csv_path = args.csv_out

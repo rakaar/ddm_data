@@ -70,7 +70,7 @@ line_big = slope_m * ild_vals_big
 
 # %%
 # Plot
-fig, ax = plt.subplots(figsize=(6, 4))
+fig, ax = plt.subplots(figsize=(4.5, 4))
 # Using black and grey colors to avoid the restricted palette
 ax.plot(ild_vals_small, gama_ild_1, label=f"tanh: λ={lam1:g}, θ={theta1:g}", lw=2, color=COLOR_CURVE_1)
 ax.plot(ild_vals_big, gama_ild_2, label=f"tanh: λ={lam2:g}, θ={theta2:.3g}", lw=2, color=COLOR_CURVE_2)
@@ -144,7 +144,7 @@ ax.grid(True, alpha=0.2)
 
 out_dir = os.path.join(os.path.dirname(__file__), "plots")
 os.makedirs(out_dir, exist_ok=True)
-out_path = os.path.join(out_dir, "unidentifiability_match_line.png")
+out_path = os.path.join(out_dir, "unidentifiability_match_line.pdf")
 plt.tight_layout()
 plt.savefig(out_path, dpi=200, bbox_inches="tight")
 print(f"Saved plot to: {out_path}")
