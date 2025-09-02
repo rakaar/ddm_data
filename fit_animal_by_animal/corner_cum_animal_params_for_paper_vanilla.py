@@ -1,19 +1,14 @@
 # %%
 """
-Corner-style cumulative animal-parameter plot for the Norm TIED model.
+Corner-style cumulative animal-parameter plot for the Vanilla TIED model.
 
-For each animal (across selected batches), load vbmc Norm TIED results,
+For each animal (across selected batches), load vbmc Vanilla TIED results,
 compute the mean and std of each parameter's samples, and plot a
 lower-triangular corner matrix where each off-diagonal panel shows
 per-animal means for (param_x, param_y). The diagonal shows histograms
 of per-animal means for that parameter.
 
 Defaults are aligned with compare_animal_params_for_paper.py logic.
-
-Example:
-    python corner_cum_animal_params_for_paper.py \
-        --params rate_lambda T_0 theta_E rate_norm_l \
-        --outfile corner_cum_norm_tied_params.pdf
 
 Outputs:
 - A PDF saved next to this script under the provided --outfile name.
@@ -77,37 +72,29 @@ BATCH_COLORS = {
     'LED34_even': 'blue',
 }
 
-# Norm TIED model: mapping from clean param label -> sample key in PKL
-NORM_TIED_PARAM_KEYMAP = {
+# Vanilla TIED model: mapping from clean param label -> sample key in PKL
+VANILLA_TIED_PARAM_KEYMAP = {
     'rate_lambda': 'rate_lambda_samples',
     'T_0': 'T_0_samples',
     'theta_E': 'theta_E_samples',
     'w': 'w_samples',
     't_E_aff': 't_E_aff_samples',
     'del_go': 'del_go_samples',
-    'rate_norm_l': 'rate_norm_l_samples',
 }
 
 # Pretty LaTeX-style labels per parameter (MathText, no external LaTeX needed)
 PARAM_TEX_LABELS: Dict[str, str] = {
     'rate_lambda': r'$\lambda$',
-    'T_0': r'$T_0$',
+    'T_0': r'$T_0$ (ms)',
     'theta_E': r'$\theta_E$',
     'w': r'$w$',
     't_E_aff': r'$t^{\mathrm{aff}}_E$',
     'del_go': r'$\Delta_{go}$',
-    'rate_norm_l': r'$\ell$',
 }
 
-MODEL_KEY = 'vbmc_norm_tied_results'
+MODEL_KEY = 'vbmc_vanilla_tied_results'
 
-# Optional default axis ranges to keep ticks simple (endpoints only)
-DEFAULT_AXIS_RANGES: Dict[str, Tuple[float, float]] = {
-    'rate_lambda': (0.9, 3.3),
-    'T_0': (0.04, 0.3),
-    'theta_E': (1.2, 3.4),
-    'rate_norm_l': (0.8, 1.0),
-}
+# No fixed default axis ranges; limits are computed from the data.
 
 
 def discover_animals(results_dir: str, desired_batches: List[str]) -> List[Tuple[str, int]]:
@@ -168,7 +155,7 @@ def load_means_stds_for_norm_tied(
     animal_batch_tuples: List[Tuple[str, int]],
     params: List[str],
 ) -> Tuple[Dict[str, List[float]], Dict[str, List[float]], List[str], List[str]]:
-    """Load vbmc_norm_tied_results and compute per-animal means/stds for given params.
+    """Load vbmc_vanilla_tied_results and compute per-animal means/stds for given params.
 
     Returns:
         means_dict: param -> list of per-animal means
@@ -199,7 +186,7 @@ def load_means_stds_for_norm_tied(
         ok = True
         per_param_stats = {}
         for p in params:
-            skey = NORM_TIED_PARAM_KEYMAP.get(p)
+            skey = VANILLA_TIED_PARAM_KEYMAP.get(p)
             if skey is None or skey not in model_blob:
                 ok = False
                 break
@@ -268,7 +255,7 @@ def load_samples_flat_for_norm_tied(
         arrs = []
         ok = True
         for p in params:
-            skey = NORM_TIED_PARAM_KEYMAP.get(p)
+            skey = VANILLA_TIED_PARAM_KEYMAP.get(p)
             if skey is None or skey not in model_blob:
                 ok = False
                 break
@@ -336,7 +323,7 @@ def load_samples_grouped_for_norm_tied(
         arrs = []
         ok = True
         for p in params:
-            skey = NORM_TIED_PARAM_KEYMAP.get(p)
+            skey = VANILLA_TIED_PARAM_KEYMAP.get(p)
             if skey is None or skey not in model_blob:
                 ok = False
                 break
@@ -377,6 +364,28 @@ def _axis_limits(values: List[float], pad_frac: float = 0.05) -> Tuple[float, fl
         return vmin - span, vmax + span
     pad = (vmax - vmin) * pad_frac
     return vmin - pad, vmax + pad
+
+
+def _scale_T0_in_values_dict(values_dict: Dict[str, List[float]]) -> None:
+    """In-place: multiply T_0 values by 1000 to convert s -> ms, if present."""
+    if 'T_0' in values_dict:
+        arr = np.asarray(values_dict['T_0'], dtype=float)
+        values_dict['T_0'] = (arr * 1000.0).tolist()
+
+
+def _scale_T0_in_means_stds(means: Dict[str, List[float]], stds: Dict[str, List[float]]) -> None:
+    """In-place: multiply T_0 mean and std by 1000 to convert s -> ms, if present."""
+    if 'T_0' in means:
+        means['T_0'] = (np.asarray(means['T_0'], dtype=float) * 1000.0).tolist()
+    if 'T_0' in stds:
+        stds['T_0'] = (np.asarray(stds['T_0'], dtype=float) * 1000.0).tolist()
+
+
+def _scale_T0_in_grouped(grouped: Dict[str, Dict[str, np.ndarray]]) -> None:
+    """In-place: for grouped samples per label, scale T_0 arrays by 1000 (s -> ms)."""
+    for lab, pdata in grouped.items():
+        if 'T_0' in pdata:
+            pdata['T_0'] = np.asarray(pdata['T_0'], dtype=float) * 1000.0
 
 
 def corner_plot(
@@ -680,12 +689,14 @@ def parse_args(argv=None) -> argparse.Namespace:
     Using parse_known_args allows running this file as a #%% cell where the
     kernel injects flags like `--f=...`.
     """
-    parser = argparse.ArgumentParser(description='Corner-style plot of Norm TIED per-animal parameter means', allow_abbrev=False)
+    parser = argparse.ArgumentParser(description='Corner-style plot of Vanilla TIED per-animal parameter means', allow_abbrev=False)
     parser.add_argument('--batches', nargs='*', default=DESIRED_BATCHES,
                         help='Batches to include (default: %(default)s)')
-    parser.add_argument('--params', nargs='*', default=['rate_lambda', 'T_0', 'theta_E', 'rate_norm_l'],
-                        help='Parameter names to include (subset of: %s)' % ', '.join(NORM_TIED_PARAM_KEYMAP.keys()))
-    parser.add_argument('--outfile', default='corner_cum_animal_params_norm_tied.pdf',
+    parser.add_argument('--params', nargs='*', default=[],
+                        help='Explicit parameter names to include; if omitted, uses --param-set')
+    parser.add_argument('--param-set', choices=['imp', 'all'], default='imp',
+                        help='Quick selection: imp=[rate_lambda,T_0,theta_E]; all=all Vanilla-TIED params')
+    parser.add_argument('--outfile', default='corner_cum_animal_params_vanilla_tied.pdf',
                         help='Output PDF filename (saved in this directory)')
     parser.add_argument('--csv-out', default='', help='Optional CSV path to save per-animal means/stds')
     parser.add_argument('--point-size', type=float, default=30.0, help='Scatter point size')
@@ -742,13 +753,19 @@ def parse_args(argv=None) -> argparse.Namespace:
     return args
 
 
-def main():
-    args = parse_args()
+def main(argv=None):
+    args = parse_args(argv)
 
-    # Validate params
-    params = [p for p in args.params if p in NORM_TIED_PARAM_KEYMAP]
+    # Select params: explicit --params overrides --param-set
+    if getattr(args, 'params', None):
+        params = [p for p in args.params if p in VANILLA_TIED_PARAM_KEYMAP]
+    else:
+        if getattr(args, 'param_set', 'imp') == 'all':
+            params = list(VANILLA_TIED_PARAM_KEYMAP.keys())
+        else:
+            params = ['rate_lambda', 'T_0', 'theta_E']
     if not params:
-        raise ValueError('No valid parameters selected. Valid: %s' % ', '.join(NORM_TIED_PARAM_KEYMAP.keys()))
+        raise ValueError('No valid parameters selected. Valid: %s' % ', '.join(VANILLA_TIED_PARAM_KEYMAP.keys()))
 
     # Discover animals
     animal_tuples = discover_animals(RESULTS_DIR, args.batches)
@@ -779,6 +796,8 @@ def main():
         values, labels, colors = load_samples_flat_for_norm_tied(
             RESULTS_DIR, animal_tuples, params, n_samples_per_animal=args.n_samples, seed=args.seed
         )
+        # Scale T_0 (s -> ms) in flattened values used for plotting, if present
+        _scale_T0_in_values_dict(values)
         if all(len(values.get(p, [])) == 0 for p in params):
             print('No samples found for selected batches/params.')
             return
@@ -786,13 +805,15 @@ def main():
         means_overlay, _stds_overlay, _labels_overlay, _colors_overlay = load_means_stds_for_norm_tied(
             RESULTS_DIR, animal_tuples, params
         )
+        _scale_T0_in_means_stds(means_overlay, _stds_overlay)
         if args.fit_ellipses:
             # Grouped samples per animal to fit ellipses (colors by batch)
             grouped, labels_grp, colors_grp = load_samples_grouped_for_norm_tied(
                 RESULTS_DIR, animal_tuples, params, n_samples_per_animal=args.n_samples, seed=args.seed
             )
+            _scale_T0_in_grouped(grouped)
             ellipse_color_map = {lab: col for lab, col in zip(labels_grp, colors_grp)}
-            title = f'Norm TIED: posterior ellipses per animal (q={args.ellipse_quantile:.2f}, n={args.n_samples})'
+            title = f'Vanilla TIED: posterior ellipses per animal (q={args.ellipse_quantile:.2f}, n={args.n_samples})'
             corner_plot(
                 means=values,  # used for axis limits
                 labels=labels,
@@ -816,15 +837,15 @@ def main():
                 kde_n=args.kde_n,
                 diag_ranked=args.diag_ranked,
                 diag_ranked_ci=args.diag_ci,
-                axis_ranges=DEFAULT_AXIS_RANGES,
             )
         else:
-            title = f'Norm TIED: posterior samples per animal (n={args.n_samples} each)'
+            title = f'Vanilla TIED: posterior samples per animal (n={args.n_samples} each)'
             grouped_for_diag = None
             if args.diag_ranked:
                 grouped_for_diag, _lab_g, _col_g = load_samples_grouped_for_norm_tied(
                     RESULTS_DIR, animal_tuples, params, n_samples_per_animal=args.n_samples, seed=args.seed
                 )
+                _scale_T0_in_grouped(grouped_for_diag)
             corner_plot(
                 means=values,
                 labels=labels,
@@ -842,22 +863,23 @@ def main():
                 kde_n=args.kde_n,
                 diag_ranked=args.diag_ranked,
                 diag_ranked_ci=args.diag_ci,
-                axis_ranges=DEFAULT_AXIS_RANGES,
             )
     else:
         # Default mean mode
         means, stds, labels, colors = load_means_stds_for_norm_tied(RESULTS_DIR, animal_tuples, params)
         if len(labels) == 0:
-            print('No animals with Norm TIED results found for selected batches/params.')
+            print('No animals with Vanilla TIED results found for selected batches/params.')
             return
+        _scale_T0_in_means_stds(means, stds)
         # Use a single color for all animals
         colors = ['#8B0000'] * len(labels)
-        title = 'Norm TIED: per-animal parameter means'
+        title = 'Vanilla TIED: per-animal parameter means'
         grouped_for_diag = None
         if args.diag_ranked:
             grouped_for_diag, _lab_g, _col_g = load_samples_grouped_for_norm_tied(
                 RESULTS_DIR, animal_tuples, params, n_samples_per_animal=args.n_samples, seed=args.seed
             )
+            _scale_T0_in_grouped(grouped_for_diag)
         corner_plot(
             means=means,
             labels=labels,
@@ -874,7 +896,6 @@ def main():
             kde_n=args.kde_n,
             diag_ranked=args.diag_ranked,
             diag_ranked_ci=args.diag_ci,
-            axis_ranges=DEFAULT_AXIS_RANGES,
         )
         if args.csv_out:
             csv_path = args.csv_out
@@ -884,4 +905,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    main(['--param-set','all','--mode','samples','--fit-ellipses',
+      '--outfile','vanilla_corner_all_samples.pdf'])
+
