@@ -36,7 +36,7 @@ from animal_wise_plotting_utils import prepare_simulation_data, calculate_theore
 
 
 ############3 Params #############
-batch_name = 'LED34_even'
+batch_name = 'SD'
 K_max = 10
 
 N_theory = int(1e3)
@@ -743,7 +743,7 @@ time_vary_norm_tied_pub = np.array([
 # %%
 ### Read csv and get batch data###
 # outExp.csv
-exp_df = pd.read_csv('../outUni.csv')
+exp_df = pd.read_csv('../outExp.csv')
 # out_LED.csv
 # exp_df = pd.read_csv('../out_LED.csv')
 if 'timed_fix' in exp_df.columns:
@@ -771,10 +771,10 @@ exp_df.loc[mask_nan & mask_success_neg1 & mask_ild_pos, 'response_poke'] = 2
 exp_df.loc[mask_nan & mask_success_neg1 & mask_ild_neg, 'response_poke'] = 3
 
 exp_df_batch = exp_df[
-    (exp_df['batch_name'] == 'LED34') &
+    (exp_df['batch_name'] == 'SD') &
     (exp_df['LED_trial'].isin([np.nan, 0])) &
-    (exp_df['animal'].isin([48,52,56,60])) &
-    (exp_df['session_type'].isin([1,2]))  
+    (exp_df['animal'].isin([49])) &
+    (exp_df['session_type'].isin([1,7]))  
 ].copy()
 
 # aborts don't have choice, so assign random 
@@ -803,7 +803,7 @@ print('####################################')
 
 # %%
 # for animal_idx in range(len(animal_ids)):
-for animal_idx in [1]:
+for animal_idx in [0]:
     animal = animal_ids[animal_idx]
 
     df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal]
@@ -815,7 +815,7 @@ for animal_idx in [1]:
     ############ END NOTE ############################################
 
     print(f'Batch: {batch_name},sample animal: {animal}')
-    pdf_filename = f'results_{batch_name}_animal_{animal}.pdf'
+    pdf_filename = f'results_{batch_name}_animal_{animal}_ATTEMPT_2.pdf'
     pdf = PdfPages(pdf_filename)
 
     # --- Page 1: Batch Name and Animal ID ---
@@ -1504,7 +1504,7 @@ for animal_idx in [1]:
         print(f"Added tied models comparison table to PDF for animal {animal}")
     
     ### pkl file - vbmc samples ###
-    pkl_filename = f'results_{batch_name}_animal_{animal}.pkl'
+    pkl_filename = f'results_{batch_name}_animal_{animal}_ATTEMPT_2.pkl'
 
     with open(pkl_filename, 'wb') as f:
         pickle.dump(save_dict, f)

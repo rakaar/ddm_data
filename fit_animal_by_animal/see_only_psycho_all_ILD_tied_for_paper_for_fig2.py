@@ -3,7 +3,7 @@ Unified analysis for psychometric curves using TIED models.
 Set IS_NORM_TIED = True for normalized TIED, False for vanilla TIED.
 """
 # %%
-IS_NORM_TIED = True  # Set to False for vanilla TIED
+IS_NORM_TIED = False  # Set to False for vanilla TIED
 if IS_NORM_TIED:
     MODEL_TYPE = 'norm'
 else:

@@ -4,7 +4,7 @@ Unified analysis for psychometric curves using TIED models.
 Set IS_NORM_TIED = True for normalized TIED, False for vanilla TIED.
 """
 # %%
-IS_NORM_TIED = True  # Set to False for vanilla TIED
+IS_NORM_TIED = False  # Set to False for vanilla TIED
 
 from scipy.integrate import trapezoid
 import pandas as pd
@@ -559,9 +559,9 @@ slope_plot_data = {
     'data_means': data_means,
     'vanilla_means': vanilla_means
 }
-with open('vanila_slopes_fig2_data.pkl', 'wb') as f:
+with open('vanilla_slopes_fig2_data.pkl', 'wb') as f:
     pickle.dump(slope_plot_data, f)
-print(f'saved to vanila_slopes_fig2_data.pkl')
+print(f'saved to vanilla_slopes_fig2_data.pkl')
 from sklearn.metrics import r2_score
 
 # --- Figure 1: Data vs Vanilla ---

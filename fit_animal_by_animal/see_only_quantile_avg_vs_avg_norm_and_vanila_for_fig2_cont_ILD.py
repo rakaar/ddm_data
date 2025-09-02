@@ -9,7 +9,7 @@ Set MODEL_TYPE = 'vanilla' or 'norm' at the top to switch between models.
 All downstream logic is automatically adjusted based on this flag.
 """
 # %%
-MODEL_TYPE = 'norm'
+MODEL_TYPE = 'vanilla'
 print(f"Processing MODEL_TYPE: {MODEL_TYPE}")
 
 

@@ -104,7 +104,7 @@ MODEL_KEY = 'vbmc_norm_tied_results'
 # Optional default axis ranges to keep ticks simple (endpoints only)
 DEFAULT_AXIS_RANGES: Dict[str, Tuple[float, float]] = {
     'rate_lambda': (0.9, 3.3),
-    'T_0': (0.04, 0.3),
+    'T_0': (0.04, 0.25),
     'theta_E': (1.2, 3.4),
     'rate_norm_l': (0.8, 1.0),
 }
@@ -893,4 +893,4 @@ def main(argv=None):
 
 if __name__ == '__main__':
     # main()
-    main(['--param-set', 'all', '--outfile', 'corner_all.pdf'])
+    main(['--param-set', 'imp', '--outfile', 'corner_imp.pdf'])

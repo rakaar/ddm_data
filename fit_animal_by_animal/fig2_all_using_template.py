@@ -20,11 +20,11 @@ def load_data():
     """Loads all necessary data from pickle files."""
     with open('vanilla_psy_fig2_data.pkl', 'rb') as f:
         psy_data = pickle.load(f)
-    with open('vanila_quant_fig2_data.pkl', 'rb') as f:
+    with open('vanilla_quant_fig2_data.pkl', 'rb') as f:
         quant_data = pickle.load(f)
     with open('../fit_each_condn/vanilla_gamma_fig2_data.pkl', 'rb') as f:
         gamma_data = pickle.load(f)
-    with open('vanila_slopes_fig2_data.pkl', 'rb') as f:
+    with open('vanilla_slopes_fig2_data.pkl', 'rb') as f:
         slopes_data = pickle.load(f)
     return psy_data, quant_data, gamma_data, slopes_data
 
