@@ -750,6 +750,173 @@ plt.tight_layout()
 plt.show()
 
 # %%
+#  log odds: log(p/1-p)
+fig, axes = plt.subplots(row_count, 5, figsize=(20, 4*row_count))
+
+# Make axes 2D if there's only one row
+if row_count == 1:
+    axes = axes.reshape(1, -1)
+
+# Define colors for different ABLs
+abl_colors = {20: 'blue', 40: 'green', 60: 'red'}
+
+# Create plots for each animal
+for i, key in enumerate(animal_keys):
+    # Calculate row and column position
+    row = i // 5
+    col = i % 5
+    
+    # Get the appropriate axis
+    ax = axes[row, col]
+    
+    psycho_animal = theoretical_psychometric_data[key]
+    empirical_animal = psychometric_data[key]
+    # Set title for each subplot
+    ax.set_title(f'Animal {key}')
+    
+    # Plot each ABL
+    for abl in [20, 40, 60]:
+        if abl in psycho_animal:
+            psycho_abl = psycho_animal[abl]
+            ild_values = psycho_abl['theoretical']['ild_values']
+            right_choice_probs = psycho_abl['theoretical']['right_choice_probs']
+            theory_log_odds = np.log(right_choice_probs / (1 - right_choice_probs + 1e-6))
+            # ax.scatter(ild_values, theory_log_odds, color=abl_colors[abl], label=f'ABL {abl}')
+            if abl in empirical_animal:
+                p_right = empirical_animal[abl]['empirical']['right_choice_probs']
+                p_left = 1 - p_right
+                log_odds = np.log(p_right / (p_left + 1e-6))
+                ax.scatter(empirical_animal[abl]['empirical']['ild_values'], log_odds, color=abl_colors[abl], marker='x')    
+    # Add reference lines
+    ax.axhline(y=0, color='grey', alpha=0.5, linestyle='--')  # Horizontal line at 0
+    ax.axvline(x=0, color='grey', alpha=0.5, linestyle='--')    # Vertical line at 0
+    
+    # Set axis labels and limits
+    ax.set_xlabel('ILD (dB)')
+    if col == 0:  # Only add y-label for leftmost plots
+        ax.set_ylabel('log odds')
+    ax.set_xlim(-17, 17)
+    # ax.set_ylim(0, 1.02)
+    
+    # Add legend only for the first subplot
+    if i == 0:
+        ax.legend()
+
+# Hide empty subplots
+for i in range(total_animals, row_count * 5):
+    row = i // 5
+    col = i % 5
+    axes[row, col].axis('off')
+
+# Adjust layout
+plt.tight_layout()
+plt.show()
+
+# Compute and plot average empirical log-odds across animals per ABL
+abl_colors = {20: 'blue', 40: 'green', 60: 'red'}
+eps = 1e-6  # numerical stability for log-odds
+n_animals = len(animal_keys)
+n_ilds = len(ILD_arr)
+log_odds_agg = {abl: np.full((n_animals, n_ilds), np.nan) for abl in [20, 40, 60]}
+
+# Aggregate per-animal log-odds aligned to ILD_arr
+for a_idx, key in enumerate(animal_keys):
+    emp_animal = psychometric_data.get(key, {})
+    for abl in [20, 40, 60]:
+        if abl not in emp_animal:
+            continue
+        emp = emp_animal[abl]['empirical']
+        ild_vals = emp['ild_values']
+        p_right = emp['right_choice_probs'].astype(float)
+        # align to ILD_arr
+        aligned_p = np.full(n_ilds, np.nan, dtype=float)
+        for j, ild in enumerate(ILD_arr):
+            m = np.where(ild_vals == ild)[0]
+            if m.size > 0:
+                aligned_p[j] = p_right[m[0]]
+        with np.errstate(divide='ignore', invalid='ignore'):
+            lod = np.log(aligned_p / (1.0 - aligned_p + eps))
+        lod[~np.isfinite(lod)] = np.nan
+        log_odds_agg[abl][a_idx, :] = lod
+
+# Plot mean ± std for each ABL
+fig, ax = plt.subplots(figsize=(8, 4.5))
+for abl in [20, 40, 60]:
+    lod_mat = log_odds_agg[abl]
+    lod_mean = np.nanmean(lod_mat, axis=0)
+    lod_std = np.nanstd(lod_mat, axis=0)
+    ax.errorbar(ILD_arr, lod_mean, yerr=lod_std, fmt='o', color=abl_colors[abl], capsize=0, label=f'ABL {abl}')
+    ax.plot(ILD_arr, lod_mean, color=abl_colors[abl], linewidth=2, alpha=0.85)
+ax.axhline(0, color='grey', alpha=0.5, linestyle='--')
+ax.axvline(0, color='grey', alpha=0.5, linestyle='--')
+ax.set_xlabel('ILD (dB)')
+ax.set_ylabel('log odds')
+ax.set_xlim(-17, 17)
+ax.legend(title='ABL')
+plt.tight_layout()
+plt.show()
+
+# --- Outlier analysis at ILD = 16 dB to explain high standard deviation ---
+ild_interest = 16.0
+if ild_interest in ILD_arr:
+    ild_idx = list(ILD_arr).index(ild_interest)
+    # Filter to valid trials with RT <= 1 to match how p_right was computed
+    try:
+        mv_rt = merged_valid[merged_valid['success'].isin([1, -1]) & (merged_valid['RTwrtStim'] <= 1)]
+    except Exception:
+        mv_rt = None
+    print(f"\nOutlier analysis for log-odds at ILD = {ild_interest} dB")
+    for abl in [20, 40, 60]:
+        lod_vals_all = log_odds_agg[abl][:, ild_idx]
+        valid_mask = np.isfinite(lod_vals_all)
+        vals = lod_vals_all[valid_mask]
+        if vals.size == 0:
+            print(f"ABL {abl}: no valid values.")
+            continue
+        mean_v = float(np.nanmean(vals))
+        std_v = float(np.nanstd(vals))
+        q1, q3 = np.nanpercentile(vals, [25, 75])
+        iqr = q3 - q1
+        lower = q1 - 1.5 * iqr
+        upper = q3 + 1.5 * iqr
+        z = (vals - mean_v) / (std_v + 1e-12)
+        is_outlier = (vals < lower) | (vals > upper) | (np.abs(z) > 2.5)
+        outlier_indices_local = np.where(is_outlier)[0]
+        print(f"ABL {abl}: mean={mean_v:.3f}, std={std_v:.3f}, N={vals.size}")
+        if outlier_indices_local.size == 0:
+            print("  No strong outliers by IQR or z-score > 2.5.")
+        else:
+            print("  Potential outliers (IQR or |z|>2.5):")
+            # Map local indices back to global animal indices
+            global_indices = np.where(valid_mask)[0][outlier_indices_local]
+            for gi in global_indices:
+                ba = animal_keys[gi]  # (batch_name, animal_id)
+                lod_val = lod_vals_all[gi]
+                # Retrieve p_right for this point
+                p_val = np.nan
+                emp_dict = psychometric_data.get(ba, {}).get(abl, {}).get('empirical', None)
+                if emp_dict is not None:
+                    ild_vals_emp = emp_dict['ild_values']
+                    pr_emp = emp_dict['right_choice_probs'].astype(float)
+                    m = np.where(ild_vals_emp == ild_interest)[0]
+                    if m.size > 0:
+                        p_val = float(pr_emp[m[0]])
+                # Count trials used for this condition
+                n_trials = np.nan
+                if mv_rt is not None:
+                    try:
+                        mv_sel = mv_rt[(mv_rt['batch_name'] == ba[0]) &
+                                       (mv_rt['animal'].astype(str) == str(ba[1])) &
+                                       (mv_rt['ABL'] == abl) &
+                                       (mv_rt['ILD'] == ild_interest)]
+                        n_trials = int(len(mv_sel))
+                    except Exception:
+                        pass
+                print(f"    {ba}: log-odds={lod_val:.3f}, p_right={p_val:.3f}, trials={n_trials}")
+else:
+    print("ILD = 16 not present in ILD_arr; skipping outlier analysis.")
+
+# %%
 # === Start of new code for average psychometric plots ===
 # Ensure numpy and pyplot are available (likely already imported as np and plt)
 theory_agg = {}
