@@ -603,15 +603,19 @@ plt.show()
 from scipy.optimize import curve_fit
 
 # Define the functions
-def log_sigmoid(x, a):
-    numerator = (1 - a/2) + (a/2) * np.exp(-x)
-    denominator = (a/2) + (1 - a/2) * np.exp(-x)
-    # Add a small epsilon to prevent division by zero or log of zero
+def log_sigmoid(x, a, d):
+    exp_term = np.exp(-d * x)
+    
+    numerator = (1 - a/2) + (a/2) * exp_term
+    denominator = (a/2) + (1 - a/2) * exp_term
+    
+    # Add epsilon for numerical stability
     epsilon = 1e-12
     ratio = numerator / (denominator + epsilon)
-    # Ensure the ratio is positive for log
     ratio = np.clip(ratio, epsilon, None)
+    
     return np.log(ratio)
+
 
 def scaled_tanh(x, b, c):
     return c * np.tanh(b * x)
@@ -634,15 +638,20 @@ for col, ABL in enumerate(all_ABL):
     
     # Fit log-sigmoid model
     try:
-        # Fit with bounds to ensure a is positive and reasonable
-        popt_log, _ = curve_fit(log_sigmoid, x_data, y_data, p0=[0.001], 
-                               bounds=([1e-6], [1-1e-6]), sigma=y_err, absolute_sigma=True)
-        a_fitted = popt_log[0]
-        fitted_params[f'log_sigmoid_ABL{ABL}'] = a_fitted
+        # Fit with bounds to ensure parameters are reasonable
+        # Initial guess for [a, d]
+        p0 = [0.001, 1.0]
+        # Bounds for [a, d]
+        # a: (0, 1), d: (0.01, 10)
+        bounds = ([1e-6, 0.01], [1-1e-6, 10])
+        popt_log, _ = curve_fit(log_sigmoid, x_data, y_data, p0=p0, 
+                               bounds=bounds, sigma=y_err, absolute_sigma=True)
+        a_fitted, d_fitted = popt_log
+        fitted_params[f'log_sigmoid_ABL{ABL}'] = (a_fitted, d_fitted)
         
         # Generate fitted curve
         x_model = np.linspace(-16, 16, 300)
-        y_log_sigmoid_fitted = log_sigmoid(x_model, a_fitted)
+        y_log_sigmoid_fitted = log_sigmoid(x_model, a_fitted, d_fitted)
         
         # Top row: Log-sigmoid model
         axes[0, col].errorbar(all_ILD_sorted, mean_gamma, yerr=sem_gamma, fmt='o', 
@@ -650,7 +659,7 @@ for col, ABL in enumerate(all_ABL):
                              capsize=0, label='Data')
         axes[0, col].plot(x_model, y_log_sigmoid_fitted, 'k-', linewidth=2, 
                          label=f'Log-sigmoid fit')
-        axes[0, col].set_title(f'ABL={ABL} - Log-sigmoid (a={a_fitted:.5f})')
+        axes[0, col].set_title(f'ABL={ABL} - Log-sigmoid (a={a_fitted:.5f}, d={d_fitted:.3f})')
         axes[0, col].set_xlabel('ILD')
         axes[0, col].set_ylabel('Gamma')
         axes[0, col].grid(True, alpha=0.3)
@@ -695,7 +704,8 @@ plt.show()
 print("Fitted Parameters:")
 for key, value in fitted_params.items():
     if 'log_sigmoid' in key:
-        print(f"{key}: a = {value:.6f}")
+        a, d = value
+        print(f"{key}: a = {a:.6f}, d = {d:.6f}")
     else:  # scaled_tanh
         b, c = value
         print(f"{key}: b = {b:.6f}, c = {c:.6f}")

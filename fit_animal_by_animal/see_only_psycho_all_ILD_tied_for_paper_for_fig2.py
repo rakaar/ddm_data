@@ -917,6 +917,122 @@ else:
     print("ILD = 16 not present in ILD_arr; skipping outlier analysis.")
 
 # %%
+# Fit 2 different models to log odds
+
+from scipy.optimize import curve_fit
+
+# Define the functions
+def log_sigmoid(x, a, d):
+    exp_term = np.exp(-d * x)
+    
+    numerator = (1 - a/2) + (a/2) * exp_term
+    denominator = (a/2) + (1 - a/2) * exp_term
+    
+    # Add epsilon for numerical stability
+    epsilon = 1e-12
+    ratio = numerator / (denominator + epsilon)
+    ratio = np.clip(ratio, epsilon, None)
+    
+    return np.log(ratio)
+
+def scaled_tanh(x, b, c):
+    return c * np.tanh(b * x)
+
+# Create 2x3 subplot (2 models, 3 ABLs)
+fig, axes = plt.subplots(2, 3, figsize=(15, 8))
+
+# Plot for each ABL
+fitted_params = {}  # To store fitted parameters
+ILD_arr = np.array(ILD_arr)
+for col, abl in enumerate([20, 40, 60]):
+    # Calculate mean and standard error of mean for log odds
+    lod_mat = log_odds_agg[abl]
+    lod_mean = np.nanmean(lod_mat, axis=0)
+    lod_std = np.nanstd(lod_mat, axis=0) / np.sqrt(np.sum(~np.isnan(lod_mat), axis=0))
+    
+    # Filter out NaN values for fitting
+    valid_indices = ~np.isnan(lod_mean)
+    x_data = ILD_arr[valid_indices]
+    y_data = lod_mean[valid_indices]
+    y_err = lod_std[valid_indices]
+    
+    # Fit log-sigmoid model
+    try:
+        # Fit with bounds to ensure parameters are reasonable
+        # Initial guess for [a, d]
+        p0 = [0.001, 1.0]
+        # Bounds for [a, d]
+        # a: (0, 1), d: (0.01, 10)
+        bounds = ([1e-6, 0.01], [1-1e-6, 10])
+        popt_log, _ = curve_fit(log_sigmoid, x_data, y_data, p0=p0, 
+                               bounds=bounds, sigma=y_err, absolute_sigma=True)
+        a_fitted, d_fitted = popt_log
+        fitted_params[f'log_sigmoid_ABL{abl}'] = (a_fitted, d_fitted)
+        
+        # Generate fitted curve
+        x_model = np.linspace(-16, 16, 300)
+        y_log_sigmoid_fitted = log_sigmoid(x_model, a_fitted, d_fitted)
+        
+        # Top row: Log-sigmoid model
+        axes[0, col].errorbar(ILD_arr, lod_mean, yerr=lod_std, fmt='o', 
+                             color=abl_colors[abl], capsize=0, label='Data')
+        axes[0, col].plot(x_model, y_log_sigmoid_fitted, 'k-', linewidth=2, 
+                         label=f'Log-sigmoid fit')
+        axes[0, col].set_title(f'ABL={abl} - Log-sigmoid (a={a_fitted:.5f}, d={d_fitted:.3f})')
+        axes[0, col].set_xlabel('ILD')
+        axes[0, col].set_ylabel('log odds')
+        axes[0, col].grid(True, alpha=0.3)
+    except Exception as e:
+        print(f"Could not fit log-sigmoid for ABL={abl}: {e}")
+        axes[0, col].set_title(f'ABL={abl} - Log-sigmoid (fit failed)')
+    
+    # Fit scaled tanh model
+    try:
+        # Fit with bounds to ensure reasonable parameter values
+        p0 = [0.14, 3.3]
+        # Bounds for [b, c]
+        # b: (1e-6, 5), c: (0.1, 10)
+        bounds = ([1e-6, 0.1], [5, 10])
+        popt_tanh, _ = curve_fit(scaled_tanh, x_data, y_data, p0=p0, 
+                                bounds=bounds, sigma=y_err, absolute_sigma=True)
+        b_fitted, c_fitted = popt_tanh
+        fitted_params[f'scaled_tanh_ABL{abl}'] = (b_fitted, c_fitted)
+        
+        # Generate fitted curve
+        x_model = np.linspace(-16, 16, 300)
+        y_scaled_tanh_fitted = scaled_tanh(x_model, b_fitted, c_fitted)
+        
+        # Bottom row: Scaled tanh model
+        axes[1, col].errorbar(ILD_arr, lod_mean, yerr=lod_std, fmt='o', 
+                             color=abl_colors[abl], capsize=0, label='Data')
+        axes[1, col].plot(x_model, y_scaled_tanh_fitted, 'k-', linewidth=2, 
+                         label=f'Scaled tanh fit')
+        axes[1, col].set_title(f'ABL={abl} - Scaled tanh (b={b_fitted:.3f}, c={c_fitted:.3f})')
+        axes[1, col].set_xlabel('ILD')
+        axes[1, col].set_ylabel('log odds')
+        axes[1, col].grid(True, alpha=0.3)
+    except Exception as e:
+        print(f"Could not fit scaled tanh for ABL={abl}: {e}")
+        axes[1, col].set_title(f'ABL={abl} - Scaled tanh (fit failed)')
+
+# Add legends
+axes[0, 0].legend()
+axes[1, 0].legend()
+
+plt.tight_layout()
+plt.show()
+
+# Print fitted parameters
+print("Fitted Parameters:")
+for key, value in fitted_params.items():
+    if 'log_sigmoid' in key:
+        a, d = value
+        print(f"{key}: a = {a:.6f}, d = {d:.6f}")
+    else:  # scaled_tanh
+        b, c = value
+        print(f"{key}: b = {b:.6f}, c = {c:.6f}")
+
+# %%
 # === Start of new code for average psychometric plots ===
 # Ensure numpy and pyplot are available (likely already imported as np and plt)
 theory_agg = {}
