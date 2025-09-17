@@ -179,7 +179,7 @@ fig.suptitle('Chronometric Curves for All Animals', fontsize=16)
 # Save the single figure
 output_filename = os.path.join(output_dir, 'all_animals_chronometric_grid.png')
 plt.savefig(output_filename, dpi=300, bbox_inches='tight')
-plt.close(fig)
+# plt.close(fig)
 
 print(f"All chronometric plots saved in a single file: '{output_filename}'.")
 # %%
@@ -210,9 +210,6 @@ print(f"\nTotal unique animals (batch + ID) being plotted: {total_unique_animals
 
 # %%
 # 2. Create the 1x4 subplot figure
-
-
-
 fig, axes = plt.subplots(1, 4, figsize=(14, 4), sharey=True)
 plot_abls = [20, 40, 60]
 grand_means_data = {}  # To store the mean data for the last plot
@@ -340,9 +337,6 @@ print(f"Summary plot saved to '{summary_plot_filename}'")
 
 # --- STD PLOT ---
 # 2. Create the 1x4 subplot figure with STD
-
-
-
 fig, axes = plt.subplots(1, 4, figsize=(14, 4), sharey=True)
 plot_abls = [20, 40, 60]
 grand_means_data = {}  # To store the mean data for the last plot
@@ -466,7 +460,171 @@ plt.savefig(summary_plot_filename, dpi=300, bbox_inches='tight')
 plt.show(fig)
 
 print(f"Summary plot saved to '{summary_plot_filename}'")
+# %%
+# Difference plots: ABL 20 - ABL 40 and ABL 20 - ABL 60
 
+# Prepare data for difference plots
+# Instead of directly working with grand means, we'll calculate differences for each animal first
+
+# Create a list to store individual animal differences
+animal_differences_20_40 = []
+animal_differences_20_60 = []
+
+# Calculate differences for each individual animal
+for (batch_name, animal_id), animal_df in all_chrono_data_df.groupby(['batch_name', 'animal_id']):
+    # Filter data for each ABL
+    animal_abl_20 = animal_df[animal_df['ABL'] == 20]
+    animal_abl_40 = animal_df[animal_df['ABL'] == 40]
+    animal_abl_60 = animal_df[animal_df['ABL'] == 60]
+    
+    # Merge on abs_ILD to align data points
+    if not animal_abl_20.empty and not animal_abl_40.empty:
+        merged_animal_20_40 = pd.merge(animal_abl_20, animal_abl_40, on='abs_ILD', suffixes=('_20', '_40'))
+        merged_animal_20_40['diff'] = merged_animal_20_40['mean_20'] - merged_animal_20_40['mean_40']
+        merged_animal_20_40['animal_id'] = animal_id
+        merged_animal_20_40['batch_name'] = batch_name
+        animal_differences_20_40.append(merged_animal_20_40)
+    
+    if not animal_abl_20.empty and not animal_abl_60.empty:
+        merged_animal_20_60 = pd.merge(animal_abl_20, animal_abl_60, on='abs_ILD', suffixes=('_20', '_60'))
+        merged_animal_20_60['diff'] = merged_animal_20_60['mean_20'] - merged_animal_20_60['mean_60']
+        merged_animal_20_60['animal_id'] = animal_id
+        merged_animal_20_60['batch_name'] = batch_name
+        animal_differences_20_60.append(merged_animal_20_60)
+
+# Combine all individual differences
+if animal_differences_20_40:
+    all_animal_diffs_20_40 = pd.concat(animal_differences_20_40, ignore_index=True)
+    # Calculate grand mean of differences
+    grand_mean_diff_20_40 = all_animal_diffs_20_40.groupby('abs_ILD')['diff'].agg(['mean', 'std']).reset_index()
+else:
+    all_animal_diffs_20_40 = pd.DataFrame()
+    grand_mean_diff_20_40 = pd.DataFrame()
+
+if animal_differences_20_60:
+    all_animal_diffs_20_60 = pd.concat(animal_differences_20_60, ignore_index=True)
+    # Calculate grand mean of differences
+    grand_mean_diff_20_60 = all_animal_diffs_20_60.groupby('abs_ILD')['diff'].agg(['mean', 'std']).reset_index()
+else:
+    all_animal_diffs_20_60 = pd.DataFrame()
+    grand_mean_diff_20_60 = pd.DataFrame()
+
+# Plot 1: ABL 20 - ABL 40 difference with individual animals
+fig1, ax1 = plt.subplots(figsize=(5, 4))
+
+# Plot individual animal differences in light color (log scale)
+if not all_animal_diffs_20_40.empty:
+    for (batch_name, animal_id), animal_diff_df in all_animal_diffs_20_40.groupby(['batch_name', 'animal_id']):
+        animal_diff_df = animal_diff_df.sort_values('abs_ILD')
+        # Add a small epsilon to handle zero or negative values for log transform
+        epsilon = 1e-10
+        diff_log = np.log10(np.abs(animal_diff_df['diff']) + epsilon) * np.sign(animal_diff_df['diff'])
+        ax1.plot(animal_diff_df['abs_ILD'], diff_log, color='gray', alpha=0.4, linewidth=1.5)
+
+# Plot grand mean difference in dark color (log scale)
+if not grand_mean_diff_20_40.empty:
+    # Add a small epsilon to handle zero or negative values for log transform
+    epsilon = 1e-10
+    mean_log = np.log10(np.abs(grand_mean_diff_20_40['mean']) + epsilon) * np.sign(grand_mean_diff_20_40['mean'])
+    std_log_upper = np.log10(np.abs(grand_mean_diff_20_40['mean'] + grand_mean_diff_20_40['std']) + epsilon) * np.sign(grand_mean_diff_20_40['mean'] + grand_mean_diff_20_40['std'])
+    std_log_lower = np.log10(np.abs(grand_mean_diff_20_40['mean'] - grand_mean_diff_20_40['std']) + epsilon) * np.sign(grand_mean_diff_20_40['mean'] - grand_mean_diff_20_40['std'])
+    std_log_asymmetric = [mean_log - std_log_lower, std_log_upper - mean_log]
+    
+    ax1.errorbar(
+        x=grand_mean_diff_20_40['abs_ILD'],
+        y=mean_log,
+        yerr=std_log_asymmetric,
+        fmt='o-',
+        color='black',
+        capsize=0,
+        markersize=8.5,
+        linewidth=2.5,
+        label='Population Mean'
+    )
+
+ax1.axhline(y=0, color='k', linestyle='--', alpha=0.5)
+ax1.set_xlabel('|ILD| (dB)', fontsize=18)
+ax1.set_ylabel('log(RT Difference) (s)', fontsize=18)
+ax1.set_title('Mean RT (ABL 20 - ABL 40)', fontsize=16)
+ax1.set_xscale('log')
+ax1.set_xticks(abs_ild_ticks)
+ax1.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+ax1.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
+ax1.spines['top'].set_visible(False)
+ax1.spines['right'].set_visible(False)
+ax1.tick_params(axis='both', which='major', labelsize=12)
+ax1.set_ylim(-2,-0.8)
+plt.tight_layout()
+diff_20_40_filename = os.path.join(output_dir, 'diff_abl_20_minus_40.png')
+plt.savefig(diff_20_40_filename, dpi=300, bbox_inches='tight')
+plt.show()
+print(f"Difference plot (ABL 20 - ABL 40) saved to '{diff_20_40_filename}'")
+
+# Plot 2: ABL 20 - ABL 60 difference with individual animals
+fig2, ax2 = plt.subplots(figsize=(5, 4))
+
+# Plot individual animal differences in light color (log scale)
+if not all_animal_diffs_20_60.empty:
+    for (batch_name, animal_id), animal_diff_df in all_animal_diffs_20_60.groupby(['batch_name', 'animal_id']):
+        animal_diff_df = animal_diff_df.sort_values('abs_ILD')
+        # Add a small epsilon to handle zero or negative values for log transform
+        epsilon = 1e-10
+        diff_log = np.log10(np.abs(animal_diff_df['diff']) + epsilon) * np.sign(animal_diff_df['diff'])
+        ax2.plot(animal_diff_df['abs_ILD'], diff_log, color='gray', alpha=0.4, linewidth=1.5)
+
+# Plot grand mean difference in dark color (log scale)
+if not grand_mean_diff_20_60.empty:
+    # Add a small epsilon to handle zero or negative values for log transform
+    epsilon = 1e-10
+    mean_log = np.log10(np.abs(grand_mean_diff_20_60['mean']) + epsilon) * np.sign(grand_mean_diff_20_60['mean'])
+    std_log_upper = np.log10(np.abs(grand_mean_diff_20_60['mean'] + grand_mean_diff_20_60['std']) + epsilon) * np.sign(grand_mean_diff_20_60['mean'] + grand_mean_diff_20_60['std'])
+    std_log_lower = np.log10(np.abs(grand_mean_diff_20_60['mean'] - grand_mean_diff_20_60['std']) + epsilon) * np.sign(grand_mean_diff_20_60['mean'] - grand_mean_diff_20_60['std'])
+    std_log_asymmetric = [mean_log - std_log_lower, std_log_upper - mean_log]
+    
+    ax2.errorbar(
+        x=grand_mean_diff_20_60['abs_ILD'],
+        y=mean_log,
+        yerr=std_log_asymmetric,
+        fmt='o-',
+        color='black',
+        capsize=0,
+        markersize=8.5,
+        linewidth=2.5,
+        label='Population Mean'
+    )
+
+ax2.axhline(y=0, color='k', linestyle='--', alpha=0.5)
+ax2.set_xlabel('|ILD| (dB)', fontsize=18)
+ax2.set_ylabel('log(RT Difference) (s)', fontsize=18)
+ax2.set_title('Mean RT (ABL 20 - ABL 60)', fontsize=16)
+ax2.set_xscale('log')
+ax2.set_xticks(abs_ild_ticks)
+ax2.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+ax2.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
+ax2.spines['top'].set_visible(False)
+ax2.spines['right'].set_visible(False)
+ax2.tick_params(axis='both', which='major', labelsize=12)
+ax2.set_ylim(-1.5,-0.8)
+
+plt.tight_layout()
+diff_20_60_filename = os.path.join(output_dir, 'diff_abl_20_minus_60.png')
+plt.savefig(diff_20_60_filename, dpi=300, bbox_inches='tight')
+plt.show()
+print(f"Difference plot (ABL 20 - ABL 60) saved to '{diff_20_60_filename}'")
+
+# Save difference data for external plotting
+diff_plot_data = {
+    'abs_ild_ticks': abs_ild_ticks,
+    'all_animal_diffs_20_40': all_animal_diffs_20_40,
+    'all_animal_diffs_20_60': all_animal_diffs_20_60,
+    'grand_mean_diff_20_40': grand_mean_diff_20_40,
+    'grand_mean_diff_20_60': grand_mean_diff_20_60
+}
+
+diff_output_pickle_path = os.path.join(output_dir, 'fig1_chrono_diff_plot_data.pkl')
+with open(diff_output_pickle_path, 'wb') as f:
+    pickle.dump(diff_plot_data, f)
+print(f"\nChronometric difference plot data saved to '{diff_output_pickle_path}'")
 # %%
 # --- New Plots: Mean RT vs ABL and Mean RT vs |ILD| ---
 
