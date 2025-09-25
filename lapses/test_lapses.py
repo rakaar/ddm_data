@@ -1,0 +1,333 @@
+# check lapses RTDs
+# %%
+import pickle
+import numpy as np
+import pandas as pd
+from joblib import Parallel, delayed
+from tqdm import tqdm
+
+# Set model type (False for vanilla TIED, True for norm TIED)
+IS_NORM_TIED = False
+
+# Function to read animal parameters from pickle file
+def get_params_from_animal_pkl_file(batch_name, animal_id):
+    pkl_file = f'results_{batch_name}_animal_{animal_id}.pkl'
+    with open(pkl_file, 'rb') as f:
+        fit_results_data = pickle.load(f)
+    vbmc_aborts_param_keys_map = {
+        'V_A_samples': 'V_A',
+        'theta_A_samples': 'theta_A',
+        't_A_aff_samp': 't_A_aff'
+    }
+    vbmc_vanilla_tied_param_keys_map = {
+        'rate_lambda_samples': 'rate_lambda',
+        'T_0_samples': 'T_0',
+        'theta_E_samples': 'theta_E',
+        'w_samples': 'w',
+        't_E_aff_samples': 't_E_aff',
+        'del_go_samples': 'del_go'
+    }
+    vbmc_norm_tied_param_keys_map = {
+        'rate_lambda_samples': 'rate_lambda',
+        'T_0_samples': 'T_0',
+        'theta_E_samples': 'theta_E',
+        'w_samples': 'w',
+        't_E_aff_samples': 't_E_aff',
+        'del_go_samples': 'del_go',
+        'rate_norm_l_samples': 'rate_norm_l'
+    }
+    abort_keyname = "vbmc_aborts_results"
+    vanilla_tied_keyname = "vbmc_vanilla_tied_results"
+    norm_tied_keyname = "vbmc_norm_tied_results"
+    abort_params = {}
+    vanilla_tied_params = {}
+    norm_tied_params = {}
+    if abort_keyname in fit_results_data:
+        abort_samples = fit_results_data[abort_keyname]
+        for param_samples_name, param_label in vbmc_aborts_param_keys_map.items():
+            abort_params[param_label] = np.mean(abort_samples[param_samples_name])
+    if vanilla_tied_keyname in fit_results_data:
+        vanilla_tied_samples = fit_results_data[vanilla_tied_keyname]
+        for param_samples_name, param_label in vbmc_vanilla_tied_param_keys_map.items():
+            vanilla_tied_params[param_label] = np.mean(vanilla_tied_samples[param_samples_name])
+    if norm_tied_keyname in fit_results_data:
+        norm_tied_samples = fit_results_data[norm_tied_keyname]
+        for param_samples_name, param_label in vbmc_norm_tied_param_keys_map.items():
+            norm_tied_params[param_label] = np.mean(norm_tied_samples[param_samples_name])
+    if IS_NORM_TIED:
+        return abort_params, norm_tied_params
+    else:
+        return abort_params, vanilla_tied_params
+def psiam_tied_data_gen_wrapper_rate_norm_fn(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff, del_go, \
+                                t_stim, rate_norm_l, iter_num, N_print, dt, lapse_prob=0.0):
+
+    if iter_num % N_print == 0:
+        print(f'os id: {os.getpid()}, In iter_num: {iter_num}, ABL: {ABL}, ILD: {ILD}, t_stim: {t_stim}')
+
+    choice, rt, is_act = simulate_psiam_tied_rate_norm(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, \
+                                                       t_stim, t_A_aff, t_E_aff, del_go, rate_norm_l, dt, lapse_prob)
+    return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD, 't_stim': t_stim}
+
+def simulate_psiam_tied_rate_norm(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, \
+                                  t_A_aff, t_E_aff, del_go, rate_norm_l, dt, lapse_prob=0.0):
+
+    # Lapse mechanism: with probability lapse_prob, generate random choice and RT
+    if np.random.rand() < lapse_prob:
+        choice = 1 if np.random.rand() >= 0.5 else -1
+        rt = np.random.uniform(0, 1)  # Uniform distribution between 0 and 1
+        is_act = 1  # Mark as lapse
+        return choice, rt, is_act
+
+    # Normal simulation process (with probability 1 - lapse_prob)
+    AI = 0; DV = Z_E; t = t_A_aff; dB = dt**0.5
+
+    chi = 17.37; q_e = 1
+    theta = theta_E * q_e
+    # mu = (2*q_e/T_0) * (10**(rate_lambda * ABL/20)) * np.sinh(rate_lambda * ILD/chi)
+    # sigma = np.sqrt( (2*(q_e**2)/T_0) * (10**(rate_lambda * ABL/20)) * np.cosh(rate_lambda * ILD/ chi) )
+    lambda_ABL_term = (10 ** (rate_lambda * (1 - rate_norm_l) * ABL / 20))
+    lambda_ILD_arg = rate_lambda * ILD / chi
+    lambda_ILD_L_arg = rate_lambda * rate_norm_l * ILD / chi
+    mu = (1/T_0) * lambda_ABL_term * (np.sinh(lambda_ILD_arg) / np.cosh(lambda_ILD_L_arg))
+    sigma = np.sqrt( (1/T_0) * lambda_ABL_term * ( np.cosh(lambda_ILD_arg) / np.cosh(lambda_ILD_L_arg) ) )
+
+    is_act = 0
+    while True:
+        AI += V_A*dt + np.random.normal(0, dB)
+
+        if t > t_stim + t_E_aff:
+            DV += mu*dt + sigma*np.random.normal(0, dB)
+
+
+        t += dt
+
+        if DV >= theta:
+            choice = +1; RT = t
+            break
+        elif DV <= -theta:
+            choice = -1; RT = t
+            break
+
+        if AI >= theta_A:
+            both_AI_hit_and_EA_hit = 0 # see if both AI and EA hit
+            is_act = 1
+            AI_hit_time = t
+            while t <= (AI_hit_time + del_go):
+                if t > t_stim + t_E_aff:
+                    DV += mu*dt + sigma*np.random.normal(0, dB)
+                    if DV >= theta:
+                        DV = theta
+                        both_AI_hit_and_EA_hit = 1
+                        break
+                    elif DV <= -theta:
+                        DV = -theta
+                        both_AI_hit_and_EA_hit = -1
+                        break
+                t += dt
+
+            break
+
+
+    if is_act == 1:
+        RT = AI_hit_time
+        if both_AI_hit_and_EA_hit != 0:
+            choice = both_AI_hit_and_EA_hit
+        else:
+            randomly_choose_up = np.random.rand() >= 0.5
+            if randomly_choose_up:
+                choice = 1
+            else:
+                choice = -1
+
+    return choice, RT, is_act
+
+# %%
+# read random animal params
+animal_id = 112
+batch_name = 'LED8'
+
+# Read parameters for the animal
+abort_params, tied_params = get_params_from_animal_pkl_file(batch_name, animal_id)
+
+# Extract individual parameters for easier access
+V_A = abort_params.get('V_A', np.nan)
+theta_A = abort_params.get('theta_A', np.nan)
+t_A_aff = abort_params.get('t_A_aff', np.nan)
+
+rate_lambda = tied_params.get('rate_lambda', np.nan)
+T_0 = tied_params.get('T_0', np.nan)
+theta_E = tied_params.get('theta_E', np.nan)
+w = tied_params.get('w', np.nan)
+t_E_aff = tied_params.get('t_E_aff', np.nan)
+del_go = tied_params.get('del_go', np.nan)
+
+# For norm model, also get rate_norm_l
+if IS_NORM_TIED:
+    rate_norm_l = tied_params.get('rate_norm_l', np.nan)
+else:
+    rate_norm_l = 0
+
+print(f"Loaded parameters for {batch_name} animal {animal_id}:")
+print(f"Abort params: V_A={V_A}, theta_A={theta_A}, t_A_aff={t_A_aff}")
+print(f"Tied params: rate_lambda={rate_lambda}, T_0={T_0}, theta_E={theta_E}, w={w}")
+print(f"t_E_aff={t_E_aff}, del_go={del_go}, rate_norm_l={rate_norm_l}")
+
+# %%
+# Run simulations for lapses analysis
+print("Starting simulations...")
+
+# Read CSV data for the specific animal
+file_name = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
+df = pd.read_csv(file_name)
+df_animal = df[df['animal'] == animal_id]
+
+# Filter for valid trials (successful responses with RT <= 1s)
+df_valid = df_animal[(df_animal['success'].isin([1, -1])) & (df_animal['RTwrtStim'] <= 1)]
+
+# Set simulation parameters
+N_sim = int(300e3)  # Number of simulations
+dt = 1e-3    # Time step
+N_print = int(N_sim/5) # Print progress every N_print iterations
+lapse_prob = 0.1  # Probability of lapse (0.05 = 5% lapse rate)
+
+# Sample data from the animal's trials
+t_stim_samples = df_valid['intended_fix'].sample(N_sim, replace=True).values
+ABL_samples = df_valid['ABL'].sample(N_sim, replace=True).values
+ILD_samples = df_valid['ILD'].sample(N_sim, replace=True).values
+
+print(f"Running {N_sim} simulations with dt={dt}, lapse_prob={lapse_prob}...")
+
+# Calculate Z_E from w and theta_E
+Z_E = (w - 0.5) * 2 * theta_E
+
+# Run simulations in parallel
+sim_results = Parallel(n_jobs=4)(
+    delayed(psiam_tied_data_gen_wrapper_rate_norm_fn)(
+        V_A, theta_A, ABL_samples[iter_num], ILD_samples[iter_num],
+        rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff, del_go,
+        t_stim_samples[iter_num], rate_norm_l, iter_num, N_print, dt, lapse_prob
+    ) for iter_num in tqdm(range(N_sim))
+)
+
+# Convert results to DataFrame
+sim_results_df = pd.DataFrame(sim_results)
+print(f"Simulation completed! Generated {len(sim_results_df)} simulation trials")
+
+# Analyze results
+print("\nSimulation Results Summary:")
+print(f"Total simulations: {len(sim_results_df)}")
+print(f"Mean RT: {sim_results_df['rt'].mean():.3f} s")
+print(f"RT range: {sim_results_df['rt'].min():.3f} - {sim_results_df['rt'].max():.3f} s")
+print(f"Choice distribution: Left={np.mean(sim_results_df['choice'] == -1):.3f}, Right={np.mean(sim_results_df['choice'] == 1):.3f}")
+print(f"Lapse rate (is_act=1): {np.mean(sim_results_df['is_act'] == 1):.3f}")
+
+# Filter trials where rt - t_stim is between 0 and 1 (valid response window)
+sim_results_df['rt_minus_t_stim'] = sim_results_df['rt'] - sim_results_df['t_stim']
+valid_rt_trials = sim_results_df[
+    (sim_results_df['rt_minus_t_stim'] >= 0) &
+    (sim_results_df['rt_minus_t_stim'] <= 1)
+].copy()
+
+print(f"Valid RT trials (0 < rt - t_stim < 1): {len(valid_rt_trials)} out of {len(sim_results_df)} total")
+
+if len(valid_rt_trials) == 0:
+    print("No valid RT trials found. Cannot create analysis plots.")
+else:
+    # Create 1x2 plot
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+
+    # Define ABL colors
+    abl_colors = {20: 'blue', 40: 'orange', 60: 'green'}
+
+    # Left plot: RT - t_stim distribution by ABL
+    ax1 = axes[0]
+
+    # Bin edges for RT distribution
+    bin_edges = np.arange(0, 1.005, 0.005)  # 0 to 1 with 0.05 step size
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+
+    for abl in [20, 40, 60]:
+        abl_data = valid_rt_trials[valid_rt_trials['ABL'] == abl]
+        if len(abl_data) > 0:
+            rt_diffs = abl_data['rt_minus_t_stim'].values
+            ax1.hist(rt_diffs, bins=bin_edges, density=True, histtype='step',
+                    label=f'ABL {abl}', color=abl_colors[abl], linewidth=2)
+
+    ax1.set_xlabel('RT - t_stim (s)')
+    ax1.set_ylabel('Frequency')
+    ax1.set_title('RT Distribution by ABL (0 < RT - t_stim < 1)')
+    ax1.legend()
+    ax1.set_xlim(0, 1)
+
+    # Right plot: Psychometric function by ABL
+    ax2 = axes[1]
+
+    ild_values = np.sort(valid_rt_trials['ILD'].unique())
+
+    for abl in [20, 40, 60]:
+        abl_data = valid_rt_trials[valid_rt_trials['ABL'] == abl]
+        if len(abl_data) > 0:
+            right_choice_probs = []
+            for ild in ild_values:
+                ild_trials = abl_data[abl_data['ILD'] == ild]
+                if len(ild_trials) > 0:
+                    prob_right = np.mean(ild_trials['choice'] == 1)
+                    right_choice_probs.append(prob_right)
+                else:
+                    right_choice_probs.append(np.nan)
+
+            ax2.plot(ild_values, right_choice_probs, 'o-',
+                    label=f'ABL {abl}', color=abl_colors[abl], linewidth=2, markersize=6)
+
+    ax2.set_xlabel('ILD (dB)')
+    ax2.set_ylabel('P(Right Choice)')
+    ax2.set_title('Psychometric Function by ABL')
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    ax2.axhline(0.5, color='gray', linestyle='--', alpha=0.7)
+    ax2.axvline(0, color='gray', linestyle='--', alpha=0.7)
+    ax2.set_xlim(-17, 17)
+    ax2.set_ylim(0, 1)
+
+    plt.tight_layout()
+    plt.savefig(f'lapses_analysis_{batch_name}_{animal_id}.png', dpi=150, bbox_inches='tight')
+    plt.show()
+
+    print(f"\nSaved analysis plot to lapses_analysis_{batch_name}_{animal_id}.png")
+
+    # Print summary statistics for valid trials
+    print("\n=== Analysis Summary ===")
+    print(f"Total valid RT trials: {len(valid_rt_trials)}")
+
+    for abl in [20, 40, 60]:
+        abl_data = valid_rt_trials[valid_rt_trials['ABL'] == abl]
+        if len(abl_data) > 0:
+            print(f"\nABL {abl}:")
+            print(f"  Trials: {len(abl_data)}")
+            print(f"  Mean RT - t_stim: {abl_data['rt_minus_t_stim'].mean():.3f} s")
+            print(f"  P(Right choice): {np.mean(abl_data['choice'] == 1):.3f}")
+            print(f"  Lapse rate: {np.mean(abl_data['is_act'] == 1):.3f}")
+
+    # Overall lapse statistics
+    lapse_trials = sim_results_df[sim_results_df['is_act'] == 1]
+    normal_trials = sim_results_df[sim_results_df['is_act'] == 0]
+
+    # Note: Lapse mechanism - with probability lapse_prob, trials have random choice and uniform RT (0-1s)
+    # Normal trials follow the full DDM simulation process
+    print("\n=== Lapse Analysis ===")
+    print(f"Total lapse trials: {len(lapse_trials)} ({len(lapse_trials)/len(sim_results_df)*100:.1f}%)")
+    print(f"Expected lapse rate (lapse_prob): {lapse_prob*100:.1f}%")
+    print(f"Observed lapse rate: {len(lapse_trials)/len(sim_results_df)*100:.1f}%")
+
+    if len(lapse_trials) > 0:
+        print(f"Lapse RT distribution: {lapse_trials['rt'].min():.3f} - {lapse_trials['rt'].max():.3f} s")
+        print(f"Mean lapse RT: {lapse_trials['rt'].mean():.3f} s")
+        print(f"Lapse choice distribution: Left={np.mean(lapse_trials['choice'] == -1):.3f}, Right={np.mean(lapse_trials['choice'] == 1):.3f}")
+
+    if len(normal_trials) > 0:
+        print("\n=== Normal Trials Analysis ===")
+        print(f"Normal trials: {len(normal_trials)} ({len(normal_trials)/len(sim_results_df)*100:.1f}%)")
+        print(f"Normal RT range: {normal_trials['rt'].min():.3f} - {normal_trials['rt'].max():.3f} s")
+        print(f"Mean normal RT: {normal_trials['rt'].mean():.3f} s")

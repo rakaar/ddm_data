@@ -936,8 +936,17 @@ def log_sigmoid(x, a, d):
 
 
 def log_sigmoid_v2(x, a, d, th):
-    f = th * np.tanh(d * x)
-    p0 = 1.0 / (1.0 + np.exp(-f))  # sigma(f)
+    f =  th * np.tanh(d * x)
+    p0 = 1.0 / (1.0 + (np.exp(-2*f)))  # sigma(f)
+    pR = a/2.0 + (1.0 - a) * p0
+    pL = a/2.0 + (1.0 - a) * (1.0 - p0)
+    eps = 0
+    return np.log((pR + eps) / (pL + eps))
+
+def log_sigmoid_v3(x, d, th):
+    f =  th * np.tanh(d * x)
+    a = 0
+    p0 = 1.0 / (1.0 + (np.exp(-2*f)))  # sigma(f)
     pR = a/2.0 + (1.0 - a) * p0
     pL = a/2.0 + (1.0 - a) * (1.0 - p0)
     eps = 0
@@ -946,8 +955,8 @@ def log_sigmoid_v2(x, a, d, th):
 def scaled_tanh(x, b, c):
     return c * np.tanh(b * x)
 
-# Create 3x3 subplot (3 models, 3 ABLs)
-fig, axes = plt.subplots(3, 3, figsize=(15, 12))
+# Create 4x3 subplot (4 models, 3 ABLs)
+fig, axes = plt.subplots(4, 3, figsize=(15, 16))
 
 # Plot for each ABL
 fitted_params = {}  # To store fitted parameters
@@ -989,7 +998,7 @@ for col, abl in enumerate([20, 40, 60]):
         axes[0, col].set_title(f'ABL={abl} - Log-sigmoid (a={a_fitted:.5f}, d={d_fitted:.3f})')
         axes[0, col].set_xlabel('ILD')
         axes[0, col].set_ylabel('log odds')
-        axes[0, col].grid(True, alpha=0.3)
+        # axes[0, col].grid(True, alpha=0.3)
     except Exception as e:
         print(f"Could not fit log-sigmoid for ABL={abl}: {e}")
         axes[0, col].set_title(f'ABL={abl} - Log-sigmoid (fit failed)')
@@ -1019,10 +1028,39 @@ for col, abl in enumerate([20, 40, 60]):
         axes[1, col].set_title(f'ABL={abl} - Log-sigmoid v2 (a={a_v2:.3f}, d={d_v2:.3f}, th={th_v2:.3f})')
         axes[1, col].set_xlabel('ILD')
         axes[1, col].set_ylabel('log odds')
-        axes[1, col].grid(True, alpha=0.3)
+        # axes[1, col].grid(True, alpha=0.3)
     except Exception as e:
         print(f"Could not fit log-sigmoid-v2 for ABL={abl}: {e}")
         axes[1, col].set_title(f'ABL={abl} - Log-sigmoid v2 (fit failed)')
+    # Fit log_sigmoid_v3 model
+    try:
+        # Fit with bounds to ensure parameters are reasonable
+        # Initial guess for [d, th]
+        p0 = [1.0, 1.0]
+        # Bounds for [d, th]
+        # d: (0.01, 10), th: (0.01, 50)
+        bounds = ([0.01, 0.01], [10, 50])
+        popt_log_v3, _ = curve_fit(log_sigmoid_v3, x_data, y_data, p0=p0, 
+                                   bounds=bounds, sigma=y_err, absolute_sigma=True)
+        d_v3, th_v3 = popt_log_v3
+        fitted_params[f'log_sigmoid_v3_ABL{abl}'] = (d_v3, th_v3)
+        
+        # Generate fitted curve
+        x_model = np.linspace(-16, 16, 300)
+        y_log_sigmoid_v3_fitted = log_sigmoid_v3(x_model, d_v3, th_v3)
+        
+        # Third row: Log-sigmoid v3 model
+        axes[2, col].errorbar(ILD_arr, lod_mean, yerr=lod_std, fmt='o', 
+                             color=abl_colors[abl], capsize=0, label='Data')
+        axes[2, col].plot(x_model, y_log_sigmoid_v3_fitted, 'k-', linewidth=2, 
+                         label=f'Log-sigmoid v3 fit')
+        axes[2, col].set_title(f'ABL={abl} same as v2 (lapse rate = 0) d={d_v3:.3f}, th={th_v3:.3f})')
+        axes[2, col].set_xlabel('ILD')
+        axes[2, col].set_ylabel('log odds')
+        # axes[2, col].grid(True, alpha=0.3)
+    except Exception as e:
+        print(f"Could not fit log-sigmoid-v3 for ABL={abl}: {e}")
+        axes[2, col].set_title(f'ABL={abl} - Log-sigmoid v3 (fit failed)')
 
     # Fit scaled tanh model
     try:
@@ -1041,21 +1079,23 @@ for col, abl in enumerate([20, 40, 60]):
         y_scaled_tanh_fitted = scaled_tanh(x_model, b_fitted, c_fitted)
         
         # Bottom row: Scaled tanh model
-        axes[2, col].errorbar(ILD_arr, lod_mean, yerr=lod_std, fmt='o', 
+        axes[3, col].errorbar(ILD_arr, lod_mean, yerr=lod_std, fmt='o', 
                              color=abl_colors[abl], capsize=0, label='Data')
-        axes[2, col].plot(x_model, y_scaled_tanh_fitted, 'k-', linewidth=2, 
+        axes[3, col].plot(x_model, y_scaled_tanh_fitted, 'k-', linewidth=2, 
                          label=f'Scaled tanh fit')
-        axes[2, col].set_title(f'ABL={abl} - Scaled tanh (b={b_fitted:.3f}, c={c_fitted:.3f})')
-        axes[2, col].set_xlabel('ILD')
-        axes[2, col].set_ylabel('log odds')
-        axes[2, col].grid(True, alpha=0.3)
+        axes[3, col].set_title(f'ABL={abl} - Scaled tanh (b={b_fitted:.3f}, c={c_fitted:.3f})')
+        axes[3, col].set_xlabel('ILD')
+        axes[3, col].set_ylabel('log odds')
+        # axes[3, col].grid(True, alpha=0.3)
     except Exception as e:
         print(f"Could not fit scaled tanh for ABL={abl}: {e}")
-        axes[2, col].set_title(f'ABL={abl} - Scaled tanh (fit failed)')
+        axes[3, col].set_title(f'ABL={abl} - Scaled tanh (fit failed)')
 
 # Add legends
 axes[0, 0].legend()
 axes[1, 0].legend()
+axes[2, 0].legend()
+axes[3, 0].legend()
 
 plt.tight_layout()
 plt.show()
@@ -1066,6 +1106,9 @@ for key, value in fitted_params.items():
     if 'log_sigmoid_v2' in key:
         a, d, th = value
         print(f"{key}: a = {a:.6f}, d = {d:.6f}, th = {th:.6f}")
+    elif 'log_sigmoid_v3' in key:
+        d, th = value
+        print(f"{key}: d = {d:.6f}, th = {th:.6f}")
     elif 'log_sigmoid' in key:
         a, d = value
         print(f"{key}: a = {a:.6f}, d = {d:.6f}")
