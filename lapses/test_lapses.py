@@ -3,15 +3,25 @@
 import pickle
 import numpy as np
 import pandas as pd
+import os
 from joblib import Parallel, delayed
 from tqdm import tqdm
+from pyvbmc import VBMC
 
 # Set model type (False for vanilla TIED, True for norm TIED)
 IS_NORM_TIED = False
 
+# VBMC constants
+T_trunc = 0.3
+phi_params_obj = np.nan
+rate_norm_l = np.nan
+is_norm = False
+is_time_vary = False
+K_max = 10
+
 # Function to read animal parameters from pickle file
 def get_params_from_animal_pkl_file(batch_name, animal_id):
-    pkl_file = f'results_{batch_name}_animal_{animal_id}.pkl'
+    pkl_file = f'../fit_animal_by_animal/results_{batch_name}_animal_{animal_id}.pkl'
     with open(pkl_file, 'rb') as f:
         fit_results_data = pickle.load(f)
     vbmc_aborts_param_keys_map = {
@@ -59,22 +69,22 @@ def get_params_from_animal_pkl_file(batch_name, animal_id):
     else:
         return abort_params, vanilla_tied_params
 def psiam_tied_data_gen_wrapper_rate_norm_fn(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff, del_go, \
-                                t_stim, rate_norm_l, iter_num, N_print, dt, lapse_prob=0.0):
+                                t_stim, rate_norm_l, iter_num, N_print, dt, lapse_prob=0.0, T_lapse_max=1.0):
 
     if iter_num % N_print == 0:
         print(f'os id: {os.getpid()}, In iter_num: {iter_num}, ABL: {ABL}, ILD: {ILD}, t_stim: {t_stim}')
 
     choice, rt, is_act = simulate_psiam_tied_rate_norm(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, \
-                                                       t_stim, t_A_aff, t_E_aff, del_go, rate_norm_l, dt, lapse_prob)
+                                                       t_stim, t_A_aff, t_E_aff, del_go, rate_norm_l, dt, lapse_prob, T_lapse_max)
     return {'choice': choice, 'rt': rt, 'is_act': is_act ,'ABL': ABL, 'ILD': ILD, 't_stim': t_stim}
 
 def simulate_psiam_tied_rate_norm(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim, \
-                                  t_A_aff, t_E_aff, del_go, rate_norm_l, dt, lapse_prob=0.0):
+                                  t_A_aff, t_E_aff, del_go, rate_norm_l, dt, lapse_prob=0.0, T_lapse_max=1.0):
 
     # Lapse mechanism: with probability lapse_prob, generate random choice and RT
     if np.random.rand() < lapse_prob:
         choice = 1 if np.random.rand() >= 0.5 else -1
-        rt = np.random.uniform(0, 1)  # Uniform distribution between 0 and 1
+        rt = np.random.uniform(0, T_lapse_max)  # Uniform distribution between 0 and T_lapse_max
         is_act = 1  # Mark as lapse
         return choice, rt, is_act
 
@@ -177,7 +187,7 @@ print(f"t_E_aff={t_E_aff}, del_go={del_go}, rate_norm_l={rate_norm_l}")
 print("Starting simulations...")
 
 # Read CSV data for the specific animal
-file_name = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
+file_name = f'../fit_animal_by_animal/batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
 df = pd.read_csv(file_name)
 df_animal = df[df['animal'] == animal_id]
 
@@ -185,15 +195,16 @@ df_animal = df[df['animal'] == animal_id]
 df_valid = df_animal[(df_animal['success'].isin([1, -1])) & (df_animal['RTwrtStim'] <= 1)]
 
 # Set simulation parameters
-N_sim = int(300e3)  # Number of simulations
+N_sim = int(100e3)  # Number of simulations - increased for better statistics
 dt = 1e-3    # Time step
 N_print = int(N_sim/5) # Print progress every N_print iterations
 lapse_prob = 0.1  # Probability of lapse (0.05 = 5% lapse rate)
+T_lapse_max = 1.0  # Maximum RT for lapse trials (default 1.0 seconds)
 
 # Sample data from the animal's trials
 t_stim_samples = df_valid['intended_fix'].sample(N_sim, replace=True).values
 ABL_samples = df_valid['ABL'].sample(N_sim, replace=True).values
-ILD_samples = df_valid['ILD'].sample(N_sim, replace=True).values
+ILD_samples = np.random.choice(df_valid['ILD'].values, size=N_sim, replace=True)
 
 print(f"Running {N_sim} simulations with dt={dt}, lapse_prob={lapse_prob}...")
 
@@ -201,11 +212,11 @@ print(f"Running {N_sim} simulations with dt={dt}, lapse_prob={lapse_prob}...")
 Z_E = (w - 0.5) * 2 * theta_E
 
 # Run simulations in parallel
-sim_results = Parallel(n_jobs=4)(
+sim_results = Parallel(n_jobs=30)(
     delayed(psiam_tied_data_gen_wrapper_rate_norm_fn)(
         V_A, theta_A, ABL_samples[iter_num], ILD_samples[iter_num],
         rate_lambda, T_0, theta_E, Z_E, t_A_aff, t_E_aff, del_go,
-        t_stim_samples[iter_num], rate_norm_l, iter_num, N_print, dt, lapse_prob
+        t_stim_samples[iter_num], rate_norm_l, iter_num, N_print, dt, lapse_prob, T_lapse_max
     ) for iter_num in tqdm(range(N_sim))
 )
 
@@ -314,7 +325,7 @@ else:
     lapse_trials = sim_results_df[sim_results_df['is_act'] == 1]
     normal_trials = sim_results_df[sim_results_df['is_act'] == 0]
 
-    # Note: Lapse mechanism - with probability lapse_prob, trials have random choice and uniform RT (0-1s)
+    # Note: Lapse mechanism - with probability lapse_prob, trials have random choice and uniform RT (0-T_lapse_max s)
     # Normal trials follow the full DDM simulation process
     print("\n=== Lapse Analysis ===")
     print(f"Total lapse trials: {len(lapse_trials)} ({len(lapse_trials)/len(sim_results_df)*100:.1f}%)")
@@ -331,3 +342,284 @@ else:
         print(f"Normal trials: {len(normal_trials)} ({len(normal_trials)/len(sim_results_df)*100:.1f}%)")
         print(f"Normal RT range: {normal_trials['rt'].min():.3f} - {normal_trials['rt'].max():.3f} s")
         print(f"Mean normal RT: {normal_trials['rt'].mean():.3f} s")
+
+
+# %%
+# VBMC helper funcs
+def compute_loglike_vanilla(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, lapse_prob, T_lapse_max):
+
+    rt = row['rt']
+    t_stim = row['t_stim']
+    choice = row['choice']
+    ILD = row['ILD']
+    ABL = row['ABL']
+
+    # Import the required functions
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'fit_animal_by_animal'))
+    from time_vary_norm_utils import up_or_down_RTs_fit_fn, cum_pro_and_reactive_time_vary_fn
+
+    pdf = up_or_down_RTs_fit_fn(
+            rt, choice,
+            V_A, theta_A, t_A_aff,
+            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go,
+            phi_params_obj, rate_norm_l,
+            is_norm, is_time_vary, K_max)
+
+    trunc_factor_p_joint = cum_pro_and_reactive_time_vary_fn(
+                            t_stim + 1, T_trunc,
+                            V_A, theta_A, t_A_aff,
+                            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
+                            phi_params_obj, rate_norm_l,
+                            is_norm, is_time_vary, K_max) \
+                            - \
+                            cum_pro_and_reactive_time_vary_fn(
+                            t_stim, T_trunc,
+                            V_A, theta_A, t_A_aff,
+                            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
+                            phi_params_obj, rate_norm_l,
+                            is_norm, is_time_vary, K_max)
+
+    pdf /= (trunc_factor_p_joint + 1e-20)
+
+    # Lapse mechanism: uniform distribution between 0 and T_lapse_max
+    # Since T_lapse_max <= 1.0 and data is filtered to rt-t_stim <= 1,
+    # all lapse RTs are included without truncation
+    lapse_pdf = 0.5 / T_lapse_max  # Uniform density for RT in [0, T_lapse_max], random choice
+
+    included_lapse_pdf = (1 - lapse_prob) * pdf + lapse_prob * lapse_pdf
+    included_lapse_pdf = max(included_lapse_pdf, 1e-50)
+    if np.isnan(included_lapse_pdf):
+        print(f'nan pdf rt = {rt}, t_stim = {t_stim}')
+        raise ValueError(f'nan pdf rt = {rt}, t_stim = {t_stim}')
+
+    return np.log(included_lapse_pdf)
+
+
+def vbmc_vanilla_tied_loglike_fn(params):
+    rate_lambda, T_0, theta_E, w, t_E_aff, del_go, lapse_prob, T_lapse_max = params
+    Z_E = (w - 0.5) * 2 * theta_E
+    all_loglike = Parallel(n_jobs=30)(delayed(compute_loglike_vanilla)(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, lapse_prob, T_lapse_max)\
+                                       for _, row in valid_rt_trials.iterrows() )
+    return np.sum(all_loglike)
+
+
+def vbmc_vanilla_tied_prior_fn(params):
+    rate_lambda, T_0, theta_E, w, t_E_aff, del_go, lapse_prob, T_lapse_max = params
+
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'fit_animal_by_animal'))
+    from vbmc_animal_wise_fit_utils import trapezoidal_logpdf
+
+    rate_lambda_logpdf = trapezoidal_logpdf(
+        rate_lambda,
+        vanilla_rate_lambda_bounds[0],
+        vanilla_rate_lambda_plausible_bounds[0],
+        vanilla_rate_lambda_plausible_bounds[1],
+        vanilla_rate_lambda_bounds[1]
+    )
+
+    T_0_logpdf = trapezoidal_logpdf(
+        T_0,
+        vanilla_T_0_bounds[0],
+        vanilla_T_0_plausible_bounds[0],
+        vanilla_T_0_plausible_bounds[1],
+        vanilla_T_0_bounds[1]
+    )
+
+    theta_E_logpdf = trapezoidal_logpdf(
+        theta_E,
+        vanilla_theta_E_bounds[0],
+        vanilla_theta_E_plausible_bounds[0],
+        vanilla_theta_E_plausible_bounds[1],
+        vanilla_theta_E_bounds[1]
+    )
+
+    w_logpdf = trapezoidal_logpdf(
+        w,
+        vanilla_w_bounds[0],
+        vanilla_w_plausible_bounds[0],
+        vanilla_w_plausible_bounds[1],
+        vanilla_w_bounds[1]
+    )
+
+    t_E_aff_logpdf = trapezoidal_logpdf(
+        t_E_aff,
+        vanilla_t_E_aff_bounds[0],
+        vanilla_t_E_aff_plausible_bounds[0],
+        vanilla_t_E_aff_plausible_bounds[1],
+        vanilla_t_E_aff_bounds[1]
+    )
+
+    del_go_logpdf = trapezoidal_logpdf(
+        del_go,
+        vanilla_del_go_bounds[0],
+        vanilla_del_go_plausible_bounds[0],
+        vanilla_del_go_plausible_bounds[1],
+        vanilla_del_go_bounds[1]
+    )
+
+    lapse_prob_logpdf = trapezoidal_logpdf(
+        lapse_prob,
+        vanilla_lapse_prob_bounds[0],
+        vanilla_lapse_prob_plausible_bounds[0],
+        vanilla_lapse_prob_plausible_bounds[1],
+        vanilla_lapse_prob_bounds[1]
+    )
+
+    T_lapse_max_logpdf = trapezoidal_logpdf(
+        T_lapse_max,
+        vanilla_T_lapse_max_bounds[0],
+        vanilla_T_lapse_max_plausible_bounds[0],
+        vanilla_T_lapse_max_plausible_bounds[1],
+        vanilla_T_lapse_max_bounds[1]
+    )
+
+    return (
+        rate_lambda_logpdf +
+        T_0_logpdf +
+        theta_E_logpdf +
+        w_logpdf +
+        t_E_aff_logpdf +
+        del_go_logpdf +
+        lapse_prob_logpdf +
+        T_lapse_max_logpdf
+    )
+
+def vbmc_vanilla_tied_joint_fn(params):
+    priors = vbmc_vanilla_tied_prior_fn(params)
+    loglike = vbmc_vanilla_tied_loglike_fn(params)
+    return priors + loglike
+
+# %%
+# VBMC parameter bounds
+vanilla_rate_lambda_bounds = [0.01, 1]
+vanilla_T_0_bounds = [0.1e-3, 2.2e-3]
+vanilla_theta_E_bounds = [5, 65]
+vanilla_w_bounds = [0.3, 0.7]
+vanilla_t_E_aff_bounds = [0.01, 0.2]
+vanilla_del_go_bounds = [0, 0.2]
+vanilla_lapse_prob_bounds = [0, 0.3]
+vanilla_T_lapse_max_bounds = [0.1, 1.0]  # Max lapse RT between 0.1 and 1.0 seconds (since data is filtered to rt-t_stim <= 1)
+
+vanilla_rate_lambda_plausible_bounds = [0.1, 0.3]
+vanilla_T_0_plausible_bounds = [0.5e-3, 1.5e-3]
+vanilla_theta_E_plausible_bounds = [15, 55]
+vanilla_w_plausible_bounds = [0.4, 0.6]
+vanilla_t_E_aff_plausible_bounds = [0.03, 0.09]
+vanilla_del_go_plausible_bounds = [0.05, 0.15]
+vanilla_lapse_prob_plausible_bounds = [0.01, 0.1]
+vanilla_T_lapse_max_plausible_bounds = [0.7, 0.9]  # Most plausible range for max lapse RT (close to 1.0 since data filtered to <= 1)
+
+vanilla_tied_lb = np.array([
+    vanilla_rate_lambda_bounds[0],
+    vanilla_T_0_bounds[0],
+    vanilla_theta_E_bounds[0],
+    vanilla_w_bounds[0],
+    vanilla_t_E_aff_bounds[0],
+    vanilla_del_go_bounds[0],
+    vanilla_lapse_prob_bounds[0],
+    vanilla_T_lapse_max_bounds[0]
+])
+
+vanilla_tied_ub = np.array([
+    vanilla_rate_lambda_bounds[1],
+    vanilla_T_0_bounds[1],
+    vanilla_theta_E_bounds[1],
+    vanilla_w_bounds[1],
+    vanilla_t_E_aff_bounds[1],
+    vanilla_del_go_bounds[1],
+    vanilla_lapse_prob_bounds[1],
+    vanilla_T_lapse_max_bounds[1]
+])
+
+vanilla_plb = np.array([
+    vanilla_rate_lambda_plausible_bounds[0],
+    vanilla_T_0_plausible_bounds[0],
+    vanilla_theta_E_plausible_bounds[0],
+    vanilla_w_plausible_bounds[0],
+    vanilla_t_E_aff_plausible_bounds[0],
+    vanilla_del_go_plausible_bounds[0],
+    vanilla_lapse_prob_plausible_bounds[0],
+    vanilla_T_lapse_max_plausible_bounds[0]
+])
+
+vanilla_pub = np.array([
+    vanilla_rate_lambda_plausible_bounds[1],
+    vanilla_T_0_plausible_bounds[1],
+    vanilla_theta_E_plausible_bounds[1],
+    vanilla_w_plausible_bounds[1],
+    vanilla_t_E_aff_plausible_bounds[1],
+    vanilla_del_go_plausible_bounds[1],
+    vanilla_lapse_prob_plausible_bounds[1],
+    vanilla_T_lapse_max_plausible_bounds[1]
+])
+
+# %%
+# VBMC fitting on simulated data
+print("Starting VBMC fitting on simulated data...")
+
+# Initialize parameters randomly from plausible bounds for better exploration
+np.random.seed(42)  # For reproducibility
+
+rate_lambda_0 = np.random.uniform(vanilla_rate_lambda_plausible_bounds[0], vanilla_rate_lambda_plausible_bounds[1])
+T_0_0 = np.random.uniform(vanilla_T_0_plausible_bounds[0], vanilla_T_0_plausible_bounds[1])
+theta_E_0 = np.random.uniform(vanilla_theta_E_plausible_bounds[0], vanilla_theta_E_plausible_bounds[1])
+w_0 = np.random.uniform(vanilla_w_plausible_bounds[0], vanilla_w_plausible_bounds[1])
+t_E_aff_0 = np.random.uniform(vanilla_t_E_aff_plausible_bounds[0], vanilla_t_E_aff_plausible_bounds[1])
+del_go_0 = np.random.uniform(vanilla_del_go_plausible_bounds[0], vanilla_del_go_plausible_bounds[1])
+lapse_prob_0 = np.random.uniform(vanilla_lapse_prob_plausible_bounds[0], vanilla_lapse_prob_plausible_bounds[1])
+T_lapse_max_0 = np.random.uniform(vanilla_T_lapse_max_plausible_bounds[0], vanilla_T_lapse_max_plausible_bounds[1])
+
+x_0 = np.array([
+    rate_lambda_0,
+    T_0_0,
+    theta_E_0,
+    w_0,
+    t_E_aff_0,
+    del_go_0,
+    lapse_prob_0,
+    T_lapse_max_0
+])
+
+print(f"Random initial parameters from plausible bounds:")
+print(f"rate_lambda={rate_lambda_0:.3f}, T_0={T_0_0:.6f}, theta_E={theta_E_0:.1f}, w={w_0:.3f}")
+print(f"t_E_aff={t_E_aff_0:.3f}, del_go={del_go_0:.3f}, lapse_prob={lapse_prob_0:.3f}, T_lapse_max={T_lapse_max_0:.3f}")
+
+print(f"\nOriginal simulated parameters for comparison:")
+print(f"rate_lambda: {rate_lambda:.3f}, T_0: {T_0:.6f}, theta_E: {theta_E:.1f}, w: {w:.3f}")
+print(f"t_E_aff: {t_E_aff:.3f}, del_go: {del_go:.3f}")
+
+# Run VBMC optimization
+vbmc = VBMC(vbmc_vanilla_tied_joint_fn, x_0, vanilla_tied_lb, vanilla_tied_ub, vanilla_plb, vanilla_pub,
+            options={'display': 'on'})
+vp, results = vbmc.optimize()
+
+# Save VBMC results
+vbmc.save(f'vbmc_vanilla_tied_results_batch_{batch_name}_animal_{animal_id}_lapses.pkl', overwrite=True)
+
+print("VBMC optimization completed!")
+print(f"Results saved to vbmc_vanilla_tied_results_batch_{batch_name}_animal_{animal_id}_lapses.pkl")
+
+# %%
+# Sample from posterior and print mean params
+vp_samples = vp.sample(int(1e6))[0]  # Sample 1000 points from posterior
+
+print("\n=== VBMC Fitting Results ===")
+print("Parameter means from posterior samples:")
+print(f"rate_lambda: {np.mean(vp_samples[:, 0]):.3f} ± {np.std(vp_samples[:, 0]):.3f}")
+print(f"T_0: {np.mean(vp_samples[:, 1]):.6f} ± {np.std(vp_samples[:, 1]):.6f}")
+print(f"theta_E: {np.mean(vp_samples[:, 2]):.1f} ± {np.std(vp_samples[:, 2]):.1f}")
+print(f"w: {np.mean(vp_samples[:, 3]):.3f} ± {np.std(vp_samples[:, 3]):.3f}")
+print(f"t_E_aff: {np.mean(vp_samples[:, 4]):.3f} ± {np.std(vp_samples[:, 4]):.3f}")
+print(f"del_go: {np.mean(vp_samples[:, 5]):.3f} ± {np.std(vp_samples[:, 5]):.3f}")
+print(f"lapse_prob: {np.mean(vp_samples[:, 6]):.3f} ± {np.std(vp_samples[:, 6]):.3f}")
+print(f"T_lapse_max: {np.mean(vp_samples[:, 7]):.3f} ± {np.std(vp_samples[:, 7]):.3f}")
+
+print(f"\nOriginal simulated parameters:")
+print(f"rate_lambda: {rate_lambda:.3f}, T_0: {T_0:.6f}, theta_E: {theta_E:.1f}, w: {w:.3f}")
+print(f"t_E_aff: {t_E_aff:.3f}, del_go: {del_go:.3f}")
+print(f"lapse_prob: {lapse_prob:.3f}, T_lapse_max: {T_lapse_max:.3f}")
+# %%
