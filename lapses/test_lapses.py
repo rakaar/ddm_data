@@ -6,13 +6,13 @@ import pandas as pd
 import os
 from joblib import Parallel, delayed
 from tqdm import tqdm
-from pyvbmc import VBMC
+from pyvbmc import VBMC 
 
 # Set model type (False for vanilla TIED, True for norm TIED)
 IS_NORM_TIED = False
 
 # VBMC constants
-T_trunc = 0
+T_trunc = 0.3
 phi_params_obj = np.nan
 rate_norm_l = np.nan
 is_norm = False
