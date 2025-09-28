@@ -1,3 +1,4 @@
+# VBMC fit on exp data single animal - lapses + vanila model
 # %%
 import numpy as np
 import pandas as pd
