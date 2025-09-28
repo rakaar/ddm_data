@@ -12,7 +12,7 @@ from pyvbmc import VBMC
 IS_NORM_TIED = False
 
 # VBMC constants
-T_trunc = 0.3
+T_trunc = 0
 phi_params_obj = np.nan
 rate_norm_l = np.nan
 is_norm = False
@@ -170,7 +170,12 @@ theta_E = tied_params.get('theta_E', np.nan)
 w = tied_params.get('w', np.nan)
 t_E_aff = tied_params.get('t_E_aff', np.nan)
 del_go = tied_params.get('del_go', np.nan)
-print(f'del_go = {del_go}')
+
+print(f"V_A = {V_A}, theta_A = {theta_A}, t_A_aff = {t_A_aff}")
+print(f"rate_lambda = {rate_lambda}, T_0 = {T_0}, theta_E = {theta_E}, w = {w}")
+print(f"t_E_aff = {t_E_aff}, del_go = {del_go}")
+
+
 # %%
 # For norm model, also get rate_norm_l
 if IS_NORM_TIED:
@@ -201,7 +206,7 @@ N_sim = int(60e3)  # Number of simulations - increased for better statistics
 dt = 1e-3    # Time step
 N_print = int(N_sim/5) # Print progress every N_print iterations
 lapse_prob = 0.1  # Probability of lapse (0.05 = 5% lapse rate)
-T_lapse_max = 1.0  # Maximum RT for lapse trials (default 1.0 seconds)
+T_lapse_max = 0.8  # Maximum RT for lapse trials (default 1.0 seconds)
 
 # Sample data from the animal's trials
 t_stim_samples = df_valid['intended_fix'].sample(N_sim, replace=True).values
@@ -236,7 +241,7 @@ print(f"Lapse rate (is_act=1): {np.mean(sim_results_df['is_act'] == 1):.3f}")
 
 # Filter trials where rt - t_stim is between 0 and 1 (valid response window)
 sim_results_df['rt_minus_t_stim'] = sim_results_df['rt'] - sim_results_df['t_stim']
-sim_results_df = sim_results_df[ ~( (sim_results_df['rt'] < sim_results_df['t_stim']) & (sim_results_df['rt'] < 0.3) )]
+sim_results_df = sim_results_df[ ~( (sim_results_df['rt'] < sim_results_df['t_stim']) & (sim_results_df['rt'] < T_trunc) )]
 valid_rt_trials = sim_results_df[
     (sim_results_df['rt_minus_t_stim'] >= 0) &
     (sim_results_df['rt_minus_t_stim'] <= 1)
@@ -498,24 +503,25 @@ def vbmc_vanilla_tied_joint_fn(params):
     return priors + loglike
 
 # %%
-# VBMC parameter bounds
-vanilla_rate_lambda_bounds = [0.01, 1]
-vanilla_T_0_bounds = [0.1e-3, 2.2e-3]
-vanilla_theta_E_bounds = [5, 65]
-vanilla_w_bounds = [0.3, 0.7]
-vanilla_t_E_aff_bounds = [0.01, 0.2]
-vanilla_del_go_bounds = [0, 0.25]
-vanilla_lapse_prob_bounds = [0, 0.3]
-vanilla_T_lapse_max_bounds = [0.1, 1.0]  # Max lapse RT between 0.1 and 1.0 seconds (since data is filtered to rt-t_stim <= 1)
+# VBMC parameter bounds (tight around true values for easier convergence)
+vanilla_rate_lambda_bounds = [0.05, 0.15]    # Tight around 0.097
+vanilla_T_0_bounds = [0.00015, 0.00045]     # Tight around 0.000287
+vanilla_theta_E_bounds = [25, 55]           # Tight around 40
+vanilla_w_bounds = [0.45, 0.57]             # Tight around 0.508
+vanilla_t_E_aff_bounds = [0.05, 0.10]       # Tight around 0.074
+vanilla_del_go_bounds = [0.15, 0.24]        # Tight around 0.192
+vanilla_lapse_prob_bounds = [0.07, 0.13]    # Tight around 0.1 (lapse probability)
+vanilla_T_lapse_max_bounds = [0.7, 0.9]     # Tight around 0.8 (max lapse RT)
 
-vanilla_rate_lambda_plausible_bounds = [0.07, 0.20]  # include 0.097
-vanilla_T_0_plausible_bounds = [0.0002, 0.0015]   # include 0.000287
-vanilla_theta_E_plausible_bounds = [15, 55]
-vanilla_w_plausible_bounds = [0.4, 0.6]
-vanilla_t_E_aff_plausible_bounds = [0.03, 0.09]
-vanilla_del_go_plausible_bounds = [0.1, 0.2]
-vanilla_lapse_prob_plausible_bounds = [0.01, 0.1]
-vanilla_T_lapse_max_plausible_bounds = [0.7, 0.9]  # Most plausible range for max lapse RT (close to 1.0 since data filtered to <= 1)
+# Plausible bounds (tighter focus around true values)
+vanilla_rate_lambda_plausible_bounds = [0.07, 0.12]    # Very tight around 0.097
+vanilla_T_0_plausible_bounds = [0.0002, 0.0004]       # Very tight around 0.000287
+vanilla_theta_E_plausible_bounds = [35, 45]            # Very tight around 40
+vanilla_w_plausible_bounds = [0.48, 0.54]             # Very tight around 0.508
+vanilla_t_E_aff_plausible_bounds = [0.065, 0.085]     # Very tight around 0.074
+vanilla_del_go_plausible_bounds = [0.175, 0.210]       # Very tight around 0.192
+vanilla_lapse_prob_plausible_bounds = [0.085, 0.115]   # Very tight around 0.1
+vanilla_T_lapse_max_plausible_bounds = [0.75, 0.85]    # Very tight around 0.8
 
 vanilla_tied_lb = np.array([
     vanilla_rate_lambda_bounds[0],
