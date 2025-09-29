@@ -13,77 +13,41 @@ from vbmc_animal_wise_fit_utils import trapezoidal_logpdf
 from time_vary_norm_utils import up_or_down_RTs_fit_fn, cum_pro_and_reactive_time_vary_fn
 # %%
 T_trunc = 0.3
-batch_name = 'SD'
+batch_name = 'LED6'
 phi_params_obj = np.nan
 rate_norm_l = np.nan
 is_norm = False
 is_time_vary = False
 K_max = 10
 
-# load animal data
-exp_df = pd.read_csv('../outExp.csv')
-# out_LED.csv
-# exp_df = pd.read_csv('../out_LED.csv')
-if 'timed_fix' in exp_df.columns:
-    exp_df.loc[:, 'RTwrtStim'] = exp_df['timed_fix'] - exp_df['intended_fix']
-    exp_df = exp_df.rename(columns={'timed_fix': 'TotalFixTime'})
-# 
-# remove rows where abort happened, and RT is nan
-exp_df = exp_df[~((exp_df['RTwrtStim'].isna()) & (exp_df['abort_event'] == 3))].copy()
+# load animal data directly from preprocessed batch CSV
+csv_filename = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
+exp_df = pd.read_csv(csv_filename)
 
-# in some cases, response_poke is nan, but succcess and ILD are present
-# reconstruct response_poke from success and ILD 
-# if success and ILD are present, a response should also be present
-mask_nan = exp_df['response_poke'].isna()
-mask_success_1 = (exp_df['success'] == 1)
-mask_success_neg1 = (exp_df['success'] == -1)
-mask_ild_pos = (exp_df['ILD'] > 0)
-mask_ild_neg = (exp_df['ILD'] < 0)
-
-# For success == 1
-exp_df.loc[mask_nan & mask_success_1 & mask_ild_pos, 'response_poke'] = 3
-exp_df.loc[mask_nan & mask_success_1 & mask_ild_neg, 'response_poke'] = 2
-
-# For success == -1
-exp_df.loc[mask_nan & mask_success_neg1 & mask_ild_pos, 'response_poke'] = 2
-exp_df.loc[mask_nan & mask_success_neg1 & mask_ild_neg, 'response_poke'] = 3
-
-exp_df_batch = exp_df[
-    (exp_df['batch_name'] == batch_name) &
-    (exp_df['LED_trial'].isin([np.nan, 0])) &
-    (exp_df['animal'].isin([49])) &
-    (exp_df['session_type'].isin([1,7]))  
-].copy()
-
-# aborts don't have choice, so assign random 
-exp_df_batch['choice'] = exp_df_batch['response_poke'].apply(lambda x: 1 if x == 3 else (-1 if x == 2 else random.choice([1, -1])))
-# 1 or 0 if the choice was correct or not
-exp_df_batch['accuracy'] = (exp_df_batch['ILD'] * exp_df_batch['choice']).apply(lambda x: 1 if x > 0 else 0)
-
-
+# Data is already processed and batch-filtered in the CSV
 ### DF - valid and aborts ###
-df_valid_and_aborts = exp_df_batch[
-    (exp_df_batch['success'].isin([1,-1])) |
-    (exp_df_batch['abort_event'] == 3)
+df_valid_and_aborts = exp_df[
+    (exp_df['success'].isin([1,-1])) |
+    (exp_df['abort_event'] == 3)
 ].copy()
 
 df_aborts = df_valid_and_aborts[df_valid_and_aborts['abort_event'] == 3]
 
-### Animal selection ###
-animal_ids = df_valid_and_aborts['animal'].unique()
+# animal_ids = df_valid_and_aborts['animal'].unique()
+animal_ids = [86]
 # animal = animal_ids[-1]
 # for animal_idx in [-1]:
 
 print('####################################')
 print(f'Aborts Truncation Time: {T_trunc}')
 print('####################################')
-
+# %%
 
 # load proactive params
 
 # %%
 # VBMC helper funcs
-def compute_loglike_vanilla(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, lapse_prob, lapse_rt_window):
+def compute_loglike_vanilla(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, lapse_prob):
     
     rt = row['TotalFixTime']
     t_stim = row['intended_fix']
@@ -92,6 +56,7 @@ def compute_loglike_vanilla(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go
     ILD = row['ILD']
     ABL = row['ABL']
     choice = row['choice']
+    lapse_rt_window = max_rt
 
     pdf = up_or_down_RTs_fit_fn(
             rt, choice,
@@ -100,14 +65,7 @@ def compute_loglike_vanilla(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go
             phi_params_obj, rate_norm_l, 
             is_norm, is_time_vary, K_max)
 
-    trunc_factor_p_joint = cum_pro_and_reactive_time_vary_fn(
-                            t_stim + 1, T_trunc,
-                            V_A, theta_A, t_A_aff,
-                            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
-                            phi_params_obj, rate_norm_l, 
-                            is_norm, is_time_vary, K_max) \
-                            - \
-                            cum_pro_and_reactive_time_vary_fn(
+    trunc_factor_p_joint = 1 - cum_pro_and_reactive_time_vary_fn(
                             t_stim, T_trunc,
                             V_A, theta_A, t_A_aff,
                             t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
@@ -129,15 +87,15 @@ def compute_loglike_vanilla(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go
 
 
 def vbmc_vanilla_tied_loglike_fn(params):
-    rate_lambda, T_0, theta_E, w, t_E_aff, del_go, lapse_prob, lapse_rt_window = params
+    rate_lambda, T_0, theta_E, w, t_E_aff, del_go, lapse_prob = params
     Z_E = (w - 0.5) * 2 * theta_E
-    all_loglike = Parallel(n_jobs=30)(delayed(compute_loglike_vanilla)(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, lapse_prob, lapse_rt_window)\
-                                       for _, row in df_valid_animal_less_than_1.iterrows() )
+    all_loglike = Parallel(n_jobs=30)(delayed(compute_loglike_vanilla)(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, lapse_prob)\
+                                       for _, row in df_valid_animal.iterrows() )
     return np.sum(all_loglike)
 
 
 def vbmc_vanilla_tied_prior_fn(params):
-    rate_lambda, T_0, theta_E, w, t_E_aff, del_go, lapse_prob, lapse_rt_window = params
+    rate_lambda, T_0, theta_E, w, t_E_aff, del_go, lapse_prob = params
 
     rate_lambda_logpdf = trapezoidal_logpdf(
         rate_lambda,
@@ -218,8 +176,7 @@ vanilla_theta_E_bounds = [5, 65]
 vanilla_w_bounds = [0.3, 0.7]
 vanilla_t_E_aff_bounds = [0.01, 0.2]
 vanilla_del_go_bounds = [0, 0.2]
-vanilla_lapse_prob_bounds = [0, 0.3]
-vanilla_lapse_rt_window_bounds = [0.0001, 1]
+vanilla_lapse_prob_bounds = [1e-4, 0.2]
 
 vanilla_rate_lambda_plausible_bounds = [0.1, 0.3]
 vanilla_T_0_plausible_bounds = [0.5e-3, 1.5e-3]
@@ -227,8 +184,7 @@ vanilla_theta_E_plausible_bounds = [15, 55]
 vanilla_w_plausible_bounds = [0.4, 0.6]
 vanilla_t_E_aff_plausible_bounds = [0.03, 0.09]
 vanilla_del_go_plausible_bounds = [0.05, 0.15]
-vanilla_lapse_prob_plausible_bounds = [0.01, 0.1]
-vanilla_lapse_rt_window_plausible_bounds = [0.005, 0.9]
+vanilla_lapse_prob_plausible_bounds = [1e-3, 0.1]
 
 
 vanilla_tied_lb = np.array([
@@ -238,8 +194,7 @@ vanilla_tied_lb = np.array([
     vanilla_w_bounds[0],
     vanilla_t_E_aff_bounds[0],
     vanilla_del_go_bounds[0],
-    vanilla_lapse_prob_bounds[0],
-    vanilla_lapse_rt_window_bounds[0]
+    vanilla_lapse_prob_bounds[0]
 ])
 
 vanilla_tied_ub = np.array([
@@ -249,8 +204,7 @@ vanilla_tied_ub = np.array([
     vanilla_w_bounds[1],
     vanilla_t_E_aff_bounds[1],
     vanilla_del_go_bounds[1],
-    vanilla_lapse_prob_bounds[1],
-    vanilla_lapse_rt_window_bounds[1]
+    vanilla_lapse_prob_bounds[1]
 ])
 
 vanilla_plb = np.array([
@@ -260,8 +214,7 @@ vanilla_plb = np.array([
     vanilla_w_plausible_bounds[0],
     vanilla_t_E_aff_plausible_bounds[0],
     vanilla_del_go_plausible_bounds[0],
-    vanilla_lapse_prob_plausible_bounds[0],
-    vanilla_lapse_rt_window_plausible_bounds[0]
+    vanilla_lapse_prob_plausible_bounds[0]
 ])
 
 vanilla_pub = np.array([
@@ -271,9 +224,10 @@ vanilla_pub = np.array([
     vanilla_w_plausible_bounds[1],
     vanilla_t_E_aff_plausible_bounds[1],
     vanilla_del_go_plausible_bounds[1],
-    vanilla_lapse_prob_plausible_bounds[1],
-    vanilla_lapse_rt_window_plausible_bounds[1]
+    vanilla_lapse_prob_plausible_bounds[1]
 ])
+# %%
+print(f'len of animal_ids = {len(animal_ids)}')
 
 # %%
 for animal_idx in [0]:
@@ -283,7 +237,10 @@ for animal_idx in [0]:
     df_aborts_animal = df_aborts[df_aborts['animal'] == animal]
 
     df_valid_animal = df_all_trials_animal[df_all_trials_animal['success'].isin([1,-1])]
-    df_valid_animal_less_than_1 = df_valid_animal[df_valid_animal['RTwrtStim'] < 1]
+    # no right Truncation
+    # df_valid_animal_less_than_1 = df_valid_animal[df_valid_animal['RTwrtStim'] < 1]
+    # max value of RTwrtStim
+    max_rt = df_valid_animal['RTwrtStim'].max()
 
 
     print(f'Batch: {batch_name},sample animal: {animal}')
@@ -332,8 +289,6 @@ for animal_idx in [0]:
     t_E_aff_0 = 0.071
     del_go_0 = 0.13
     lapse_prob_0 = 0.02
-    lapse_rt_window_0 = 0.9
-
     x_0 = np.array([
         rate_lambda_0,
         T_0_0,
@@ -342,7 +297,6 @@ for animal_idx in [0]:
         t_E_aff_0,
         del_go_0,
         lapse_prob_0,
-        lapse_rt_window_0
     ])
     
     vbmc = VBMC(vbmc_vanilla_tied_joint_fn, x_0, vanilla_tied_lb, vanilla_tied_ub, vanilla_plb, vanilla_pub, options={'display': 'on', 'max_fun_evals': 200 * (2 + 6)})
@@ -352,3 +306,40 @@ for animal_idx in [0]:
 
 # %%
 
+vp_samples = vp.sample(int(1e6))[0]
+# %%
+#    rate_lambda, T_0, theta_E, w, t_E_aff, del_go, lapse_prob = params
+rate_lambda_samples = vp_samples[:, 0]
+T_0_samples = vp_samples[:, 1]
+theta_E_samples = vp_samples[:, 2]
+w_samples = vp_samples[:, 3]
+t_E_aff_samples = vp_samples[:, 4]
+del_go_samples = vp_samples[:, 5]
+lapse_prob_samples = vp_samples[:, 6]
+
+
+
+# print mean of each sample
+print("rate_lambda_samples mean: ", np.mean(rate_lambda_samples))
+print("T_0_samples mean (ms): ", 1000* np.mean(T_0_samples))
+print("theta_E_samples mean: ", np.mean(theta_E_samples))
+print("w_samples mean: ", np.mean(w_samples))
+# Z_E = (w - 0.5) * 2 * theta_E
+print(f'Z_E = {(np.mean(w_samples) - 0.5) * 2 * np.mean(theta_E_samples)}')
+print("t_E_aff_samples mean (ms): ", 1000* np.mean(t_E_aff_samples))
+print("del_go_samples mean (ms): ", 1000* np.mean(del_go_samples))
+print("lapse_prob_samples mean: ", np.mean(lapse_prob_samples))
+#  %%
+# 
+bins = np.arange(vanilla_lapse_prob_bounds[0], vanilla_lapse_prob_bounds[1], 1e-4)
+mean_lapse_prob = np.mean(lapse_prob_samples)
+plt.hist(lapse_prob_samples, bins=bins, density=True)
+
+plt.xlabel('Lapse probability')
+plt.ylabel('Density')
+plt.title('Lapse probability distribution')
+plt.xlim(0, 1e-2)
+plt.axvline(x=mean_lapse_prob, color='r', linestyle='--', label=f'Mean: {mean_lapse_prob:.4f}')
+plt.legend()
+plt.show()
+# %%
