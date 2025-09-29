@@ -93,10 +93,10 @@ print(f"t_E_aff={t_E_aff}, del_go={del_go}, rate_norm_l={rate_norm_l}")
 
 # Fixed test parameters
 t_stim_fixed = 0.25  # Fixed t_stim
-ABL_fixed = 60       # Fixed ABL
-ILD_fixed = 1       # Fixed ILD
-lapse_prob = 0.03    # 10% lapse rate
-T_lapse_max = 0.9   # Max lapse RT
+ABL_fixed = 20       # Fixed ABL
+ILD_fixed = 4       # Fixed ILD
+lapse_prob = 0.3    # 10% lapse rate
+T_lapse_max = 0.7   # Max lapse RT
 N_sim = int(50e3)        # Number of simulations
 dt = 1e-4       # Time step
 
