@@ -1,11 +1,11 @@
 import numpy as np
 
 def simulate_psiam_tied_rate_norm(V_A, theta_A, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_stim,
-                                  t_A_aff, t_E_aff, del_go, rate_norm_l, dt, lapse_prob=0.0, T_lapse_max=1.0):
+                                  t_A_aff, t_E_aff, del_go, rate_norm_l, dt, lapse_prob=0.0, lapse_prob_right=0.5, T_lapse_max=1.0):
 
-    # Lapse mechanism: with probability lapse_prob, generate random choice and RT
+    # Lapse mechanism: with probability lapse_prob, generate biased choice and RT
     if np.random.rand() < lapse_prob:
-        choice = 1 if np.random.rand() >= 0.5 else -1
+        choice = 1 if np.random.rand() < lapse_prob_right else -1
         rt = t_stim + np.random.uniform(0, T_lapse_max)  # Uniform distribution between 0 and T_lapse_max
         is_act = 1  # Mark as lapse
         return choice, rt, is_act
