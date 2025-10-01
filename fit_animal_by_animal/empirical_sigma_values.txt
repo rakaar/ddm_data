@@ -1,0 +1,3 @@
+Batch: LED8, Animal: 105
+sigma_logodds = 2.005031
+sigma_psyc = 0.321117

@@ -526,8 +526,8 @@ t_A_aff = np.mean(abort_samples['t_A_aff_samp'])
 
 #######################
 # TEMP #####################
-lapse_prob_mean = 0.5
-T_lapse_max = 1.5
+# lapse_prob_mean = 0.5
+# T_lapse_max = 1.5
 ####
 def simulate_single_trial_vanilla(i):
     choice, rt, is_act = simulate_psiam_tied_rate_norm(
