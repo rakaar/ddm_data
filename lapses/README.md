@@ -19,6 +19,16 @@
 
 **`test_lapse_model_fit_on_accuracy.py`**
 - Scipy curve_fit for lapse models (log-odds & psychometric) with ILD_bias parameter
+- Fits both unbiased lapse (a/2) and biased lapse (a*lapse_pR) models
+
+**`test_lapse_model_fit_on_accuracy_no_ILD_bias.py`**
+- Same as above but **without ILD_bias** parameter (ILD_bias = 0)
+- Fits unbiased and biased lapse models with parameters: [a, d, th, lapse_pR]
+
+**`test_lapse_model_fit_on_accuracy_no_lapses.py`**
+- Model with **no lapses (a=0 fixed)** and **ILD_bias restored**
+- Only one function per fit type since lapse_pR is not needed
+- Fits parameters: [d, th, ILD_bias]
 
 **`vbmc_fit_logodds_lapse_biased.py`**
 - VBMC fit of biased lapse model in log-odds space using posterior mode
