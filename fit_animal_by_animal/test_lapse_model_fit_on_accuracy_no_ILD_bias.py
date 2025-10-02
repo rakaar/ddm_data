@@ -11,6 +11,12 @@ T_trunc = 0.3
 batch_name = 'LED8'
 animal_ids = [105]
 
+DO_RIGHT_TRUNCATE = True
+if DO_RIGHT_TRUNCATE:
+    print(f'Right truncation at 1s')
+else:
+    print(f'No right truncation')
+
 csv_filename = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
 exp_df = pd.read_csv(csv_filename)
 df_valid_and_aborts = exp_df[
@@ -25,7 +31,17 @@ df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == anim
 df_aborts_animal = df_aborts[df_aborts['animal'] == animal]
 df_valid_animal = df_all_trials_animal[df_all_trials_animal['success'].isin([1,-1])]
 max_rt = df_valid_animal['RTwrtStim'].max()
-df_valid_animal_filtered = df_valid_animal[df_valid_animal['RTwrtStim'] > 0].copy()
+
+# Apply right truncation filter if enabled
+if DO_RIGHT_TRUNCATE:
+    df_valid_animal_filtered = df_valid_animal[
+        (df_valid_animal['RTwrtStim'] > 0) & 
+        (df_valid_animal['RTwrtStim'] <= 1.0)
+    ].copy()
+    print(f'Applied right truncation: {len(df_valid_animal)} -> {len(df_valid_animal_filtered)} trials')
+else:
+    df_valid_animal_filtered = df_valid_animal[df_valid_animal['RTwrtStim'] > 0].copy()
+    print(f'No right truncation applied: {len(df_valid_animal_filtered)} trials')
 df_valid_animal_filtered['abs_ILD'] = np.abs(df_valid_animal_filtered['ILD'])
 
 # %%
