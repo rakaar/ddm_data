@@ -13,6 +13,13 @@
 **`lapses_fit_single_animal.py`** (located in `../fit_animal_by_animal/`)
 - VBMC fit on exp data single animal: lapses + vanilla model
 
+**`lapses_fit_single_animal_norm_model.py`** (located in `../fit_animal_by_animal/`)
+- VBMC fit on exp data single animal: lapses + **normalized model**
+- Fits 9 parameters: `rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right`
+- Includes `rate_norm_l` (normalization parameter) and `lapse_prob_right` (directional lapse bias)
+- Supports optional right truncation at 1s via `DO_RIGHT_TRUNCATE` flag
+- Compares Norm vs Norm+Lapse models with parameter distributions and simulated RTDs
+
 ---
 
 ## New Lapse Model Files (in `../fit_animal_by_animal/`)
