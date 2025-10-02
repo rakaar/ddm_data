@@ -20,6 +20,17 @@
 - Supports optional right truncation at 1s via `DO_RIGHT_TRUNCATE` flag
 - Compares Norm vs Norm+Lapse models with parameter distributions and simulated RTDs
 
+**`compare_all_four_models.py`** (located in `../fit_animal_by_animal/`)
+- **Comprehensive comparison of all 4 models**: Vanilla, Vanilla+Lapse, Norm, Norm+Lapse
+- Loads parameters from: baseline models (`results_{batch}_animal_{id}.pkl`) and lapse models (`vbmc_*_lapses_truncate_1s.pkl`)
+- Uses `vp.sample()` to extract lapse model parameters from saved VBMC posteriors
+- Simulates 1M trials per model using `simulate_psiam_tied_rate_norm` from `lapses_utils`
+- Generates 3 comprehensive plots:
+  - **RT Distributions**: Grid layout (ABL rows × |ILD| columns) with step histograms for all 4 models + data
+  - **Psychometric Curves**: P(right) vs ILD for each ABL, all models overlaid
+  - **Log Odds**: Log(P(R)/P(L)) vs ILD for each ABL
+- Configuration: batch LED8, animal 105, `DO_RIGHT_TRUNCATE=True`
+
 ---
 
 ## New Lapse Model Files (in `../fit_animal_by_animal/`)
