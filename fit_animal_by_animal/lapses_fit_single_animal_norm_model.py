@@ -11,13 +11,30 @@ from pyvbmc import VBMC
 from matplotlib.backends.backend_pdf import PdfPages
 import pickle
 import sys
+import argparse
+import os
 sys.path.append('../lapses')
 from lapses_utils import simulate_psiam_tied_rate_norm
 from vbmc_animal_wise_fit_utils import trapezoidal_logpdf
 from time_vary_norm_utils import up_or_down_RTs_fit_fn, cum_pro_and_reactive_time_vary_fn
 # %%
-T_trunc = 0.3
-batch_name = 'LED8'
+# CLI args
+parser = argparse.ArgumentParser(description='Fit norm+lapse model for a single animal')
+parser.add_argument('--batch', required=True, help='Batch name, e.g., LED8')
+parser.add_argument('--animal', required=True, type=int, help='Animal ID (int)')
+parser.add_argument('--output-dir', default='oct_3_norm_lapse_fit_results', help='Directory to save results')
+args = parser.parse_args()
+
+batch_name = args.batch
+animal_ids = [args.animal]
+output_dir = args.output_dir
+os.makedirs(output_dir, exist_ok=True)
+
+if batch_name == 'LED34_even':
+    T_trunc = 0.15
+else:
+    T_trunc = 0.3
+
 phi_params_obj = np.nan
 is_norm = True
 is_time_vary = False
@@ -43,7 +60,6 @@ df_valid_and_aborts = exp_df[
 df_aborts = df_valid_and_aborts[df_valid_and_aborts['abort_event'] == 3]
 
 # animal_ids = df_valid_and_aborts['animal'].unique()
-animal_ids = [105]
 # animal = animal_ids[-1]
 # for animal_idx in [-1]:
 
@@ -309,7 +325,7 @@ for animal_idx in [0]:
 
 
     print(f'Batch: {batch_name},sample animal: {animal}')
-    pdf_filename = f'results_{batch_name}_animal_{animal}_lapse_fit.pdf'
+    pdf_filename = os.path.join(output_dir, f'results_{batch_name}_animal_{animal}_lapse_fit.pdf')
     pdf = PdfPages(pdf_filename)
     fig_text = plt.figure(figsize=(8.5, 11)) # Standard page size looks better
     fig_text.clf() # Clear the figure
@@ -372,9 +388,10 @@ for animal_idx in [0]:
     vp, results = vbmc.optimize()
 
     if DO_RIGHT_TRUNCATE:
-        vbmc.save(f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_truncate_1s.pkl', overwrite=True)
+        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_truncate_1s.pkl')
     else:
-        vbmc.save(f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses.pkl', overwrite=True)
+        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses.pkl')
+    vbmc.save(vbmc_pkl_path, overwrite=True)
 
 # %%
 
@@ -470,6 +487,32 @@ print(f"{'lapse_prob':<20} {'N/A':<15} {lapse_prob_mean:<15.6f} {'N/A':<15} {'N/
 print(f"{'lapse_prob_right':<20} {'N/A':<15} {lapse_prob_right_mean:<15.6f} {'N/A':<15} {'N/A':<15}")
 print("="*95)
 
+# Save the above comparison to a text file
+comparison_lines = [
+    "",
+    "="*95,
+    f"PARAMETER COMPARISON: Norm vs Norm+Lapse Model (Batch {batch_name}, Animal {animal_ids[0]})",
+    "="*95,
+    f"{'Parameter':<20} {'Norm':<15} {'Norm+Lapse':<15} {'|Diff|':<15} {'% Change':<15}",
+    "-"*95,
+    f"{'rate_lambda':<20} {norm_rate_lambda:<15.6f} {lapse_rate_lambda:<15.6f} {diff_rate_lambda:<15.6f} {pct_rate_lambda:<+15.2f}",
+    f"{'T_0 (ms)':<20} {norm_T_0*1000:<15.6f} {lapse_T_0*1000:<15.6f} {diff_T_0_ms:<15.6f} {pct_T_0:<+15.2f}",
+    f"{'theta_E':<20} {norm_theta_E:<15.6f} {lapse_theta_E:<15.6f} {diff_theta_E:<15.6f} {pct_theta_E:<+15.2f}",
+    f"{'w':<20} {norm_w:<15.6f} {lapse_w:<15.6f} {diff_w:<15.6f} {pct_w:<+15.2f}",
+    f"{'t_E_aff (ms)':<20} {norm_t_E_aff*1000:<15.6f} {lapse_t_E_aff*1000:<15.6f} {diff_t_E_aff_ms:<15.6f} {pct_t_E_aff:<+15.2f}",
+    f"{'del_go (ms)':<20} {norm_del_go*1000:<15.6f} {lapse_del_go*1000:<15.6f} {diff_del_go_ms:<15.6f} {pct_del_go:<+15.2f}",
+    f"{'rate_norm_l':<20} {norm_rate_norm_l:<15.6f} {lapse_rate_norm_l:<15.6f} {diff_rate_norm_l:<15.6f} {pct_rate_norm_l:<+15.2f}",
+    f"{'lapse_prob':<20} {'N/A':<15} {lapse_prob_mean:<15.6f} {'N/A':<15} {'N/A':<15}",
+    f"{'lapse_prob_right':<20} {'N/A':<15} {lapse_prob_right_mean:<15.6f} {'N/A':<15} {'N/A':<15}",
+    "="*95,
+    ""
+]
+comparison_text = "\n".join(comparison_lines)
+comparison_txt_path = os.path.join(output_dir, f'param_comparison_batch_{batch_name}_animal_{animal_ids[0]}.txt')
+with open(comparison_txt_path, 'w') as f:
+    f.write(comparison_text)
+print(f"Saved parameter comparison to {comparison_txt_path}")
+
 # %%
 # Plot distributions of samples for each param from both fits
 fig, axes = plt.subplots(3, 3, figsize=(18, 12))
@@ -516,6 +559,9 @@ for idx in range(len(params_info), 9):
     axes[idx // 3, idx % 3].axis('off')
 
 plt.tight_layout()
+param_dist_png = os.path.join(output_dir, f'param_distributions_batch_{batch_name}_animal_{animal_ids[0]}.png')
+fig.savefig(param_dist_png, dpi=300, bbox_inches='tight')
+print(f"Saved {param_dist_png}")
 plt.show()
 
 # %%
@@ -548,6 +594,9 @@ ax2.grid(axis='y', alpha=0.3)
 
 fig.suptitle(f'Lapse Parameters - Batch {batch_name}, Animal {animal_ids[0]}', fontsize=14, fontweight='bold')
 plt.tight_layout()
+lapse_params_png = os.path.join(output_dir, f'lapse_params_batch_{batch_name}_animal_{animal_ids[0]}.png')
+fig.savefig(lapse_params_png, dpi=300, bbox_inches='tight')
+print(f"Saved {lapse_params_png}")
 plt.show()
 
 # %%
@@ -730,6 +779,9 @@ for row_idx, abl in enumerate(ABL_vals[:3]):  # Limit to 3 ABLs
         n_empirical = len(empirical_data)
         
 plt.tight_layout()
+rt_dists_png = os.path.join(output_dir, f'rtds_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}.png')
+fig.savefig(rt_dists_png, dpi=300, bbox_inches='tight')
+print(f"Saved {rt_dists_png}")
 plt.show()
 
 # %%
@@ -819,6 +871,9 @@ for idx, abl in enumerate(ABL_vals[:3]):  # 3 ABLs
     ax.set_ylim(-5, 5)
 
 plt.tight_layout()
+log_odds_png = os.path.join(output_dir, f'log_odds_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}.png')
+fig.savefig(log_odds_png, dpi=300, bbox_inches='tight')
+print(f"Saved {log_odds_png}")
 plt.show()
 
 # %%
@@ -890,6 +945,15 @@ for idx, abl in enumerate(ABL_vals[:3]):  # 3 ABLs
     ax.set_ylim(0, 1)
 
 plt.tight_layout()
+psycho_png = os.path.join(output_dir, f'psychometric_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}.png')
+fig.savefig(psycho_png, dpi=300, bbox_inches='tight')
+print(f"Saved {psycho_png}")
 plt.show()
 
 # %%
+# Close PDF file handle if created
+try:
+    pdf.close()
+    print(f"Saved PDF report to {pdf_filename}")
+except Exception:
+    pass

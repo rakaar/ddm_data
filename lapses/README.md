@@ -62,16 +62,17 @@
 - Processes animals from batches: SD, LED34, LED6, LED8, LED7, LED34_even
 - Batch-specific T_trunc: 0.15s for LED34_even, 0.3s for others; right truncation at 1.0s
 - Performs **two independent fits** per animal:
-  - **Log-odds fit**: Fits `log_sigmoid_v3_lapse_biased` to log(P(R)/P(L)) data
   - **Psychometric fit**: Fits `psyc_lapse_biased` to P(right) data
 - Parameters fitted: [a, d, th, lapse_pR] with R² evaluation
 - **Outputs**:
   - `lapse_model_params_all_animals.pkl`: Dictionary with all fit parameters and R² values
   - `lapse_model_fits_all_animals.pdf`: Multi-page PDF with psychometric + log-odds plots per animal
-  - `lapse_model_parameter_comparison.csv`: Sortable table of all parameters as percentages
-  - 3 comparison PNG figures:
+  - **`lapse_model_parameter_comparison.csv`**: Sortable table of all parameters as percentages
     - `lapse_model_r2_comparison.png`: R² comparison (2 panels) sorted by average R²
     - `lapse_model_a_param_comparison.png`: Lapse rate parameter 'a' side-by-side bars with R² annotations
     - `lapse_model_lapse_pR_comparison.png`: Lapse bias parameter with reference line at 50%
 - CSV table columns: Batch, Animal, R²_LogOdds (%), R²_Psychometric (%), a_LogOdds (%), a_Psychometric (%), lapse_pR_LogOdds (%), lapse_pR_Psychometric (%)
 - PDF titles include all fitted parameters: a (%), d (4 decimals), th (2 decimals), lapse_pR (%), R² (%)
+
+**`run_norm_lapse_fits_batch_animal_pairs.py`** (located in `../fit_animal_by_animal/`)
+- Batch runner for the norm+lapse single-animal fit over multiple (batch, animal) pairs. Defaults: SD:52, LED6:84, LED6:86, LED34_even:52. Saves VBMC pkl, parameter-comparison text, and figures to `--output-dir` (default: `oct_3_norm_lapse_fit_results`).
