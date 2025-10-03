@@ -16,9 +16,10 @@ from tqdm import tqdm
 
 # %%
 # Model functions
-def log_sigmoid_v3_lapse_biased(x, a, d, th, lapse_pR):
-    """Log odds model with biased lapse parameter"""
-    f = th * np.tanh(d * x)
+def log_sigmoid_v3_lapse_biased(x, a, d, th, lapse_pR, ILD_bias):
+    """Log odds model with biased lapse parameter and ILD bias"""
+    x_biased = x + ILD_bias
+    f = th * np.tanh(d * x_biased)
     p0 = 1.0 / (1.0 + (np.exp(-2*f)))  # sigma(f)
     p_plus = a*lapse_pR + (1.0 - a) * p0
     p_minus = a*(1-lapse_pR) + (1.0 - a) * (1.0 - p0)
@@ -26,9 +27,10 @@ def log_sigmoid_v3_lapse_biased(x, a, d, th, lapse_pR):
     return np.log((p_plus + eps) / (p_minus + eps))
 
 
-def psyc_lapse_biased(x, a, d, th, lapse_pR):
-    """Psychometric model with biased lapse parameter"""
-    f = th * np.tanh(d * x)
+def psyc_lapse_biased(x, a, d, th, lapse_pR, ILD_bias):
+    """Psychometric model with biased lapse parameter and ILD bias"""
+    x_biased = x + ILD_bias
+    f = th * np.tanh(d * x_biased)
     p0 = 1.0 / (1.0 + (np.exp(-2*f)))  # sigma(f)
     p_plus = a*lapse_pR + (1.0 - a) * p0
     return p_plus
@@ -40,7 +42,7 @@ def negative_log_likelihood_psyc(params, x_data, k_right, n_trials):
     
     Parameters:
     -----------
-    params : array [a, d, th, lapse_pR]
+    params : array [a, d, th, lapse_pR, ILD_bias]
     x_data : array of ILD values for each condition
     k_right : array of number of right choices per condition
     n_trials : array of total trials per condition
@@ -49,10 +51,10 @@ def negative_log_likelihood_psyc(params, x_data, k_right, n_trials):
     --------
     nll : negative log-likelihood
     """
-    a, d, th, lapse_pR = params
+    a, d, th, lapse_pR, ILD_bias = params
     
     # Compute model predictions
-    p_model = psyc_lapse_biased(x_data, a, d, th, lapse_pR)
+    p_model = psyc_lapse_biased(x_data, a, d, th, lapse_pR, ILD_bias)
     
     # Clip to avoid log(0)
     p_model = np.clip(p_model, 1e-10, 1 - 1e-10)
@@ -178,8 +180,8 @@ def process_animal(batch_name, animal_id):
     all_y_logodds = all_y_logodds[valid_mask]
     
     # Fit log-odds model
-    bounds_logodds = ([0.0, 0.01, 0.01, 0.0], [0.1, 10, 50, 1.0])
-    p0_logodds = [0.02, 0.09, 3.0, 0.5]  # [a, d, th, lapse_pR]
+    bounds_logodds = ([0.0, 0.01, 0.01, 0.0, -2.0], [0.1, 10, 50, 1.0, 2.0])
+    p0_logodds = [0.02, 0.09, 3.0, 0.5, -0.5]  # [a, d, th, lapse_pR, ILD_bias]
     
     logodds_params = None
     logodds_r2 = None
@@ -194,6 +196,7 @@ def process_animal(batch_name, animal_id):
             'd': popt_logodds[1],
             'th': popt_logodds[2],
             'lapse_pR': popt_logodds[3],
+            'ILD_bias': popt_logodds[4],
             'r2': logodds_r2
         }
     except Exception as e:
@@ -234,8 +237,8 @@ def process_animal(batch_name, animal_id):
     all_n_trials = all_n_trials[valid_mask_psyc]
     
     # Fit psychometric model
-    bounds_psyc = ([0.0, 0.01, 0.01, 0.0], [0.1, 10, 50, 1.0])
-    p0_psyc = [0.02, 0.09, 3.0, 0.5]  # [a, d, th, lapse_pR]
+    bounds_psyc = ([0.0, 0.01, 0.01, 0.0, -2.0], [0.1, 10, 50, 1.0, 2.0])
+    p0_psyc = [0.02, 0.09, 3.0, 0.5, -0.5]  # [a, d, th, lapse_pR, ILD_bias]
     
     psyc_params = None
     psyc_r2 = None
@@ -266,6 +269,7 @@ def process_animal(batch_name, animal_id):
             'd': popt_psyc[1],
             'th': popt_psyc[2],
             'lapse_pR': popt_psyc[3],
+            'ILD_bias': popt_psyc[4],
             'r2': psyc_r2
         }
         
@@ -335,14 +339,14 @@ def plot_animal_data(animal_data, pdf):
         # Plot psychometric fit
         if psyc_params is not None:
             y_psyc = psyc_lapse_biased(x_model, psyc_params['a'], psyc_params['d'], 
-                                       psyc_params['th'], psyc_params['lapse_pR'])
+                                       psyc_params['th'], psyc_params['lapse_pR'], psyc_params['ILD_bias'])
             ax.plot(x_model, y_psyc, '-', color='blue', linewidth=2, 
                     label=f'Psyc fit (pR={psyc_params["lapse_pR"]:.3f})', alpha=0.8)
         
         # Plot log-odds fit converted to P(right)
         if logodds_params is not None:
             y_logodds = psyc_lapse_biased(x_model, logodds_params['a'], logodds_params['d'], 
-                                          logodds_params['th'], logodds_params['lapse_pR'])
+                                          logodds_params['th'], logodds_params['lapse_pR'], logodds_params['ILD_bias'])
             ax.plot(x_model, y_logodds, '--', color='red', linewidth=2, 
                     label=f'Log-odds fit (pR={logodds_params["lapse_pR"]:.3f})', alpha=0.8)
         
@@ -387,14 +391,14 @@ def plot_animal_data(animal_data, pdf):
         # Plot log-odds fit
         if logodds_params is not None:
             y_logodds = log_sigmoid_v3_lapse_biased(x_model, logodds_params['a'], logodds_params['d'], 
-                                                     logodds_params['th'], logodds_params['lapse_pR'])
+                                                     logodds_params['th'], logodds_params['lapse_pR'], logodds_params['ILD_bias'])
             ax.plot(x_model, y_logodds, '-', color='red', linewidth=2, 
                     label=f'Log-odds fit (pR={logodds_params["lapse_pR"]:.3f})', alpha=0.8)
         
         # Plot psychometric fit converted to log-odds
         if psyc_params is not None:
             y_psyc_prob = psyc_lapse_biased(x_model, psyc_params['a'], psyc_params['d'], 
-                                            psyc_params['th'], psyc_params['lapse_pR'])
+                                            psyc_params['th'], psyc_params['lapse_pR'], psyc_params['ILD_bias'])
             # Convert to log-odds
             y_psyc_logodds = np.log(y_psyc_prob / (1 - y_psyc_prob + 1e-6))
             ax.plot(x_model, y_psyc_logodds, '--', color='blue', linewidth=2, 
@@ -418,13 +422,13 @@ def plot_animal_data(animal_data, pdf):
     if psyc_params is not None:
         psyc_line = (f'Psyc: a={psyc_params["a"]*100:.2f}%, d={psyc_params["d"]:.4f}, '
                      f'th={psyc_params["th"]:.2f}, lapse_pR={psyc_params["lapse_pR"]*100:.2f}%, '
-                     f'R²={psyc_params["r2"]*100:.2f}%')
+                     f'ILD_bias={psyc_params["ILD_bias"]:.3f}, R²={psyc_params["r2"]*100:.2f}%')
         title_lines.append(psyc_line)
     
     if logodds_params is not None:
         logodds_line = (f'LogOdds: a={logodds_params["a"]*100:.2f}%, d={logodds_params["d"]:.4f}, '
                         f'th={logodds_params["th"]:.2f}, lapse_pR={logodds_params["lapse_pR"]*100:.2f}%, '
-                        f'R²={logodds_params["r2"]*100:.2f}%')
+                        f'ILD_bias={logodds_params["ILD_bias"]:.3f}, R²={logodds_params["r2"]*100:.2f}%')
         title_lines.append(logodds_line)
     
     title_text = '\n'.join(title_lines)
@@ -446,7 +450,7 @@ print("="*60)
 
 all_params = {}
 method_suffix = "_nll" if NLL_OR_MSE == "nll" else "_mse"
-pdf_filename = f'lapse_model_fits_all_animals{method_suffix}.pdf'
+pdf_filename = f'lapse_model_fits_all_animals_ILD_bias{method_suffix}.pdf'
 
 with PdfPages(pdf_filename) as pdf:
     for batch_name, animal_id in tqdm(batch_animal_pairs, desc="Processing animals"):
@@ -492,7 +496,7 @@ print(f"{'='*60}")
 
 # %%
 # Save parameters dictionary
-params_filename = f'lapse_model_params_all_animals{method_suffix}.pkl'
+params_filename = f'lapse_model_params_all_animals_ILD_bias{method_suffix}.pkl'
 with open(params_filename, 'wb') as f:
     pickle.dump(all_params, f)
 
@@ -532,11 +536,13 @@ for (batch, animal), params in all_params.items():
               f"d={params['logodds_fit']['d']:.4f}, "
               f"th={params['logodds_fit']['th']:.4f}, "
               f"lapse_pR={params['logodds_fit']['lapse_pR']:.4f}, "
+              f"ILD_bias={params['logodds_fit']['ILD_bias']:.4f}, "
               f"R²={params['logodds_fit']['r2']:.4f}")
         print(f"  Psychometric: a={params['psychometric_fit']['a']:.4f}, "
               f"d={params['psychometric_fit']['d']:.4f}, "
               f"th={params['psychometric_fit']['th']:.4f}, "
               f"lapse_pR={params['psychometric_fit']['lapse_pR']:.4f}, "
+              f"ILD_bias={params['psychometric_fit']['ILD_bias']:.4f}, "
               f"R²={params['psychometric_fit']['r2']:.4f}")
         count += 1
 
@@ -595,7 +601,7 @@ ax2.set_ylim(0.85, 1)
 ax2.legend(fontsize=10)
 
 plt.tight_layout()
-fig_filename = f'lapse_model_r2_comparison{method_suffix}.png'
+fig_filename = f'lapse_model_r2_comparison_ILD_bias{method_suffix}.png'
 plt.savefig(fig_filename, dpi=300, bbox_inches='tight')
 plt.show()
 print(f"Saved: {fig_filename}")
@@ -639,7 +645,7 @@ ax.legend(fontsize=11)
 ax.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
-fig_filename = f'lapse_model_a_param_comparison{method_suffix}.png'
+fig_filename = f'lapse_model_a_param_comparison_ILD_bias{method_suffix}.png'
 plt.savefig(fig_filename, dpi=300, bbox_inches='tight')
 plt.show()
 print(f"Saved: {fig_filename}")
@@ -679,7 +685,7 @@ ax.grid(axis='y', alpha=0.3)
 ax.axhline(y=0.5, color='gray', linestyle='--', alpha=0.5, linewidth=1)  # Reference line at 0.5 (unbiased)
 
 plt.tight_layout()
-fig_filename = f'lapse_model_lapse_pR_comparison{method_suffix}.png'
+fig_filename = f'lapse_model_lapse_pR_comparison_ILD_bias{method_suffix}.png'
 plt.savefig(fig_filename, dpi=300, bbox_inches='tight')
 plt.show()
 print(f"Saved: {fig_filename}")
@@ -738,7 +744,7 @@ print("="*150)
 
 # %%
 # Save table as CSV
-csv_filename = f'lapse_model_parameter_comparison{method_suffix}.csv'
+csv_filename = f'lapse_model_parameter_comparison_ILD_bias{method_suffix}.csv'
 
 # Create DataFrame for CSV export
 import csv
@@ -746,12 +752,13 @@ import csv
 with open(csv_filename, 'w', newline='') as csvfile:
     csv_writer = csv.writer(csvfile)
     
-    # Write headeri
+    # Write header with side-by-side parameter columns
     csv_writer.writerow([
         'Batch', 'Animal',
         'R²_LogOdds (%)', 'R²_Psychometric (%)',
         'a_LogOdds (%)', 'a_Psychometric (%)',
-        'lapse_pR_LogOdds (%)', 'lapse_pR_Psychometric (%)'
+        'lapse_pR_LogOdds (%)', 'lapse_pR_Psychometric (%)',
+        'ILD_bias_LogOdds', 'ILD_bias_Psychometric'
     ])
     
     # Write data rows
@@ -766,7 +773,9 @@ with open(csv_filename, 'w', newline='') as csvfile:
             f"{params['logodds_fit']['a'] * 100:.2f}",
             f"{params['psychometric_fit']['a'] * 100:.2f}",
             f"{params['logodds_fit']['lapse_pR'] * 100:.2f}",
-            f"{params['psychometric_fit']['lapse_pR'] * 100:.2f}"
+            f"{params['psychometric_fit']['lapse_pR'] * 100:.2f}",
+            f"{params['logodds_fit']['ILD_bias']:.4f}",
+            f"{params['psychometric_fit']['ILD_bias']:.4f}"
         ])
 
 print(f"\n✓ Parameter comparison table saved to: {csv_filename}")
@@ -777,9 +786,9 @@ print("\n" + "="*60)
 print("Creating NLL vs MSE comparison CSV...")
 print("="*60)
 
-nll_csv = 'lapse_model_parameter_comparison_nll.csv'
-mse_csv = 'lapse_model_parameter_comparison.csv'
-combined_csv = 'lapse_model_psychometric_nll_vs_mse.csv'
+nll_csv = 'lapse_model_parameter_comparison_ILD_bias_nll.csv'
+mse_csv = 'lapse_model_parameter_comparison_ILD_bias.csv'
+combined_csv = 'lapse_model_psychometric_ILD_bias_nll_vs_mse.csv'
 
 try:
     # Read both CSV files

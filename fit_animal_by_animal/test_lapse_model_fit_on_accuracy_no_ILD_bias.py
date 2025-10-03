@@ -337,7 +337,7 @@ def psyc_lapse_UNBIASED(x, a, d, th):
     pR = a/2.0 + (1.0 - a) * p0
     return pR
 
-
+i
 def psyc_lapse_biased(x, a, d, th, lapse_pR):
     f =  th * np.tanh(d * x)
     p0 = 1.0 / (1.0 + (np.exp(-2*f)))  # sigma(f)

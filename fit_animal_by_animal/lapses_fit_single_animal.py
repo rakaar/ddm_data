@@ -17,6 +17,8 @@ from time_vary_norm_utils import up_or_down_RTs_fit_fn, cum_pro_and_reactive_tim
 # %%
 T_trunc = 0.15
 batch_name = 'LED34_even'
+animal_ids = [52]
+
 phi_params_obj = np.nan
 rate_norm_l = np.nan
 is_norm = False
@@ -43,7 +45,6 @@ df_valid_and_aborts = exp_df[
 df_aborts = df_valid_and_aborts[df_valid_and_aborts['abort_event'] == 3]
 
 # animal_ids = df_valid_and_aborts['animal'].unique()
-animal_ids = [48]
 # animal = animal_ids[-1]
 # for animal_idx in [-1]:
 
