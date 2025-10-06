@@ -16,9 +16,11 @@
 **`lapses_fit_single_animal_norm_model.py`** (located in `../fit_animal_by_animal/`)
 - VBMC fit on exp data single animal: lapses + **normalized model**
 - Fits 9 parameters: `rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right`
-- Includes `rate_norm_l` (normalization parameter) and `lapse_prob_right` (directional lapse bias)
+- CLI args: `--batch`, `--animal`, `--init-type` (vanilla|norm), `--output-dir` (default: `oct_6_7_large_bounds_diff_init_lapse_fit`)
+- Supports two initialization types: vanilla (small T_0, large theta_E) or norm (large T_0, small theta_E)
 - Supports optional right truncation at 1s via `DO_RIGHT_TRUNCATE` flag
 - Compares Norm vs Norm+Lapse models with parameter distributions and simulated RTDs
+- All output files include `{init_type}` suffix for tracking initialization method
 
 **`compare_all_four_models.py`** (located in `../fit_animal_by_animal/`)
 - **Comprehensive comparison of all 4 models**: Vanilla, Vanilla+Lapse, Norm, Norm+Lapse
@@ -75,4 +77,8 @@
 - PDF titles include all fitted parameters: a (%), d (4 decimals), th (2 decimals), lapse_pR (%), R² (%)
 
 **`run_norm_lapse_fits_batch_animal_pairs.py`** (located in `../fit_animal_by_animal/`)
-- Batch runner for the norm+lapse single-animal fit over multiple (batch, animal) pairs. Defaults: SD:52, LED6:84, LED6:86, LED34_even:52. Saves VBMC pkl, parameter-comparison text, and figures to `--output-dir` (default: `oct_3_norm_lapse_fit_results`).
+- Batch runner for norm+lapse single-animal fits over multiple (batch, animal) pairs with both init types
+- Runs 24 animals × 2 init types (vanilla, norm) = 48 total fits by default
+- CLI args: `--pairs` (batch:animal format), `--init-types` (vanilla and/or norm), `--output-dir` (default: `oct_6_7_large_bounds_diff_init_lapse_fit`)
+- Default animals from LED34_even, LED7, LED6, LED34, LED8 batches
+- Saves VBMC pkl, parameter-comparison text, and diagnostic figures for each (batch, animal, init_type) combination

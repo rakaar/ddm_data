@@ -22,12 +22,16 @@ from time_vary_norm_utils import up_or_down_RTs_fit_fn, cum_pro_and_reactive_tim
 parser = argparse.ArgumentParser(description='Fit norm+lapse model for a single animal')
 parser.add_argument('--batch', required=True, help='Batch name, e.g., LED8')
 parser.add_argument('--animal', required=True, type=int, help='Animal ID (int)')
-parser.add_argument('--output-dir', default='oct_3_norm_lapse_fit_results', help='Directory to save results')
+parser.add_argument('--init-type', required=True, choices=['vanilla', 'norm'], help='Initialization type: vanilla or norm')
+parser.add_argument('--output-dir', default='oct_6_7_large_bounds_diff_init_lapse_fit', help='Directory to save results')
 args = parser.parse_args()
 
 batch_name = args.batch
 animal_ids = [args.animal]
 output_dir = args.output_dir
+init_type = args.init_type
+
+
 os.makedirs(output_dir, exist_ok=True)
 
 if batch_name == 'LED34_even':
@@ -234,25 +238,27 @@ def vbmc_norm_tied_joint_fn(params):
 
 
 # Bounds for normalized model (from animal_wise_fit_3_models_script_refactor.py)
-norm_rate_lambda_bounds = [0.5, 5]
-norm_T_0_bounds = [50e-3, 800e-3]
-norm_theta_E_bounds = [1, 15]
-norm_w_bounds = [0.3, 0.7]
-norm_t_E_aff_bounds = [0.01, 0.2]
-norm_del_go_bounds = [0, 0.2]
-norm_rate_norm_bounds = [0, 2]
-norm_lapse_prob_bounds = [1e-4, 0.2]
-norm_lapse_prob_right_bounds = [0.001, 0.999]
+# large bounds to accomodate vanilla params too
+# Updated bounds to accommodate both vanilla and norm model parameters
+norm_rate_lambda_bounds = [0.01, 5]  # covers vanilla [0.01, 1] and norm [0.01, 5]
+norm_T_0_bounds = [0.1e-3, 800e-3]  # covers vanilla [0.1e-3, 2.2e-3] and norm [50e-3, 800e-3]
+norm_theta_E_bounds = [1, 65]  # covers vanilla [5, 65] and norm [1, 15]
+norm_w_bounds = [0.3, 0.7]  # same for both
+norm_t_E_aff_bounds = [0.01, 0.2]  # same for both
+norm_del_go_bounds = [0, 0.2]  # same for both
+norm_rate_norm_bounds = [0, 2]  # norm-specific parameter
+norm_lapse_prob_bounds = [1e-4, 0.2]  # same for both
+norm_lapse_prob_right_bounds = [0.001, 0.999]  # same for both
 
-norm_rate_lambda_plausible_bounds = [1, 3]
-norm_T_0_plausible_bounds = [90e-3, 400e-3]
-norm_theta_E_plausible_bounds = [1.5, 10]
-norm_w_plausible_bounds = [0.4, 0.6]
-norm_t_E_aff_plausible_bounds = [0.03, 0.09]
-norm_del_go_plausible_bounds = [0.05, 0.15]
-norm_rate_norm_plausible_bounds = [0.8, 0.99]
-norm_lapse_prob_plausible_bounds = [1e-3, 0.1]
-norm_lapse_prob_right_plausible_bounds = [0.4, 0.6]
+norm_rate_lambda_plausible_bounds = [0.1, 3]  # covers vanilla [0.1, 0.3] and norm [1, 3]
+norm_T_0_plausible_bounds = [0.5e-3, 400e-3]  # covers vanilla [0.5e-3, 1.5e-3] and norm [90e-3, 400e-3]
+norm_theta_E_plausible_bounds = [1.5, 55]  # covers vanilla [15, 55] and norm [1.5, 10]
+norm_w_plausible_bounds = [0.4, 0.6]  # same for both
+norm_t_E_aff_plausible_bounds = [0.03, 0.09]  # same for both
+norm_del_go_plausible_bounds = [0.05, 0.15]  # same for both
+norm_rate_norm_plausible_bounds = [0.8, 0.99]  # norm-specific parameter
+norm_lapse_prob_plausible_bounds = [1e-3, 0.1]  # same for both
+norm_lapse_prob_right_plausible_bounds = [0.4, 0.6]  # same for both
 
 
 norm_tied_lb = np.array([
@@ -325,7 +331,7 @@ for animal_idx in [0]:
 
 
     print(f'Batch: {batch_name},sample animal: {animal}')
-    pdf_filename = os.path.join(output_dir, f'results_{batch_name}_animal_{animal}_lapse_fit.pdf')
+    pdf_filename = os.path.join(output_dir, f'results_{batch_name}_animal_{animal}_lapse_fit_{init_type}.pdf')
     pdf = PdfPages(pdf_filename)
     fig_text = plt.figure(figsize=(8.5, 11)) # Standard page size looks better
     fig_text.clf() # Clear the figure
@@ -363,15 +369,30 @@ for animal_idx in [0]:
     theta_A = abort_params['theta_A']
     t_A_aff = abort_params['t_A_aff']
 
-    rate_lambda_0 = 1.8
-    T_0_0 = 150e-3
-    theta_E_0 = 5
-    w_0 = 0.51
-    t_E_aff_0 = 0.071
-    del_go_0 = 0.13
-    rate_norm_l_0 = 0.9
-    lapse_prob_0 = 0.02
-    lapse_prob_right_0 = 0.5  # Start with symmetric assumption
+    # Initialize based on init_type
+    if init_type == 'vanilla':
+        # Initialize from vanilla lapse model fit results (values in ms converted to seconds)
+        rate_lambda_0 = 0.173793
+        T_0_0 = 1.958508e-3  
+        theta_E_0 = 14.194689
+        w_0 = 0.502231
+        t_E_aff_0 = 87.604997e-3
+        del_go_0 = 169.585535e-3
+        rate_norm_l_0 = 0.00001
+        lapse_prob_0 = 0.02
+        lapse_prob_right_0 = 0.5
+    elif init_type == 'norm':
+        # Initialize from norm model typical values (values in ms converted to seconds)
+        rate_lambda_0 = 1.8
+        T_0_0 = 150e-3
+        theta_E_0 = 5
+        w_0 = 0.51
+        t_E_aff_0 = 0.071
+        del_go_0 = 0.13
+        rate_norm_l_0 = 0.9
+        lapse_prob_0 = 0.02
+        lapse_prob_right_0 = 0.5
+
     x_0 = np.array([
         rate_lambda_0,
         T_0_0,
@@ -388,9 +409,9 @@ for animal_idx in [0]:
     vp, results = vbmc.optimize()
 
     if DO_RIGHT_TRUNCATE:
-        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_truncate_1s.pkl')
+        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_truncate_1s_{init_type}.pkl')
     else:
-        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses.pkl')
+        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_{init_type}.pkl')
     vbmc.save(vbmc_pkl_path, overwrite=True)
 
 # %%
@@ -508,7 +529,7 @@ comparison_lines = [
     ""
 ]
 comparison_text = "\n".join(comparison_lines)
-comparison_txt_path = os.path.join(output_dir, f'param_comparison_batch_{batch_name}_animal_{animal_ids[0]}.txt')
+comparison_txt_path = os.path.join(output_dir, f'param_comparison_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.txt')
 with open(comparison_txt_path, 'w') as f:
     f.write(comparison_text)
 print(f"Saved parameter comparison to {comparison_txt_path}")
@@ -559,7 +580,7 @@ for idx in range(len(params_info), 9):
     axes[idx // 3, idx % 3].axis('off')
 
 plt.tight_layout()
-param_dist_png = os.path.join(output_dir, f'param_distributions_batch_{batch_name}_animal_{animal_ids[0]}.png')
+param_dist_png = os.path.join(output_dir, f'param_distributions_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
 fig.savefig(param_dist_png, dpi=300, bbox_inches='tight')
 print(f"Saved {param_dist_png}")
 plt.show()
@@ -594,7 +615,7 @@ ax2.grid(axis='y', alpha=0.3)
 
 fig.suptitle(f'Lapse Parameters - Batch {batch_name}, Animal {animal_ids[0]}', fontsize=14, fontweight='bold')
 plt.tight_layout()
-lapse_params_png = os.path.join(output_dir, f'lapse_params_batch_{batch_name}_animal_{animal_ids[0]}.png')
+lapse_params_png = os.path.join(output_dir, f'lapse_params_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
 fig.savefig(lapse_params_png, dpi=300, bbox_inches='tight')
 print(f"Saved {lapse_params_png}")
 plt.show()
@@ -779,7 +800,7 @@ for row_idx, abl in enumerate(ABL_vals[:3]):  # Limit to 3 ABLs
         n_empirical = len(empirical_data)
         
 plt.tight_layout()
-rt_dists_png = os.path.join(output_dir, f'rtds_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}.png')
+rt_dists_png = os.path.join(output_dir, f'rtds_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
 fig.savefig(rt_dists_png, dpi=300, bbox_inches='tight')
 print(f"Saved {rt_dists_png}")
 plt.show()
@@ -871,7 +892,7 @@ for idx, abl in enumerate(ABL_vals[:3]):  # 3 ABLs
     ax.set_ylim(-5, 5)
 
 plt.tight_layout()
-log_odds_png = os.path.join(output_dir, f'log_odds_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}.png')
+log_odds_png = os.path.join(output_dir, f'log_odds_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
 fig.savefig(log_odds_png, dpi=300, bbox_inches='tight')
 print(f"Saved {log_odds_png}")
 plt.show()
@@ -945,7 +966,7 @@ for idx, abl in enumerate(ABL_vals[:3]):  # 3 ABLs
     ax.set_ylim(0, 1)
 
 plt.tight_layout()
-psycho_png = os.path.join(output_dir, f'psychometric_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}.png')
+psycho_png = os.path.join(output_dir, f'psychometric_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
 fig.savefig(psycho_png, dpi=300, bbox_inches='tight')
 print(f"Saved {psycho_png}")
 plt.show()
@@ -957,3 +978,15 @@ try:
     print(f"Saved PDF report to {pdf_filename}")
 except Exception:
     pass
+
+# %%
+# initilziation values
+print(f'rate_lamda_0 = {rate_lambda_0}')
+print(f'T_0_0 = {T_0_0* 1e3} ms')
+print(f'theta_E_0 = {theta_E_0}')
+print(f'w_0 = {w_0}')
+print(f't_E_aff_0 = {t_E_aff_0 * 1e3} ms')
+print(f'del_go_0 = {del_go_0 * 1e3} ms')
+print(f'rate_norm_l_0 = {rate_norm_l_0}')
+print(f'lapse_prob_0 = {lapse_prob_0}')
+print(f'lapse_prob_right_0 = {lapse_prob_right_0}')

@@ -14,3 +14,4 @@ fit_each_condn/each_cond_data/*
 *.aux
 *.log
 *.tex
+*.txt
