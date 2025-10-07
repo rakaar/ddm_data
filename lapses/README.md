@@ -82,3 +82,6 @@
 - CLI args: `--pairs` (batch:animal format), `--init-types` (vanilla and/or norm), `--output-dir` (default: `oct_6_7_large_bounds_diff_init_lapse_fit`)
 - Default animals from LED34_even, LED7, LED6, LED34, LED8 batches
 - Saves VBMC pkl, parameter-comparison text, and diagnostic figures for each (batch, animal, init_type) combination
+
+**`lapse_model_large_bounds_elbo_analysis.py`** (located in `../fit_animal_by_animal/`)
+- Analyzes VBMC convergence by extracting ELBO and stable flags from lapse model fit results across all animals and init types
