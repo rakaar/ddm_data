@@ -19,18 +19,21 @@ from vbmc_animal_wise_fit_utils import trapezoidal_logpdf
 from time_vary_norm_utils import up_or_down_RTs_fit_fn, cum_pro_and_reactive_time_vary_fn
 # %%
 # CLI args
-parser = argparse.ArgumentParser(description='Fit norm+lapse model for a single animal')
-parser.add_argument('--batch', required=True, help='Batch name, e.g., LED8')
-parser.add_argument('--animal', required=True, type=int, help='Animal ID (int)')
-parser.add_argument('--init-type', required=True, choices=['vanilla', 'norm'], help='Initialization type: vanilla or norm')
-parser.add_argument('--output-dir', default='oct_6_7_large_bounds_diff_init_lapse_fit', help='Directory to save results')
-args = parser.parse_args()
+# parser = argparse.ArgumentParser(description='Fit norm+lapse model for a single animal')
+# parser.add_argument('--batch', required=True, help='Batch name, e.g., LED8')
+# parser.add_argument('--animal', required=True, type=int, help='Animal ID (int)')
+# parser.add_argument('--init-type', required=True, choices=['vanilla', 'norm'], help='Initialization type: vanilla or norm')
+# parser.add_argument('--output-dir', default='oct_6_7_large_bounds_diff_init_lapse_fit', help='Directory to save results')
+# args = parser.parse_args()
 
-batch_name = args.batch
-animal_ids = [args.animal]
-output_dir = args.output_dir
-init_type = args.init_type
-
+# batch_name = args.batch
+# animal_ids = [args.animal]
+# output_dir = args.output_dir
+# init_type = args.init_type
+batch_name = 'LED6'
+animal_ids = [82]
+output_dir = 'oct_6_7_large_bounds_diff_init_lapse_fit'
+init_type = 'vanilla'
 
 os.makedirs(output_dir, exist_ok=True)
 
@@ -138,7 +141,7 @@ def compute_loglike_norm(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, r
 def vbmc_norm_tied_loglike_fn(params):
     rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right = params
     Z_E = (w - 0.5) * 2 * theta_E
-    all_loglike = Parallel(n_jobs=30)(delayed(compute_loglike_norm)(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right)\
+    all_loglike = Parallel(n_jobs=-5)(delayed(compute_loglike_norm)(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right)\
                                        for _, row in df_valid_animal.iterrows() )
     return np.sum(all_loglike)
 
@@ -685,14 +688,14 @@ def simulate_single_trial_lapse(i):
 print("Simulating with NORM model (lapse_prob=0)...")
 # Norm model simulation (lapse_prob = 0)
 norm_Z_E = (norm_w - 0.5) * 2 * norm_theta_E
-norm_sim_results = Parallel(n_jobs=-2, verbose=5)(
+norm_sim_results = Parallel(n_jobs=-5, verbose=5)(
     delayed(simulate_single_trial_norm)(i) for i in tqdm(range(N_sim))
 )
 
 print("\nSimulating with NORM+LAPSE model (lapse_prob={:.4f}, lapse_prob_right={:.4f})...".format(lapse_prob_mean, lapse_prob_right_mean))
 # Lapse model simulation
 lapse_Z_E = (lapse_w - 0.5) * 2 * lapse_theta_E
-lapse_sim_results = Parallel(n_jobs=-2, verbose=5)(
+lapse_sim_results = Parallel(n_jobs=-5, verbose=5)(
     delayed(simulate_single_trial_lapse)(i) for i in tqdm(range(N_sim))
 )
 
