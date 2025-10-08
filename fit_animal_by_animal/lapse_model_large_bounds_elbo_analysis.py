@@ -10,6 +10,7 @@ import os
 import glob
 import pandas as pd
 import argparse
+import numpy as np
 
 # %%
 def extract_convergence_info(pkl_path):
@@ -17,7 +18,7 @@ def extract_convergence_info(pkl_path):
     Extract convergence information from a VBMC pickle file.
     
     Returns:
-        dict with keys: elbo, elbo_sd, stable, n_iterations
+        dict with keys: elbo, elbo_sd, stable, n_iterations, rate_norm_l
     """
     try:
         with open(pkl_path, 'rb') as f:
@@ -53,13 +54,28 @@ def extract_convergence_info(pkl_path):
             else:
                 result['n_iterations'] = len(iter_hist)
             
+            # Extract rate_norm_l from vp samples
+            # Parameters: rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right
+            # rate_norm_l is at index 6
+            try:
+                if hasattr(vbmc, 'vp'):
+                    vp = vbmc.vp
+                    vp_samples = vp.sample(int(1e5))[0]  # Use 100k samples for efficiency
+                    rate_norm_l_samples = vp_samples[:, 6]
+                    result['rate_norm_l'] = float(np.mean(rate_norm_l_samples))
+                else:
+                    result['rate_norm_l'] = None
+            except Exception as e:
+                print(f"Warning: Could not extract rate_norm_l from {pkl_path}: {e}")
+                result['rate_norm_l'] = None
+            
             return result
         else:
-            return {'elbo': None, 'elbo_sd': None, 'stable': None, 'n_iterations': None}
+            return {'elbo': None, 'elbo_sd': None, 'stable': None, 'n_iterations': None, 'rate_norm_l': None}
     
     except Exception as e:
         print(f"Error reading {pkl_path}: {e}")
-        return {'elbo': None, 'elbo_sd': None, 'stable': None, 'n_iterations': None, 'error': str(e)}
+        return {'elbo': None, 'elbo_sd': None, 'stable': None, 'n_iterations': None, 'rate_norm_l': None, 'error': str(e)}
 
 # %%
 def parse_filename(filename):
@@ -97,7 +113,7 @@ def parse_filename(filename):
 # %%
 # Configuration
 input_dir = 'oct_6_7_large_bounds_diff_init_lapse_fit'
-output_csv = None  # Set to filename if you want to save CSV, e.g., 'lapse_convergence_results.csv'
+output_csv = 'large_bounds_lapse_convergence_results.csv'  # Set to None if you don't want to save CSV
 
 # %%
 # Find all pickle files
@@ -122,7 +138,8 @@ for pkl_file in sorted(pkl_files):
         'stable': conv_info['stable'],
         'elbo': conv_info['elbo'],
         'elbo_sd': conv_info['elbo_sd'],
-        'n_iterations': conv_info['n_iterations']
+        'n_iterations': conv_info['n_iterations'],
+        'rate_norm_l': conv_info['rate_norm_l']
     })
 
 # %%
@@ -143,11 +160,13 @@ for (batch, animal), group in df.groupby(['batch', 'animal']):
             row[f'init_type_{init_type}_elbo'] = init_data.iloc[0]['elbo']
             row[f'init_type_{init_type}_elbo_sd'] = init_data.iloc[0]['elbo_sd']
             row[f'init_type_{init_type}_n_iterations'] = init_data.iloc[0]['n_iterations']
+            row[f'init_type_{init_type}_rate_norm_l'] = init_data.iloc[0]['rate_norm_l']
         else:
             row[f'init_type_{init_type}_stable'] = None
             row[f'init_type_{init_type}_elbo'] = None
             row[f'init_type_{init_type}_elbo_sd'] = None
             row[f'init_type_{init_type}_n_iterations'] = None
+            row[f'init_type_{init_type}_rate_norm_l'] = None
     
     pivot_data.append(row)
 
@@ -157,26 +176,18 @@ result_df = pd.DataFrame(pivot_data)
 result_df = result_df.sort_values(['batch', 'animal'])
 
 # %%
-# Print as table
-print("=" * 150)
+# Print as dataframe
+print("\n" + "=" * 120)
 print("LAPSE MODEL CONVERGENCE ANALYSIS")
-print("=" * 150)
-print()
+print("=" * 120)
 
-# Print header
-print(f"{'Batch':<15} {'Animal':<8} {'init_Vanilla_Stable':<16} {'init_Norm_Stable':<16} {'init_Vanilla_ELBO':<18} {'init_Norm_ELBO':<18}")
-print("-" * 150)
+# Set pandas display options for better formatting
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+pd.set_option('display.max_colwidth', 20)
 
-# Print rows
-for _, row in result_df.iterrows():
-    vanilla_stable = str(row['init_type_vanilla_stable']) if pd.notna(row['init_type_vanilla_stable']) else 'N/A'
-    norm_stable = str(row['init_type_norm_stable']) if pd.notna(row['init_type_norm_stable']) else 'N/A'
-    vanilla_elbo = f"{row['init_type_vanilla_elbo']:.2f}" if pd.notna(row['init_type_vanilla_elbo']) else 'N/A'
-    norm_elbo = f"{row['init_type_norm_elbo']:.2f}" if pd.notna(row['init_type_norm_elbo']) else 'N/A'
-    
-    print(f"{row['batch']:<15} {row['animal']:<8} {vanilla_stable:<16} {norm_stable:<16} {vanilla_elbo:<18} {norm_elbo:<18}")
-
-print("=" * 150)
+print(result_df.to_string(index=False))
+print("=" * 120)
 
 # %%
 # Summary statistics
@@ -194,7 +205,16 @@ print(f"Norm stable: {norm_stable_count}/{norm_total} ({100*norm_stable_count/no
 # %%
 # Save to CSV if requested
 if output_csv:
-    result_df.to_csv(output_csv, index=False)
+    # Round numeric columns to 3 decimal places for readability
+    df_to_save = result_df.copy()
+    numeric_cols = ['init_type_vanilla_elbo', 'init_type_norm_elbo', 
+                    'init_type_vanilla_elbo_sd', 'init_type_norm_elbo_sd',
+                    'init_type_vanilla_rate_norm_l', 'init_type_norm_rate_norm_l']
+    for col in numeric_cols:
+        if col in df_to_save.columns:
+            df_to_save[col] = df_to_save[col].round(3)
+    
+    df_to_save.to_csv(output_csv, index=False)
     print(f"\nResults saved to: {output_csv}")
 
 # %%
@@ -228,7 +248,8 @@ def main():
             'stable': conv_info['stable'],
             'elbo': conv_info['elbo'],
             'elbo_sd': conv_info['elbo_sd'],
-            'n_iterations': conv_info['n_iterations']
+            'n_iterations': conv_info['n_iterations'],
+            'rate_norm_l': conv_info['rate_norm_l']
         })
     
     # Create DataFrame
@@ -247,11 +268,13 @@ def main():
                 row[f'init_type_{init_type}_elbo'] = init_data.iloc[0]['elbo']
                 row[f'init_type_{init_type}_elbo_sd'] = init_data.iloc[0]['elbo_sd']
                 row[f'init_type_{init_type}_n_iterations'] = init_data.iloc[0]['n_iterations']
+                row[f'init_type_{init_type}_rate_norm_l'] = init_data.iloc[0]['rate_norm_l']
             else:
                 row[f'init_type_{init_type}_stable'] = None
                 row[f'init_type_{init_type}_elbo'] = None
                 row[f'init_type_{init_type}_elbo_sd'] = None
                 row[f'init_type_{init_type}_n_iterations'] = None
+                row[f'init_type_{init_type}_rate_norm_l'] = None
         
         pivot_data.append(row)
     
@@ -260,26 +283,18 @@ def main():
     # Sort by batch and animal
     result_df = result_df.sort_values(['batch', 'animal'])
     
-    # Print as table
-    print("=" * 150)
+    # Print as dataframe
+    print("\n" + "=" * 120)
     print("LAPSE MODEL CONVERGENCE ANALYSIS")
-    print("=" * 150)
-    print()
+    print("=" * 120)
     
-    # Print header
-    print(f"{'Batch':<15} {'Animal':<8} {'init_Vanilla_Stable':<16} {'init_Norm_Stable':<16} {'init_Vanilla_ELBO':<18} {'init_Norm_ELBO':<18}")
-    print("-" * 150)
+    # Set pandas display options for better formatting
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+    pd.set_option('display.max_colwidth', 20)
     
-    # Print rows
-    for _, row in result_df.iterrows():
-        vanilla_stable = str(row['init_type_vanilla_stable']) if pd.notna(row['init_type_vanilla_stable']) else 'N/A'
-        norm_stable = str(row['init_type_norm_stable']) if pd.notna(row['init_type_norm_stable']) else 'N/A'
-        vanilla_elbo = f"{row['init_type_vanilla_elbo']:.2f}" if pd.notna(row['init_type_vanilla_elbo']) else 'N/A'
-        norm_elbo = f"{row['init_type_norm_elbo']:.2f}" if pd.notna(row['init_type_norm_elbo']) else 'N/A'
-        
-        print(f"{row['batch']:<15} {row['animal']:<8} {vanilla_stable:<16} {norm_stable:<16} {vanilla_elbo:<18} {norm_elbo:<18}")
-    
-    print("=" * 150)
+    print(result_df.to_string(index=False))
+    print("=" * 120)
     
     # Summary statistics
     print("\nSUMMARY:")
@@ -295,10 +310,21 @@ def main():
     
     # Save to CSV if requested
     if args.output_csv:
-        result_df.to_csv(args.output_csv, index=False)
+        # Round numeric columns to 3 decimal places for readability
+        df_to_save = result_df.copy()
+        numeric_cols = ['init_type_vanilla_elbo', 'init_type_norm_elbo', 
+                        'init_type_vanilla_elbo_sd', 'init_type_norm_elbo_sd',
+                        'init_type_vanilla_rate_norm_l', 'init_type_norm_rate_norm_l']
+        for col in numeric_cols:
+            if col in df_to_save.columns:
+                df_to_save[col] = df_to_save[col].round(3)
+        
+        df_to_save.to_csv(args.output_csv, index=False)
         print(f"\nResults saved to: {args.output_csv}")
 
 # %%
 # Uncomment to run as CLI script
 # if __name__ == '__main__':
 #     main()
+
+# %%

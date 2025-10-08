@@ -239,6 +239,7 @@ plot_gamma(ax_gamma, gamma_data)
 
 fig = builder.finish()
 fig.tight_layout()
-fig.savefig('fig2_final_figure.png', dpi=300, bbox_inches='tight')
+fig.savefig('fig4_final_figure.png', dpi=300, bbox_inches='tight')
+fig.savefig('fig4_final_figure.pdf', bbox_inches='tight', format='pdf')
 
 # %%

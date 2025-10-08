@@ -19,21 +19,21 @@ from vbmc_animal_wise_fit_utils import trapezoidal_logpdf
 from time_vary_norm_utils import up_or_down_RTs_fit_fn, cum_pro_and_reactive_time_vary_fn
 # %%
 # CLI args
-# parser = argparse.ArgumentParser(description='Fit norm+lapse model for a single animal')
-# parser.add_argument('--batch', required=True, help='Batch name, e.g., LED8')
-# parser.add_argument('--animal', required=True, type=int, help='Animal ID (int)')
-# parser.add_argument('--init-type', required=True, choices=['vanilla', 'norm'], help='Initialization type: vanilla or norm')
-# parser.add_argument('--output-dir', default='oct_6_7_large_bounds_diff_init_lapse_fit', help='Directory to save results')
-# args = parser.parse_args()
+parser = argparse.ArgumentParser(description='Fit norm+lapse model for a single animal')
+parser.add_argument('--batch', required=True, help='Batch name, e.g., LED8')
+parser.add_argument('--animal', required=True, type=int, help='Animal ID (int)')
+parser.add_argument('--init-type', required=True, choices=['vanilla', 'norm'], help='Initialization type: vanilla or norm')
+parser.add_argument('--output-dir', default='oct_6_7_large_bounds_diff_init_lapse_fit', help='Directory to save results')
+args = parser.parse_args()
 
-# batch_name = args.batch
-# animal_ids = [args.animal]
-# output_dir = args.output_dir
-# init_type = args.init_type
-batch_name = 'LED6'
-animal_ids = [82]
-output_dir = 'oct_6_7_large_bounds_diff_init_lapse_fit'
-init_type = 'vanilla'
+batch_name = args.batch
+animal_ids = [args.animal]
+output_dir = args.output_dir
+init_type = args.init_type
+# batch_name = 'LED8'
+# animal_ids = [109]  
+# output_dir = 'oct_6_7_large_bounds_diff_init_lapse_fit'
+# init_type = 'norm'
 
 os.makedirs(output_dir, exist_ok=True)
 
