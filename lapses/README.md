@@ -83,5 +83,16 @@
 - Default animals from LED34_even, LED7, LED6, LED34, LED8 batches
 - Saves VBMC pkl, parameter-comparison text, and diagnostic figures for each (batch, animal, init_type) combination
 
+**`lapses_fit_single_animal_norm_model_fix_t_E_aff_del_go.py`** (located in `../fit_animal_by_animal/`)
+- Same as `lapses_fit_single_animal_norm_model.py`, but fixes `t_E_aff` and `del_go` from the average of vanilla and norm tied fits loaded from `results_{batch}_animal_{id}.pkl`.
+- Fits 7 parameters: `rate_lambda, T_0, theta_E, w, rate_norm_l, lapse_prob, lapse_prob_right`.
+- CLI args: `--batch`, `--animal`, `--init-type` (vanilla|norm), `--output-dir` (default: `oct_6_7_large_bounds_diff_init_lapse_fit_t_E_aff_del_go_fixed`)
+- Output filenames include `t_E_aff_del_go_fixed`.
+
+**`run_vanilla_lapse_fits_all_animals.py`** (located in `../fit_animal_by_animal/`)
+- Batch runner for vanilla+lapse single-animal fits discovered automatically from CSVs.
+- CLI args: `--batches` (defaults to SD LED34 LED6 LED8 LED7 LED34_even), `--output-dir`, `--python`, `--dry-run`, `--start-from`.
+- Invokes `lapses_fit_single_animal.py` for each (batch, animal) pair.
+
 **`lapse_model_large_bounds_elbo_analysis.py`** (located in `../fit_animal_by_animal/`)
 - Analyzes VBMC convergence by extracting ELBO and stable flags from lapse model fit results across all animals and init types
