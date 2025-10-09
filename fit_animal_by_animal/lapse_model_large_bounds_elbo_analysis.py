@@ -111,9 +111,44 @@ def parse_filename(filename):
     return batch, animal, init_type
 
 # %%
+def get_original_elbos(batch, animal_id, results_dir):
+    """
+    Load original vanilla and norm ELBO values from results pickle.
+    
+    Returns:
+        dict with keys: og_vanilla_elbo, og_norm_elbo
+    """
+    pkl_fname = f'results_{batch}_animal_{animal_id}.pkl'
+    pkl_path = os.path.join(results_dir, pkl_fname)
+    
+    result = {'og_vanilla_elbo': None, 'og_norm_elbo': None}
+    
+    if not os.path.exists(pkl_path):
+        return result
+    
+    try:
+        with open(pkl_path, 'rb') as f:
+            results = pickle.load(f)
+        
+        # Extract vanilla ELBO
+        if 'vbmc_vanilla_tied_results' in results:
+            result['og_vanilla_elbo'] = results['vbmc_vanilla_tied_results'].get('elbo', None)
+        
+        # Extract norm ELBO
+        if 'vbmc_norm_tied_results' in results:
+            result['og_norm_elbo'] = results['vbmc_norm_tied_results'].get('elbo', None)
+        
+        return result
+    except Exception as e:
+        print(f"Warning: Could not load original ELBOs from {pkl_path}: {e}")
+        return result
+
+# %%
 # Configuration
 input_dir = 'oct_6_7_large_bounds_diff_init_lapse_fit'
 output_csv = 'large_bounds_lapse_convergence_results.csv'  # Set to None if you don't want to save CSV
+output_csv_subset = 'large_bounds_lapse_elbo_comparison.csv'  # Subset CSV with key columns
+RESULTS_DIR = os.path.dirname(__file__)  # Directory containing original results
 
 # %%
 # Find all pickle files
@@ -168,6 +203,11 @@ for (batch, animal), group in df.groupby(['batch', 'animal']):
             row[f'init_type_{init_type}_n_iterations'] = None
             row[f'init_type_{init_type}_rate_norm_l'] = None
     
+    # Load original ELBOs
+    og_elbos = get_original_elbos(batch, animal, RESULTS_DIR)
+    row['og_vanilla_elbo'] = og_elbos['og_vanilla_elbo']
+    row['og_norm_elbo'] = og_elbos['og_norm_elbo']
+    
     pivot_data.append(row)
 
 result_df = pd.DataFrame(pivot_data)
@@ -209,13 +249,38 @@ if output_csv:
     df_to_save = result_df.copy()
     numeric_cols = ['init_type_vanilla_elbo', 'init_type_norm_elbo', 
                     'init_type_vanilla_elbo_sd', 'init_type_norm_elbo_sd',
-                    'init_type_vanilla_rate_norm_l', 'init_type_norm_rate_norm_l']
+                    'init_type_vanilla_rate_norm_l', 'init_type_norm_rate_norm_l',
+                    'og_vanilla_elbo', 'og_norm_elbo']
     for col in numeric_cols:
         if col in df_to_save.columns:
             df_to_save[col] = df_to_save[col].round(3)
     
     df_to_save.to_csv(output_csv, index=False)
     print(f"\nResults saved to: {output_csv}")
+
+# %%
+# Save subset CSV with key comparison columns
+if output_csv_subset:
+    subset_cols = ['batch', 'animal', 
+                   'init_type_vanilla_elbo', 'init_type_norm_elbo',
+                   'og_vanilla_elbo', 'og_norm_elbo',
+                   'init_type_vanilla_rate_norm_l', 'init_type_norm_rate_norm_l']
+    
+    # Check which columns exist
+    available_cols = [col for col in subset_cols if col in result_df.columns]
+    
+    df_subset = result_df[available_cols].copy()
+    
+    # Round numeric columns
+    numeric_subset_cols = ['init_type_vanilla_elbo', 'init_type_norm_elbo',
+                           'og_vanilla_elbo', 'og_norm_elbo',
+                           'init_type_vanilla_rate_norm_l', 'init_type_norm_rate_norm_l']
+    for col in numeric_subset_cols:
+        if col in df_subset.columns:
+            df_subset[col] = df_subset[col].round(3)
+    
+    df_subset.to_csv(output_csv_subset, index=False)
+    print(f"Subset CSV saved to: {output_csv_subset}")
 
 # %%
 # Optional: CLI wrapper function for command-line usage
@@ -225,7 +290,11 @@ def main():
                         help='Directory containing VBMC pickle files')
     parser.add_argument('--output-csv', default=None,
                         help='Optional: save results to CSV file')
+    parser.add_argument('--output-csv-subset', default=None,
+                        help='Optional: save subset CSV with key comparison columns')
     args = parser.parse_args()
+    
+    results_dir = os.path.dirname(__file__)
     
     # Find all pickle files
     pkl_pattern = os.path.join(args.input_dir, 'vbmc_norm_tied_results_batch_*_animal_*_lapses_truncate_1s_*.pkl')
@@ -276,6 +345,11 @@ def main():
                 row[f'init_type_{init_type}_n_iterations'] = None
                 row[f'init_type_{init_type}_rate_norm_l'] = None
         
+        # Load original ELBOs
+        og_elbos = get_original_elbos(batch, animal, results_dir)
+        row['og_vanilla_elbo'] = og_elbos['og_vanilla_elbo']
+        row['og_norm_elbo'] = og_elbos['og_norm_elbo']
+        
         pivot_data.append(row)
     
     result_df = pd.DataFrame(pivot_data)
@@ -314,13 +388,37 @@ def main():
         df_to_save = result_df.copy()
         numeric_cols = ['init_type_vanilla_elbo', 'init_type_norm_elbo', 
                         'init_type_vanilla_elbo_sd', 'init_type_norm_elbo_sd',
-                        'init_type_vanilla_rate_norm_l', 'init_type_norm_rate_norm_l']
+                        'init_type_vanilla_rate_norm_l', 'init_type_norm_rate_norm_l',
+                        'og_vanilla_elbo', 'og_norm_elbo']
         for col in numeric_cols:
             if col in df_to_save.columns:
                 df_to_save[col] = df_to_save[col].round(3)
         
         df_to_save.to_csv(args.output_csv, index=False)
         print(f"\nResults saved to: {args.output_csv}")
+    
+    # Save subset CSV with key comparison columns
+    if args.output_csv_subset:
+        subset_cols = ['batch', 'animal', 
+                       'init_type_vanilla_elbo', 'init_type_norm_elbo',
+                       'og_vanilla_elbo', 'og_norm_elbo',
+                       'init_type_vanilla_rate_norm_l', 'init_type_norm_rate_norm_l']
+        
+        # Check which columns exist
+        available_cols = [col for col in subset_cols if col in result_df.columns]
+        
+        df_subset = result_df[available_cols].copy()
+        
+        # Round numeric columns
+        numeric_subset_cols = ['init_type_vanilla_elbo', 'init_type_norm_elbo',
+                               'og_vanilla_elbo', 'og_norm_elbo',
+                               'init_type_vanilla_rate_norm_l', 'init_type_norm_rate_norm_l']
+        for col in numeric_subset_cols:
+            if col in df_subset.columns:
+                df_subset[col] = df_subset[col].round(3)
+        
+        df_subset.to_csv(args.output_csv_subset, index=False)
+        print(f"Subset CSV saved to: {args.output_csv_subset}")
 
 # %%
 # Uncomment to run as CLI script

@@ -1,5 +1,6 @@
-# VBMC fit on exp data single animal - lapses + norm model
+# VBMC fit on exp data single animal - lapses + norm model with FIXED t_E_aff and del_go
 # Now fits rate_norm_l and lapse_prob_right as additional parameters
+# t_E_aff and del_go are fixed from average of vanilla and norm model fits
 # %%
 import numpy as np
 import pandas as pd
@@ -19,11 +20,11 @@ from vbmc_animal_wise_fit_utils import trapezoidal_logpdf
 from time_vary_norm_utils import up_or_down_RTs_fit_fn, cum_pro_and_reactive_time_vary_fn
 # %%
 # CLI args
-parser = argparse.ArgumentParser(description='Fit norm+lapse model for a single animal')
+parser = argparse.ArgumentParser(description='Fit norm+lapse model for a single animal with fixed t_E_aff and del_go')
 parser.add_argument('--batch', required=True, help='Batch name, e.g., LED8')
 parser.add_argument('--animal', required=True, type=int, help='Animal ID (int)')
-parser.add_argument('--init-type', default='norm', choices=['vanilla', 'norm'], help='Initialization type: vanilla or norm')
-parser.add_argument('--output-dir', default='oct_9_10_norm_lapse_model_fit_files/', help='Directory to save results')
+parser.add_argument('--init-type', required=True, choices=['vanilla', 'norm'], help='Initialization type: vanilla or norm')
+parser.add_argument('--output-dir', default='oct_6_7_large_bounds_diff_init_lapse_fit_t_E_aff_del_go_fixed', help='Directory to save results')
 args = parser.parse_args()
 
 batch_name = args.batch
@@ -32,7 +33,7 @@ output_dir = args.output_dir
 init_type = args.init_type
 # batch_name = 'LED8'
 # animal_ids = [109]  
-# output_dir = 'oct_6_7_large_bounds_diff_init_lapse_fit'
+# output_dir = 'oct_6_7_large_bounds_diff_init_lapse_fit_t_E_aff_del_go_fixed'
 # init_type = 'norm'
 
 os.makedirs(output_dir, exist_ok=True)
@@ -75,11 +76,69 @@ print(f'Aborts Truncation Time: {T_trunc}')
 print('####################################')
 # %%
 
-# load proactive params
+# Load fixed parameters from PKL file
+animal = animal_ids[0]
+pkl_file = f'results_{batch_name}_animal_{animal}.pkl'
+with open(pkl_file, 'rb') as f:
+    fit_results_data = pickle.load(f)
+
+vbmc_aborts_param_keys_map = {
+    'V_A_samples': 'V_A',
+    'theta_A_samples': 'theta_A',
+    't_A_aff_samp': 't_A_aff'
+}
+vbmc_vanilla_tied_param_keys_map = {
+    'rate_lambda_samples': 'rate_lambda',
+    'T_0_samples': 'T_0',
+    'theta_E_samples': 'theta_E',
+    'w_samples': 'w',
+    't_E_aff_samples': 't_E_aff',
+    'del_go_samples': 'del_go'
+}
+vbmc_norm_tied_param_keys_map = {
+    **vbmc_vanilla_tied_param_keys_map,
+    'rate_norm_l_samples': 'rate_norm_l'
+}
+
+# Load vanilla tied params
+vanilla_tied_keyname = "vbmc_vanilla_tied_results"
+vanilla_tied_samples = fit_results_data[vanilla_tied_keyname]
+vanilla_tied_params = {}
+for param_samples_name, param_label in vbmc_vanilla_tied_param_keys_map.items():
+    vanilla_tied_params[param_label] = np.mean(vanilla_tied_samples[param_samples_name])
+
+# Load norm tied params
+norm_tied_keyname = "vbmc_norm_tied_results"
+norm_tied_samples_data = fit_results_data[norm_tied_keyname]
+norm_tied_params = {}
+for param_samples_name, param_label in vbmc_norm_tied_param_keys_map.items():
+    norm_tied_params[param_label] = np.mean(norm_tied_samples_data[param_samples_name])
+
+# Take average of t_E_aff and del_go from both vanilla and norm
+t_E_aff_FIXED = (vanilla_tied_params['t_E_aff'] + norm_tied_params['t_E_aff']) / 2
+del_go_FIXED = (vanilla_tied_params['del_go'] + norm_tied_params['del_go']) / 2
+
+print("\n" + "="*60)
+print(f"FIXED PARAMETERS (averaged from vanilla and norm fits)")
+print("="*60)
+print(f"t_E_aff (ms): {t_E_aff_FIXED * 1000:.3f}")
+print(f"del_go (ms):  {del_go_FIXED * 1000:.3f}")
+print("="*60 + "\n")
+
+# Load abort params
+abort_keyname = "vbmc_aborts_results"
+abort_samples = fit_results_data[abort_keyname]
+abort_params = {}
+for param_samples_name, param_label in vbmc_aborts_param_keys_map.items():
+    abort_params[param_label] = np.mean(abort_samples[param_samples_name])
+
+V_A = abort_params['V_A']
+theta_A = abort_params['theta_A']
+t_A_aff = abort_params['t_A_aff']
 
 # %%
-# VBMC helper funcs
-def compute_loglike_norm(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right):
+# VBMC helper funcs - now with FIXED t_E_aff and del_go
+def compute_loglike_norm(row, rate_lambda, T_0, theta_E, Z_E, rate_norm_l, lapse_prob, lapse_prob_right):
     
     rt = row['TotalFixTime']
     t_stim = row['intended_fix']
@@ -90,10 +149,11 @@ def compute_loglike_norm(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, r
     choice = row['choice']
     lapse_rt_window = max_rt
 
+    # Use FIXED t_E_aff and del_go
     pdf = up_or_down_RTs_fit_fn(
             rt, choice,
             V_A, theta_A, t_A_aff,
-            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go,
+            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff_FIXED, del_go_FIXED,
             phi_params_obj, rate_norm_l, 
             is_norm, is_time_vary, K_max)
 
@@ -101,20 +161,20 @@ def compute_loglike_norm(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, r
         trunc_factor_p_joint = cum_pro_and_reactive_time_vary_fn(
                             t_stim + 1, T_trunc,
                             V_A, theta_A, t_A_aff,
-                            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
+                            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff_FIXED,
                             phi_params_obj, rate_norm_l, 
                             is_norm, is_time_vary, K_max)  - \
                             cum_pro_and_reactive_time_vary_fn(
                             t_stim, T_trunc,
                             V_A, theta_A, t_A_aff,
-                            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
+                            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff_FIXED,
                             phi_params_obj, rate_norm_l, 
                             is_norm, is_time_vary, K_max)
     else:
         trunc_factor_p_joint = 1 - cum_pro_and_reactive_time_vary_fn(
                             t_stim, T_trunc,
                             V_A, theta_A, t_A_aff,
-                            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff,
+                            t_stim, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, t_E_aff_FIXED,
                             phi_params_obj, rate_norm_l, 
                             is_norm, is_time_vary, K_max)
                            
@@ -139,15 +199,17 @@ def compute_loglike_norm(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, r
 
 
 def vbmc_norm_tied_loglike_fn(params):
-    rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right = params
+    # NOTE: params now excludes t_E_aff and del_go
+    rate_lambda, T_0, theta_E, w, rate_norm_l, lapse_prob, lapse_prob_right = params
     Z_E = (w - 0.5) * 2 * theta_E
-    all_loglike = Parallel(n_jobs=-5)(delayed(compute_loglike_norm)(row, rate_lambda, T_0, theta_E, Z_E, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right)\
+    all_loglike = Parallel(n_jobs=-5)(delayed(compute_loglike_norm)(row, rate_lambda, T_0, theta_E, Z_E, rate_norm_l, lapse_prob, lapse_prob_right)\
                                        for _, row in df_valid_animal.iterrows() )
     return np.sum(all_loglike)
 
 
 def vbmc_norm_tied_prior_fn(params):
-    rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right = params
+    # NOTE: params now excludes t_E_aff and del_go
+    rate_lambda, T_0, theta_E, w, rate_norm_l, lapse_prob, lapse_prob_right = params
 
     rate_lambda_logpdf = trapezoidal_logpdf(
         rate_lambda,
@@ -181,21 +243,7 @@ def vbmc_norm_tied_prior_fn(params):
         norm_w_bounds[1]
     )
     
-    t_E_aff_logpdf = trapezoidal_logpdf(
-        t_E_aff,
-        norm_t_E_aff_bounds[0],
-        norm_t_E_aff_plausible_bounds[0],
-        norm_t_E_aff_plausible_bounds[1],
-        norm_t_E_aff_bounds[1]
-    )
-    
-    del_go_logpdf = trapezoidal_logpdf(
-        del_go,
-        norm_del_go_bounds[0],
-        norm_del_go_plausible_bounds[0],
-        norm_del_go_plausible_bounds[1],
-        norm_del_go_bounds[1]
-    )
+    # No longer compute t_E_aff_logpdf and del_go_logpdf since they are fixed
     
     rate_norm_l_logpdf = trapezoidal_logpdf(
         rate_norm_l,
@@ -226,8 +274,6 @@ def vbmc_norm_tied_prior_fn(params):
         T_0_logpdf +
         theta_E_logpdf +
         w_logpdf +
-        t_E_aff_logpdf +
-        del_go_logpdf +
         rate_norm_l_logpdf +
         lapse_prob_logpdf +
         lapse_prob_right_logpdf
@@ -241,56 +287,32 @@ def vbmc_norm_tied_joint_fn(params):
 
 
 # Bounds for normalized model (from animal_wise_fit_3_models_script_refactor.py)
-# NOTE: Old bounds kept below as comments for reference.
-# OLD:
-# norm_rate_lambda_bounds = [0.01, 5]
-# norm_T_0_bounds         = [0.1e-3, 800e-3]
-# norm_theta_E_bounds     = [1, 65]
-# norm_w_bounds           = [0.3, 0.7]
-# norm_t_E_aff_bounds     = [0.01, 0.2]
-# norm_del_go_bounds      = [0, 0.2]
-# norm_rate_norm_bounds   = [0, 2]
-# norm_lapse_prob_bounds  = [1e-4, 0.2]
-# norm_lapse_prob_right_bounds = [0.001, 0.999]
-# norm_rate_lambda_plausible_bounds = [0.1, 3]
-# norm_T_0_plausible_bounds        = [0.5e-3, 400e-3]
-# norm_theta_E_plausible_bounds    = [1.5, 55]
-# norm_w_plausible_bounds          = [0.4, 0.6]
-# norm_t_E_aff_plausible_bounds    = [0.03, 0.09]
-# norm_del_go_plausible_bounds     = [0.05, 0.15]
-# norm_rate_norm_plausible_bounds  = [0.8, 0.99]
-# norm_lapse_prob_plausible_bounds = [1e-3, 0.1]
-# norm_lapse_prob_right_plausible_bounds = [0.4, 0.6]
+# large bounds to accomodate vanilla params too
+# Updated bounds to accommodate both vanilla and norm model parameters
+# NOTE: Removed t_E_aff and del_go bounds since they are fixed
+norm_rate_lambda_bounds = [0.01, 5]  # covers vanilla [0.01, 1] and norm [0.01, 5]
+norm_T_0_bounds = [0.1e-3, 800e-3]  # covers vanilla [0.1e-3, 2.2e-3] and norm [50e-3, 800e-3]
+norm_theta_E_bounds = [1, 65]  # covers vanilla [5, 65] and norm [1, 15]
+norm_w_bounds = [0.3, 0.7]  # same for both
+norm_rate_norm_bounds = [0, 2]  # norm-specific parameter
+norm_lapse_prob_bounds = [1e-4, 0.2]  # same for both
+norm_lapse_prob_right_bounds = [0.001, 0.999]  # same for both
 
-# NEW bounds matching animal_wise_fit_3_models_script_refactor.py (keep lapse bounds unchanged)
-norm_rate_lambda_bounds = [0.5, 5]
-norm_T_0_bounds = [50e-3, 800e-3]
-norm_theta_E_bounds = [1, 15]
-norm_w_bounds = [0.3, 0.7]
-norm_t_E_aff_bounds = [0.01, 0.2]
-norm_del_go_bounds = [0, 0.2]
-norm_rate_norm_bounds = [0, 2]
-norm_lapse_prob_bounds = [1e-4, 0.2]  # unchanged
-norm_lapse_prob_right_bounds = [0.001, 0.999]  # unchanged
-
-norm_rate_lambda_plausible_bounds = [1, 3]
-norm_T_0_plausible_bounds = [90e-3, 400e-3]
-norm_theta_E_plausible_bounds = [1.5, 10]
-norm_w_plausible_bounds = [0.4, 0.6]
-norm_t_E_aff_plausible_bounds = [0.03, 0.09]
-norm_del_go_plausible_bounds = [0.05, 0.15]
-norm_rate_norm_plausible_bounds = [0.8, 0.99]
-norm_lapse_prob_plausible_bounds = [1e-3, 0.1]  # unchanged
-norm_lapse_prob_right_plausible_bounds = [0.4, 0.6]  # unchanged
+norm_rate_lambda_plausible_bounds = [0.1, 3]  # covers vanilla [0.1, 0.3] and norm [1, 3]
+norm_T_0_plausible_bounds = [0.5e-3, 400e-3]  # covers vanilla [0.5e-3, 1.5e-3] and norm [90e-3, 400e-3]
+norm_theta_E_plausible_bounds = [1.5, 55]  # covers vanilla [15, 55] and norm [1.5, 10]
+norm_w_plausible_bounds = [0.4, 0.6]  # same for both
+norm_rate_norm_plausible_bounds = [0.8, 0.99]  # norm-specific parameter
+norm_lapse_prob_plausible_bounds = [1e-3, 0.1]  # same for both
+norm_lapse_prob_right_plausible_bounds = [0.4, 0.6]  # same for both
 
 
+# NOTE: Updated bounds arrays to exclude t_E_aff and del_go
 norm_tied_lb = np.array([
     norm_rate_lambda_bounds[0],
     norm_T_0_bounds[0],
     norm_theta_E_bounds[0],
     norm_w_bounds[0],
-    norm_t_E_aff_bounds[0],
-    norm_del_go_bounds[0],
     norm_rate_norm_bounds[0],
     norm_lapse_prob_bounds[0],
     norm_lapse_prob_right_bounds[0]
@@ -301,8 +323,6 @@ norm_tied_ub = np.array([
     norm_T_0_bounds[1],
     norm_theta_E_bounds[1],
     norm_w_bounds[1],
-    norm_t_E_aff_bounds[1],
-    norm_del_go_bounds[1],
     norm_rate_norm_bounds[1],
     norm_lapse_prob_bounds[1],
     norm_lapse_prob_right_bounds[1]
@@ -313,8 +333,6 @@ norm_plb = np.array([
     norm_T_0_plausible_bounds[0],
     norm_theta_E_plausible_bounds[0],
     norm_w_plausible_bounds[0],
-    norm_t_E_aff_plausible_bounds[0],
-    norm_del_go_plausible_bounds[0],
     norm_rate_norm_plausible_bounds[0],
     norm_lapse_prob_plausible_bounds[0],
     norm_lapse_prob_right_plausible_bounds[0]
@@ -325,8 +343,6 @@ norm_pub = np.array([
     norm_T_0_plausible_bounds[1],
     norm_theta_E_plausible_bounds[1],
     norm_w_plausible_bounds[1],
-    norm_t_E_aff_plausible_bounds[1],
-    norm_del_go_plausible_bounds[1],
     norm_rate_norm_plausible_bounds[1],
     norm_lapse_prob_plausible_bounds[1],
     norm_lapse_prob_right_plausible_bounds[1]
@@ -354,13 +370,15 @@ for animal_idx in [0]:
 
 
     print(f'Batch: {batch_name},sample animal: {animal}')
-    pdf_filename = os.path.join(output_dir, f'results_{batch_name}_animal_{animal}_lapse_fit_{init_type}.pdf')
+    pdf_filename = os.path.join(output_dir, f'results_{batch_name}_animal_{animal}_lapse_fit_t_E_aff_del_go_fixed_{init_type}.pdf')
     pdf = PdfPages(pdf_filename)
     fig_text = plt.figure(figsize=(8.5, 11)) # Standard page size looks better
     fig_text.clf() # Clear the figure
     fig_text.text(0.1, 0.9, f"Analysis Report", fontsize=20, weight='bold')
     fig_text.text(0.1, 0.8, f"Batch Name: {batch_name}", fontsize=14)
     fig_text.text(0.1, 0.75, f"Animal ID: {animal}", fontsize=14)
+    fig_text.text(0.1, 0.7, f"t_E_aff FIXED: {t_E_aff_FIXED*1000:.3f} ms", fontsize=12, style='italic')
+    fig_text.text(0.1, 0.65, f"del_go FIXED: {del_go_FIXED*1000:.3f} ms", fontsize=12, style='italic')
     fig_text.gca().axis("off")
     pdf.savefig(fig_text, bbox_inches='tight')
     plt.close(fig_text)
@@ -373,25 +391,6 @@ for animal_idx in [0]:
     ILD_arr = np.sort(ILD_arr)
     ABL_arr = np.sort(ABL_arr)
 
-    pkl_file = f'results_{batch_name}_animal_{animal}.pkl'
-    with open(pkl_file, 'rb') as f:
-        fit_results_data = pickle.load(f)
-    vbmc_aborts_param_keys_map = {
-        'V_A_samples': 'V_A',
-        'theta_A_samples': 'theta_A',
-        't_A_aff_samp': 't_A_aff'
-    }
-    abort_keyname = "vbmc_aborts_results"
-
-    abort_samples = fit_results_data[abort_keyname]
-    abort_params = {}
-    for param_samples_name, param_label in vbmc_aborts_param_keys_map.items():
-        abort_params[param_label] = np.mean(abort_samples[param_samples_name])
-    
-    V_A = abort_params['V_A']
-    theta_A = abort_params['theta_A']
-    t_A_aff = abort_params['t_A_aff']
-
     # Initialize based on init_type
     if init_type == 'vanilla':
         # Initialize from vanilla lapse model fit results (values in ms converted to seconds)
@@ -399,8 +398,6 @@ for animal_idx in [0]:
         T_0_0 = 1.958508e-3  
         theta_E_0 = 14.194689
         w_0 = 0.502231
-        t_E_aff_0 = 87.604997e-3
-        del_go_0 = 169.585535e-3
         rate_norm_l_0 = 0.00001
         lapse_prob_0 = 0.02
         lapse_prob_right_0 = 0.5
@@ -410,47 +407,43 @@ for animal_idx in [0]:
         T_0_0 = 150e-3
         theta_E_0 = 5
         w_0 = 0.51
-        t_E_aff_0 = 0.071
-        del_go_0 = 0.13
         rate_norm_l_0 = 0.9
         lapse_prob_0 = 0.02
         lapse_prob_right_0 = 0.5
 
+    # NOTE: x_0 now excludes t_E_aff and del_go
     x_0 = np.array([
         rate_lambda_0,
         T_0_0,
         theta_E_0,
         w_0,
-        t_E_aff_0,
-        del_go_0,
         rate_norm_l_0,
         lapse_prob_0,
         lapse_prob_right_0,
     ])
     
-    vbmc = VBMC(vbmc_norm_tied_joint_fn, x_0, norm_tied_lb, norm_tied_ub, norm_plb, norm_pub, options={'display': 'on', 'max_fun_evals': 200 * (2 + 8)})
+    # NOTE: Updated max_fun_evals for 7 parameters instead of 9
+    vbmc = VBMC(vbmc_norm_tied_joint_fn, x_0, norm_tied_lb, norm_tied_ub, norm_plb, norm_pub, options={'display': 'on', 'max_fun_evals': 200 * (2 + 7)})
     vp, results = vbmc.optimize()
 
     if DO_RIGHT_TRUNCATE:
-        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_truncate_1s_{init_type}.pkl')
+        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_truncate_1s_t_E_aff_del_go_fixed_{init_type}.pkl')
     else:
-        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_{init_type}.pkl')
+        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_t_E_aff_del_go_fixed_{init_type}.pkl')
     vbmc.save(vbmc_pkl_path, overwrite=True)
 
 # %%
 
 vp_samples = vp.sample(int(1e6))[0]
 # %%
-#    rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right = params
+# NOTE: Updated unpacking to match new parameter order (excluding t_E_aff and del_go)
 rate_lambda_samples = vp_samples[:, 0]
 T_0_samples = vp_samples[:, 1]
 theta_E_samples = vp_samples[:, 2]
 w_samples = vp_samples[:, 3]
-t_E_aff_samples = vp_samples[:, 4]
-del_go_samples = vp_samples[:, 5]
-rate_norm_l_samples = vp_samples[:, 6]
-lapse_prob_samples = vp_samples[:, 7]
-lapse_prob_right_samples = vp_samples[:, 8]
+rate_norm_l_samples = vp_samples[:, 4]
+lapse_prob_samples = vp_samples[:, 5]
+lapse_prob_right_samples = vp_samples[:, 6]
 
 
 
@@ -461,8 +454,8 @@ print("theta_E_samples mean: ", np.mean(theta_E_samples))
 print("w_samples mean: ", np.mean(w_samples))
 # Z_E = (w - 0.5) * 2 * theta_E
 print(f'Z_E = {(np.mean(w_samples) - 0.5) * 2 * np.mean(theta_E_samples)}')
-print("t_E_aff_samples mean (ms): ", 1000* np.mean(t_E_aff_samples))
-print("del_go_samples mean (ms): ", 1000* np.mean(del_go_samples))
+print("t_E_aff FIXED (ms): ", 1000* t_E_aff_FIXED)
+print("del_go FIXED (ms): ", 1000* del_go_FIXED)
 print("rate_norm_l_samples mean: ", np.mean(rate_norm_l_samples))
 print("lapse_prob_samples mean: ", np.mean(lapse_prob_samples))
 print("lapse_prob_right_samples mean: ", np.mean(lapse_prob_right_samples))
@@ -490,8 +483,8 @@ lapse_rate_lambda = np.mean(rate_lambda_samples)
 lapse_T_0 = np.mean(T_0_samples)
 lapse_theta_E = np.mean(theta_E_samples)
 lapse_w = np.mean(w_samples)
-lapse_t_E_aff = np.mean(t_E_aff_samples)
-lapse_del_go = np.mean(del_go_samples)
+lapse_t_E_aff = t_E_aff_FIXED  # Now fixed
+lapse_del_go = del_go_FIXED  # Now fixed
 lapse_rate_norm_l = np.mean(rate_norm_l_samples)
 lapse_prob_mean = np.mean(lapse_prob_samples)
 lapse_prob_right_mean = np.mean(lapse_prob_right_samples)
@@ -524,8 +517,8 @@ print(f"{'rate_lambda':<20} {norm_rate_lambda:<15.6f} {lapse_rate_lambda:<15.6f}
 print(f"{'T_0 (ms)':<20} {norm_T_0*1000:<15.6f} {lapse_T_0*1000:<15.6f} {diff_T_0_ms:<15.6f} {pct_T_0:<+15.2f}")
 print(f"{'theta_E':<20} {norm_theta_E:<15.6f} {lapse_theta_E:<15.6f} {diff_theta_E:<15.6f} {pct_theta_E:<+15.2f}")
 print(f"{'w':<20} {norm_w:<15.6f} {lapse_w:<15.6f} {diff_w:<15.6f} {pct_w:<+15.2f}")
-print(f"{'t_E_aff (ms)':<20} {norm_t_E_aff*1000:<15.6f} {lapse_t_E_aff*1000:<15.6f} {diff_t_E_aff_ms:<15.6f} {pct_t_E_aff:<+15.2f}")
-print(f"{'del_go (ms)':<20} {norm_del_go*1000:<15.6f} {lapse_del_go*1000:<15.6f} {diff_del_go_ms:<15.6f} {pct_del_go:<+15.2f}")
+print(f"{'t_E_aff (ms)*':<20} {norm_t_E_aff*1000:<15.6f} {lapse_t_E_aff*1000:<15.6f} {diff_t_E_aff_ms:<15.6f} {'FIXED':<15}")
+print(f"{'del_go (ms)*':<20} {norm_del_go*1000:<15.6f} {lapse_del_go*1000:<15.6f} {diff_del_go_ms:<15.6f} {'FIXED':<15}")
 print(f"{'rate_norm_l':<20} {norm_rate_norm_l:<15.6f} {lapse_rate_norm_l:<15.6f} {diff_rate_norm_l:<15.6f} {pct_rate_norm_l:<+15.2f}")
 print(f"{'lapse_prob':<20} {'N/A':<15} {lapse_prob_mean:<15.6f} {'N/A':<15} {'N/A':<15}")
 print(f"{'lapse_prob_right':<20} {'N/A':<15} {lapse_prob_right_mean:<15.6f} {'N/A':<15} {'N/A':<15}")
@@ -543,8 +536,8 @@ comparison_lines = [
     f"{'T_0 (ms)':<20} {norm_T_0*1000:<15.6f} {lapse_T_0*1000:<15.6f} {diff_T_0_ms:<15.6f} {pct_T_0:<+15.2f}",
     f"{'theta_E':<20} {norm_theta_E:<15.6f} {lapse_theta_E:<15.6f} {diff_theta_E:<15.6f} {pct_theta_E:<+15.2f}",
     f"{'w':<20} {norm_w:<15.6f} {lapse_w:<15.6f} {diff_w:<15.6f} {pct_w:<+15.2f}",
-    f"{'t_E_aff (ms)':<20} {norm_t_E_aff*1000:<15.6f} {lapse_t_E_aff*1000:<15.6f} {diff_t_E_aff_ms:<15.6f} {pct_t_E_aff:<+15.2f}",
-    f"{'del_go (ms)':<20} {norm_del_go*1000:<15.6f} {lapse_del_go*1000:<15.6f} {diff_del_go_ms:<15.6f} {pct_del_go:<+15.2f}",
+    f"{'t_E_aff (ms)*':<20} {norm_t_E_aff*1000:<15.6f} {lapse_t_E_aff*1000:<15.6f} {diff_t_E_aff_ms:<15.6f} {'FIXED':<15}",
+    f"{'del_go (ms)*':<20} {norm_del_go*1000:<15.6f} {lapse_del_go*1000:<15.6f} {diff_del_go_ms:<15.6f} {'FIXED':<15}",
     f"{'rate_norm_l':<20} {norm_rate_norm_l:<15.6f} {lapse_rate_norm_l:<15.6f} {diff_rate_norm_l:<15.6f} {pct_rate_norm_l:<+15.2f}",
     f"{'lapse_prob':<20} {'N/A':<15} {lapse_prob_mean:<15.6f} {'N/A':<15} {'N/A':<15}",
     f"{'lapse_prob_right':<20} {'N/A':<15} {lapse_prob_right_mean:<15.6f} {'N/A':<15} {'N/A':<15}",
@@ -552,29 +545,31 @@ comparison_lines = [
     ""
 ]
 comparison_text = "\n".join(comparison_lines)
-comparison_txt_path = os.path.join(output_dir, f'param_comparison_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.txt')
+comparison_txt_path = os.path.join(output_dir, f'param_comparison_batch_{batch_name}_animal_{animal_ids[0]}_t_E_aff_del_go_fixed_{init_type}.txt')
 with open(comparison_txt_path, 'w') as f:
     f.write(comparison_text)
 print(f"Saved parameter comparison to {comparison_txt_path}")
 
 # %%
 # Plot distributions of samples for each param from both fits
-fig, axes = plt.subplots(3, 3, figsize=(18, 12))
-fig.suptitle(f'Parameter Distributions: Norm (blue) vs Norm+Lapse (red) - Batch {batch_name}, Animal {animal_ids[0]}', 
+# NOTE: Reduced to 2x3 grid since we removed t_E_aff and del_go
+fig, axes = plt.subplots(2, 3, figsize=(18, 8))
+fig.suptitle(f'Parameter Distributions: Norm (blue) vs Norm+Lapse (red) - Batch {batch_name}, Animal {animal_ids[0]}\n(t_E_aff and del_go FIXED)', 
              fontsize=14, fontweight='bold')
 
+# NOTE: t_E_aff and del_go are now fixed, so we don't plot their distributions
 params_info = [
     ('rate_lambda', norm_tied_samples['rate_lambda_samples'], rate_lambda_samples, 1, ''),
     ('T_0', norm_tied_samples['T_0_samples'], T_0_samples, 1000, '(ms)'),
     ('theta_E', norm_tied_samples['theta_E_samples'], theta_E_samples, 1, ''),
     ('w', norm_tied_samples['w_samples'], w_samples, 1, ''),
-    ('t_E_aff', norm_tied_samples['t_E_aff_samples'], t_E_aff_samples, 1000, '(ms)'),
-    ('del_go', norm_tied_samples['del_go_samples'], del_go_samples, 1000, '(ms)'),
     ('rate_norm_l', norm_tied_samples['rate_norm_l_samples'], rate_norm_l_samples, 1, '')
 ]
 
 for idx, (param_name, norm_samples, lapse_samples, scale, unit) in enumerate(params_info):
-    ax = axes[idx // 3, idx % 3]
+    row_idx = idx // 3
+    col_idx = idx % 3
+    ax = axes[row_idx, col_idx]
     
     # Scale samples if needed (for time parameters)
     norm_scaled = norm_samples * scale
@@ -599,11 +594,13 @@ for idx, (param_name, norm_samples, lapse_samples, scale, unit) in enumerate(par
     ax.grid(axis='y', alpha=0.3)
 
 # Hide unused subplots
-for idx in range(len(params_info), 9):
-    axes[idx // 3, idx % 3].axis('off')
+for idx in range(len(params_info), 6):
+    row_idx = idx // 3
+    col_idx = idx % 3
+    axes[row_idx, col_idx].axis('off')
 
 plt.tight_layout()
-param_dist_png = os.path.join(output_dir, f'param_distributions_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
+param_dist_png = os.path.join(output_dir, f'param_distributions_batch_{batch_name}_animal_{animal_ids[0]}_t_E_aff_del_go_fixed_{init_type}.png')
 fig.savefig(param_dist_png, dpi=300, bbox_inches='tight')
 print(f"Saved {param_dist_png}")
 plt.show()
@@ -638,7 +635,7 @@ ax2.grid(axis='y', alpha=0.3)
 
 fig.suptitle(f'Lapse Parameters - Batch {batch_name}, Animal {animal_ids[0]}', fontsize=14, fontweight='bold')
 plt.tight_layout()
-lapse_params_png = os.path.join(output_dir, f'lapse_params_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
+lapse_params_png = os.path.join(output_dir, f'lapse_params_batch_{batch_name}_animal_{animal_ids[0]}_t_E_aff_del_go_fixed_{init_type}.png')
 fig.savefig(lapse_params_png, dpi=300, bbox_inches='tight')
 print(f"Saved {lapse_params_png}")
 plt.show()
@@ -676,7 +673,7 @@ def simulate_single_trial_norm(i):
     choice, rt, is_act = simulate_psiam_tied_rate_norm(
         V_A, theta_A, ABL_samples[i], ILD_samples[i],
         norm_rate_lambda, norm_T_0, norm_theta_E, norm_Z_E,
-        t_stim_samples[i], t_A_aff, norm_t_E_aff, norm_del_go,
+        t_stim_samples[i], t_A_aff, t_E_aff_FIXED, del_go_FIXED,
         norm_rate_norm_l, dt, lapse_prob=0.0, T_lapse_max=T_lapse_max
     )
     return {
@@ -692,7 +689,7 @@ def simulate_single_trial_lapse(i):
     choice, rt, is_act = simulate_psiam_tied_rate_norm(
         V_A, theta_A, ABL_samples[i], ILD_samples[i],
         lapse_rate_lambda, lapse_T_0, lapse_theta_E, lapse_Z_E,
-        t_stim_samples[i], t_A_aff, lapse_t_E_aff, lapse_del_go,
+        t_stim_samples[i], t_A_aff, t_E_aff_FIXED, del_go_FIXED,
         lapse_rate_norm_l, dt, lapse_prob=lapse_prob_mean, T_lapse_max=T_lapse_max,
         lapse_prob_right=lapse_prob_right_mean
     )
@@ -823,7 +820,7 @@ for row_idx, abl in enumerate(ABL_vals[:3]):  # Limit to 3 ABLs
         n_empirical = len(empirical_data)
         
 plt.tight_layout()
-rt_dists_png = os.path.join(output_dir, f'rtds_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
+rt_dists_png = os.path.join(output_dir, f'rtds_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}_t_E_aff_del_go_fixed_{init_type}.png')
 fig.savefig(rt_dists_png, dpi=300, bbox_inches='tight')
 print(f"Saved {rt_dists_png}")
 plt.show()
@@ -915,7 +912,7 @@ for idx, abl in enumerate(ABL_vals[:3]):  # 3 ABLs
     ax.set_ylim(-5, 5)
 
 plt.tight_layout()
-log_odds_png = os.path.join(output_dir, f'log_odds_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
+log_odds_png = os.path.join(output_dir, f'log_odds_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}_t_E_aff_del_go_fixed_{init_type}.png')
 fig.savefig(log_odds_png, dpi=300, bbox_inches='tight')
 print(f"Saved {log_odds_png}")
 plt.show()
@@ -989,7 +986,7 @@ for idx, abl in enumerate(ABL_vals[:3]):  # 3 ABLs
     ax.set_ylim(0, 1)
 
 plt.tight_layout()
-psycho_png = os.path.join(output_dir, f'psychometric_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
+psycho_png = os.path.join(output_dir, f'psychometric_norm_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}_t_E_aff_del_go_fixed_{init_type}.png')
 fig.savefig(psycho_png, dpi=300, bbox_inches='tight')
 print(f"Saved {psycho_png}")
 plt.show()
@@ -1008,8 +1005,8 @@ print(f'rate_lamda_0 = {rate_lambda_0}')
 print(f'T_0_0 = {T_0_0* 1e3} ms')
 print(f'theta_E_0 = {theta_E_0}')
 print(f'w_0 = {w_0}')
-print(f't_E_aff_0 = {t_E_aff_0 * 1e3} ms')
-print(f'del_go_0 = {del_go_0 * 1e3} ms')
+print(f't_E_aff FIXED = {t_E_aff_FIXED * 1e3} ms')
+print(f'del_go FIXED = {del_go_FIXED * 1e3} ms')
 print(f'rate_norm_l_0 = {rate_norm_l_0}')
 print(f'lapse_prob_0 = {lapse_prob_0}')
 print(f'lapse_prob_right_0 = {lapse_prob_right_0}')
