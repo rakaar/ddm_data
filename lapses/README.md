@@ -96,3 +96,19 @@
 
 **`lapse_model_large_bounds_elbo_analysis.py`** (located in `../fit_animal_by_animal/`)
 - Analyzes VBMC convergence by extracting ELBO and stable flags from lapse model fit results across all animals and init types
+
+**`compare_vanilla_norm_lapse_elbos.py`** (located in `../fit_animal_by_animal/`)
+- **ELBO comparison notebook** for vanilla+lapse vs norm+lapse models (Oct 9-10 fits)
+- Reads VBMC pkl files from `oct_9_10_vanila_lapse_model_fit_files/` and `oct_9_10_norm_lapse_model_fit_files/`
+- Compares 18 common (batch, animal) pairs with original vanilla/norm model ELBOs from `results_{batch}_animal_{id}.pkl`
+- Extracts convergence info: ELBO, stability flag, elbo_sd, n_iterations
+- **Outputs**:
+  - Formatted table showing all 8 metrics per animal (V+L stable, N+L stable, V+L ELBO, N+L ELBO, OG V ELBO, OG N ELBO)
+  - Summary statistics: stability counts, mean/median/min/max ELBO improvements
+  - `vanilla_norm_lapse_elbo_comparison.csv`: Full comparison table
+  - `elbo_comparisons_bar_plots.png`: **3 bar plot panels** with y-axis limited to [-100, 100]:
+    - Panel 1: Vanilla+Lapse ELBO - Original Vanilla ELBO
+    - Panel 2: Vanilla+Lapse ELBO - Original Norm ELBO
+    - Panel 3: Norm+Lapse ELBO - Original Norm ELBO
+  - Green bars = positive ELBO difference (improvement), Red bars = negative (worse)
+- **Key findings**: All 18/18 animals converged stably; median ELBO improvements ~+8 (vanilla+lapse) and ~+3 (norm+lapse), but mean improvements negative due to a few outliers with large ELBO drops (LED34_59: -1428, LED34_63: -752)
