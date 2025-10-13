@@ -382,4 +382,88 @@ plt.tight_layout()
 plt.savefig(os.path.join(base_dir, 'elbo_comparisons_bar_plots.png'), dpi=150, bbox_inches='tight')
 plt.show()
 
-print(f"\nBar plots saved to: {os.path.join(base_dir, 'elbo_comparisons_bar_plots.png')}") 
+print(f"\nBar plots saved to: {os.path.join(base_dir, 'elbo_comparisons_bar_plots.png')}")
+
+# %%
+# Find batches with mixed positive/negative Vanilla+Lapse - Norm ELBO differences
+# (excluding LED34 batch)
+
+print("\n" + "="*150)
+print("Batches with Mixed Signs in Vanilla+Lapse - Norm ELBO Difference (excluding LED34)")
+print("="*150)
+
+# Group by batch
+batch_differences = {}
+for i, row in enumerate(rows):
+    batch = row['batch']
+    animal = row['animal']
+    diff = comparison_2[i]  # Vanilla+Lapse - Norm
+    
+    if batch not in batch_differences:
+        batch_differences[batch] = []
+    
+    batch_differences[batch].append({
+        'animal': animal,
+        'difference': diff
+    })
+
+# Find batches with mixed signs (excluding LED34)
+mixed_batches = []
+for batch, data in sorted(batch_differences.items()):
+    # Skip LED34
+    if batch == 'LED34':
+        continue
+    
+    # Check if there are both positive and negative differences
+    differences = [d['difference'] for d in data]
+    has_positive = any(d > 0 for d in differences)
+    has_negative = any(d < 0 for d in differences)
+    
+    if has_positive and has_negative:
+        mixed_batches.append(batch)
+        print(f"\n{batch}:")
+        for d in data:
+            sign = "+" if d['difference'] > 0 else "-"
+            print(f"  Animal {d['animal']}: {sign}{abs(d['difference']):.2f}")
+
+print(f"\n\nSummary: Found {len(mixed_batches)} batches with mixed signs (excluding LED34):")
+print(f"  {', '.join(mixed_batches)}")
+
+# %%
+# Find batches with uniform signs (all positive or all negative) in Vanilla+Lapse - Norm ELBO
+# (excluding LED34 batch)
+
+print("\n" + "="*150)
+print("Batches with Uniform Signs in Vanilla+Lapse - Norm ELBO Difference (excluding LED34)")
+print("="*150)
+
+all_positive_batches = []
+all_negative_batches = []
+
+for batch, data in sorted(batch_differences.items()):
+    # Skip LED34
+    if batch == 'LED34':
+        continue
+    
+    # Check if all differences have the same sign
+    differences = [d['difference'] for d in data]
+    has_positive = any(d > 0 for d in differences)
+    has_negative = any(d < 0 for d in differences)
+    
+    # All positive
+    if has_positive and not has_negative:
+        all_positive_batches.append(batch)
+        print(f"\n{batch} (ALL POSITIVE):")
+        for d in data:
+            print(f"  Animal {d['animal']}: +{d['difference']:.2f}")
+    
+    # All negative
+    elif has_negative and not has_positive:
+        all_negative_batches.append(batch)
+        print(f"\n{batch} (ALL NEGATIVE):")
+        for d in data:
+            print(f"  Animal {d['animal']}: {d['difference']:.2f}")
+
+print(f"\n\nSummary:")
+print(f"  All positive ({len(all_positive_batches)} batches): {', '.join(all_positive_batches) if all_positive_batches else 'None'}")
+print(f"  All negative ({len(all_negative_batches)} batches): {', '.join(all_negative_batches) if all_negative_batches else 'None'}")

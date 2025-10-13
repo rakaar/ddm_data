@@ -34,7 +34,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 ############3 Params #############
 batch_name = 'LED34'
-animal_to_fit = [45, 57, 59, 61]
+animal_to_fit = [63]
 K_max = 10
 N_theory = int(1e3)
 N_sim = int(1e6)
