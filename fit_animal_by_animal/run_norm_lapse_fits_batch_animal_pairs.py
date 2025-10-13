@@ -104,10 +104,20 @@ def main():
         sys.exit(0)
 
     failures = []
+    skipped = []
     for run_idx, (batch, animal) in enumerate(pairs, start=1):
         if run_idx < args.start_from:
             print(f"[{run_idx}/{total_runs}] Skipping batch={batch}, animal={animal} (before start-from)")
             continue
+        
+        # Check if output pickle file already exists
+        pkl_filename = f'vbmc_norm_tied_results_batch_{batch}_animal_{animal}_lapses_truncate_1s_norm.pkl'
+        pkl_path = os.path.join(args.output_dir, pkl_filename)
+        if os.path.exists(pkl_path):
+            print(f"[{run_idx}/{total_runs}] Skipping batch={batch}, animal={animal} (pkl file already exists)")
+            skipped.append((batch, animal))
+            continue
+        
         print(f"[{run_idx}/{total_runs}] Running batch={batch}, animal={animal}, init_type=norm ...")
         cmd = [
             args.python,
@@ -124,13 +134,26 @@ def main():
             print(f"[{run_idx}/{total_runs}] FAILED: batch={batch}, animal={animal}, init_type=norm (returncode={e.returncode})", file=sys.stderr)
             failures.append((batch, animal))
 
+    # Print summary
+    print("\n" + "=" * 60)
+    print("SUMMARY")
+    print("=" * 60)
+    
+    if skipped:
+        print(f"\nSkipped {len(skipped)} animals (pkl file already exists):")
+        for batch, animal in skipped:
+            print(f" - {batch}:{animal}")
+    
     if failures:
-        print("\nSome runs failed:")
+        print(f"\n{len(failures)} runs FAILED:")
         for batch, animal in failures:
             print(f" - {batch}:{animal} (init_type=norm)")
         sys.exit(2)
     else:
-        print("\nAll runs completed successfully.")
+        completed = len(pairs) - len(skipped)
+        print(f"\nAll {completed} new runs completed successfully.")
+        if skipped:
+            print(f"({len(skipped)} animals were skipped because pkl files already existed)")
 
 
 if __name__ == '__main__':

@@ -12,7 +12,7 @@ import pickle
 import sys
 import argparse
 import os
-sys.path.append('../lapses')
+sys.path.append('./lapses')
 from lapses_utils import simulate_psiam_tied_rate_norm
 from vbmc_animal_wise_fit_utils import trapezoidal_logpdf
 from time_vary_norm_utils import up_or_down_RTs_fit_fn, cum_pro_and_reactive_time_vary_fn
@@ -22,14 +22,17 @@ parser = argparse.ArgumentParser(description='Fit vanilla+lapse model for a sing
 parser.add_argument('--batch', required=True, help='Batch name, e.g., LED8')
 parser.add_argument('--animal', required=True, type=int, help='Animal ID (int)')
 parser.add_argument('--output-dir', default='oct_9_10_vanila_lapse_model_fit_files', help='Directory to save results')
+parser.add_argument('--is-stim-filtered', action='store_true', help='Filter to specific ABLs and ILDs')
 args = parser.parse_args()
 
 batch_name = args.batch
 animal_ids = [args.animal]
 output_dir = args.output_dir
+is_stim_filtered = args.is_stim_filtered
 # batch_name = 'LED8'
 # animal_ids = [109]
 # output_dir = 'oct_9_10_vanila_lapse_model_fit_files'
+# is_stim_filtered = False
 
 os.makedirs(output_dir, exist_ok=True)
 
@@ -69,6 +72,7 @@ df_aborts = df_valid_and_aborts[df_valid_and_aborts['abort_event'] == 3]
 
 print('####################################')
 print(f'Aborts Truncation Time: {T_trunc}')
+print(f'Stimulus Filtered: {is_stim_filtered}')
 print('####################################')
 # %%
 
@@ -301,6 +305,19 @@ for animal_idx in [0]:
     df_aborts_animal = df_aborts[df_aborts['animal'] == animal]
 
     df_valid_animal = df_all_trials_animal[df_all_trials_animal['success'].isin([1,-1])]
+    
+    # Stimulus filtering (ABL and ILD)
+    if is_stim_filtered:
+        allowed_abls = [20, 40, 60]
+        allowed_ilds = [-16, -8, -4, -2, -1, 1, 2, 4, 8, 16]
+        df_valid_animal = df_valid_animal[
+            (df_valid_animal['ABL'].isin(allowed_abls)) & 
+            (df_valid_animal['ILD'].isin(allowed_ilds))
+        ]
+        print(f'Filtered to ABLs: {allowed_abls}')
+        print(f'Filtered to ILDs: {allowed_ilds}')
+        print(f'Valid trials after stimulus filtering: {len(df_valid_animal)}')
+    
     # Right Truncation
     if DO_RIGHT_TRUNCATE:
         df_valid_animal = df_valid_animal[df_valid_animal['RTwrtStim'] < 1]
@@ -313,7 +330,8 @@ for animal_idx in [0]:
 
 
     print(f'Batch: {batch_name},sample animal: {animal}')
-    pdf_filename = os.path.join(output_dir, f'results_{batch_name}_animal_{animal}_lapse_vanilla_model.pdf')
+    stim_filter_suffix = '_stim_filtered' if is_stim_filtered else ''
+    pdf_filename = os.path.join(output_dir, f'results_{batch_name}_animal_{animal}_lapse_vanilla_model{stim_filter_suffix}.pdf')
     pdf = PdfPages(pdf_filename)
     fig_text = plt.figure(figsize=(8.5, 11)) # Standard page size looks better
     fig_text.clf() # Clear the figure
@@ -374,9 +392,9 @@ for animal_idx in [0]:
     vp, results = vbmc.optimize()
 
     if DO_RIGHT_TRUNCATE:
-        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_vanilla_tied_results_batch_{batch_name}_animal_{animal}_lapses_truncate_1s.pkl')
+        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_vanilla_tied_results_batch_{batch_name}_animal_{animal}_lapses_truncate_1s{stim_filter_suffix}.pkl')
     else:
-        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_vanilla_tied_results_batch_{batch_name}_animal_{animal}_lapses.pkl')
+        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_vanilla_tied_results_batch_{batch_name}_animal_{animal}_lapses{stim_filter_suffix}.pkl')
     vbmc.save(vbmc_pkl_path, overwrite=True)
 
 # %%
@@ -486,7 +504,7 @@ comparison_lines = [
     ""
 ]
 comparison_text = "\n".join(comparison_lines)
-comparison_txt_path = os.path.join(output_dir, f'param_comparison_batch_{batch_name}_animal_{animal_ids[0]}_vanilla_lapse.txt')
+comparison_txt_path = os.path.join(output_dir, f'param_comparison_batch_{batch_name}_animal_{animal_ids[0]}_vanilla_lapse{stim_filter_suffix}.txt')
 with open(comparison_txt_path, 'w') as f:
     f.write(comparison_text)
 print(f"Saved parameter comparison to {comparison_txt_path}")
@@ -532,7 +550,7 @@ for idx, (param_name, vanilla_samples, lapse_samples, scale, unit) in enumerate(
     ax.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
-param_dist_png = os.path.join(output_dir, f'param_distributions_batch_{batch_name}_animal_{animal_ids[0]}_vanilla_lapse.png')
+param_dist_png = os.path.join(output_dir, f'param_distributions_batch_{batch_name}_animal_{animal_ids[0]}_vanilla_lapse{stim_filter_suffix}.png')
 fig.savefig(param_dist_png, dpi=300, bbox_inches='tight')
 print(f"Saved {param_dist_png}")
 plt.show()
@@ -554,7 +572,7 @@ plt.axvline(x=mean_lapse_prob, color='red', linestyle='--', linewidth=2, label=f
 plt.legend(fontsize=10)
 plt.grid(axis='y', alpha=0.3)
 plt.tight_layout()
-lapse_prob_png = os.path.join(output_dir, f'lapse_prob_distribution_batch_{batch_name}_animal_{animal_ids[0]}_vanilla_lapse.png')
+lapse_prob_png = os.path.join(output_dir, f'lapse_prob_distribution_batch_{batch_name}_animal_{animal_ids[0]}_vanilla_lapse{stim_filter_suffix}.png')
 plt.savefig(lapse_prob_png, dpi=300, bbox_inches='tight')
 print(f"Saved {lapse_prob_png}")
 plt.show()
@@ -739,7 +757,7 @@ for row_idx, abl in enumerate(ABL_vals[:3]):  # Limit to 3 ABLs
         n_empirical = len(empirical_data)
         
 plt.tight_layout()
-rt_dists_png = os.path.join(output_dir, f'rtds_vanilla_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}.png')
+rt_dists_png = os.path.join(output_dir, f'rtds_vanilla_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}{stim_filter_suffix}.png')
 fig.savefig(rt_dists_png, dpi=300, bbox_inches='tight')
 print(f"Saved {rt_dists_png}")
 plt.show()
@@ -831,7 +849,7 @@ for idx, abl in enumerate(ABL_vals[:3]):  # 3 ABLs
     ax.set_ylim(-5, 5)
 
 plt.tight_layout()
-log_odds_png = os.path.join(output_dir, f'log_odds_vanilla_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}.png')
+log_odds_png = os.path.join(output_dir, f'log_odds_vanilla_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}{stim_filter_suffix}.png')
 fig.savefig(log_odds_png, dpi=300, bbox_inches='tight')
 print(f"Saved {log_odds_png}")
 plt.show()
@@ -905,7 +923,7 @@ for idx, abl in enumerate(ABL_vals[:3]):  # 3 ABLs
     ax.set_ylim(0, 1)
 
 plt.tight_layout()
-psycho_png = os.path.join(output_dir, f'psychometric_vanilla_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}.png')
+psycho_png = os.path.join(output_dir, f'psychometric_vanilla_vs_lapse_vs_data_batch_{batch_name}_animal_{animal_ids[0]}{stim_filter_suffix}.png')
 fig.savefig(psycho_png, dpi=300, bbox_inches='tight')
 print(f"Saved {psycho_png}")
 plt.show()

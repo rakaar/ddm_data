@@ -30,9 +30,9 @@ batch_name = args.batch
 animal_ids = [args.animal]
 output_dir = args.output_dir
 init_type = args.init_type
-# batch_name = 'LED8'
-# animal_ids = [109]  
-# output_dir = 'oct_6_7_large_bounds_diff_init_lapse_fit'
+# batch_name = 'LED34'
+# animal_ids = [45]  
+# output_dir = 'temp'
 # init_type = 'norm'
 
 os.makedirs(output_dir, exist_ok=True)
@@ -438,7 +438,113 @@ for animal_idx in [0]:
     vbmc.save(vbmc_pkl_path, overwrite=True)
 
 # %%
+# import pikcle file
+RUN_FROM_PKL_FILE = True
+if RUN_FROM_PKL_FILE:
+    vbmc_pkl_path = '/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/oct_9_10_norm_lapse_model_fit_files/vbmc_norm_tied_results_batch_LED34_animal_45_lapses_truncate_1s_norm.pkl'
+    with open(vbmc_pkl_path, 'rb') as f:
+        vp = pickle.load(f)
+    
+    # Extract batch_name and animal from the pkl path
+    import re
+    match = re.search(r'batch_([A-Za-z0-9_]+)_animal_(\d+)', vbmc_pkl_path)
+    if match:
+        batch_name = match.group(1)
+        animal = int(match.group(2))
+        animal_ids = [animal]
+    else:
+        # Fallback values if regex fails
+        batch_name = 'LED34'
+        animal_ids = [45]
+        animal = animal_ids[0]
+    
+    # Set init_type based on filename
+    if 'norm.pkl' in vbmc_pkl_path:
+        init_type = 'norm'
+    elif 'vanilla.pkl' in vbmc_pkl_path:
+        init_type = 'vanilla'
+    else:
+        init_type = 'norm'
+    
+    # Set output directory
+    output_dir = 'temp'
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Load animal data from CSV
+    csv_filename = f'batch_csvs/batch_{batch_name}_valid_and_aborts.csv'
+    exp_df = pd.read_csv(csv_filename)
+    
+    # Create df_valid_and_aborts
+    df_valid_and_aborts = exp_df[
+        (exp_df['success'].isin([1,-1])) |
+        (exp_df['abort_event'] == 3)
+    ].copy()
+    
+    df_aborts = df_valid_and_aborts[df_valid_and_aborts['abort_event'] == 3]
+    
+    # Filter for the specific animal
+    df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal]
+    df_aborts_animal = df_aborts[df_aborts['animal'] == animal]
+    df_valid_animal = df_all_trials_animal[df_all_trials_animal['success'].isin([1,-1])]
+    
+    # Apply right truncation
+    DO_RIGHT_TRUNCATE = True
+    if DO_RIGHT_TRUNCATE:
+        df_valid_animal = df_valid_animal[df_valid_animal['RTwrtStim'] < 1]
+        max_rt = 1
+    else:
+        max_rt = df_valid_animal['RTwrtStim'].max()
+    
+    # Get ABL and ILD arrays
+    ABL_arr = df_all_trials_animal['ABL'].unique()
+    ILD_arr = df_all_trials_animal['ILD'].unique()
+    ILD_arr = np.sort(ILD_arr)
+    ABL_arr = np.sort(ABL_arr)
+    
+    # Load abort params from pkl file
+    pkl_file = f'results_{batch_name}_animal_{animal}.pkl'
+    with open(pkl_file, 'rb') as f:
+        fit_results_data = pickle.load(f)
+    
+    vbmc_aborts_param_keys_map = {
+        'V_A_samples': 'V_A',
+        'theta_A_samples': 'theta_A',
+        't_A_aff_samp': 't_A_aff'
+    }
+    abort_keyname = "vbmc_aborts_results"
+    
+    abort_samples = fit_results_data[abort_keyname]
+    abort_params = {}
+    for param_samples_name, param_label in vbmc_aborts_param_keys_map.items():
+        abort_params[param_label] = np.mean(abort_samples[param_samples_name])
+    
+    V_A = abort_params['V_A']
+    theta_A = abort_params['theta_A']
+    t_A_aff = abort_params['t_A_aff']
+    
+    # Extract norm tied samples for comparison (loaded from same pkl file)
+    norm_tied_samples = fit_results_data['vbmc_norm_tied_results']
+    norm_rate_lambda = np.mean(norm_tied_samples['rate_lambda_samples'])
+    norm_T_0 = np.mean(norm_tied_samples['T_0_samples'])
+    norm_theta_E = np.mean(norm_tied_samples['theta_E_samples'])
+    norm_w = np.mean(norm_tied_samples['w_samples'])
+    norm_t_E_aff = np.mean(norm_tied_samples['t_E_aff_samples'])
+    norm_del_go = np.mean(norm_tied_samples['del_go_samples'])
+    norm_rate_norm_l = np.mean(norm_tied_samples['rate_norm_l_samples'])
+    norm_Z_E = (norm_w - 0.5) * 2 * norm_theta_E
+    
+    # Create dummy pdf object (will be used if saving figures)
+    pdf_filename = os.path.join(output_dir, f'results_{batch_name}_animal_{animal}_lapse_fit_{init_type}.pdf')
+    # Note: pdf object not created here since it may not be needed, user can uncomment if needed
+    # pdf = PdfPages(pdf_filename)
+    
+    print(f"Loaded VBMC results from: {vbmc_pkl_path}")
+    print(f"Batch: {batch_name}, Animal: {animal}")
+    print(f"Number of valid trials: {len(df_valid_animal)}")
+    print(f"max_rt: {max_rt}")
+    print(f"Abort params - V_A: {V_A:.4f}, theta_A: {theta_A:.4f}, t_A_aff: {t_A_aff:.6f}")
 
+vp = vp.vp
 vp_samples = vp.sample(int(1e6))[0]
 # %%
 #    rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right = params
@@ -830,14 +936,15 @@ plt.show()
 
 # %%
 # Compute log-odds: log(P(choice=1) / P(choice=-1)) vs ILD for each ABL
+N_ABLs = len(ABL_vals)
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 fig.suptitle(f'Log-Odds: Norm (blue) vs Norm+Lapse (red) vs Data (green) - Batch {batch_name}, Animal {animal_ids[0]}', 
              fontsize=14, fontweight='bold')
 
-# Get unique ILD values (not absolute)
-ILD_vals = sorted(norm_sim_df_filtered['ILD'].unique())
+# Get unique ILD values from empirical data (not absolute)
+ILD_vals = sorted(df_valid_animal_filtered['ILD'].unique())
 
-for idx, abl in enumerate(ABL_vals[:3]):  # 3 ABLs
+for idx, abl in enumerate(ABL_vals):  # 3 ABLs
     ax = axes[idx]
     
     norm_log_odds = []
@@ -922,11 +1029,12 @@ plt.show()
 
 # %%
 # Psychometric curves: P(choice=1) vs ILD for each ABL
-fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+N_ABLs = len(ABL_vals)
+fig, axes = plt.subplots(1, N_ABLs, figsize=(15, 5))
 fig.suptitle(f'Psychometric Curves: Norm (blue) vs Norm+Lapse (red) vs Data (green) - Batch {batch_name}, Animal {animal_ids[0]}', 
              fontsize=14, fontweight='bold')
 
-for idx, abl in enumerate(ABL_vals[:3]):  # 3 ABLs
+for idx, abl in enumerate(ABL_vals):  # 3 ABLs
     ax = axes[idx]
     
     norm_p_right = []
