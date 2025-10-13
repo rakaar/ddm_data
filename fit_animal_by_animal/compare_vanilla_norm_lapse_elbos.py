@@ -351,7 +351,7 @@ ax1.set_xticklabels(animal_labels, rotation=45, ha='right')
 ax1.grid(axis='y', alpha=0.3)
 ax1.set_xlabel('Batch_Animal', fontsize=11)
 ax1.set_ylim(-100, 100)
-
+    
 # Plot 2: Vanilla+Lapse - Norm
 ax2 = axes[1]
 colors_2 = ['green' if val > 0 else 'red' for val in comparison_2]

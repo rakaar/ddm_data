@@ -16,3 +16,4 @@ fit_each_condn/each_cond_data/*
 *.tex
 *.txt
 *.gz
+*.svg
