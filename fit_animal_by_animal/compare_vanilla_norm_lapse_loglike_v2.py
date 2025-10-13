@@ -635,10 +635,11 @@ print(f"\nResults saved to: {output_csv}")
 animal_labels = [f"{row['batch']}_{row['animal']}" for row in rows]
 x_pos = np.arange(len(rows))
 
-# Compute all three comparisons
+# Compute all four comparisons
 comparison_1 = []  # Vanilla+Lapse - Vanilla
 comparison_2 = []  # Vanilla+Lapse - Norm
 comparison_3 = []  # Norm+Lapse - Norm
+comparison_4 = []  # Vanilla+Lapse - Norm+Lapse
 
 for row in rows:
     # Comparison 1: Vanilla+Lapse log-likelihood - Vanilla log-likelihood
@@ -658,9 +659,15 @@ for row in rows:
         comparison_3.append(row['norm_lapse_loglike'] - row['og_norm_loglike'])
     else:
         comparison_3.append(0)
+    
+    # Comparison 4: Vanilla+Lapse log-likelihood - Norm+Lapse log-likelihood
+    if row['vanilla_lapse_loglike'] is not None and row['norm_lapse_loglike'] is not None:
+        comparison_4.append(row['vanilla_lapse_loglike'] - row['norm_lapse_loglike'])
+    else:
+        comparison_4.append(0)
 # %%
-# Create figure with 3 subplots
-fig, axes = plt.subplots(3, 1, figsize=(14, 12))
+# Create figure with 4 subplots
+fig, axes = plt.subplots(4, 1, figsize=(14, 16))
 
 # Plot 1: Vanilla+Lapse - Vanilla
 ax1 = axes[0]
@@ -700,6 +707,19 @@ ax3.set_xticklabels(animal_labels, rotation=45, ha='right')
 ax3.grid(axis='y', alpha=0.3)
 ax3.set_xlabel('Batch_Animal', fontsize=11)
 # ax3.set_ylim(-100, 100)
+
+# Plot 4: Vanilla+Lapse - Norm+Lapse
+ax4 = axes[3]
+colors_4 = ['green' if val > 0 else 'red' for val in comparison_4]
+ax4.bar(x_pos, comparison_4, color=colors_4, alpha=0.7)
+ax4.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
+ax4.set_ylabel('Log-Likelihood Difference', fontsize=12, fontweight='bold')
+ax4.set_title('Vanilla+Lapse Log-Likelihood - Norm+Lapse Log-Likelihood', fontsize=14, fontweight='bold')
+ax4.set_xticks(x_pos)
+ax4.set_xticklabels(animal_labels, rotation=45, ha='right')
+ax4.grid(axis='y', alpha=0.3)
+ax4.set_xlabel('Batch_Animal', fontsize=11)
+# ax4.set_ylim(-100, 100)
 
 plt.tight_layout()
 plt.savefig(os.path.join(base_dir, 'loglike_comparisons_bar_plots_v2.png'), dpi=150, bbox_inches='tight')

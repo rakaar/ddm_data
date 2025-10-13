@@ -159,3 +159,8 @@
     - Panel 3: Norm+Lapse ELBO - Original Norm ELBO
   - Green bars = positive ELBO difference (improvement), Red bars = negative (worse)
 - **Key findings**: All 18/18 animals converged stably; median ELBO improvements ~+8 (vanilla+lapse) and ~+3 (norm+lapse), but mean improvements negative due to a few outliers with large ELBO drops (LED34_59: -1428, LED34_63: -752)
+
+
+# reading pkl files
+- READING_VBMC_PICKLE_FILES.md
+ 
