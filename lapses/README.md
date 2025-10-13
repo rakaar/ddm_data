@@ -86,7 +86,7 @@
 **`lapses_fit_single_animal_norm_model_fix_t_E_aff_del_go.py`** (located in `../fit_animal_by_animal/`)
 - Same as `lapses_fit_single_animal_norm_model.py`, but fixes `t_E_aff` and `del_go` from the average of vanilla and norm tied fits loaded from `results_{batch}_animal_{id}.pkl`.
 - Fits 7 parameters: `rate_lambda, T_0, theta_E, w, rate_norm_l, lapse_prob, lapse_prob_right`.
-- CLI args: `--batch`, `--animal`, `--init-type` (vanilla|norm), `--output-dir` (default: `oct_6_7_large_bounds_diff_init_lapse_fit_t_E_aff_del_go_fixed`)
+- CLI args: `--batch`, `--animal`, `--init-type` (nor|norm), `--output-dir` (default: `oct_6_7_large_bounds_diff_init_lapse_fit_t_E_aff_del_go_fixed`)
 - Output filenames include `t_E_aff_del_go_fixed`.
 
 **`run_vanilla_lapse_fits_all_animals.py`** (located in `../fit_animal_by_animal/`)
@@ -96,6 +96,53 @@
 
 **`lapse_model_large_bounds_elbo_analysis.py`** (located in `../fit_animal_by_animal/`)
 - Analyzes VBMC convergence by extracting ELBO and stable flags from lapse model fit results across all animals and init types
+
+**`compare_vanilla_norm_lapse_elbos.py`** (located in `../fit_animal_by_animal/`)
+- **ELBO comparison notebook** for vanilla+lapse vs norm+lapse models (Oct 9-10 fits)
+- Reads VBMC pkl files from `oct_9_10_vanila_lapse_model_fit_files/` and `oct_9_10_norm_lapse_model_fit_files/`
+- Compares 18 common (batch, animal) pairs with original vanilla/norm model ELBOs from `results_{batch}_animal_{id}.pkl`
+- Extracts convergence info: ELBO, stability flag, elbo_sd, n_iterations
+- **Outputs**:
+  - Formatted table showing all 8 metrics per animal (V+L stable, N+L stable, V+L ELBO, N+L ELBO, OG V ELBO, OG N ELBO)
+  - Summary statistics: stability counts, mean/median/min/max ELBO improvements
+  - `vanilla_norm_lapse_elbo_comparison.csv`: Full comparison table
+  - `elbo_comparisons_bar_plots.png`: **3 bar plot panels** with y-axis limited to [-100, 100]:
+    - Panel 1: Vanilla+Lapse ELBO - Original Vanilla ELBO
+    - Panel 2: Vanilla+Lapse ELBO - Original Norm ELBO
+    - Panel 3: Norm+Lapse ELBO - Original Norm ELBO
+  - Green bars = positive ELBO difference (improvement), Red bars = negative (worse)
+- **Key findings**: All 18/18 animals converged stably; median ELBO improvements ~+8 (vanilla+lapse) and ~+3 (norm+lapse), but mean improvements negative due to a few outliers with large ELBO drops (LED34_59: -1428, LED34_63: -752)
+
+---
+
+## ELBO Comparison Scripts
+
+**`run_lapse_fit_led34_filtered.py`** (located in `../fit_animal_by_animal/`)
+- Batch runner for LED34 filtered lapse fits
+- Processes 4 animals: 45, 57, 59, 61
+- Invokes `lapses_fit_single_animal.py` with `--is-stim-filtered` flag
+- Output directory: `led34_vanila_lapse_led34_filered`
+- Runs vanilla+lapse VBMC fits on stimulus-filtered data
+
+**`compare_led34_elbos.py`** (located in `../fit_animal_by_animal/`)
+- **Comprehensive comparison notebook for LED34 animals** with three comparison sections:
+- **Section 1: Vanilla Filtered vs Vanilla+Lapse Filtered**
+  - Compares baseline vanilla model with lapse model (both with stimulus filtering)
+  - ELBO bar plot showing improvement (Lapse - Vanilla)
+  - Parameter comparison tables for all 6 parameters + 2 lapse parameters
+- **Section 2: Vanilla Filtered vs Vanilla Unfiltered**
+  - Compares filtered vs unfiltered vanilla baseline models
+  - ELBO bar plot (Filtered - Unfiltered)
+  - Parameter comparison tables
+- **Section 3: Vanilla+Lapse Filtered vs Vanilla+Lapse Unfiltered**
+  - Compares filtered vs unfiltered lapse models
+  - Parameter comparison tables for all 8 parameters (including lapse_prob, lapse_prob_right)
+- **Data sources**:
+  - Filtered vanilla: `led34_filter_files/vanila/vbmc_PKL_file_vanilla_tied_results_batch_LED34_animal_{animal}_FILTERED.pkl`
+  - Filtered lapse: `led34_filter_files/vanila_lapse/vbmc_vanilla_tied_results_batch_LED34_animal_{animal}_lapses_truncate_1s_stim_filtered.pkl`
+  - Unfiltered vanilla: `led34_filter_files/vanila/results_LED34_animal_{animal}.pkl`
+  - Unfiltered lapse: `oct_9_10_vanila_lapse_model_fit_files/vbmc_vanilla_tied_results_batch_LED34_animal_{animal}_lapses_truncate_1s.pkl`
+- Parameters displayed with 3 decimal places; ELBO differences shown on bar plots with value labels
 
 **`compare_vanilla_norm_lapse_elbos.py`** (located in `../fit_animal_by_animal/`)
 - **ELBO comparison notebook** for vanilla+lapse vs norm+lapse models (Oct 9-10 fits)
