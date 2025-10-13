@@ -1,0 +1,507 @@
+# %%
+#!/usr/bin/env python3
+"""
+Compare log-likelihood values from vanilla+lapse and norm+lapse model fits.
+Extracts log-likelihood and stability information from VBMC pickle files in both folders,
+and compares with original vanilla and norm model log-likelihoods.
+"""
+import pickle
+import os
+import glob
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def extract_convergence_info(pkl_path):
+    """
+    Extract convergence information from a VBMC pickle file.
+    
+    Returns:
+        dict with keys: loglike, elbo_sd, stable, n_iterations
+    """
+    try:
+        with open(pkl_path, 'rb') as f:
+            vbmc = pickle.load(f)
+        
+        # Extract from iteration_history
+        if hasattr(vbmc, 'iteration_history'):
+            iter_hist = vbmc.iteration_history
+            
+            result = {}
+            
+            # Extract log-likelihood from vp.stats['e_log_joint']
+            if 'vp' in iter_hist:
+                vp_arr = iter_hist['vp']
+                last_vp = vp_arr[-1]
+                if hasattr(last_vp, 'stats') and 'e_log_joint' in last_vp.stats:
+                    result['loglike'] = float(last_vp.stats['e_log_joint'])
+                else:
+                    result['loglike'] = None
+            else:
+                result['loglike'] = None
+            
+            if 'elbo_sd' in iter_hist:
+                elbo_sd_arr = iter_hist['elbo_sd']
+                result['elbo_sd'] = float(elbo_sd_arr[-1])
+            else:
+                result['elbo_sd'] = None
+            
+            if 'stable' in iter_hist:
+                stable_arr = iter_hist['stable']
+                result['stable'] = bool(stable_arr[-1])
+            else:
+                result['stable'] = None
+            
+            if 'iter' in iter_hist:
+                iter_arr = iter_hist['iter']
+                result['n_iterations'] = int(iter_arr[-1])
+            else:
+                result['n_iterations'] = len(iter_hist)
+            
+            return result
+        else:
+            return {'loglike': None, 'elbo_sd': None, 'stable': None, 'n_iterations': None}
+    
+    except Exception as e:
+        print(f"Error reading {pkl_path}: {e}")
+        return {'loglike': None, 'elbo_sd': None, 'stable': None, 'n_iterations': None, 'error': str(e)}
+
+
+def parse_filename_vanilla_lapse(filename):
+    """
+    Parse vanilla+lapse pickle filename to extract batch and animal.
+    Expected format: vbmc_vanilla_tied_results_batch_{batch}_animal_{animal}_lapses_truncate_1s.pkl
+    """
+    # Remove .pkl extension
+    name = filename.replace('.pkl', '')
+    
+    # Split by underscores
+    parts = name.split('_')
+    
+    # Find batch name (after 'batch_')
+    batch_idx = parts.index('batch') + 1
+    batch_parts = []
+    animal_idx = None
+    
+    for i in range(batch_idx, len(parts)):
+        if parts[i] == 'animal':
+            animal_idx = i + 1
+            break
+        batch_parts.append(parts[i])
+    
+    batch = '_'.join(batch_parts)
+    
+    # Get animal ID
+    animal = int(parts[animal_idx])
+    
+    return batch, animal
+
+
+def parse_filename_norm_lapse(filename):
+    """
+    Parse norm+lapse pickle filename to extract batch and animal.
+    Expected format: vbmc_norm_tied_results_batch_{batch}_animal_{animal}_lapses_truncate_1s_norm.pkl
+    """
+    # Remove .pkl extension
+    name = filename.replace('.pkl', '')
+    
+    # Split by underscores
+    parts = name.split('_')
+    
+    # Find batch name (after 'batch_')
+    batch_idx = parts.index('batch') + 1
+    batch_parts = []
+    animal_idx = None
+    
+    for i in range(batch_idx, len(parts)):
+        if parts[i] == 'animal':
+            animal_idx = i + 1
+            break
+        batch_parts.append(parts[i])
+    
+    batch = '_'.join(batch_parts)
+    
+    # Get animal ID
+    animal = int(parts[animal_idx])
+    
+    return batch, animal
+
+
+def get_original_loglikes(batch, animal_id, results_dir):
+    """
+    Load original vanilla and norm log-likelihood values from results pickle.
+    
+    Returns:
+        dict with keys: og_vanilla_loglike, og_norm_loglike
+    """
+    result = {'og_vanilla_loglike': None, 'og_norm_loglike': None}
+    
+    # Special handling for LED34 batch
+    if batch == 'LED34':
+        # For vanilla: read from led34_filter_files/vanila/results_LED34_animal_{id}_VANILLA_ABL_ILD_filtered.pkl
+        vanilla_pkl_fname = f'results_LED34_animal_{animal_id}_VANILLA_ABL_ILD_filtered.pkl'
+        vanilla_pkl_path = os.path.join(results_dir, 'led34_filter_files', 'vanila', vanilla_pkl_fname)
+        
+        if os.path.exists(vanilla_pkl_path):
+            try:
+                with open(vanilla_pkl_path, 'rb') as f:
+                    vanilla_results = pickle.load(f)
+                # Extract from nested vbmc_vanilla_tied_results dict
+                if 'vbmc_vanilla_tied_results' in vanilla_results:
+                    result['og_vanilla_loglike'] = vanilla_results['vbmc_vanilla_tied_results'].get('loglike', None)
+            except Exception as e:
+                print(f"Warning: Could not load vanilla log-likelihood from {vanilla_pkl_path}: {e}")
+        
+        # For norm: read from led34_filter_files/norm/results_LED34_animal_{id}_NORM_filtered.pkl
+        norm_pkl_fname = f'results_LED34_animal_{animal_id}_NORM_filtered.pkl'
+        norm_pkl_path = os.path.join(results_dir, 'led34_filter_files', 'norm', norm_pkl_fname)
+        
+        if os.path.exists(norm_pkl_path):
+            try:
+                with open(norm_pkl_path, 'rb') as f:
+                    norm_results = pickle.load(f)
+                # Extract from nested vbmc_norm_tied_results dict
+                if 'vbmc_norm_tied_results' in norm_results:
+                    result['og_norm_loglike'] = norm_results['vbmc_norm_tied_results'].get('loglike', None)
+            except Exception as e:
+                print(f"Warning: Could not load norm log-likelihood from {norm_pkl_path}: {e}")
+        
+        return result
+    
+    # Standard handling for other batches
+    pkl_fname = f'results_{batch}_animal_{animal_id}.pkl'
+    pkl_path = os.path.join(results_dir, pkl_fname)
+    
+    if not os.path.exists(pkl_path):
+        return result
+    
+    try:
+        with open(pkl_path, 'rb') as f:
+            results = pickle.load(f)
+        
+        # Extract vanilla log-likelihood
+        if 'vbmc_vanilla_tied_results' in results:
+            result['og_vanilla_loglike'] = results['vbmc_vanilla_tied_results'].get('loglike', None)
+        
+        # Extract norm log-likelihood
+        if 'vbmc_norm_tied_results' in results:
+            result['og_norm_loglike'] = results['vbmc_norm_tied_results'].get('loglike', None)
+        
+        return result
+    except Exception as e:
+        print(f"Warning: Could not load original log-likelihoods from {pkl_path}: {e}")
+        return result
+
+
+def format_bool(val):
+    """Format boolean for display"""
+    if val is None:
+        return "N/A"
+    return "True" if val else "False"
+
+
+def format_float(val):
+    """Format float for display"""
+    if val is None:
+        return "N/A"
+    return f"{val:.2f}"
+
+# %%
+# Configuration
+base_dir = '/home/rlab/raghavendra/ddm_data/fit_animal_by_animal'
+vanilla_lapse_dir = os.path.join(base_dir, 'oct_9_10_vanila_lapse_model_fit_files')
+norm_lapse_dir = os.path.join(base_dir, 'oct_9_10_norm_lapse_model_fit_files')
+results_dir = base_dir  # Results files are in the main directory
+    
+# Find all pickle files in both directories
+vanilla_lapse_files = glob.glob(os.path.join(vanilla_lapse_dir, '*.pkl'))
+norm_lapse_files = glob.glob(os.path.join(norm_lapse_dir, '*.pkl'))
+
+print(f"Found {len(vanilla_lapse_files)} vanilla+lapse pickle files")
+print(f"Found {len(norm_lapse_files)} norm+lapse pickle files")
+
+# Extract batch, animal pairs from vanilla+lapse files
+vanilla_lapse_data = {}
+for pkl_path in vanilla_lapse_files:
+    filename = os.path.basename(pkl_path)
+    try:
+        batch, animal = parse_filename_vanilla_lapse(filename)
+        conv_info = extract_convergence_info(pkl_path)
+        vanilla_lapse_data[(batch, animal)] = conv_info
+    except Exception as e:
+        print(f"Error parsing {filename}: {e}")
+
+# Extract batch, animal pairs from norm+lapse files
+norm_lapse_data = {}
+for pkl_path in norm_lapse_files:
+    filename = os.path.basename(pkl_path)
+    try:
+        batch, animal = parse_filename_norm_lapse(filename)
+        conv_info = extract_convergence_info(pkl_path)
+        norm_lapse_data[(batch, animal)] = conv_info
+    except Exception as e:
+        print(f"Error parsing {filename}: {e}")
+
+# Find common (batch, animal) pairs
+vanilla_keys = set(vanilla_lapse_data.keys())
+norm_keys = set(norm_lapse_data.keys())
+common_keys = vanilla_keys & norm_keys
+
+print(f"\nFound {len(common_keys)} common (batch, animal) pairs")
+
+# %%
+# Build results table
+rows = []
+for batch, animal in sorted(common_keys):
+    vanilla_info = vanilla_lapse_data[(batch, animal)]
+    norm_info = norm_lapse_data[(batch, animal)]
+    og_loglikes = get_original_loglikes(batch, animal, results_dir)
+    
+    row = {
+        'batch': batch,
+        'animal': animal,
+        'vanilla_lapse_stable': vanilla_info.get('stable'),
+        'norm_lapse_stable': norm_info.get('stable'),
+        'vanilla_lapse_loglike': vanilla_info.get('loglike'),
+        'norm_lapse_loglike': norm_info.get('loglike'),
+        'og_vanilla_loglike': og_loglikes['og_vanilla_loglike'],
+        'og_norm_loglike': og_loglikes['og_norm_loglike'],
+    }
+    rows.append(row)
+
+# %%
+# Print table header
+print("\n" + "="*160)
+print("Log-Likelihood Comparison Table")
+print("="*160)
+
+# Column headers
+header = f"{'Batch':<15} {'Animal':<8} {'V+L Stable':<12} {'N+L Stable':<12} {'V+L LogLike':<14} {'N+L LogLike':<14} {'OG V LogLike':<14} {'OG N LogLike':<14}"
+print(header)
+print("-" * 160)
+
+# Print rows
+for row in rows:
+    line = f"{row['batch']:<15} {row['animal']:<8} "
+    line += f"{format_bool(row['vanilla_lapse_stable']):<12} "
+    line += f"{format_bool(row['norm_lapse_stable']):<12} "
+    line += f"{format_float(row['vanilla_lapse_loglike']):<14} "
+    line += f"{format_float(row['norm_lapse_loglike']):<14} "
+    line += f"{format_float(row['og_vanilla_loglike']):<14} "
+    line += f"{format_float(row['og_norm_loglike']):<14}"
+    print(line)
+
+# %%
+# Summary statistics
+print("\n" + "="*160)
+print("Summary Statistics")
+print("="*160)
+
+print(f"\nTotal animals analyzed: {len(rows)}")
+
+# Count stable
+v_stable = sum(1 for row in rows if row['vanilla_lapse_stable'])
+n_stable = sum(1 for row in rows if row['norm_lapse_stable'])
+print(f"\nVanilla+Lapse stable: {v_stable}/{len(rows)}")
+print(f"Norm+Lapse stable: {n_stable}/{len(rows)}")
+
+# Compute log-likelihood differences
+v_diffs = []
+n_diffs = []
+for row in rows:
+    if row['vanilla_lapse_loglike'] is not None and row['og_vanilla_loglike'] is not None:
+        v_diffs.append(row['vanilla_lapse_loglike'] - row['og_vanilla_loglike'])
+    if row['norm_lapse_loglike'] is not None and row['og_norm_loglike'] is not None:
+        n_diffs.append(row['norm_lapse_loglike'] - row['og_norm_loglike'])
+
+if v_diffs:
+    print(f"\nVanilla+Lapse log-likelihood improvement over original:")
+    print(f"  Mean: {sum(v_diffs)/len(v_diffs):.2f}")
+    print(f"  Median: {sorted(v_diffs)[len(v_diffs)//2]:.2f}")
+    print(f"  Min: {min(v_diffs):.2f}")
+    print(f"  Max: {max(v_diffs):.2f}")
+
+if n_diffs:
+    print(f"\nNorm+Lapse log-likelihood improvement over original:")
+    print(f"  Mean: {sum(n_diffs)/len(n_diffs):.2f}")
+    print(f"  Median: {sorted(n_diffs)[len(n_diffs)//2]:.2f}")
+    print(f"  Min: {min(n_diffs):.2f}")
+    print(f"  Max: {max(n_diffs):.2f}")
+
+# %%
+# Save to CSV
+output_csv = os.path.join(base_dir, 'vanilla_norm_lapse_loglike_comparison.csv')
+with open(output_csv, 'w') as f:
+    # Write header
+    f.write("batch,animal,vanilla_lapse_stable,norm_lapse_stable,vanilla_lapse_loglike,norm_lapse_loglike,og_vanilla_loglike,og_norm_loglike\n")
+    # Write rows
+    for row in rows:
+        f.write(f"{row['batch']},{row['animal']},")
+        f.write(f"{row['vanilla_lapse_stable']},{row['norm_lapse_stable']},")
+        f.write(f"{row['vanilla_lapse_loglike']},{row['norm_lapse_loglike']},")
+        f.write(f"{row['og_vanilla_loglike']},{row['og_norm_loglike']}\n")
+
+print(f"\nResults saved to: {output_csv}")
+
+# %%
+# Log-Likelihood Comparison Bar Plots
+
+# Prepare data for plotting
+animal_labels = [f"{row['batch']}_{row['animal']}" for row in rows]
+x_pos = np.arange(len(rows))
+
+# Compute all three comparisons
+comparison_1 = []  # Vanilla+Lapse - Vanilla
+comparison_2 = []  # Vanilla+Lapse - Norm
+comparison_3 = []  # Norm+Lapse - Norm
+
+for row in rows:
+    # Comparison 1: Vanilla+Lapse log-likelihood - Vanilla log-likelihood
+    if row['vanilla_lapse_loglike'] is not None and row['og_vanilla_loglike'] is not None:
+        comparison_1.append(row['vanilla_lapse_loglike'] - row['og_vanilla_loglike'])
+    else:
+        comparison_1.append(0)
+    
+    # Comparison 2: Vanilla+Lapse log-likelihood - Norm log-likelihood
+    if row['vanilla_lapse_loglike'] is not None and row['og_norm_loglike'] is not None:
+        comparison_2.append(row['vanilla_lapse_loglike'] - row['og_norm_loglike'])
+    else:
+        comparison_2.append(0)
+    
+    # Comparison 3: Norm+Lapse log-likelihood - Norm log-likelihood
+    if row['norm_lapse_loglike'] is not None and row['og_norm_loglike'] is not None:
+        comparison_3.append(row['norm_lapse_loglike'] - row['og_norm_loglike'])
+    else:
+        comparison_3.append(0)
+# %%
+# Create figure with 3 subplots
+fig, axes = plt.subplots(3, 1, figsize=(14, 12))
+
+# Plot 1: Vanilla+Lapse - Vanilla
+ax1 = axes[0]
+colors_1 = ['green' if val > 0 else 'red' for val in comparison_1]
+ax1.bar(x_pos, comparison_1, color=colors_1, alpha=0.7)
+ax1.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
+ax1.set_ylabel('Log-Likelihood Difference', fontsize=12, fontweight='bold')
+ax1.set_title('Vanilla+Lapse Log-Likelihood - Original Vanilla Log-Likelihood', fontsize=14, fontweight='bold')
+ax1.set_xticks(x_pos)
+ax1.set_xticklabels(animal_labels, rotation=45, ha='right')
+ax1.grid(axis='y', alpha=0.3)
+ax1.set_xlabel('Batch_Animal', fontsize=11)
+# ax1.set_ylim(-100, 100)
+
+# Plot 2: Vanilla+Lapse - Norm
+ax2 = axes[1]
+colors_2 = ['green' if val > 0 else 'red' for val in comparison_2]
+ax2.bar(x_pos, comparison_2, color=colors_2, alpha=0.7)
+ax2.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
+ax2.set_ylabel('Log-Likelihood Difference', fontsize=12, fontweight='bold')
+ax2.set_title('Vanilla+Lapse Log-Likelihood - Original Norm Log-Likelihood', fontsize=14, fontweight='bold')
+ax2.set_xticks(x_pos)
+ax2.set_xticklabels(animal_labels, rotation=45, ha='right')
+ax2.grid(axis='y', alpha=0.3)
+ax2.set_xlabel('Batch_Animal', fontsize=11)
+# ax2.set_ylim(-100, 100)
+
+# Plot 3: Norm+Lapse - Norm
+ax3 = axes[2]
+colors_3 = ['green' if val > 0 else 'red' for val in comparison_3]
+ax3.bar(x_pos, comparison_3, color=colors_3, alpha=0.7)
+ax3.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
+ax3.set_ylabel('Log-Likelihood Difference', fontsize=12, fontweight='bold')
+ax3.set_title('Norm+Lapse Log-Likelihood - Original Norm Log-Likelihood', fontsize=14, fontweight='bold')
+ax3.set_xticks(x_pos)
+ax3.set_xticklabels(animal_labels, rotation=45, ha='right')
+ax3.grid(axis='y', alpha=0.3)
+ax3.set_xlabel('Batch_Animal', fontsize=11)
+# ax3.set_ylim(-100, 100)
+
+plt.tight_layout()
+plt.savefig(os.path.join(base_dir, 'loglike_comparisons_bar_plots.png'), dpi=150, bbox_inches='tight')
+plt.show()
+
+print(f"\nBar plots saved to: {os.path.join(base_dir, 'loglike_comparisons_bar_plots.png')}")
+
+# %%
+# Find batches with mixed positive/negative Vanilla+Lapse - Norm log-likelihood differences
+# (excluding LED34 batch)
+
+print("\n" + "="*160)
+print("Batches with Mixed Signs in Vanilla+Lapse - Norm Log-Likelihood Difference (excluding LED34)")
+print("="*160)
+
+# Group by batch
+batch_differences = {}
+for i, row in enumerate(rows):
+    batch = row['batch']
+    animal = row['animal']
+    diff = comparison_2[i]  # Vanilla+Lapse - Norm
+    
+    if batch not in batch_differences:
+        batch_differences[batch] = []
+    
+    batch_differences[batch].append({
+        'animal': animal,
+        'difference': diff
+    })
+
+# Find batches with mixed signs (excluding LED34)
+mixed_batches = []
+for batch, data in sorted(batch_differences.items()):
+    # Skip LED34
+    if batch == 'LED34':
+        continue
+    
+    # Check if there are both positive and negative differences
+    differences = [d['difference'] for d in data]
+    has_positive = any(d > 0 for d in differences)
+    has_negative = any(d < 0 for d in differences)
+    
+    if has_positive and has_negative:
+        mixed_batches.append(batch)
+        print(f"\n{batch}:")
+        for d in data:
+            sign = "+" if d['difference'] > 0 else "-"
+            print(f"  Animal {d['animal']}: {sign}{abs(d['difference']):.2f}")
+
+print(f"\n\nSummary: Found {len(mixed_batches)} batches with mixed signs (excluding LED34):")
+print(f"  {', '.join(mixed_batches)}")
+
+# %%
+# Find batches with uniform signs (all positive or all negative) in Vanilla+Lapse - Norm log-likelihood
+# (excluding LED34 batch)
+
+print("\n" + "="*160)
+print("Batches with Uniform Signs in Vanilla+Lapse - Norm Log-Likelihood Difference (excluding LED34)")
+print("="*160)
+
+all_positive_batches = []
+all_negative_batches = []
+
+for batch, data in sorted(batch_differences.items()):
+    # Skip LED34
+    if batch == 'LED34':
+        continue
+    
+    # Check if all differences have the same sign
+    differences = [d['difference'] for d in data]
+    has_positive = any(d > 0 for d in differences)
+    has_negative = any(d < 0 for d in differences)
+    
+    # All positive
+    if has_positive and not has_negative:
+        all_positive_batches.append(batch)
+        print(f"\n{batch} (ALL POSITIVE):")
+        for d in data:
+            print(f"  Animal {d['animal']}: +{d['difference']:.2f}")
+    
+    # All negative
+    elif has_negative and not has_positive:
+        all_negative_batches.append(batch)
+        print(f"\n{batch} (ALL NEGATIVE):")
+        for d in data:
+            print(f"  Animal {d['animal']}: {d['difference']:.2f}")
+
+print(f"\n\nSummary:")
+print(f"  All positive ({len(all_positive_batches)} batches): {', '.join(all_positive_batches) if all_positive_batches else 'None'}")
+print(f"  All negative ({len(all_negative_batches)} batches): {', '.join(all_negative_batches) if all_negative_batches else 'None'}")
