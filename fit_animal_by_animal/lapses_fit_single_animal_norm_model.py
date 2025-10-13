@@ -24,12 +24,15 @@ parser.add_argument('--batch', required=True, help='Batch name, e.g., LED8')
 parser.add_argument('--animal', required=True, type=int, help='Animal ID (int)')
 parser.add_argument('--init-type', default='norm', choices=['vanilla', 'norm'], help='Initialization type: vanilla or norm')
 parser.add_argument('--output-dir', default='oct_9_10_norm_lapse_model_fit_files/', help='Directory to save results')
+parser.add_argument('--is-stim-filtered', action='store_true', help='Filter to specific ABLs and ILDs')
 args = parser.parse_args()
 
 batch_name = args.batch
 animal_ids = [args.animal]
 output_dir = args.output_dir
 init_type = args.init_type
+is_stim_filtered = args.is_stim_filtered
+
 # batch_name = 'LED34'
 # animal_ids = [45]  
 # output_dir = 'temp'
@@ -342,6 +345,19 @@ for animal_idx in [0]:
     df_aborts_animal = df_aborts[df_aborts['animal'] == animal]
 
     df_valid_animal = df_all_trials_animal[df_all_trials_animal['success'].isin([1,-1])]
+    
+    # Stimulus filtering (ABL and ILD)
+    if is_stim_filtered:
+        allowed_abls = [20, 40, 60]
+        allowed_ilds = [-16, -8, -4, -2, -1, 1, 2, 4, 8, 16]
+        df_valid_animal = df_valid_animal[
+            (df_valid_animal['ABL'].isin(allowed_abls)) & 
+            (df_valid_animal['ILD'].isin(allowed_ilds))
+        ]
+        print(f'Filtered to ABLs: {allowed_abls}')
+        print(f'Filtered to ILDs: {allowed_ilds}')
+        print(f'Valid trials after stimulus filtering: {len(df_valid_animal)}')
+    
     # no right Truncation
     if DO_RIGHT_TRUNCATE:
         df_valid_animal = df_valid_animal[df_valid_animal['RTwrtStim'] < 1]
@@ -354,7 +370,8 @@ for animal_idx in [0]:
 
 
     print(f'Batch: {batch_name},sample animal: {animal}')
-    pdf_filename = os.path.join(output_dir, f'results_{batch_name}_animal_{animal}_lapse_fit_{init_type}.pdf')
+    stim_filter_suffix = '_stim_filtered' if is_stim_filtered else ''
+    pdf_filename = os.path.join(output_dir, f'results_{batch_name}_animal_{animal}_lapse_fit_{init_type}{stim_filter_suffix}.pdf')
     pdf = PdfPages(pdf_filename)
     fig_text = plt.figure(figsize=(8.5, 11)) # Standard page size looks better
     fig_text.clf() # Clear the figure
@@ -432,9 +449,9 @@ for animal_idx in [0]:
     vp, results = vbmc.optimize()
 
     if DO_RIGHT_TRUNCATE:
-        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_truncate_1s_{init_type}.pkl')
+        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_truncate_1s_{init_type}{stim_filter_suffix}.pkl')
     else:
-        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_{init_type}.pkl')
+        vbmc_pkl_path = os.path.join(output_dir, f'vbmc_norm_tied_results_batch_{batch_name}_animal_{animal}_lapses_{init_type}{stim_filter_suffix}.pkl')
     vbmc.save(vbmc_pkl_path, overwrite=True)
 
 # %%
@@ -486,6 +503,19 @@ if RUN_FROM_PKL_FILE:
     df_all_trials_animal = df_valid_and_aborts[df_valid_and_aborts['animal'] == animal]
     df_aborts_animal = df_aborts[df_aborts['animal'] == animal]
     df_valid_animal = df_all_trials_animal[df_all_trials_animal['success'].isin([1,-1])]
+    
+    # Stimulus filtering (ABL and ILD) - extract from pkl filename if possible
+    is_stim_filtered = '_stim_filtered' in vbmc_pkl_path
+    if is_stim_filtered:
+        allowed_abls = [20, 40, 60]
+        allowed_ilds = [-16, -8, -4, -2, -1, 1, 2, 4, 8, 16]
+        df_valid_animal = df_valid_animal[
+            (df_valid_animal['ABL'].isin(allowed_abls)) & 
+            (df_valid_animal['ILD'].isin(allowed_ilds))
+        ]
+        print(f'Filtered to ABLs: {allowed_abls}')
+        print(f'Filtered to ILDs: {allowed_ilds}')
+        print(f'Valid trials after stimulus filtering: {len(df_valid_animal)}')
     
     # Apply right truncation
     DO_RIGHT_TRUNCATE = True
@@ -658,7 +688,8 @@ comparison_lines = [
     ""
 ]
 comparison_text = "\n".join(comparison_lines)
-comparison_txt_path = os.path.join(output_dir, f'param_comparison_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.txt')
+stim_filter_suffix = '_stim_filtered' if is_stim_filtered else ''
+comparison_txt_path = os.path.join(output_dir, f'param_comparison_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}{stim_filter_suffix}.txt')
 with open(comparison_txt_path, 'w') as f:
     f.write(comparison_text)
 print(f"Saved parameter comparison to {comparison_txt_path}")
@@ -709,7 +740,7 @@ for idx in range(len(params_info), 9):
     axes[idx // 3, idx % 3].axis('off')
 
 plt.tight_layout()
-param_dist_png = os.path.join(output_dir, f'param_distributions_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
+param_dist_png = os.path.join(output_dir, f'param_distributions_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}{stim_filter_suffix}.png')
 fig.savefig(param_dist_png, dpi=300, bbox_inches='tight')
 print(f"Saved {param_dist_png}")
 plt.show()
@@ -744,7 +775,7 @@ ax2.grid(axis='y', alpha=0.3)
 
 fig.suptitle(f'Lapse Parameters - Batch {batch_name}, Animal {animal_ids[0]}', fontsize=14, fontweight='bold')
 plt.tight_layout()
-lapse_params_png = os.path.join(output_dir, f'lapse_params_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}.png')
+lapse_params_png = os.path.join(output_dir, f'lapse_params_batch_{batch_name}_animal_{animal_ids[0]}_{init_type}{stim_filter_suffix}.png')
 fig.savefig(lapse_params_png, dpi=300, bbox_inches='tight')
 print(f"Saved {lapse_params_png}")
 plt.show()

@@ -59,6 +59,8 @@ def main():
                         help=f"Batches to include. Default: {' '.join(DEFAULT_BATCHES)}")
     parser.add_argument('--output-dir', default='oct_9_10_norm_lapse_model_fit_files',
                         help='Directory to save results for all runs')
+    parser.add_argument('--is-stim-filtered', action='store_true',
+                        help='Filter to specific ABLs and ILDs')
     parser.add_argument('--python', default=sys.executable,
                         help='Python interpreter to use for running the single-animal script')
     parser.add_argument('--dry-run', action='store_true',
@@ -85,7 +87,8 @@ def main():
     print()
 
     total_runs = len(pairs)
-    print(f"Will run {total_runs} norm+lapse fits (init-type=norm). Output dir: {args.output_dir}\n")
+    stim_filter_msg = " (with stimulus filtering)" if args.is_stim_filtered else ""
+    print(f"Will run {total_runs} norm+lapse fits (init-type=norm){stim_filter_msg}. Output dir: {args.output_dir}\n")
 
     if args.dry_run:
         print("DRY RUN - commands that would be executed:")
@@ -100,6 +103,8 @@ def main():
                 '--init-type', 'norm',
                 '--output-dir', args.output_dir,
             ]
+            if args.is_stim_filtered:
+                cmd.append('--is-stim-filtered')
             print(f"[{idx}/{total_runs}] {' '.join(cmd)}")
         sys.exit(0)
 
@@ -111,7 +116,8 @@ def main():
             continue
         
         # Check if output pickle file already exists
-        pkl_filename = f'vbmc_norm_tied_results_batch_{batch}_animal_{animal}_lapses_truncate_1s_norm.pkl'
+        stim_filter_suffix = '_stim_filtered' if args.is_stim_filtered else ''
+        pkl_filename = f'vbmc_norm_tied_results_batch_{batch}_animal_{animal}_lapses_truncate_1s_norm{stim_filter_suffix}.pkl'
         pkl_path = os.path.join(args.output_dir, pkl_filename)
         if os.path.exists(pkl_path):
             print(f"[{run_idx}/{total_runs}] Skipping batch={batch}, animal={animal} (pkl file already exists)")
@@ -127,6 +133,8 @@ def main():
             '--init-type', 'norm',
             '--output-dir', args.output_dir,
         ]
+        if args.is_stim_filtered:
+            cmd.append('--is-stim-filtered')
         try:
             result = subprocess.run(cmd, cwd=script_dir, check=True)
             print(f"[{run_idx}/{total_runs}] Done: batch={batch}, animal={animal}, init_type=norm")
