@@ -74,11 +74,10 @@ def save_multiple_subfigures(axes_list, filename_prefix, extra_artists=None, exp
         [x1 + right_pad, y1 + vert_pad]
     ])
     
-    # Save in all requested formats
+    # Save PDF, EPS, PNG with bounding box approach
     formats = {
         'pdf': {'format': 'pdf'},
         'eps': {'format': 'eps'},
-        'svg': {'format': 'svg'},
         'png': {'dpi': 600, 'format': 'png'}
     }
     
@@ -86,6 +85,25 @@ def save_multiple_subfigures(axes_list, filename_prefix, extra_artists=None, exp
         filepath = os.path.join(OUTPUT_DIR, f"{filename_prefix}.{ext}")
         fig.savefig(filepath, bbox_inches=expanded_bbox, facecolor='white', **kwargs)
         print(f"Saved: {filepath}")
+    
+    # Save SVG separately using tight_layout approach to avoid including hidden elements
+    svg_filepath = os.path.join(OUTPUT_DIR, f"{filename_prefix}.svg")
+    # Temporarily hide all other axes to prevent them from appearing in SVG
+    all_axes = fig.get_axes()
+    hidden_axes = []
+    for ax in all_axes:
+        if ax not in axes_list:
+            if ax.get_visible():
+                ax.set_visible(False)
+                hidden_axes.append(ax)
+    
+    # Save SVG with only visible axes
+    fig.savefig(svg_filepath, format='svg', bbox_inches=expanded_bbox, facecolor='white')
+    print(f"Saved: {svg_filepath}")
+    
+    # Restore visibility of hidden axes
+    for ax in hidden_axes:
+        ax.set_visible(True)
 
 # --- Plotting Configuration ---
 TITLE_FONTSIZE = 24
