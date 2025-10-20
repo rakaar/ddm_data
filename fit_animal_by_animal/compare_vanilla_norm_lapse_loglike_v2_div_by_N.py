@@ -281,59 +281,42 @@ def calculate_loglike_from_vbmc(pkl_path, batch, animal, is_vanilla=True, result
         # sample() returns (samples, log_weights), we need just the samples
         vp_samples, _ = last_vp.sample(int(1e6))
         
-        # Store parameters with mean and percentiles
-        params_dict = {}
-        
         if is_vanilla:
             # Vanilla: rate_lambda, T_0, theta_E, w, t_E_aff, del_go, lapse_prob, lapse_prob_right
-            param_names = ['rate_lambda', 'T_0', 'theta_E', 'w', 't_E_aff', 'del_go', 'lapse_prob', 'lapse_prob_right']
-            for i, param_name in enumerate(param_names):
-                samples = vp_samples[:, i]
-                params_dict[param_name] = {
-                    'mean': np.mean(samples),
-                    'percentile_2_5': np.percentile(samples, 2.5),
-                    'percentile_97_5': np.percentile(samples, 97.5)
-                }
-            
-            rate_lambda = params_dict['rate_lambda']['mean']
-            T_0 = params_dict['T_0']['mean']
-            theta_E = params_dict['theta_E']['mean']
-            w = params_dict['w']['mean']
-            t_E_aff = params_dict['t_E_aff']['mean']
-            del_go = params_dict['del_go']['mean']
-            lapse_prob = params_dict['lapse_prob']['mean']
-            lapse_prob_right = params_dict['lapse_prob_right']['mean']
+            rate_lambda = np.mean(vp_samples[:, 0])
+            T_0 = np.mean(vp_samples[:, 1])
+            theta_E = np.mean(vp_samples[:, 2])
+            w = np.mean(vp_samples[:, 3])
+            t_E_aff = np.mean(vp_samples[:, 4])
+            del_go = np.mean(vp_samples[:, 5])
+            lapse_prob = np.mean(vp_samples[:, 6])
+            lapse_prob_right = np.mean(vp_samples[:, 7])
             rate_norm_l = None
         else:
             # Norm: rate_lambda, T_0, theta_E, w, t_E_aff, del_go, rate_norm_l, lapse_prob, lapse_prob_right
-            param_names = ['rate_lambda', 'T_0', 'theta_E', 'w', 't_E_aff', 'del_go', 'rate_norm_l', 'lapse_prob', 'lapse_prob_right']
-            for i, param_name in enumerate(param_names):
-                samples = vp_samples[:, i]
-                params_dict[param_name] = {
-                    'mean': np.mean(samples),
-                    'percentile_2_5': np.percentile(samples, 2.5),
-                    'percentile_97_5': np.percentile(samples, 97.5)
-                }
-            
-            rate_lambda = params_dict['rate_lambda']['mean']
-            T_0 = params_dict['T_0']['mean']
-            theta_E = params_dict['theta_E']['mean']
-            w = params_dict['w']['mean']
-            t_E_aff = params_dict['t_E_aff']['mean']
-            del_go = params_dict['del_go']['mean']
-            rate_norm_l = params_dict['rate_norm_l']['mean']
-            lapse_prob = params_dict['lapse_prob']['mean']
-            lapse_prob_right = params_dict['lapse_prob_right']['mean']
+            rate_lambda = np.mean(vp_samples[:, 0])
+            T_0 = np.mean(vp_samples[:, 1])
+            theta_E = np.mean(vp_samples[:, 2])
+            w = np.mean(vp_samples[:, 3])
+            t_E_aff = np.mean(vp_samples[:, 4])
+            del_go = np.mean(vp_samples[:, 5])
+            rate_norm_l = np.mean(vp_samples[:, 6])
+            lapse_prob = np.mean(vp_samples[:, 7])
+            lapse_prob_right = np.mean(vp_samples[:, 8])
         
         Z_E = (w - 0.5) * 2 * theta_E
         
         # Load animal data
         df_valid_animal, max_rt = load_animal_data(batch, animal, is_stim_filtered=False)
         
+        # Store number of trials
+        n_trials = len(df_valid_animal)
+        
         # Load abort parameters
         abort_params = load_abort_params(batch, animal, results_dir)
         if abort_params is None:
             result['loglike'] = None
+            result['n_trials'] = None
             return result
         
         # Get T_trunc
@@ -356,16 +339,16 @@ def calculate_loglike_from_vbmc(pkl_path, batch, animal, is_vanilla=True, result
             )
         
         result['loglike'] = float(np.sum(all_loglike))
+        result['n_trials'] = int(n_trials)
         result['lapse_prob'] = float(lapse_prob)
         result['lapse_prob_right'] = float(lapse_prob_right)
-        result['params'] = params_dict
         return result
     
     except Exception as e:
         print(f"Error calculating loglike from {pkl_path}: {e}")
         import traceback
         traceback.print_exc()
-        return {'loglike': None, 'elbo_sd': None, 'stable': None, 'n_iterations': None, 'error': str(e)}
+        return {'loglike': None, 'n_trials': None, 'elbo_sd': None, 'stable': None, 'n_iterations': None, 'error': str(e)}
 
 
 def parse_filename_vanilla_lapse(filename):
@@ -426,68 +409,6 @@ def parse_filename_norm_lapse(filename):
     animal = int(parts[animal_idx])
     
     return batch, animal
-
-
-def get_original_params(batch, animal_id, results_dir):
-    """
-    Load original vanilla and norm parameters from results pickle.
-    Returns means and 95% CI for each parameter.
-    
-    Returns:
-        dict with vanilla and norm parameter dictionaries
-    """
-    result = {
-        'vanilla_params': {},
-        'norm_params': {}
-    }
-    
-    # Standard handling for batches
-    pkl_fname = f'results_{batch}_animal_{animal_id}.pkl'
-    pkl_path = os.path.join(results_dir, pkl_fname)
-    
-    if not os.path.exists(pkl_path):
-        return result
-    
-    try:
-        with open(pkl_path, 'rb') as f:
-            results = pickle.load(f)
-        
-        # Extract vanilla parameters
-        if 'vbmc_vanilla_tied_results' in results:
-            vanilla_data = results['vbmc_vanilla_tied_results']
-            param_keys = ['rate_lambda', 'T_0', 'theta_E', 'w', 't_E_aff', 'del_go']
-            sample_keys = ['rate_lambda_samples', 'T_0_samples', 'theta_E_samples', 
-                          'w_samples', 't_E_aff_samples', 'del_go_samples']
-            
-            for param_key, sample_key in zip(param_keys, sample_keys):
-                if sample_key in vanilla_data:
-                    samples = np.asarray(vanilla_data[sample_key])
-                    result['vanilla_params'][param_key] = {
-                        'mean': np.mean(samples),
-                        'percentile_2_5': np.percentile(samples, 2.5),
-                        'percentile_97_5': np.percentile(samples, 97.5)
-                    }
-        
-        # Extract norm parameters
-        if 'vbmc_norm_tied_results' in results:
-            norm_data = results['vbmc_norm_tied_results']
-            param_keys = ['rate_lambda', 'T_0', 'theta_E', 'w', 't_E_aff', 'del_go', 'rate_norm_l']
-            sample_keys = ['rate_lambda_samples', 'T_0_samples', 'theta_E_samples', 
-                          'w_samples', 't_E_aff_samples', 'del_go_samples', 'rate_norm_l_samples']
-            
-            for param_key, sample_key in zip(param_keys, sample_keys):
-                if sample_key in norm_data:
-                    samples = np.asarray(norm_data[sample_key])
-                    result['norm_params'][param_key] = {
-                        'mean': np.mean(samples),
-                        'percentile_2_5': np.percentile(samples, 2.5),
-                        'percentile_97_5': np.percentile(samples, 97.5)
-                    }
-        
-        return result
-    except Exception as e:
-        print(f"Warning: Could not load original parameters from {pkl_path}: {e}")
-        return result
 
 
 def get_original_loglikes(batch, animal_id, results_dir):
@@ -635,6 +556,7 @@ for batch, animal in sorted(common_keys):
         'vanilla_lapse_prob_right': vanilla_info.get('lapse_prob_right'),
         'norm_lapse_prob': norm_info.get('lapse_prob'),
         'norm_lapse_prob_right': norm_info.get('lapse_prob_right'),
+        'n_trials': vanilla_info.get('n_trials'),  # Same for both vanilla and norm
     }
     rows.append(row)
 
@@ -699,16 +621,17 @@ if n_diffs:
 
 # %%
 # Save to CSV
-output_csv = os.path.join(base_dir, 'vanilla_norm_lapse_loglike_comparison_v2.csv')
+output_csv = os.path.join(base_dir, 'vanilla_norm_lapse_loglike_comparison_v2_div_by_N.csv')
 with open(output_csv, 'w') as f:
     # Write header
-    f.write("batch,animal,vanilla_lapse_stable,norm_lapse_stable,vanilla_lapse_loglike,norm_lapse_loglike,og_vanilla_loglike,og_norm_loglike\n")
+    f.write("batch,animal,vanilla_lapse_stable,norm_lapse_stable,vanilla_lapse_loglike,norm_lapse_loglike,og_vanilla_loglike,og_norm_loglike,n_trials\n")
     # Write rows
     for row in rows:
         f.write(f"{row['batch']},{row['animal']},")
         f.write(f"{row['vanilla_lapse_stable']},{row['norm_lapse_stable']},")
         f.write(f"{row['vanilla_lapse_loglike']},{row['norm_lapse_loglike']},")
-        f.write(f"{row['og_vanilla_loglike']},{row['og_norm_loglike']}\n")
+        f.write(f"{row['og_vanilla_loglike']},{row['og_norm_loglike']},")
+        f.write(f"{row['n_trials']}\n")
 
 print(f"\nResults saved to: {output_csv}")
 
@@ -726,27 +649,29 @@ comparison_3 = []  # Norm+Lapse - Norm
 comparison_4 = []  # Vanilla+Lapse - Norm+Lapse
 
 for row in rows:
-    # Comparison 1: Vanilla+Lapse log-likelihood - Vanilla log-likelihood
-    if row['vanilla_lapse_loglike'] is not None and row['og_vanilla_loglike'] is not None:
-        comparison_1.append(row['vanilla_lapse_loglike'] - row['og_vanilla_loglike'])
+    n_trials = row['n_trials']
+    
+    # Comparison 1: (Vanilla+Lapse log-likelihood - Vanilla log-likelihood) / n_trials
+    if row['vanilla_lapse_loglike'] is not None and row['og_vanilla_loglike'] is not None and n_trials is not None:
+        comparison_1.append((row['vanilla_lapse_loglike'] - row['og_vanilla_loglike']) / n_trials)
     else:
         comparison_1.append(0)
     
-    # Comparison 2: Vanilla+Lapse log-likelihood - Norm log-likelihood
-    if row['vanilla_lapse_loglike'] is not None and row['og_norm_loglike'] is not None:
-        comparison_2.append(row['vanilla_lapse_loglike'] - row['og_norm_loglike'])
+    # Comparison 2: (Vanilla+Lapse log-likelihood - Norm log-likelihood) / n_trials
+    if row['vanilla_lapse_loglike'] is not None and row['og_norm_loglike'] is not None and n_trials is not None:
+        comparison_2.append((row['vanilla_lapse_loglike'] - row['og_norm_loglike']) / n_trials)
     else:
         comparison_2.append(0)
     
-    # Comparison 3: Norm+Lapse log-likelihood - Norm log-likelihood
-    if row['norm_lapse_loglike'] is not None and row['og_norm_loglike'] is not None:
-        comparison_3.append(row['norm_lapse_loglike'] - row['og_norm_loglike'])
+    # Comparison 3: (Norm+Lapse log-likelihood - Norm log-likelihood) / n_trials
+    if row['norm_lapse_loglike'] is not None and row['og_norm_loglike'] is not None and n_trials is not None:
+        comparison_3.append((row['norm_lapse_loglike'] - row['og_norm_loglike']) / n_trials)
     else:
         comparison_3.append(0)
     
-    # Comparison 4: Vanilla+Lapse log-likelihood - Norm+Lapse log-likelihood
-    if row['vanilla_lapse_loglike'] is not None and row['norm_lapse_loglike'] is not None:
-        comparison_4.append(row['vanilla_lapse_loglike'] - row['norm_lapse_loglike'])
+    # Comparison 4: (Vanilla+Lapse log-likelihood - Norm+Lapse log-likelihood) / n_trials
+    if row['vanilla_lapse_loglike'] is not None and row['norm_lapse_loglike'] is not None and n_trials is not None:
+        comparison_4.append((row['vanilla_lapse_loglike'] - row['norm_lapse_loglike']) / n_trials)
     else:
         comparison_4.append(0)
 # %%
@@ -758,8 +683,8 @@ ax1 = axes[0]
 colors_1 = ['green' if val > 0 else 'red' for val in comparison_1]
 ax1.bar(x_pos, comparison_1, color=colors_1, alpha=0.7)
 ax1.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
-ax1.set_ylabel('Log-Likelihood Difference', fontsize=12, fontweight='bold')
-ax1.set_title('Vanilla+Lapse Log-Likelihood - Original Vanilla Log-Likelihood', fontsize=14, fontweight='bold')
+ax1.set_ylabel('Log-Likelihood Difference Per Trial', fontsize=12, fontweight='bold')
+ax1.set_title('(Vanilla+Lapse - Original Vanilla) Log-Likelihood Per Trial', fontsize=14, fontweight='bold')
 ax1.set_xticks(x_pos)
 ax1.set_xticklabels(animal_labels, rotation=45, ha='right')
 ax1.grid(axis='y', alpha=0.3)
@@ -771,8 +696,8 @@ ax2 = axes[1]
 colors_2 = ['green' if val > 0 else 'red' for val in comparison_2]
 ax2.bar(x_pos, comparison_2, color=colors_2, alpha=0.7)
 ax2.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
-ax2.set_ylabel('Log-Likelihood Difference', fontsize=12, fontweight='bold')
-ax2.set_title('Vanilla+Lapse Log-Likelihood - Original Norm Log-Likelihood', fontsize=14, fontweight='bold')
+ax2.set_ylabel('Log-Likelihood Difference Per Trial', fontsize=12, fontweight='bold')
+ax2.set_title('(Vanilla+Lapse - Original Norm) Log-Likelihood Per Trial', fontsize=14, fontweight='bold')
 ax2.set_xticks(x_pos)
 ax2.set_xticklabels(animal_labels, rotation=45, ha='right')
 ax2.grid(axis='y', alpha=0.3)
@@ -784,8 +709,8 @@ ax3 = axes[2]
 colors_3 = ['green' if val > 0 else 'red' for val in comparison_3]
 ax3.bar(x_pos, comparison_3, color=colors_3, alpha=0.7)
 ax3.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
-ax3.set_ylabel('Log-Likelihood Difference', fontsize=12, fontweight='bold')
-ax3.set_title('Norm+Lapse Log-Likelihood - Original Norm Log-Likelihood', fontsize=14, fontweight='bold')
+ax3.set_ylabel('Log-Likelihood Difference Per Trial', fontsize=12, fontweight='bold')
+ax3.set_title('(Norm+Lapse - Original Norm) Log-Likelihood Per Trial', fontsize=14, fontweight='bold')
 ax3.set_xticks(x_pos)
 ax3.set_xticklabels(animal_labels, rotation=45, ha='right')
 ax3.grid(axis='y', alpha=0.3)
@@ -797,8 +722,8 @@ ax4 = axes[3]
 colors_4 = ['green' if val > 0 else 'red' for val in comparison_4]
 ax4.bar(x_pos, comparison_4, color=colors_4, alpha=0.7)
 ax4.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
-ax4.set_ylabel('Log-Likelihood Difference', fontsize=12, fontweight='bold')
-ax4.set_title('Vanilla+Lapse Log-Likelihood - Norm+Lapse Log-Likelihood', fontsize=14, fontweight='bold')
+ax4.set_ylabel('Log-Likelihood Difference Per Trial', fontsize=12, fontweight='bold')
+ax4.set_title('(Vanilla+Lapse - Norm+Lapse) Log-Likelihood Per Trial', fontsize=14, fontweight='bold')
 ax4.set_xticks(x_pos)
 ax4.set_xticklabels(animal_labels, rotation=45, ha='right')
 ax4.grid(axis='y', alpha=0.3)
@@ -806,10 +731,10 @@ ax4.set_xlabel('Batch_Animal', fontsize=11)
 # ax4.set_ylim(-100, 100)
 
 plt.tight_layout()
-plt.savefig(os.path.join(base_dir, 'loglike_comparisons_bar_plots_v2.png'), dpi=150, bbox_inches='tight')
+plt.savefig(os.path.join(base_dir, 'loglike_comparisons_bar_plots_v2_div_by_N.png'), dpi=150, bbox_inches='tight')
 plt.show()
 
-print(f"\nBar plots saved to: {os.path.join(base_dir, 'loglike_comparisons_bar_plots_v2.png')}")
+print(f"\nBar plots saved to: {os.path.join(base_dir, 'loglike_comparisons_bar_plots_v2_div_by_N.png')}")
 
 # %%
 # Find batches with mixed positive/negative Vanilla+Lapse - Norm log-likelihood differences
@@ -912,13 +837,15 @@ for row in rows:
     vanilla_lapse_ll = row.get('vanilla_lapse_loglike')
     og_norm_ll = row.get('og_norm_loglike')
     lapse_prob = row.get('vanilla_lapse_prob')
+    n_trials = row.get('n_trials')
     
     # Only include rows where we have all necessary data
     if (vanilla_lapse_ll is not None and 
         og_norm_ll is not None and 
-        lapse_prob is not None):
+        lapse_prob is not None and
+        n_trials is not None):
         
-        loglike_diff = vanilla_lapse_ll - og_norm_ll
+        loglike_diff = (vanilla_lapse_ll - og_norm_ll) / n_trials
         lapse_probs.append(lapse_prob)
         loglike_diffs.append(loglike_diff)
         batch_labels.append(f"{row['batch']}_{row['animal']}")
@@ -936,8 +863,8 @@ ax.axhline(y=0, color='black', linestyle='--', linewidth=1.5, label='No differen
 
 # Labels and title
 ax.set_xlabel('Lapse Probability % (from Vanilla+Lapse Model)', fontsize=14, fontweight='bold')
-ax.set_ylabel('Log-Likelihood Difference\n(Vanilla+Lapse - Original Norm)', fontsize=14, fontweight='bold')
-ax.set_title('Lapse Probability vs Log-Likelihood Improvement Over Norm Model', fontsize=16, fontweight='bold')
+ax.set_ylabel('Log-Likelihood Difference Per Trial\n(Vanilla+Lapse - Original Norm)', fontsize=14, fontweight='bold')
+ax.set_title('Lapse Probability vs Log-Likelihood Per Trial Improvement Over Norm Model', fontsize=16, fontweight='bold')
 ax.grid(True, alpha=0.3)
 # ax.legend()
 ax.axvline(x=1, alpha=0.4)
@@ -950,7 +877,7 @@ if len(lapse_probs) > 0:
             bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
 
 plt.tight_layout()
-scatter_plot_path = os.path.join(base_dir, 'lapse_prob_vs_loglike_improvement_v2.png')
+scatter_plot_path = os.path.join(base_dir, 'lapse_prob_vs_loglike_improvement_v2_div_by_N.png')
 plt.savefig(scatter_plot_path, dpi=150, bbox_inches='tight')
 plt.show()
 
@@ -1131,279 +1058,5 @@ if len(vanilla_lapse_probs_right) > 0:
     vanilla_right_bias = np.sum(np.array(vanilla_lapse_probs_right) > 0.5)
     norm_right_bias = np.sum(np.array(norm_lapse_probs_right) > 0.5)
     print(f"Animals with right bias (>0.5) - Vanilla: {vanilla_right_bias}/{len(vanilla_lapse_probs_right)}, Norm: {norm_right_bias}/{len(norm_lapse_probs_right)}")
-
-# %%
-# Params comparison - Vanilla vs Vanilla+Lapse
-print("\n" + "="*160)
-print("Creating Parameter Comparison Figure: Vanilla vs Vanilla+Lapse")
-print("="*160)
-
-# Parameters to compare (including lapse_prob and lapse_prob_right)
-param_list = ['rate_lambda', 'T_0', 'theta_E', 'w', 't_E_aff', 'del_go', 'lapse_prob', 'lapse_prob_right']
-param_labels = ['rate_lambda', 'T_0 (ms)', 'theta_E', 'w', 't_E_aff (ms)', 'del_go (ms)', 'lapse_prob', 'lapse_prob_right']
-
-# Collect data for each parameter
-param_data = {param: {'vanilla': [], 'vanilla_lapse': [], 'labels': []} for param in param_list}
-
-for batch, animal in sorted(common_keys):
-    # Get original vanilla parameters
-    og_params = get_original_params(batch, animal, results_dir)
-    vanilla_params = og_params['vanilla_params']
-    
-    # Get vanilla+lapse parameters
-    vanilla_lapse_info = vanilla_lapse_data[(batch, animal)]
-    vanilla_lapse_params = vanilla_lapse_info.get('params', {})
-    
-    # Store data for each parameter
-    for param in param_list:
-        # For lapse parameters, only vanilla+lapse model has them
-        if param in ['lapse_prob', 'lapse_prob_right']:
-            if param in vanilla_lapse_params:
-                param_data[param]['vanilla'].append(None)  # No vanilla value
-                param_data[param]['vanilla_lapse'].append(vanilla_lapse_params[param])
-                param_data[param]['labels'].append(f"{batch}-{animal}")
-        else:
-            if param in vanilla_params and param in vanilla_lapse_params:
-                param_data[param]['vanilla'].append(vanilla_params[param])
-                param_data[param]['vanilla_lapse'].append(vanilla_lapse_params[param])
-                param_data[param]['labels'].append(f"{batch}-{animal}")
-
-# Create figure with subplots (2 rows x 4 columns for 8 parameters)
-fig, axes = plt.subplots(2, 4, figsize=(24, 12))
-axes = axes.flatten()
-
-for idx, (param, param_label) in enumerate(zip(param_list, param_labels)):
-    ax = axes[idx]
-    
-    data = param_data[param]
-    
-    if len(data['vanilla']) == 0:
-        ax.text(0.5, 0.5, 'No data available', ha='center', va='center', transform=ax.transAxes)
-        ax.set_title(param_label, fontsize=12, fontweight='bold')
-        continue
-    
-    # Check if this is a lapse-only parameter
-    is_lapse_only = param in ['lapse_prob', 'lapse_prob_right']
-    
-    if is_lapse_only:
-        # Only vanilla+lapse has these parameters
-        vanilla_lapse_means = np.array([d['mean'] for d in data['vanilla_lapse']])
-        vanilla_lapse_ci_low = np.array([d['percentile_2_5'] for d in data['vanilla_lapse']])
-        vanilla_lapse_ci_high = np.array([d['percentile_97_5'] for d in data['vanilla_lapse']])
-        
-        # Sort by vanilla+lapse parameter values (ascending)
-        sort_idx = np.argsort(vanilla_lapse_means)
-        vanilla_lapse_means = vanilla_lapse_means[sort_idx]
-        vanilla_lapse_ci_low = vanilla_lapse_ci_low[sort_idx]
-        vanilla_lapse_ci_high = vanilla_lapse_ci_high[sort_idx]
-        sorted_labels = [data['labels'][i] for i in sort_idx]
-        
-        x_pos = np.arange(len(vanilla_lapse_means))
-        
-        # Plot only vanilla+lapse model (red)
-        ax.errorbar(x_pos, vanilla_lapse_means,
-                    yerr=[vanilla_lapse_means - vanilla_lapse_ci_low, vanilla_lapse_ci_high - vanilla_lapse_means],
-                    fmt='s', color='red', alpha=0.7, capsize=0,
-                    label='Vanilla+Lapse', markersize=6, linewidth=1.5)
-    else:
-        # Both models have these parameters
-        vanilla_means = np.array([d['mean'] for d in data['vanilla']])
-        vanilla_lapse_means = np.array([d['mean'] for d in data['vanilla_lapse']])
-        
-        vanilla_ci_low = np.array([d['percentile_2_5'] for d in data['vanilla']])
-        vanilla_ci_high = np.array([d['percentile_97_5'] for d in data['vanilla']])
-        
-        vanilla_lapse_ci_low = np.array([d['percentile_2_5'] for d in data['vanilla_lapse']])
-        vanilla_lapse_ci_high = np.array([d['percentile_97_5'] for d in data['vanilla_lapse']])
-        
-        # Convert to milliseconds for time parameters
-        if param in ['T_0', 't_E_aff', 'del_go']:
-            vanilla_means *= 1000
-            vanilla_lapse_means *= 1000
-            vanilla_ci_low *= 1000
-            vanilla_ci_high *= 1000
-            vanilla_lapse_ci_low *= 1000
-            vanilla_lapse_ci_high *= 1000
-        
-        # Sort by vanilla parameter values (ascending)
-        sort_idx = np.argsort(vanilla_means)
-        vanilla_means = vanilla_means[sort_idx]
-        vanilla_lapse_means = vanilla_lapse_means[sort_idx]
-        vanilla_ci_low = vanilla_ci_low[sort_idx]
-        vanilla_ci_high = vanilla_ci_high[sort_idx]
-        vanilla_lapse_ci_low = vanilla_lapse_ci_low[sort_idx]
-        vanilla_lapse_ci_high = vanilla_lapse_ci_high[sort_idx]
-        sorted_labels = [data['labels'][i] for i in sort_idx]
-        
-        x_pos = np.arange(len(vanilla_means))
-        
-        # Plot vanilla model (green)
-        ax.errorbar(x_pos, vanilla_means, 
-                    yerr=[vanilla_means - vanilla_ci_low, vanilla_ci_high - vanilla_means],
-                    fmt='o', color='green', alpha=0.7, capsize=0, 
-                    label='Vanilla', markersize=6, linewidth=1.5)
-        
-        # Plot vanilla+lapse model (red)
-        ax.errorbar(x_pos, vanilla_lapse_means,
-                    yerr=[vanilla_lapse_means - vanilla_lapse_ci_low, vanilla_lapse_ci_high - vanilla_lapse_means],
-                    fmt='s', color='red', alpha=0.7, capsize=0,
-                    label='Vanilla+Lapse', markersize=6, linewidth=1.5)
-    
-    # Formatting
-    if is_lapse_only:
-        ax.set_xlabel('Batch-Animal (sorted by param value)', fontsize=10, fontweight='bold')
-    else:
-        ax.set_xlabel('Batch-Animal (sorted by Vanilla param value)', fontsize=10, fontweight='bold')
-    ax.set_ylabel(param_label, fontsize=11, fontweight='bold')
-    ax.set_title(f'{param_label}', fontsize=12, fontweight='bold')
-    ax.set_xticks(x_pos)
-    ax.set_xticklabels(sorted_labels, rotation=90, ha='right', fontsize=7)
-    ax.grid(True, alpha=0.3, axis='y')
-    ax.legend(fontsize=9, loc='best')
-
-plt.suptitle('Parameter Comparison: Vanilla vs Vanilla+Lapse Models', fontsize=16, fontweight='bold', y=0.995)
-plt.tight_layout()
-params_comparison_path = os.path.join(base_dir, 'params_comparison_vanilla_vs_vanilla_lapse_v2.png')
-plt.savefig(params_comparison_path, dpi=150, bbox_inches='tight')
-plt.show()
-
-print(f"\nParameter comparison plot saved to: {params_comparison_path}")
-
-# %%
-# Params comparison - Norm vs Norm+Lapse
-print("\n" + "="*160)
-print("Creating Parameter Comparison Figure: Norm vs Norm+Lapse")
-print("="*160)
-
-# Parameters to compare (including rate_norm_l, lapse_prob and lapse_prob_right)
-param_list_norm = ['rate_lambda', 'T_0', 'theta_E', 'w', 't_E_aff', 'del_go', 'rate_norm_l', 'lapse_prob', 'lapse_prob_right']
-param_labels_norm = ['rate_lambda', 'T_0 (ms)', 'theta_E', 'w', 't_E_aff (ms)', 'del_go (ms)', 'rate_norm_l', 'lapse_prob', 'lapse_prob_right']
-
-# Collect data for each parameter
-param_data_norm = {param: {'norm': [], 'norm_lapse': [], 'labels': []} for param in param_list_norm}
-
-for batch, animal in sorted(common_keys):
-    # Get original norm parameters
-    og_params = get_original_params(batch, animal, results_dir)
-    norm_params = og_params['norm_params']
-    
-    # Get norm+lapse parameters
-    norm_lapse_info = norm_lapse_data[(batch, animal)]
-    norm_lapse_params = norm_lapse_info.get('params', {})
-    
-    # Store data for each parameter
-    for param in param_list_norm:
-        # For lapse parameters, only norm+lapse model has them
-        if param in ['lapse_prob', 'lapse_prob_right']:
-            if param in norm_lapse_params:
-                param_data_norm[param]['norm'].append(None)  # No norm value
-                param_data_norm[param]['norm_lapse'].append(norm_lapse_params[param])
-                param_data_norm[param]['labels'].append(f"{batch}-{animal}")
-        else:
-            if param in norm_params and param in norm_lapse_params:
-                param_data_norm[param]['norm'].append(norm_params[param])
-                param_data_norm[param]['norm_lapse'].append(norm_lapse_params[param])
-                param_data_norm[param]['labels'].append(f"{batch}-{animal}")
-
-# Create figure with subplots (3 rows x 3 columns for 9 parameters)
-fig, axes = plt.subplots(3, 3, figsize=(21, 18))
-axes = axes.flatten()
-
-for idx, (param, param_label) in enumerate(zip(param_list_norm, param_labels_norm)):
-    ax = axes[idx]
-    
-    data = param_data_norm[param]
-    
-    if len(data['norm']) == 0:
-        ax.text(0.5, 0.5, 'No data available', ha='center', va='center', transform=ax.transAxes)
-        ax.set_title(param_label, fontsize=12, fontweight='bold')
-        continue
-    
-    # Check if this is a lapse-only parameter
-    is_lapse_only = param in ['lapse_prob', 'lapse_prob_right']
-    
-    if is_lapse_only:
-        # Only norm+lapse has these parameters
-        norm_lapse_means = np.array([d['mean'] for d in data['norm_lapse']])
-        norm_lapse_ci_low = np.array([d['percentile_2_5'] for d in data['norm_lapse']])
-        norm_lapse_ci_high = np.array([d['percentile_97_5'] for d in data['norm_lapse']])
-        
-        # Sort by norm+lapse parameter values (ascending)
-        sort_idx = np.argsort(norm_lapse_means)
-        norm_lapse_means = norm_lapse_means[sort_idx]
-        norm_lapse_ci_low = norm_lapse_ci_low[sort_idx]
-        norm_lapse_ci_high = norm_lapse_ci_high[sort_idx]
-        sorted_labels = [data['labels'][i] for i in sort_idx]
-        
-        x_pos = np.arange(len(norm_lapse_means))
-        
-        # Plot only norm+lapse model (red)
-        ax.errorbar(x_pos, norm_lapse_means,
-                    yerr=[norm_lapse_means - norm_lapse_ci_low, norm_lapse_ci_high - norm_lapse_means],
-                    fmt='s', color='red', alpha=0.7, capsize=0,
-                    label='Norm+Lapse', markersize=6, linewidth=1.5)
-    else:
-        # Both models have these parameters
-        norm_means = np.array([d['mean'] for d in data['norm']])
-        norm_lapse_means = np.array([d['mean'] for d in data['norm_lapse']])
-        
-        norm_ci_low = np.array([d['percentile_2_5'] for d in data['norm']])
-        norm_ci_high = np.array([d['percentile_97_5'] for d in data['norm']])
-        
-        norm_lapse_ci_low = np.array([d['percentile_2_5'] for d in data['norm_lapse']])
-        norm_lapse_ci_high = np.array([d['percentile_97_5'] for d in data['norm_lapse']])
-        
-        # Convert to milliseconds for time parameters
-        if param in ['T_0', 't_E_aff', 'del_go']:
-            norm_means *= 1000
-            norm_lapse_means *= 1000
-            norm_ci_low *= 1000
-            norm_ci_high *= 1000
-            norm_lapse_ci_low *= 1000
-            norm_lapse_ci_high *= 1000
-        
-        # Sort by norm parameter values (ascending)
-        sort_idx = np.argsort(norm_means)
-        norm_means = norm_means[sort_idx]
-        norm_lapse_means = norm_lapse_means[sort_idx]
-        norm_ci_low = norm_ci_low[sort_idx]
-        norm_ci_high = norm_ci_high[sort_idx]
-        norm_lapse_ci_low = norm_lapse_ci_low[sort_idx]
-        norm_lapse_ci_high = norm_lapse_ci_high[sort_idx]
-        sorted_labels = [data['labels'][i] for i in sort_idx]
-        
-        x_pos = np.arange(len(norm_means))
-        
-        # Plot norm model (green)
-        ax.errorbar(x_pos, norm_means, 
-                    yerr=[norm_means - norm_ci_low, norm_ci_high - norm_means],
-                    fmt='o', color='green', alpha=0.7, capsize=0, 
-                    label='Norm', markersize=6, linewidth=1.5)
-        
-        # Plot norm+lapse model (red)
-        ax.errorbar(x_pos, norm_lapse_means,
-                    yerr=[norm_lapse_means - norm_lapse_ci_low, norm_lapse_ci_high - norm_lapse_means],
-                    fmt='s', color='red', alpha=0.7, capsize=0,
-                    label='Norm+Lapse', markersize=6, linewidth=1.5)
-    
-    # Formatting
-    if is_lapse_only:
-        ax.set_xlabel('Batch-Animal (sorted by param value)', fontsize=10, fontweight='bold')
-    else:
-        ax.set_xlabel('Batch-Animal (sorted by Norm param value)', fontsize=10, fontweight='bold')
-    ax.set_ylabel(param_label, fontsize=11, fontweight='bold')
-    ax.set_title(f'{param_label}', fontsize=12, fontweight='bold')
-    ax.set_xticks(x_pos)
-    ax.set_xticklabels(sorted_labels, rotation=90, ha='right', fontsize=7)
-    ax.grid(True, alpha=0.3, axis='y')
-    ax.legend(fontsize=9, loc='best')
-
-plt.suptitle('Parameter Comparison: Norm vs Norm+Lapse Models', fontsize=16, fontweight='bold', y=0.995)
-plt.tight_layout()
-params_comparison_norm_path = os.path.join(base_dir, 'params_comparison_norm_vs_norm_lapse_v2.png')
-plt.savefig(params_comparison_norm_path, dpi=150, bbox_inches='tight')
-plt.show()
-
-print(f"\nParameter comparison plot (Norm) saved to: {params_comparison_norm_path}")
 
 # %%

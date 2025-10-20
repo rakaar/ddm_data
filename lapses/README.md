@@ -160,6 +160,24 @@
   - Green bars = positive ELBO difference (improvement), Red bars = negative (worse)
 - **Key findings**: All 18/18 animals converged stably; median ELBO improvements ~+8 (vanilla+lapse) and ~+3 (norm+lapse), but mean improvements negative due to a few outliers with large ELBO drops (LED34_59: -1428, LED34_63: -752)
 
+---
+
+## Log-Likelihood Comparison Scripts
+
+**`compare_vanilla_norm_lapse_loglike_v2.py`** (located in `../fit_animal_by_animal/`)
+- Manually calculates log-likelihoods from VBMC parameters and data (instead of using pre-computed ELBO values) for vanilla+lapse and norm+lapse models
+- Computes log-likelihoods using parallel processing for all valid trials with model parameters sampled from VBMC posteriors
+- Includes parameter comparison figures showing means and 95% CIs for Vanilla vs Vanilla+Lapse and Norm vs Norm+Lapse models with lapse parameters displayed only for lapse models
+
+**`compare_vanilla_norm_lapse_loglike_v2_div_by_N.py`** (located in `../fit_animal_by_animal/`)
+- Extended version that normalizes all log-likelihood comparisons by dividing by N_trials for per-trial metrics
+- Generates 4 bar plots comparing model pairs and scatter plot of lapse probability vs log-likelihood improvement over Norm model
+
+**`compare_vanilla_norm_lapse_loglike_v2_div_by_N_with_aborts.py`** (located in `../fit_animal_by_animal/`)
+- Includes BOTH valid and abort trials (abort_event==3, TotalFixTime>T_trunc) in log-likelihood calculation for all 4 models (Vanilla, Norm, Vanilla+Lapse, Norm+Lapse)
+- Abort log-likelihood is identical across all models (depends only on V_A, theta_A, t_A_aff), ensuring fair apples-to-apples comparisons normalized by (N_valid + N_aborts)
+
+---
 
 # reading pkl files
 - READING_VBMC_PICKLE_FILES.md
