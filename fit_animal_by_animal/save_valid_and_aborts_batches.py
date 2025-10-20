@@ -92,7 +92,9 @@ for batch_name in batch_names:
             (exp_df['batch_name'] == batch_name) &
             ((exp_df['LED_trial'].isin([float('nan'), 0]) | exp_df['LED_trial'].isna())) &
             (exp_df['session_type'].isin([1,2])) &
-            (exp_df['animal'].isin(allowed_animals))
+            (exp_df['animal'].isin(allowed_animals)) &
+            (exp_df['ABL'].isin([20, 40, 60])) &
+            (exp_df['ILD'].isin([1, -1, 2, -2, 4, -4, 8, -8, 16, -16]))
         ].copy()
     elif batch_name =='Comparable':
         exp_df_batch = exp_df[
