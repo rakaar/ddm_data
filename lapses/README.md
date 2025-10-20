@@ -176,9 +176,22 @@
 **`compare_vanilla_norm_lapse_loglike_v2_div_by_N_with_aborts.py`** (located in `../fit_animal_by_animal/`)
 - Includes BOTH valid and abort trials (abort_event==3, TotalFixTime>T_trunc) in log-likelihood calculation for all 4 models (Vanilla, Norm, Vanilla+Lapse, Norm+Lapse)
 - Abort log-likelihood is identical across all models (depends only on V_A, theta_A, t_A_aff), ensuring fair apples-to-apples comparisons normalized by (N_valid + N_aborts)
+- Generates `lapse_parameters_all_animals.pkl` with lapse parameters and per-trial log-likelihoods for all 4 models
+- Produces 4 bar plot comparisons and scatter plots of lapse probability vs log-likelihood improvement
+
+---
+
+## Gamma Analysis by Lapse Groups
+
+**`compare_gamma_by_lapse_prob_groups_for_paper.py`** (located in `../fit_each_condn/`)
+- Two grouping strategies to compare average gamma from condition-by-condition fits across ABLs:
+  1. **By vanilla lapse probability**: Low (<1.5%) vs High (≥1.5%) lapse groups
+  2. **By log-likelihood comparison**: Animals where Vanilla+Lapse > Norm vs Vanilla+Lapse < Norm
+- Generates two plots showing gamma curves for each group across all ABLs and ILDs
 
 ---
 
 # reading pkl files
 - READING_VBMC_PICKLE_FILES.md
+- **READING_LAPSE_PARAMETERS_PKL.md** - Documentation for `lapse_parameters_all_animals.pkl` containing lapse parameters and per-trial log-likelihoods for all 4 models
  

@@ -1213,3 +1213,84 @@ if len(vanilla_lapse_probs_right) > 0:
     print(f"Animals with right bias (>0.5) - Vanilla: {vanilla_right_bias}/{len(vanilla_lapse_probs_right)}, Norm: {norm_right_bias}/{len(norm_lapse_probs_right)}")
 
 # %%
+# Save lapse parameters and log-likelihoods to pickle file
+print("\n" + "="*160)
+print("Saving Lapse Parameters and Log-Likelihoods to Pickle File")
+print("="*160)
+
+# Create dictionary with lapse parameters and log-likelihoods for each animal
+lapse_params_dict = {}
+
+for row in rows:
+    batch = row['batch']
+    animal = row['animal']
+    key = (batch, animal)
+    
+    # Get n_trials for per-trial normalization
+    n_trials = row.get('n_trials')
+    
+    # Compute per-trial log-likelihoods
+    vanilla_lapse_ll = row.get('vanilla_lapse_loglike')
+    norm_lapse_ll = row.get('norm_lapse_loglike')
+    vanilla_ll = row.get('og_vanilla_loglike')
+    norm_ll = row.get('og_norm_loglike')
+    
+    lapse_params_dict[key] = {
+        'batch': batch,
+        'animal': animal,
+        'vanilla_lapse': {
+            'lapse_prob': row.get('vanilla_lapse_prob'),
+            'lapse_prob_right': row.get('vanilla_lapse_prob_right'),
+            'loglike_per_trial': vanilla_lapse_ll / n_trials if (vanilla_lapse_ll is not None and n_trials is not None) else None
+        },
+        'norm_lapse': {
+            'lapse_prob': row.get('norm_lapse_prob'),
+            'lapse_prob_right': row.get('norm_lapse_prob_right'),
+            'loglike_per_trial': norm_lapse_ll / n_trials if (norm_lapse_ll is not None and n_trials is not None) else None
+        },
+        'vanilla': {
+            'loglike_per_trial': vanilla_ll / n_trials if (vanilla_ll is not None and n_trials is not None) else None
+        },
+        'norm': {
+            'loglike_per_trial': norm_ll / n_trials if (norm_ll is not None and n_trials is not None) else None
+        },
+        'n_trials': row.get('n_trials'),
+        'n_valid': row.get('n_valid'),
+        'n_aborts': row.get('n_aborts')
+    }
+
+# Save to pickle file
+lapse_params_pkl_path = os.path.join(base_dir, 'lapse_parameters_all_animals.pkl')
+with open(lapse_params_pkl_path, 'wb') as f:
+    pickle.dump(lapse_params_dict, f)
+
+print(f"\nLapse parameters and per-trial log-likelihoods saved to: {lapse_params_pkl_path}")
+print(f"Total animals saved: {len(lapse_params_dict)}")
+print("\nDictionary structure:")
+print("  Keys: (batch, animal) tuples")
+print("  Values: dict with 'batch', 'animal', 'vanilla_lapse', 'norm_lapse', 'vanilla', 'norm', 'n_trials', 'n_valid', 'n_aborts'")
+print("    - vanilla_lapse: {'lapse_prob': float, 'lapse_prob_right': float, 'loglike_per_trial': float}")
+print("    - norm_lapse: {'lapse_prob': float, 'lapse_prob_right': float, 'loglike_per_trial': float}")
+print("    - vanilla: {'loglike_per_trial': float}")
+print("    - norm: {'loglike_per_trial': float}")
+print("    - n_trials: int (total = n_valid + n_aborts)")
+print("    - n_valid: int")
+print("    - n_aborts: int")
+print("  NOTE: loglike_per_trial = (valid_loglike + abort_loglike) / (n_valid + n_aborts)")
+
+# Print example
+if len(lapse_params_dict) > 0:
+    example_key = list(lapse_params_dict.keys())[0]
+    example_data = lapse_params_dict[example_key]
+    print(f"\nExample entry for {example_key}:")
+    print(f"  Vanilla+Lapse lapse_prob: {example_data['vanilla_lapse']['lapse_prob']:.6f}")
+    print(f"  Vanilla+Lapse lapse_prob_right: {example_data['vanilla_lapse']['lapse_prob_right']:.6f}")
+    print(f"  Vanilla+Lapse loglike_per_trial: {example_data['vanilla_lapse']['loglike_per_trial']:.6f}")
+    print(f"  Norm+Lapse lapse_prob: {example_data['norm_lapse']['lapse_prob']:.6f}")
+    print(f"  Norm+Lapse lapse_prob_right: {example_data['norm_lapse']['lapse_prob_right']:.6f}")
+    print(f"  Norm+Lapse loglike_per_trial: {example_data['norm_lapse']['loglike_per_trial']:.6f}")
+    print(f"  Vanilla loglike_per_trial: {example_data['vanilla']['loglike_per_trial']:.6f}")
+    print(f"  Norm loglike_per_trial: {example_data['norm']['loglike_per_trial']:.6f}")
+    print(f"  n_trials: {example_data['n_trials']}, n_valid: {example_data['n_valid']}, n_aborts: {example_data['n_aborts']}")
+
+# %%
