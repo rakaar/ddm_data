@@ -179,6 +179,18 @@
 - Generates `lapse_parameters_all_animals.pkl` with lapse parameters and per-trial log-likelihoods for all 4 models
 - Produces 4 bar plot comparisons and scatter plots of lapse probability vs log-likelihood improvement
 
+**`kl_distance_and_elbo.py`** (located in `../fit_each_condn/`)
+- Computes KL divergence KL(q||p) between Gaussian and uniform distributions using numerical integration
+- Primary use case: Understanding how prior bounds affect KL divergence in VBMC
+- Example: q = N(0.9, 0.05) (Gaussian approximation of posterior), p = Uniform(0, width) (prior)
+- Function `compute_kl_divergence_gaussian_uniform()` with parameters:
+  - `q_mean`, `q_std`: Gaussian distribution parameters
+  - `p_lower`, `p_upper`: Uniform distribution bounds
+  - Returns KL(q||p) via numerical integration over q_mean ± 6*q_std
+- Test cases included: Comparing KL divergence for different uniform prior widths
+- **Key insight**: Wider uniform priors → lower KL divergence (less information needed to transform from q to p)
+- Useful for understanding ELBO = log p(data) - KL(q||p) tradeoffs when adjusting prior bounds in VBMC fits
+
 ---
 
 ## Gamma Analysis by Lapse Groups
