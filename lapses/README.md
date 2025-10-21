@@ -191,6 +191,17 @@
 - **Key insight**: Wider uniform priors → lower KL divergence (less information needed to transform from q to p)
 - Useful for understanding ELBO = log p(data) - KL(q||p) tradeoffs when adjusting prior bounds in VBMC fits
 
+**`rate_norm_l_vs_lapse_prob_in_norm_model_compare.py`** (located in `../fit_animal_by_animal/`)
+- Analyzes relationship between normalization rate (`rate_norm_l`) and lapse probability in the Norm+Lapse model across all animals
+- Samples 1000 points from each animal's variational posterior (VP) to visualize posterior uncertainty
+- Loads norm+lapse VBMC fits from `oct_9_10_norm_lapse_model_fit_files/`
+- Generates scatter plot with 35,000 posterior samples (35 animals × 1000 samples each) showing correlation between parameters
+- **Outputs**:
+  - `rate_norm_l_vs_lapse_prob_scatter.png`: Scatter plot with linear regression fit and correlation coefficient in legend
+  - Summary statistics for both all posterior samples and per-animal means
+  - Pearson correlation coefficient quantifying relationship between normalization rate and lapse probability
+- **Key findings**: Weak negative correlation (r ≈ -0.20) between `rate_norm_l` and `lapse_prob`, suggesting higher normalization rates are slightly associated with lower lapse probabilities
+
 ---
 
 ## Gamma Analysis by Lapse Groups
