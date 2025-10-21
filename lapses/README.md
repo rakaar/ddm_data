@@ -195,6 +195,12 @@
 
 ## Gamma Analysis by Lapse Groups
 
+**`fit_single_rat_condn_by_condn_fix_t_E_w_del_go_all_animals_loop_for_paper_LAPSES.py`** (located in `../fit_each_condn/`)
+- VBMC fit of gamma and omega parameters condition-by-condition with lapse model for all animals across all ABL/ILD combinations
+
+**`compare_gamma_fit_with_lapses_fixed.py`** (located in `../fit_each_condn/`)
+- Reads gamma values from lapse-fit pickle files and plots average gamma across all animals with two grouping analyses by lapse rate and model preference
+
 **`compare_gamma_by_lapse_prob_groups_for_paper.py`** (located in `../fit_each_condn/`)
 - Two grouping strategies to compare average gamma from condition-by-condition fits across ABLs:
   1. **By vanilla lapse probability**: Low (<1.5%) vs High (≥1.5%) lapse groups
