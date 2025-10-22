@@ -19,33 +19,36 @@ def load_data():
 # --- Plotting Functions ---
 def plot_lapse_distribution(ax, data):
     """
-    Plot distribution of lapse probabilities across all animals.
-    Shows histogram with median vertical line.
+    Plot lapse rate vs animal index (sorted in ascending order of lapse rate).
+    Shows scatter plot with no connecting lines and median line.
     """
     lapse_rates = data['lapse_rates']
     median_lapse_rate = data['median_lapse_rate']
-    lapse_rate_bins = data['lapse_rate_bins']
     
-    # Plot histogram
-    counts, bins, patches = ax.hist(lapse_rates, bins=lapse_rate_bins, color='grey', 
-                                     alpha=0.7, edgecolor='black', linewidth=1.2)
+    # Sort lapse rates in ascending order
+    lapse_rates_sorted = np.sort(lapse_rates)
+    n_animals = len(lapse_rates_sorted)
+    animal_indices = np.arange(1, n_animals + 1)
     
-    # Add median vertical line
-    ax.axvline(median_lapse_rate, color='r', linestyle='--', linewidth=2, 
-               label=f'Median = {median_lapse_rate:.2f}%')
+    # Plot as scatter
+    ax.scatter(animal_indices, lapse_rates_sorted, color='k', s=50, alpha=0.7)
+    
+    # Add median horizontal line
+    ax.axhline(median_lapse_rate, color='gray', linestyle='--', linewidth=2, label=f'Median={median_lapse_rate:.2f}%')
     
     # Labels
-    ax.set_xlabel('Lapse Rate (%)', fontsize=ft.STYLE.LABEL_FONTSIZE)
-    ax.set_ylabel('Count', fontsize=ft.STYLE.LABEL_FONTSIZE)
-    ax.legend(fontsize=ft.STYLE.LEGEND_FONTSIZE)
+    ax.set_xlabel('Animal', fontsize=ft.STYLE.LABEL_FONTSIZE)
+    ax.set_ylabel('Lapse Rate (%)', fontsize=ft.STYLE.LABEL_FONTSIZE)
     
-    # Set specific ticks
-    ax.set_xticks(np.arange(0, 6, 1))
-    ax.tick_params(axis='x', labelsize=ft.STYLE.TICK_FONTSIZE)
+    # Add legend without box
+    ax.legend(fontsize=ft.STYLE.LEGEND_FONTSIZE, frameon=False, loc='best')
     
-    # Y-axis: only 0 and max count
-    max_count = int(np.max(counts))
-    ax.set_yticks([0, max_count])
+    # Remove x-axis ticks (no need for animal names)
+    ax.set_xticks([])
+    ax.set_yticks([0 ,2.5, 5])
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x:.10g}'))
+    
+    # Y-axis ticks
     ax.tick_params(axis='y', labelsize=ft.STYLE.TICK_FONTSIZE)
     
     # Remove top and right spines
@@ -101,7 +104,7 @@ def plot_gamma_by_median_lapse(axes, data):
                             color='red', label=label_high, capsize=0, alpha=0.7)
         
         # Add title with ABL value
-        ax_gamma.set_title(f'ABL={ABL}', fontsize=ft.STYLE.LABEL_FONTSIZE)
+        ax_gamma.set_title(f'ABL={ABL}', fontsize=ft.STYLE.TITLE_FONTSIZE)
         
         # Labels
         ax_gamma.set_xlabel('ILD', fontsize=ft.STYLE.LABEL_FONTSIZE)
@@ -119,7 +122,7 @@ def plot_gamma_by_median_lapse(axes, data):
         
         # Add legend only to first plot
         if abl_idx == 0:
-            ax_gamma.legend(fontsize=ft.STYLE.LEGEND_FONTSIZE, frameon=False, loc='best')
+            ax_gamma.legend(fontsize=ft.STYLE.LEGEND_FONTSIZE, frameon=False, loc='best', handletextpad=-0.5)
         
         # Make plot square
         ax_gamma.set_box_aspect(1)
@@ -184,7 +187,7 @@ def plot_rate_norm_l_vs_lapse(ax, data):
     # Plot linear fit
     x_line = linear_fit['x_line']
     y_line = linear_fit['y_line']
-    ax.plot(x_line, y_line, 'r--', linewidth=2, alpha=0.8)
+    ax.plot(x_line, y_line, color='gray', linestyle='--', linewidth=2, alpha=0.8)
     
     # Labels
     ax.set_xlabel(r'$\ell$', fontsize=ft.STYLE.LABEL_FONTSIZE)

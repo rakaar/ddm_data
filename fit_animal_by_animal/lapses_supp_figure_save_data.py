@@ -799,3 +799,300 @@ def plot_rate_norm_l_vs_lapse(animal_data, ellipse_quantile=0.95, animals_by_col
 # Run the plot
 plot_data = plot_rate_norm_l_vs_lapse(animal_data,animals_by_color=True)
 # %%
+# 4. Psychometric comparison: low lapse vs high lapse animals
+def plot_psychometric_low_vs_high_lapse():
+    """
+    Compare psychometric curves between low and high lapse rate animals.
+    Low lapse animals shown in black, high lapse animals in red.
+    """
+    import pandas as pd
+    from scipy.optimize import curve_fit
+    
+    base_dir = '/home/rlab/raghavendra/ddm_data/fit_animal_by_animal'
+    
+    # Load lapse data and classify animals
+    lapse_pkl_path = os.path.join(base_dir, 'lapse_parameters_all_animals.pkl')
+    with open(lapse_pkl_path, 'rb') as f:
+        lapse_params = pickle.load(f)
+    
+    # Extract average lapse_prob for all animals
+    lapse_rates = {}
+    for (batch, animal), data in lapse_params.items():
+        vanilla_lp = data['vanilla_lapse']['lapse_prob']
+        norm_lp = data['norm_lapse']['lapse_prob']
+        
+        if vanilla_lp is not None and norm_lp is not None:
+            avg_lapse_prob = (vanilla_lp + norm_lp) / 2
+            lapse_rates[(batch, animal)] = avg_lapse_prob
+    
+    # Compute median and classify
+    all_lapse_values = np.array(list(lapse_rates.values()))
+    median_lapse = np.median(all_lapse_values)
+    
+    low_lapse_animals = set()
+    high_lapse_animals = set()
+    
+    for (batch, animal), lapse_val in lapse_rates.items():
+        if lapse_val <= median_lapse:
+            low_lapse_animals.add((batch, animal))
+        else:
+            high_lapse_animals.add((batch, animal))
+    
+    print(f"\nPsychometric comparison:")
+    print(f"  Median lapse: {median_lapse*100:.2f}%")
+    print(f"  Low lapse animals: {len(low_lapse_animals)}")
+    print(f"  High lapse animals: {len(high_lapse_animals)}")
+    
+    # Load batch CSVs
+    DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+    batch_dir = os.path.join(base_dir, 'batch_csvs')
+    batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
+    
+    merged_data = pd.concat([
+        pd.read_csv(os.path.join(batch_dir, fname)) 
+        for fname in batch_files 
+        if os.path.exists(os.path.join(batch_dir, fname))
+    ], ignore_index=True)
+    
+    merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
+    
+    # Filter for specific ILDs only
+    allowed_ilds = np.array([1., -1., 2., -2., 4., -4., 8., -8., 16., -16.])
+    merged_valid = merged_valid[merged_valid['ILD'].isin(allowed_ilds)].copy()
+    
+    print(f"  Filtered to {len(merged_valid)} trials with allowed ILDs: {sorted(allowed_ilds)}")
+    
+    # Define ABLs
+    ABLS = [20, 40, 60]
+    
+    # Compute psychometric data for each animal
+    psycho_data = {abl: {} for abl in ABLS}
+    psycho_data['all_abls'] = {}
+    
+    unique_animals = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
+    
+    for batch, animal in unique_animals:
+        animal_df = merged_valid[(merged_valid['batch_name'] == batch) & (merged_valid['animal'] == animal)]
+        
+        if animal_df.empty:
+            continue
+        
+        # Compute for each ABL
+        for abl in ABLS:
+            abl_df = animal_df[animal_df['ABL'] == abl]
+            if abl_df.empty:
+                continue
+            
+            animal_ilds = np.sort(abl_df['ILD'].unique())
+            psycho_points = []
+            
+            for ild in animal_ilds:
+                ild_df = abl_df[abl_df['ILD'] == ild]
+                if len(ild_df) > 0:
+                    p_right = np.mean(ild_df['choice'] == 1)
+                    psycho_points.append((ild, p_right))
+            
+            if len(psycho_points) > 0:
+                psycho_data[abl][(batch, animal)] = psycho_points
+        
+        # Compute across all ABLs
+        all_ilds = np.sort(animal_df['ILD'].unique())
+        psycho_points_all = []
+        
+        for ild in all_ilds:
+            ild_df = animal_df[animal_df['ILD'] == ild]
+            if len(ild_df) > 0:
+                p_right = np.mean(ild_df['choice'] == 1)
+                psycho_points_all.append((ild, p_right))
+        
+        if len(psycho_points_all) > 0:
+            psycho_data['all_abls'][(batch, animal)] = psycho_points_all
+    
+    # Separate by lapse group
+    psycho_by_group = {abl: {'low': [], 'high': []} for abl in ABLS}
+    psycho_by_group['all_abls'] = {'low': [], 'high': []}
+    
+    for abl_key in [20, 40, 60, 'all_abls']:
+        for (batch, animal), animal_psycho in psycho_data[abl_key].items():
+            if (batch, animal) not in lapse_rates:
+                continue
+            
+            if (batch, animal) in low_lapse_animals:
+                psycho_by_group[abl_key]['low'].append(animal_psycho)
+            elif (batch, animal) in high_lapse_animals:
+                psycho_by_group[abl_key]['high'].append(animal_psycho)
+    
+    # Helper functions
+    def sigmoid(x, upper, lower, x0, k):
+        """Sigmoid function with explicit upper and lower asymptotes."""
+        return lower + (upper - lower) / (1 + np.exp(-k*(x-x0)))
+    
+    def compute_average_psychometric(animal_psycho_list):
+        """Average psychometric data across multiple animals."""
+        all_ilds = set()
+        for animal_data in animal_psycho_list:
+            for ild, _ in animal_data:
+                all_ilds.add(ild)
+        
+        all_ilds = np.sort(list(all_ilds))
+        ild_to_p_rights = {ild: [] for ild in all_ilds}
+        
+        for animal_data in animal_psycho_list:
+            animal_ild_dict = {ild: p_right for ild, p_right in animal_data}
+            for ild in all_ilds:
+                if ild in animal_ild_dict:
+                    ild_to_p_rights[ild].append(animal_ild_dict[ild])
+        
+        mean_p_right = np.array([np.mean(ild_to_p_rights[ild]) for ild in all_ilds])
+        sem_p_right = np.array([np.std(ild_to_p_rights[ild]) / np.sqrt(len(ild_to_p_rights[ild])) 
+                                for ild in all_ilds])
+        
+        return all_ilds, mean_p_right, sem_p_right
+    
+    def fit_sigmoid_to_psychometric(ilds, p_right_values):
+        """Fit sigmoid to psychometric data."""
+        try:
+            bounds = ([0, 0, -np.inf, 0], [1, 1, np.inf, np.inf])
+            min_psycho = np.min(p_right_values)
+            max_psycho = np.max(p_right_values)
+            p0 = [max_psycho, min_psycho, 0, 1]
+            
+            params, _ = curve_fit(sigmoid, ilds, p_right_values, p0=p0, bounds=bounds, maxfev=10000)
+            x_smooth = np.linspace(ilds.min(), ilds.max(), 200)
+            y_smooth = sigmoid(x_smooth, *params)
+            
+            return params, x_smooth, y_smooth
+        except Exception:
+            # Silently fail - summary will be reported later
+            return None, None, None
+    
+    # Compute averages and fits
+    print("\nFitting sigmoids to individual animals:")
+    averaged_data = {}
+    
+    for abl_key in [20, 40, 60, 'all_abls']:
+        averaged_data[abl_key] = {}
+        print(f"\n  ABL {abl_key}:")
+        
+        for group in ['low', 'high']:
+            animal_list = psycho_by_group[abl_key][group]
+            
+            if len(animal_list) == 0:
+                continue
+            
+            # Compute average psychometric for data points
+            ilds, mean_p_right, sem_p_right = compute_average_psychometric(animal_list)
+            
+            # Fit sigmoid to EACH animal's psychometric curve
+            all_sigmoid_curves = []
+            all_x_smooth = None
+            
+            for animal_psycho in animal_list:
+                # Extract animal's ILD and p_right
+                animal_ilds = np.array([ild for ild, _ in animal_psycho])
+                animal_p_right = np.array([p_right for _, p_right in animal_psycho])
+                
+                # Fit sigmoid to this animal
+                params, x_smooth, y_smooth = fit_sigmoid_to_psychometric(animal_ilds, animal_p_right)
+                
+                if params is not None and y_smooth is not None:
+                    all_sigmoid_curves.append(y_smooth)
+                    if all_x_smooth is None:
+                        all_x_smooth = x_smooth
+            
+            # Compute average of sigmoids
+            if len(all_sigmoid_curves) > 0:
+                avg_sigmoid = np.mean(all_sigmoid_curves, axis=0)
+                x_smooth = all_x_smooth
+                y_smooth = avg_sigmoid
+            else:
+                x_smooth = None
+                y_smooth = None
+            
+            print(f"    {group} lapse: {len(all_sigmoid_curves)}/{len(animal_list)} sigmoids fitted successfully")
+            
+            averaged_data[abl_key][group] = {
+                'ilds': ilds,
+                'mean': mean_p_right,
+                'sem': sem_p_right,
+                'params': None,  # Not using single fit params anymore
+                'x_smooth': x_smooth,
+                'y_smooth': y_smooth,  # This is now average of sigmoids
+                'n_animals': len(animal_list),
+                'n_sigmoids_fitted': len(all_sigmoid_curves)
+            }
+    
+    # Create plots
+    fig, axes = plt.subplots(1, 4, figsize=(16, 4), sharey=True)
+    
+    abl_keys = [20, 40, 60, 'all_abls']
+    titles = ['ABL 20 dB', 'ABL 40 dB', 'ABL 60 dB', 'All ABLs']
+    
+    for idx, (abl_key, title) in enumerate(zip(abl_keys, titles)):
+        ax = axes[idx]
+        
+        # Plot low lapse group (black)
+        if 'low' in averaged_data[abl_key]:
+            data_low = averaged_data[abl_key]['low']
+            
+            ax.errorbar(data_low['ilds'], data_low['mean'], yerr=data_low['sem'],
+                       fmt='o', color='black', markersize=6, capsize=0,
+                       label=f"Low lapse (n={data_low['n_animals']})", alpha=0.7)
+            
+            if data_low['x_smooth'] is not None:
+                ax.plot(data_low['x_smooth'], data_low['y_smooth'],
+                       '-', color='black', linewidth=2, alpha=0.9)
+        
+        # Plot high lapse group (red)
+        if 'high' in averaged_data[abl_key]:
+            data_high = averaged_data[abl_key]['high']
+            
+            ax.errorbar(data_high['ilds'], data_high['mean'], yerr=data_high['sem'],
+                       fmt='o', color='red', markersize=6, capsize=0,
+                       label=f"High lapse (n={data_high['n_animals']})", alpha=0.7)
+            
+            if data_high['x_smooth'] is not None:
+                ax.plot(data_high['x_smooth'], data_high['y_smooth'],
+                       '-', color='red', linewidth=2, alpha=0.9)
+        
+        # Formatting
+        ax.set_xlabel('ILD (dB)', fontsize=14)
+        if idx == 0:
+            ax.set_ylabel('P(Choose Right)', fontsize=14)
+        ax.set_title(title, fontsize=14)
+        ax.axhline(0.5, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+        ax.axvline(0, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+        ax.set_ylim([-0.05, 1.05])
+        ax.legend(fontsize=10, loc='upper left')
+        ax.tick_params(labelsize=12)
+        
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+    
+    plt.tight_layout()
+    
+    # Save figure
+    output_path = os.path.join(base_dir, 'lapse_psychometric_comparison.png')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"\nFigure saved to: {output_path}")
+    
+    # Save plot data
+    plot_data = {
+        'averaged_data': averaged_data,
+        'lapse_rates': lapse_rates,
+        'median_lapse': median_lapse,
+        'low_lapse_animals': list(low_lapse_animals),
+        'high_lapse_animals': list(high_lapse_animals),
+    }
+    
+    pkl_output_path = os.path.join(base_dir, 'lapse_psychometric_comparison_data.pkl')
+    with open(pkl_output_path, 'wb') as f:
+        pickle.dump(plot_data, f)
+    print(f"Plot data saved to: {pkl_output_path}")
+    
+    plt.show()
+    
+    return plot_data
+
+# Run the plot
+psycho_data = plot_psychometric_low_vs_high_lapse()
