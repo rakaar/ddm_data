@@ -45,9 +45,10 @@ def plot_lapse_distribution(ax, data):
     
     # Remove x-axis ticks (no need for animal names)
     ax.set_xticks([])
-    ax.set_yticks([0 ,2.5, 5])
+    ax.set_ylim(0, 25)
+
+    ax.set_yticks([0 ,25])
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x:.10g}'))
-    
     # Y-axis ticks
     ax.tick_params(axis='y', labelsize=ft.STYLE.TICK_FONTSIZE)
     
