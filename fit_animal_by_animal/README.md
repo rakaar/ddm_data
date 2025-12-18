@@ -166,3 +166,7 @@ This section documents the workflow for creating the supplementary figure showin
 # animal wise, model wise
 - animal_wise_vanila_fit.py
 - animal_wise_norm_fit.py
+
+# Fitting related plots
+- `compare_animal_params_for_paper.py` - Plots parameters (mean + 95% CI) for each animal across multiple models (aborts, vanilla tied, norm tied, time-varying norm tied). Outputs PDFs like `compare_animals_all_batches_vbmc_norm_tied_results.pdf`.
+- `corner_cum_animal_params_for_paper_norm.py` - Creates corner-style scatter plots specifically for the normalized model (`vbmc_norm_tied_results`), where each point represents an animal's mean parameter values.
