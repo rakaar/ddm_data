@@ -314,15 +314,18 @@ def plot_corner(axes, corner_data, tick_labelsize=15, label_fontsize=None):
                             )
                         ax.set_xlim(lims[px])
                         ax.set_ylim(-0.5, len(stats) - 0.5)
-                        ax.set_yticks([])
                         # Offset ticks inward to prevent overlap with adjacent plots
                         x_range = lims[px][1] - lims[px][0]
                         _xt = [lims[px][0] + 0.1*x_range, lims[px][1] - 0.1*x_range]
                         ax.set_xticks(_xt)
                         ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-                        # Add "Rat ID" ylabel to topmost diagonal box
+                        # Add "Rat ID" ylabel and y-ticks to topmost diagonal box
                         if i == 0:
-                            ax.set_ylabel('Rat ID', fontsize=label_fontsize, labelpad=50)
+                            ax.set_yticks([0, len(stats) - 1])
+                            ax.set_yticklabels(['30', '1'])  # Reversed since sorted descending
+                            ax.set_ylabel('Rat ID', fontsize=label_fontsize, labelpad=33)
+                        else:
+                            ax.set_yticks([])
                     else:
                         ax.axis('off')
                 else:
@@ -412,15 +415,14 @@ def plot_corner(axes, corner_data, tick_labelsize=15, label_fontsize=None):
             
             ax.tick_params(axis='both', which='major', labelsize=tick_labelsize)
             
-            # Uniform subplot borders
+            # Keep only left and bottom spines (remove top and right)
             spine_lw = 1.0
-            for side in ('left', 'bottom', 'right', 'top'):
-                ax.spines[side].set_linewidth(spine_lw)
-                ax.spines[side].set_visible(True)
-            if j < n - 1 and i >= j + 1:
-                ax.spines['right'].set_visible(False)
-            if i > 0 and (i - 1) >= j:
-                ax.spines['top'].set_visible(False)
+            ax.spines['left'].set_linewidth(spine_lw)
+            ax.spines['bottom'].set_linewidth(spine_lw)
+            ax.spines['left'].set_visible(True)
+            ax.spines['bottom'].set_visible(True)
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
             
             ax.grid(False)
             ax.set_box_aspect(1)
