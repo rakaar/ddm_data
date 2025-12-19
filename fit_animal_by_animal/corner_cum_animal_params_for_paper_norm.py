@@ -891,6 +891,68 @@ def main(argv=None):
             save_csv(csv_path, means, stds, labels)
 
 
+def save_corner_data_to_pkl(
+    outpath: str = 'norm_model_fit_params_corner_plot_all_animals.pkl',
+    batches: List[str] = DESIRED_BATCHES,
+    params: Optional[List[str]] = None,
+    n_samples: int = 5000,
+    seed: int = 0,
+    ellipse_quantile: float = 0.95,
+):
+    """Save all data needed for the corner plot to a pickle file.
+    
+    This allows the corner plot to be recreated without re-loading all
+    individual animal result files.
+    """
+    if params is None:
+        params = ['rate_lambda', 'T_0', 'theta_E', 'rate_norm_l']
+    
+    animal_tuples = discover_animals(RESULTS_DIR, batches)
+    
+    # Load per-animal means/stds for overlay
+    means_overlay, stds_overlay, labels_overlay, colors_overlay = load_means_stds_for_norm_tied(
+        RESULTS_DIR, animal_tuples, params
+    )
+    
+    # Load flattened samples (for axis limits)
+    values_flat, labels_flat, colors_flat = load_samples_flat_for_norm_tied(
+        RESULTS_DIR, animal_tuples, params, n_samples_per_animal=n_samples, seed=seed
+    )
+    
+    # Load grouped samples per animal (for ellipses and diag ranked)
+    grouped, labels_grp, colors_grp = load_samples_grouped_for_norm_tied(
+        RESULTS_DIR, animal_tuples, params, n_samples_per_animal=n_samples, seed=seed
+    )
+    
+    corner_data = {
+        'params': params,
+        'means_overlay': means_overlay,
+        'stds_overlay': stds_overlay,
+        'labels_overlay': labels_overlay,
+        'colors_overlay': colors_overlay,
+        'values_flat': values_flat,
+        'labels_flat': labels_flat,
+        'colors_flat': colors_flat,
+        'grouped': grouped,
+        'labels_grp': labels_grp,
+        'colors_grp': colors_grp,
+        'axis_ranges': DEFAULT_AXIS_RANGES,
+        'ellipse_quantile': ellipse_quantile,
+        'n_samples': n_samples,
+        'seed': seed,
+        'batches': batches,
+        'PARAM_TEX_LABELS': PARAM_TEX_LABELS,
+    }
+    
+    save_path = os.path.join(RESULTS_DIR, outpath)
+    with open(save_path, 'wb') as f:
+        pickle.dump(corner_data, f)
+    print(f'Saved corner plot data to: {save_path}')
+    return corner_data
+
+
 if __name__ == '__main__':
-    # main()
+    # Save pickle data for combined figure
+    save_corner_data_to_pkl()
+    # Also generate the standalone corner plot
     main(['--param-set', 'imp', '--outfile', 'corner_imp.pdf'])

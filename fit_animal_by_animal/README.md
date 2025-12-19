@@ -170,3 +170,8 @@ This section documents the workflow for creating the supplementary figure showin
 # Fitting related plots
 - `compare_animal_params_for_paper.py` - Plots parameters (mean + 95% CI) for each animal across multiple models (aborts, vanilla tied, norm tied, time-varying norm tied). Outputs PDFs like `compare_animals_all_batches_vbmc_norm_tied_results.pdf`.
 - `corner_cum_animal_params_for_paper_norm.py` - Creates corner-style scatter plots specifically for the normalized model (`vbmc_norm_tied_results`), where each point represents an animal's mean parameter values.
+
+# Fig 4
+- `corner_cum_animal_params_for_paper_norm.py` - Corner plot of norm model parameters with per-animal posterior ellipses and ranked diagonal panels
+- `fig4_all_using_template.py` - Figure 4 standalone: 2x2 grid with psychometric, quantiles, gamma, and slopes plots
+- `figure_4_with_corner_using_template.py` - Combined Figure 4 + corner plot: 2x2 fig4 on left, 4x4 corner plot on right
