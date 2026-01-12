@@ -357,8 +357,8 @@ try:
     # --- Final y-axis configuration as per user instruction ---
     # Configure left plot (which controls the shared y-axis)
     ax_ild.set_ylim(0.15, 0.26) # Adjusted ylim to better fit data
-    ax_ild.set_yticks([0.15, 0.25])
-    ax_ild.set_yticklabels(['0.15', '0.25'])
+    ax_ild.set_yticks([0.15, 0.3])
+    ax_ild.set_yticklabels(['0.15', '0.3'])
     ax_ild.tick_params(axis='y', labelleft=True, length=0)
 
     ax_abl.set_ylim(0.15, 0.30) # Adjusted ylim to better fit data
