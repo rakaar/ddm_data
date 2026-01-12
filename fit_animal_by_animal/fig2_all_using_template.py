@@ -220,21 +220,25 @@ psy_data, quant_data, gamma_data, slopes_data = load_data()
 builder = ft.FigureBuilder(
     sup_title="",
     n_rows=2, n_cols=2, 
-    figsize=(12, 10),
-    hspace=0.3, wspace=0.3
+    figsize=(9, 9),
+    hspace=0.4, wspace=0.4
 )
 
 # --- Add plots to the 2x2 grid ---
 ax_psych = builder.fig.add_subplot(builder.gs[0, 0])
+ax_psych.set_box_aspect(1)
 plot_psychometric(ax_psych, psy_data)
 
 ax_quant = builder.fig.add_subplot(builder.gs[0, 1])
+ax_quant.set_box_aspect(1)
 plot_quantiles(ax_quant, quant_data)
 
 ax_slopes = builder.fig.add_subplot(builder.gs[1, 0])
+ax_slopes.set_box_aspect(1)
 plot_slopes(ax_slopes, slopes_data)
 
 ax_gamma = builder.fig.add_subplot(builder.gs[1, 1])
+ax_gamma.set_box_aspect(1)
 plot_gamma(ax_gamma, gamma_data)
 
 fig = builder.finish()
