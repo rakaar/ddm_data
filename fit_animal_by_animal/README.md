@@ -86,6 +86,7 @@
 
 # fig 2
 - `fig2_all_using_template.py` - figure 2 - all figures in one panel
+- `fig2_all_using_template_size_match_fig4.py` - figure 2 with panel sizes matching figure 4
 - `see_only_quantile_avg_vs_avg_norm_and_vanila_for_fig2.py` - animal avg quantiles, vanilla, norm
 - `see_only_quantile_avg_vs_avg_norm_and_vanila_for_fig2_cont_ILD.py` - animal avg quantiles, vanilla, norm but on continous ILD
 - `see_only_psycho_all_ILD_tied_for_paper_for_fig2.py` - animal avg psycho, vanilla, norm
