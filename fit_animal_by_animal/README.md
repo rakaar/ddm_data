@@ -195,6 +195,26 @@ These scripts compare theoretical RT quantiles (from model fits) against empiric
   - Loads pkl files from both scripts above
   - Plots cond-fit (solid) vs vanilla (dotted) theoretical quantiles with empirical data
 
+- **`quantile_gof_all_ILDs.py`** - Compute R² goodness-of-fit for all ILDs (1, 2, 4, 8, 16)
+  - Parallel processing across ILDs for efficiency
+  - Saves `quantiles_gof_ILD_{ild}.pkl` for each ILD with theory quantiles and R² metrics
+  - Compares cond-fit vs vanilla model at each ILD
+
+- **`ILD_quantiles_fit_compare_cond_vs_vanila.py`** - Generalized comparison plot for any ILD
+  - Change `ILD_TARGET` (1, 2, 4, 8, or 16) at top of script
+  - Loads from `quantiles_gof_ILD_{ild}.pkl` files
+  - Plots cond-fit (solid) vs vanilla (dotted) with empirical data
+
+- **`plot_R2_vs_ILD.py`** - Plot R² vs ILD summary
+  - Plot 1: R² per ABL vs ILD (colored by ABL: blue=20, orange=40, green=60; dot=cond, cross=vanilla)
+  - Plot 2: R² averaged across ABL vs ILD (dot=cond, cross=vanilla)
+  - Outputs: `R2_per_ABL_vs_ILD.png`, `R2_mean_vs_ILD.png`
+
+- **`ABL_averaged_cond_vs_vanila_fit.py`** - ABL-averaged quantiles vs ILD plot
+  - Averages RT quantiles across ABLs (20, 40, 60) for each ILD
+  - Plots 5 representative quantiles (10%, 30%, 50%, 70%, 90%)
+  - Compares empirical data, cond-fit, and vanilla model predictions
+
 # Fig 4
 - `corner_cum_animal_params_for_paper_norm.py` - Corner plot of norm model parameters with per-animal posterior ellipses and ranked diagonal panels
 - `fig4_all_using_template.py` - Figure 4 standalone: 2x2 grid with psychometric, quantiles, gamma, and slopes plots
