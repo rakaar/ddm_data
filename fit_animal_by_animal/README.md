@@ -176,6 +176,25 @@ This section documents the workflow for creating the supplementary figure showin
 - `compare_animal_params_for_paper.py` - Plots parameters (mean + 95% CI) for each animal across multiple models (aborts, vanilla tied, norm tied, time-varying norm tied). Outputs PDFs like `compare_animals_all_batches_vbmc_norm_tied_results.pdf`.
 - `corner_cum_animal_params_for_paper_norm.py` - Creates corner-style scatter plots specifically for the normalized model (`vbmc_norm_tied_results`), where each point represents an animal's mean parameter values.
 
+# Quantile Goodness-of-Fit: Theory vs Data at |ILD|=16
+
+These scripts compare theoretical RT quantiles (from model fits) against empirical RT quantiles at |ILD|=16 for ABL=20,40,60. Both scripts properly handle the ILD asymmetry by averaging theoretical CDFs for ILD=+16 and ILD=-16 (since empirical data pools both).
+
+- **`show_cond_fit_goodness_cond_vs_data.py`** - Uses **condition-by-condition gamma/omega fits**
+  - Loads gamma, omega from `fit_each_condn/each_animal_cond_fit_gama_omega_pkl_files/`
+  - Loads w, t_E_aff, del_go (avg of vanilla+norm) and abort params from animal pkl files
+  - Outputs: `ILD_16_cond_fit_quantiles.pkl`, `cond_fit_quantiles_theory_vs_data_ild16_v2.png`
+  - See `show_cond_fit_goodness_cond_vs_data_README.md` for detailed documentation
+
+- **`show_cond_fit_goodness_vanilla_vs_data.py`** - Uses **vanilla tied model parameters directly**
+  - Computes gamma/omega from vanilla tied params using `cum_pro_and_reactive_time_vary_fn`
+  - No condition-fit pkl files needed - uses only `results_{batch}_animal_{id}.pkl`
+  - Outputs: `ILD_16_vanila_model_quantiles.pkl`, `vanila_fit_quantiles_theory_vs_data_ild16.png`
+
+- **`ILD_16_quantiles_fit_compare_cond_vs_vanila.py`** - Comparison plot of both methods
+  - Loads pkl files from both scripts above
+  - Plots cond-fit (solid) vs vanilla (dotted) theoretical quantiles with empirical data
+
 # Fig 4
 - `corner_cum_animal_params_for_paper_norm.py` - Corner plot of norm model parameters with per-animal posterior ellipses and ranked diagonal panels
 - `fig4_all_using_template.py` - Figure 4 standalone: 2x2 grid with psychometric, quantiles, gamma, and slopes plots

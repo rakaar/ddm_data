@@ -48,12 +48,12 @@ ax.spines['right'].set_visible(False)
 ax.tick_params(axis='both', which='major', labelsize=12)
 
 plt.tight_layout()
-plt.savefig('cond_fit_goodness_ild16_v2.png', dpi=300, bbox_inches='tight')
+plt.savefig('cond_fit_goodness_ild16_v3.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 # %%
 # =============================================================================
-# STEP 1: Load batch-animal pairs and get gamma, omega from condition-fit pkl files
+# STEP 1: Load batch-animal pairs and get vanilla_TIED_params
 #         for ILD=16 at ABL=20,40,60
 # =============================================================================
 import os
@@ -79,24 +79,9 @@ merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
 batch_animal_pairs = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
 print(f"Found {len(batch_animal_pairs)} batch-animal pairs")
 
-# --- Function to load gamma, omega from condition-fit pkl files ---
-def get_cond_fit_params(batch_name, animal_id, ABL, ILD):
-    """Load gamma, omega from condition-by-condition fit pkl file."""
-    pkl_folder = '/home/rlab/raghavendra/ddm_data/fit_each_condn/each_animal_cond_fit_gama_omega_pkl_files'
-    pkl_file = os.path.join(pkl_folder, f'vbmc_cond_by_cond_{batch_name}_{animal_id}_{ABL}_ILD_{ILD}_FIX_t_E_w_del_go_same_as_parametric.pkl')
-    if not os.path.exists(pkl_file):
-        return None
-    with open(pkl_file, 'rb') as f:
-        vp = pickle.load(f)
-    vp = vp.vp
-    vp_samples = vp.sample(int(1e4))[0]
-    gamma = float(np.mean(vp_samples[:, 0]))
-    omega = float(np.mean(vp_samples[:, 1]))
-    return {'gamma': gamma, 'omega': omega}
-
-# --- Function to load w, t_E_aff, del_go and abort params from animal pkl file ---
+# --- Function to load vanilla_tied params and abort params from animal pkl file ---
 def get_animal_params(batch_name, animal_id):
-    """Load w, t_E_aff, del_go (avg of vanilla and norm) and abort params."""
+    """Load vanilla_tied params (rate_lambda, T_0, theta_E, w, t_E_aff, del_go) and abort params."""
     pkl_file = f'/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/results_{batch_name}_animal_{animal_id}.pkl'
     if not os.path.exists(pkl_file):
         return None
@@ -111,89 +96,76 @@ def get_animal_params(batch_name, animal_id):
         abort_params['theta_A'] = np.mean(abort_samples['theta_A_samples'])
         abort_params['t_A_aff'] = np.mean(abort_samples['t_A_aff_samp'])
     
-    # Get w, t_E_aff, del_go from both vanilla and norm, then average
+    # Get all params from vanilla_tied only
     vanilla_params = {}
-    norm_params = {}
     if 'vbmc_vanilla_tied_results' in data:
         v = data['vbmc_vanilla_tied_results']
         vanilla_params = {
+            'rate_lambda': np.mean(v['rate_lambda_samples']),
+            'T_0': np.mean(v['T_0_samples']),
+            'theta_E': np.mean(v['theta_E_samples']),
             'w': np.mean(v['w_samples']),
             't_E_aff': np.mean(v['t_E_aff_samples']),
             'del_go': np.mean(v['del_go_samples'])
         }
-    if 'vbmc_norm_tied_results' in data:
-        n = data['vbmc_norm_tied_results']
-        norm_params = {
-            'w': np.mean(n['w_samples']),
-            't_E_aff': np.mean(n['t_E_aff_samples']),
-            'del_go': np.mean(n['del_go_samples'])
-        }
-    
-    # Average
-    if vanilla_params and norm_params:
-        avg_params = {
-            'w': (vanilla_params['w'] + norm_params['w']) / 2,
-            't_E_aff': (vanilla_params['t_E_aff'] + norm_params['t_E_aff']) / 2,
-            'del_go': (vanilla_params['del_go'] + norm_params['del_go']) / 2
-        }
-    elif vanilla_params:
-        avg_params = vanilla_params
-    elif norm_params:
-        avg_params = norm_params
     else:
         return None
     
-    return {'abort_params': abort_params, 'avg_params': avg_params}
+    return {'abort_params': abort_params, 'vanilla_params': vanilla_params}
 
 # --- Load params for ILD=16, ABL=20,40,60 for all animals ---
 ABL_arr = [20, 40, 60]
 ILD_target = 16  # We only care about ILD=16
 
-# Store: {(batch, animal): {ABL: {'gamma', 'omega', 'w', 't_E_aff', 'del_go', 'V_A', 'theta_A', 't_A_aff'}}}
-animal_params_ild16 = {}
+# Store: {(batch, animal): {'vanilla_params': {...}, 'abort_params': {...}}}
+animal_params_all = {}
 
 for batch_name, animal_id in batch_animal_pairs:
     animal_id_str = str(animal_id)
     
-    # Get w, t_E_aff, del_go, abort params
-    animal_data = get_animal_params(batch_name, animal_id_str)
-    if animal_data is None:
-        print(f"Skipping {batch_name}/{animal_id_str}: no animal pkl")
+    # Check if animal has ILD=16 data in their batch CSV
+    csv_file = os.path.join(batch_dir, f'batch_{batch_name}_valid_and_aborts.csv')
+    df_check = pd.read_csv(csv_file)
+    df_animal_check = df_check[(df_check['animal'] == int(animal_id)) & (df_check['success'].isin([1, -1]))]
+    if ILD_target not in df_animal_check['ILD'].abs().unique():
+        print(f"Skipping {batch_name}/{animal_id_str}: no ILD={ILD_target} data")
         continue
     
-    animal_params_ild16[(batch_name, animal_id)] = {}
+    # Get vanilla_tied params and abort params
+    animal_data = get_animal_params(batch_name, animal_id_str)
+    if animal_data is None:
+        print(f"Skipping {batch_name}/{animal_id_str}: no animal pkl or missing vanilla_tied")
+        continue
     
-    for ABL in ABL_arr:
-        cond_params = get_cond_fit_params(batch_name, animal_id_str, ABL, ILD_target)
-        if cond_params is None:
-            print(f"  Missing cond-fit for {batch_name}/{animal_id_str} ABL={ABL} ILD={ILD_target}")
-            continue
-        
-        animal_params_ild16[(batch_name, animal_id)][ABL] = {
-            'gamma': cond_params['gamma'],
-            'omega': cond_params['omega'],
-            **animal_data['avg_params'],
-            **animal_data['abort_params']
-        }
+    vanilla_params = animal_data['vanilla_params']
+    abort_params = animal_data['abort_params']
+    
+    # Compute Z_E from w: w = 0.5 + (Z_E / (2 * theta_E)) => Z_E = (w - 0.5) * 2 * theta_E
+    Z_E = (vanilla_params['w'] - 0.5) * 2 * vanilla_params['theta_E']
+    vanilla_params['Z_E'] = Z_E
+    
+    animal_params_all[(batch_name, animal_id)] = {
+        'vanilla_params': vanilla_params,
+        'abort_params': abort_params
+    }
 
 # Print summary
-n_complete = sum(1 for v in animal_params_ild16.values() if len(v) == 3)
-print(f"\nLoaded params for {len(animal_params_ild16)} animals, {n_complete} have all 3 ABLs")
+print(f"\nLoaded params for {len(animal_params_all)} animals")
 
 # Show a sample
-sample_key = list(animal_params_ild16.keys())[0]
+sample_key = list(animal_params_all.keys())[0]
+sample_v = animal_params_all[sample_key]['vanilla_params']
 print(f"\nSample params for {sample_key}:")
-for abl, params in animal_params_ild16[sample_key].items():
-    print(f"  ABL={abl}: gamma={params['gamma']:.3f}, omega={params['omega']:.3f}, w={params['w']:.3f}")
+print(f"  rate_lambda={sample_v['rate_lambda']:.3f}, T_0={sample_v['T_0']:.6f}, theta_E={sample_v['theta_E']:.3f}")
+print(f"  w={sample_v['w']:.3f}, Z_E={sample_v['Z_E']:.3f}, t_E_aff={sample_v['t_E_aff']:.3f}")
 
 # %%
 # =============================================================================
-# STEP 2 (V2): Compute theoretical CDF using simpler formula:
-#              CDF = c_A + c_E - c_A * c_E
-#              where c_E uses CDF_E_minus_small_t_NORM_omega_gamma_with_w_fn
+# STEP 2 (V3): Compute theoretical CDF using cum_pro_and_reactive_time_vary_fn
+#              which takes rate_lambda, T_0, theta_E directly (no gamma/omega)
 #              Time is wrt fixation: t_wrt_fix = t_wrt_stim + t_stim
 # =============================================================================
-from led_off_gamma_omega_pdf_utils import cum_A_t_fn, CDF_E_minus_small_t_NORM_omega_gamma_with_w_fn
+from time_vary_norm_utils import cum_pro_and_reactive_time_vary_fn
 
 K_max = 10
 N_theory = int(1e3)
@@ -204,14 +176,9 @@ t_pts_wrt_stim = np.arange(-1, 1, 0.01)
 # Store CDFs: {ABL: list of CDF arrays (one per animal)}
 cdf_by_abl = {20: [], 40: [], 60: []}
 
-n_animals = len(animal_params_ild16)
-for animal_num, ((batch_name, animal_id), abl_dict) in enumerate(animal_params_ild16.items(), 1):
+n_animals = len(animal_params_all)
+for animal_num, ((batch_name, animal_id), params_dict) in enumerate(animal_params_all.items(), 1):
     animal_id_str = str(animal_id)
-    
-    # Skip if no ABLs available for this animal
-    if len(abl_dict) == 0:
-        print(f"  [{animal_num}/{n_animals}] Skipping {batch_name}/{animal_id_str}: no ABLs for ILD=16")
-        continue
     
     print(f"  [{animal_num}/{n_animals}] Processing {batch_name}/{animal_id_str}...", end=' ', flush=True)
     
@@ -223,62 +190,80 @@ for animal_num, ((batch_name, animal_id), abl_dict) in enumerate(animal_params_i
     # Sample t_stim from this animal's intended_fix distribution
     t_stim_samples = df_animal['intended_fix'].sample(N_theory, replace=True).values
     
-    # Get abort params (same for all ABLs) - use first available ABL
-    sample_params = list(abl_dict.values())[0]
+    # Extract params
+    vanilla_params = params_dict['vanilla_params']
+    abort_params = params_dict['abort_params']
     
-    V_A = sample_params['V_A']
-    theta_A = sample_params['theta_A']
-    t_A_aff = sample_params['t_A_aff']
+    V_A = abort_params['V_A']
+    theta_A = abort_params['theta_A']
+    t_A_aff = abort_params['t_A_aff']
+    
+    rate_lambda = vanilla_params['rate_lambda']
+    T_0 = vanilla_params['T_0']
+    theta_E = vanilla_params['theta_E']
+    Z_E = vanilla_params['Z_E']
+    t_E_aff = vanilla_params['t_E_aff']
     
     # Compute CDF for each ABL
     for ABL in ABL_arr:
-        if ABL not in abl_dict:
-            continue
-        
-        params = abl_dict[ABL]
-        gamma = params['gamma']
-        omega = params['omega']
-        w = params['w']
-        t_E_aff = params['t_E_aff']
-        
-        # Compute CDF samples for each t_stim
-        cdf_samples = np.zeros((N_theory, len(t_pts_wrt_stim)))
+        # Compute CDF samples for each t_stim, averaging over ILD=+16 and ILD=-16
+        cdf_samples_pos = np.zeros((N_theory, len(t_pts_wrt_stim)))
+        cdf_samples_neg = np.zeros((N_theory, len(t_pts_wrt_stim)))
         
         for idx, t_stim in enumerate(t_stim_samples):
             # Convert to time wrt fixation
             t_pts_wrt_fix = t_pts_wrt_stim + t_stim
             
-            # Compute CDF at each time point
+            # Compute CDF at each time point for both ILD signs
             for t_idx, t_fix in enumerate(t_pts_wrt_fix):
-                # Abort CDF
-                c_A = cum_A_t_fn(t_fix - t_A_aff, V_A, theta_A)
-                
-                # Evidence CDF (both bounds, with w)
-                t_evidence = t_pts_wrt_stim[t_idx] - t_E_aff  # time for evidence accumulator
-                c_E_up = CDF_E_minus_small_t_NORM_omega_gamma_with_w_fn(t_evidence, gamma, omega, 1, w, K_max)
-                c_E_down = CDF_E_minus_small_t_NORM_omega_gamma_with_w_fn(t_evidence, gamma, omega, -1, w, K_max)
-                c_E = c_E_up + c_E_down
-                
-                # Combined CDF
-                cdf_samples[idx, t_idx] = c_A + c_E - c_A * c_E
+                # ILD = +16
+                cdf_samples_pos[idx, t_idx] = cum_pro_and_reactive_time_vary_fn(
+                    t=t_fix,
+                    c_A_trunc_time=None,
+                    V_A=V_A, theta_A=theta_A, t_A_aff=t_A_aff,
+                    t_stim=t_stim, ABL=ABL, ILD=ILD_target,
+                    rate_lambda=rate_lambda, T0=T_0, theta_E=theta_E, Z_E=Z_E, t_E_aff=t_E_aff,
+                    phi_params=None, rate_norm_l=0,
+                    is_norm=False, is_time_vary=False, K_max=K_max
+                )
+                # ILD = -16
+                cdf_samples_neg[idx, t_idx] = cum_pro_and_reactive_time_vary_fn(
+                    t=t_fix,
+                    c_A_trunc_time=None,
+                    V_A=V_A, theta_A=theta_A, t_A_aff=t_A_aff,
+                    t_stim=t_stim, ABL=ABL, ILD=-ILD_target,
+                    rate_lambda=rate_lambda, T0=T_0, theta_E=theta_E, Z_E=Z_E, t_E_aff=t_E_aff,
+                    phi_params=None, rate_norm_l=0,
+                    is_norm=False, is_time_vary=False, K_max=K_max
+                )
         
-        # Average CDF across t_stim samples
-        cdf_mean = np.mean(cdf_samples, axis=0)
+        # Average CDF across t_stim samples for each ILD sign
+        cdf_mean_pos = np.mean(cdf_samples_pos, axis=0)
+        cdf_mean_neg = np.mean(cdf_samples_neg, axis=0)
         
         # Extract CDF for t_wrt_stim in [0, 1]
         mask_0_1 = (t_pts_wrt_stim >= 0) & (t_pts_wrt_stim <= 1)
-        cdf_0_1 = cdf_mean[mask_0_1]
+        cdf_0_1_pos = cdf_mean_pos[mask_0_1]
+        cdf_0_1_neg = cdf_mean_neg[mask_0_1]
         
-        # Normalize: subtract CDF(0) and rescale so CDF goes from 0 to 1
+        # Normalize each CDF separately before averaging
         # This removes the abort probability that occurred before stimulus
-        cdf_at_0 = cdf_0_1[0]
-        cdf_at_end = cdf_0_1[-1]
-        if cdf_at_end > cdf_at_0:
-            cdf_0_1 = (cdf_0_1 - cdf_at_0) / (cdf_at_end - cdf_at_0)
+        cdf_at_0_pos = cdf_0_1_pos[0]
+        cdf_at_end_pos = cdf_0_1_pos[-1]
+        if cdf_at_end_pos > cdf_at_0_pos:
+            cdf_0_1_pos = (cdf_0_1_pos - cdf_at_0_pos) / (cdf_at_end_pos - cdf_at_0_pos)
+        
+        cdf_at_0_neg = cdf_0_1_neg[0]
+        cdf_at_end_neg = cdf_0_1_neg[-1]
+        if cdf_at_end_neg > cdf_at_0_neg:
+            cdf_0_1_neg = (cdf_0_1_neg - cdf_at_0_neg) / (cdf_at_end_neg - cdf_at_0_neg)
+        
+        # Average the normalized CDFs (matching how data pools +16 and -16 trials)
+        cdf_0_1 = 0.5 * (cdf_0_1_pos + cdf_0_1_neg)
         
         cdf_by_abl[ABL].append(cdf_0_1)
     
-    print(f"done ({len(abl_dict)} ABLs)")
+    print(f"done (3 ABLs)")
 
 # Time points for CDF (wrt stim, in [0, 1])
 t_cdf = t_pts_wrt_stim[(t_pts_wrt_stim >= 0) & (t_pts_wrt_stim <= 1)]
@@ -306,17 +291,17 @@ for ABL in ABL_arr:
 
 ax.set_xlabel('RT (s)', fontsize=14)
 ax.set_ylabel('CDF', fontsize=14)
-ax.set_title('Theoretical CDF at |ILD| = 16 dB (V2 - simpler formula)', fontsize=14)
+ax.set_title('Theoretical CDF at |ILD| = 16 dB (V3 - using vanilla_tied params)', fontsize=14)
 ax.legend()
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.set_xlim(0, 1)
 ax.set_ylim(0, 1)
 plt.tight_layout()
-plt.savefig('cond_fit_theoretical_cdf_ild16_v2.png', dpi=300, bbox_inches='tight')
+plt.savefig('cond_fit_theoretical_cdf_ild16_v3.png', dpi=300, bbox_inches='tight')
 plt.show()
 
-print(f"\nCDF computation complete. Saved plot to cond_fit_theoretical_cdf_ild16_v2.png")
+print(f"\nCDF computation complete. Saved plot to cond_fit_theoretical_cdf_ild16_v3.png")
 
 # %%
 # =============================================================================
@@ -370,6 +355,27 @@ for ABL in ABL_arr:
 # --- Plot: Theoretical quantile curves with empirical data overlaid ---
 abl_colors = {20: 'tab:blue', 40: 'tab:orange', 60: 'tab:green'}
 
+# Save data for plotting in a separate file
+quantiles_data = {
+    'theory': {
+        'quantile_levels': quantile_levels,
+        'mean_quantiles': mean_quantiles,
+        'sem_quantiles': sem_quantiles,
+    },
+    'empirical': {
+        'plotting_quantiles': plotting_quantiles,
+        'mean_unscaled': mean_unscaled,
+        'sem_unscaled': sem_unscaled,
+        'ild_idx': ild_idx,
+    },
+    'ABL_arr': ABL_arr,
+    'abl_colors': abl_colors,
+    'ILD_target': ILD_target,
+}
+with open('ILD_16_vanila_model_quantiles.pkl', 'wb') as f:
+    pickle.dump(quantiles_data, f)
+print("Saved quantiles data to ILD_16_vanila_model_quantiles.pkl")
+
 fig, ax = plt.subplots(figsize=(7, 6))
 
 # Plot theoretical quantile curves (continuous, with SEM shaded)
@@ -400,7 +406,7 @@ for abl in ABL_arr:
 
 ax.set_xlabel('Quantile', fontsize=14)
 ax.set_ylabel('RT (s)', fontsize=14)
-# ax.set_title('Theoretical vs Empirical RT Quantiles at |ILD| = 16 dB (V2)', fontsize=14)
+# ax.set_title('Theoretical vs Empirical RT Quantiles at |ILD| = 16 dB (V3)', fontsize=14)
 # ax.legend(loc='upper left', fontsize=10)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
@@ -412,8 +418,8 @@ ax.set_xticks([0.1, 0.3, 0.5, 0.7, 0.9])
 ax.set_xticklabels(['10', '30', '50', '70', '90'])
 
 plt.tight_layout()
-plt.savefig('cond_fit_quantiles_theory_vs_data_ild16_v2.png', dpi=300, bbox_inches='tight')
+plt.savefig('cond_fit_quantiles_theory_vs_data_ild16_v3.png', dpi=300, bbox_inches='tight')
 plt.show()
 
-print(f"\nQuantile comparison saved to cond_fit_quantiles_theory_vs_data_ild16_v2.png")
+print(f"\nQuantile comparison saved to cond_fit_quantiles_theory_vs_data_ild16_v3.png")
 # %%
