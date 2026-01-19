@@ -110,6 +110,113 @@ print("Saved: R2_mean_vs_ILD.png")
 
 # %%
 # =============================================================================
+# Plot 3: R² color-coded on stimulus set (Left SL vs Right SL)
+# =============================================================================
+# Convert (ABL, ILD) to (Left SL, Right SL)
+# ABL = (Left SL + Right SL) / 2
+# ILD = Right SL - Left SL
+# => Right SL = ABL + ILD/2, Left SL = ABL - ILD/2
+
+# We need both positive and negative ILDs for the full stimulus set
+all_ILDs = [-16, -8, -4, -2, -1, 1, 2, 4, 8, 16]
+
+# Build arrays for plotting
+right_sl_all = []
+left_sl_all = []
+r2_vanilla_all = []
+r2_cond_all = []
+
+for abl in ABL_arr:
+    for ild in all_ILDs:
+        right_sl = abl + ild / 2
+        left_sl = abl - ild / 2
+        right_sl_all.append(right_sl)
+        left_sl_all.append(left_sl)
+        
+        # Get R² for |ILD| (since we only have data for positive ILDs)
+        abs_ild = abs(ild)
+        ild_idx = ILD_VALUES.index(abs_ild)
+        r2_vanilla_all.append(R2_vanilla_per_ABL[abl][ild_idx])
+        r2_cond_all.append(R2_cond_per_ABL[abl][ild_idx])
+
+right_sl_all = np.array(right_sl_all)
+left_sl_all = np.array(left_sl_all)
+r2_vanilla_all = np.array(r2_vanilla_all)
+r2_cond_all = np.array(r2_cond_all)
+
+# Find common color range for R²
+# vmin = min(r2_vanilla_all.min(), r2_cond_all.min())
+vmin = 0.75
+vmax = max(r2_vanilla_all.max(), r2_cond_all.max())
+
+# Percentage increase: 100 * (cond - vanilla) / vanilla
+r2_pct_increase = 100 * (r2_cond_all - r2_vanilla_all) / r2_vanilla_all
+
+# Colormap options:
+# Sequential: 'viridis', 'plasma', 'inferno', 'magma', 'cividis', 'hot', 'cool', 'YlOrRd', 'Blues'
+# Diverging: 'RdYlGn', 'RdBu', 'coolwarm', 'seismic', 'PiYG', 'PRGn', 'BrBG'
+cmap_type = 'Blues'
+CMAP_R2 = cmap_type        # for R² panels
+CMAP_PCT = cmap_type        # for % increase panel
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 5))
+
+# Left panel: Vanilla R²
+ax = axes[0]
+sc1 = ax.scatter(right_sl_all, left_sl_all, c=r2_vanilla_all, cmap=CMAP_R2, 
+                  s=100, vmin=vmin, vmax=vmax, edgecolors='k', linewidths=0.5)
+ax.plot([10, 70], [10, 70], 'k--', alpha=0.5, linewidth=1)  # diagonal ABL line
+ax.set_xlabel('Right SL (dB SPL)', fontsize=12)
+ax.set_ylabel('Left SL (dB SPL)', fontsize=12)
+ax.set_title(f'Vanilla R² ({CMAP_R2})', fontsize=14)
+ax.set_xlim(10, 70)
+ax.set_ylim(10, 70)
+ax.set_aspect('equal')
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+# Middle panel: Cond-fit R²
+ax = axes[1]
+sc2 = ax.scatter(right_sl_all, left_sl_all, c=r2_cond_all, cmap=CMAP_R2, 
+                  s=100, vmin=vmin, vmax=vmax, edgecolors='k', linewidths=0.5)
+ax.plot([10, 70], [10, 70], 'k--', alpha=0.5, linewidth=1)  # diagonal ABL line
+ax.set_xlabel('Right SL (dB SPL)', fontsize=12)
+ax.set_ylabel('Left SL (dB SPL)', fontsize=12)
+ax.set_title(f'Cond-fit R² ({CMAP_R2})', fontsize=14)
+ax.set_xlim(10, 70)
+ax.set_ylim(10, 70)
+ax.set_aspect('equal')
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+# Shared colorbar for R² panels
+cbar1 = fig.colorbar(sc2, ax=axes[:2], shrink=0.8, pad=0.02)
+cbar1.set_label('R²', fontsize=12)
+
+# Right panel: Percentage increase
+ax = axes[2]
+sc3 = ax.scatter(right_sl_all, left_sl_all, c=r2_pct_increase, cmap=CMAP_PCT, 
+                  s=100, edgecolors='k', linewidths=0.5)
+ax.plot([10, 70], [10, 70], 'k--', alpha=0.5, linewidth=1)  # diagonal ABL line
+ax.set_xlabel('Right SL (dB SPL)', fontsize=12)
+ax.set_ylabel('Left SL (dB SPL)', fontsize=12)
+ax.set_title(f'% increase ({CMAP_PCT})', fontsize=14)
+ax.set_xlim(10, 70)
+ax.set_ylim(10, 70)
+ax.set_aspect('equal')
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+# Colorbar for percentage increase
+cbar2 = fig.colorbar(sc3, ax=axes[2], shrink=0.8)
+cbar2.set_label('% increase', fontsize=12)
+
+plt.savefig('R2_stimulus_set_colormap.png', dpi=300, bbox_inches='tight')
+plt.show()
+print("Saved: R2_stimulus_set_colormap.png")
+
+# %%
+# =============================================================================
 # Print summary table
 # =============================================================================
 print("\n" + "="*60)
@@ -131,3 +238,4 @@ for i, ild in enumerate(ILD_VALUES):
           f"{R2_cond_per_ABL[60][i]:<10.4f} {R2_vanilla_per_ABL[60][i]:<10.4f}")
 
 # %%
+# TODO
