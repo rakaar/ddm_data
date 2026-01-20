@@ -10,6 +10,7 @@
 - `post_LED_drift_and_motor_fit_VBMC.ipynb` - LED on data, fits post-LED drift and motor delay (2 params), V_A and theta_A fixed
 - `aborts_animal_wise_explore.py` - plots abort rate vs LED onset time per animal for LED ON/OFF, with peak time and area calculations
 - `less_than_300_LED7.py` - analyzes aborts with timed_fix < 300ms for LED7 session across animals
+- `simulate_and_fit_proactive_all_at_once.py` - Simulates proactive process with single bound accumulator, drift change after LED onset, and compares theoretical vs simulated RT distributions for LED ON/OFF trials
 
 
 - `fit_added_noise/psiam_tied_dv_map_utils_with_PDFs.py` - has post LED effect funcs - `stupid_f_integral` and `PA_with_LEDON_2`
