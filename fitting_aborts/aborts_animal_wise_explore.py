@@ -67,8 +67,10 @@ for i, animal in enumerate(unique_animals):
     df_off = df_animal[df_animal['LED_trial'].isin([0, np.nan])]
 
     df_on_aborts = df_on[df_on['abort_event'] == 3]
+    print(f'For animal {animal}, Num of LED ON Aborts = {len(df_on_aborts)}')
     df_off_aborts = df_off[df_off['abort_event'] == 3]
-
+    print(f'For animal {animal}, Num of LED OFF Aborts = {len(df_off_aborts)}')
+    print('-------------------------------------')
     df_on_abort_times = df_on_aborts['timed_fix'] - (df_on_aborts['intended_fix'] - df_on_aborts['LED_onset_time'])
     df_off_abort_times = df_off_aborts['timed_fix'] - (df_off_aborts['intended_fix'] - df_off_aborts['LED_onset_time'])
 
