@@ -12,6 +12,7 @@
 - `less_than_300_LED7.py` - analyzes aborts with timed_fix < 300ms for LED7 session across animals
 - `simulate_and_fit_proactive_all_at_once.py` - Simulates proactive process with single bound accumulator, drift change after LED onset, and compares theoretical vs simulated RT distributions for LED ON/OFF trials
 - `simulate_and_fit_proactive_all_at_once_truncate_300.py` - Same as above but with left truncation (T_trunc=0.6s) and censoring verification. Includes theoretical PDF calculations with truncation, Monte Carlo averaging over (t_stim, t_LED) pairs, and survival probability calculations for censoring validation
+- `fit_simulated_data_all_proactive_LED.py` - Simulates proactive LED ON/OFF data, defines truncation/censoring log-likelihood, and validates it via histogram vs theory plus censoring checks
 
 
 - `fit_added_noise/psiam_tied_dv_map_utils_with_PDFs.py` - has post LED effect funcs - `stupid_f_integral` and `PA_with_LEDON_2`

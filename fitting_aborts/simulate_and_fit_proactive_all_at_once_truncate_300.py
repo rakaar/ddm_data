@@ -341,7 +341,7 @@ print(f"LED ON - Total trials (after truncation): {len(sim_rts_on)}")
 
 # %%
 # Calculate theoretical survival probability (1 - CDF(t_stim)) via Monte Carlo
-N_mc = 1000
+N_mc = 5000
 
 # LED OFF
 survival_off_samples = []
@@ -415,3 +415,6 @@ print(f"LED ON - Fraction of trials after t_stim (theoretical): {theoretical_sur
 print(f"LED ON - Difference (sim - theory): {frac_after_t_stim_on - theoretical_survival_on:.6f}")
 
 # %%
+# TODO
+# 1. time taken in this
+# 2. censoring is more off? 
