@@ -332,12 +332,126 @@ def log_likelihood(params, data):
     return log_lik
 ```
 
+## VBMC Fitting Setup
+
+### Parameters to Fit
+
+Six parameters define the proactive process model:
+
+1. **V_A_base**: Base drift rate (before LED)
+2. **V_A_post_LED**: Post-LED drift rate
+3. **theta_A**: Decision boundary
+4. **t_aff**: Afferent delay (time before accumulation starts)
+5. **t_effect**: LED effect delay (time from LED to drift change)
+6. **motor_delay**: Motor delay (time from boundary crossing to response)
+
+### Prior Distributions
+
+Use **trapezoidal log-prior** for each parameter:
+
+```python
+def trapezoidal_logpdf(x, a, b, c, d):
+    """
+    Trapezoidal prior: flat between [b, c], linear ramps on [a, b] and [c, d]
+    """
+    if x < a or x > d:
+        return -np.inf
+    elif x < b:
+        return np.log((x - a) / (b - a))
+    elif x <= c:
+        return 0.0
+    else:
+        return np.log((d - x) / (d - c))
+```
+
+### Parameter Bounds
+
+Define four types of bounds for VBMC:
+
+- **LB**: Hard lower bound (must not go below)
+- **UB**: Hard upper bound (must not go above)
+- **PLB**: Plausible lower bound (likely range start)
+- **PUB**: Plausible upper bound (likely range end)
+
+Example ranges (adjust based on prior knowledge):
+
+| Parameter      | LB    | PLB   | PUB   | UB    | Prior [a,b,c,d]    |
+|----------------|-------|-------|-------|-------|--------------------|
+| V_A_base       | 0.5   | 1.5   | 2.5   | 5.0   | [0.5, 1.5, 2.5, 5.0] |
+| V_A_post_LED   | 0.5   | 2.0   | 3.5   | 6.0   | [0.5, 2.0, 3.5, 6.0] |
+| theta_A        | 0.5   | 1.0   | 2.0   | 3.0   | [0.5, 1.0, 2.0, 3.0] |
+| t_aff          | 0.01  | 0.03  | 0.06  | 0.15  | [0.01, 0.03, 0.06, 0.15] |
+| t_effect       | 0.01  | 0.02  | 0.05  | 0.10  | [0.01, 0.02, 0.05, 0.10] |
+| motor_delay    | 0.02  | 0.04  | 0.07  | 0.12  | [0.02, 0.04, 0.07, 0.12] |
+
+### Joint Function
+
+VBMC requires a joint log-probability function combining prior and likelihood:
+
+```python
+def vbmc_joint(params):
+    V_A_base, V_A_post_LED, theta_A, t_aff, t_effect, motor_delay = params
+    
+    # Compute log-prior
+    log_prior = 0
+    log_prior += trapezoidal_logpdf(V_A_base, 0.5, 1.5, 2.5, 5.0)
+    log_prior += trapezoidal_logpdf(V_A_post_LED, 0.5, 2.0, 3.5, 6.0)
+    log_prior += trapezoidal_logpdf(theta_A, 0.5, 1.0, 2.0, 3.0)
+    log_prior += trapezoidal_logpdf(t_aff, 0.01, 0.03, 0.06, 0.15)
+    log_prior += trapezoidal_logpdf(t_effect, 0.01, 0.02, 0.05, 0.10)
+    log_prior += trapezoidal_logpdf(motor_delay, 0.02, 0.04, 0.07, 0.12)
+    
+    if not np.isfinite(log_prior):
+        return -np.inf
+    
+    # Compute log-likelihood
+    log_lik = proactive_led_loglike(params)
+    
+    return log_prior + log_lik
+```
+
+### VBMC Optimization
+
+```python
+from pyvbmc import VBMC
+
+# Initial point (use ground truth or reasonable guess)
+x0 = np.array([1.8, 2.4, 1.5, 0.04, 0.035, 0.05])
+
+# Bounds
+LB = np.array([0.5, 0.5, 0.5, 0.01, 0.01, 0.02])
+UB = np.array([5.0, 6.0, 3.0, 0.15, 0.10, 0.12])
+PLB = np.array([1.5, 2.0, 1.0, 0.03, 0.02, 0.04])
+PUB = np.array([2.5, 3.5, 2.0, 0.06, 0.05, 0.07])
+
+# Run VBMC
+vbmc = VBMC(vbmc_joint, x0, LB, UB, PLB, PUB)
+vp, results = vbmc.optimize()
+
+# Sample from posterior
+samples = vp.sample(10000)
+```
+
+### Posterior Visualization
+
+Use corner plots to visualize parameter correlations:
+
+```python
+import corner
+
+param_names = ['V_A_base', 'V_A_post_LED', 'theta_A', 't_aff', 't_effect', 'motor_delay']
+fig = corner.corner(samples, labels=param_names, truths=x0, 
+                    quantiles=[0.16, 0.5, 0.84], show_titles=True)
+plt.savefig('posterior_corner_plot.pdf')
+```
+
 ## Files
 
 ### Main Scripts
 
 - **`simulate_and_fit_proactive_all_at_once.py`**: Simulates proactive process without truncation, compares theoretical vs simulated RT distributions
-- **`simulate_and_fit_proactive_all_at_once_truncate_300.py`**: Same as above with left truncation (T_trunc=0.6s) and censoring verification
+- **`testing_v1_proactive_LED_theory.py`**: Same as above with left truncation (T_trunc=0.6s) and censoring verification
+- **`test_vbmc_proactive_led_likelihood.py`**: Tests likelihood functions with simulated data (histogram vs theory, censoring checks)
 
 ### Utility Functions
 
@@ -345,6 +459,7 @@ def log_likelihood(params, data):
   - `d_A_RT(a, t)`: Base PA PDF
   - `stupid_f_integral(v, vON, theta, t, tp)`: Post-LED PDF
   - `PA_with_LEDON_2(t, v, vON, a, tfix, tled, delta_A)`: Combined LED ON PDF
+- **`post_LED_censor_utils.py`**: Contains `cum_A_t_fn` for analytic CDF calculations
 
 ## References
 
