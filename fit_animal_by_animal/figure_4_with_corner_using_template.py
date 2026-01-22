@@ -274,6 +274,12 @@ def plot_corner(axes, corner_data, tick_labelsize=15, label_fontsize=None):
     overlay_point_size = 48.0
     diag_ranked = True
     diag_ranked_ci = 95.0
+    tick_overrides = {
+        'T_0': [0.1, 0.2],
+        'theta_E': [2.0, 3.0],
+        'rate_norm_l': [0.8, 0.9, 1.0],
+        'rate_lambda': [1.5, 2.5],
+    }
     
     for i, py in enumerate(params):
         for j, px in enumerate(params):
@@ -316,9 +322,12 @@ def plot_corner(axes, corner_data, tick_labelsize=15, label_fontsize=None):
                         ax.set_ylim(-0.5, len(stats) - 0.5)
                         # Offset ticks inward to prevent overlap with adjacent plots
                         x_range = lims[px][1] - lims[px][0]
-                        _xt = [lims[px][0] + 0.1*x_range, lims[px][1] - 0.1*x_range]
+                        _xt = tick_overrides.get(
+                            px,
+                            [lims[px][0] + 0.1*x_range, lims[px][1] - 0.1*x_range],
+                        )
                         ax.set_xticks(_xt)
-                        ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+                        ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
                         # Add "Rat ID" ylabel and y-ticks to topmost diagonal box
                         if i == 0:
                             ax.set_yticks([0, len(stats) - 1])
@@ -391,12 +400,18 @@ def plot_corner(axes, corner_data, tick_labelsize=15, label_fontsize=None):
                 # Offset ticks inward to prevent overlap with adjacent plots
                 x_range = lims[px][1] - lims[px][0]
                 y_range = lims[py][1] - lims[py][0]
-                _xt = [lims[px][0] + 0.1*x_range, lims[px][1] - 0.1*x_range]
-                _yt = [lims[py][0] + 0.1*y_range, lims[py][1] - 0.1*y_range]
+                _xt = tick_overrides.get(
+                    px,
+                    [lims[px][0] + 0.1*x_range, lims[px][1] - 0.1*x_range],
+                )
+                _yt = tick_overrides.get(
+                    py,
+                    [lims[py][0] + 0.1*y_range, lims[py][1] - 0.1*y_range],
+                )
                 ax.set_xticks(_xt)
                 ax.set_yticks(_yt)
-                ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-                ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+                ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+                ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
             else:
                 # Upper triangle: hide
                 ax.axis('off')

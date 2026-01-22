@@ -222,6 +222,19 @@ def load_means_stds_for_norm_tied(
     return means_dict, stds_dict, labels, colors
 
 
+def print_group_param_means(means: Dict[str, List[float]], params: List[str]) -> None:
+    """Print mean across animals for each parameter's posterior mean."""
+    print("\nMean across animals (mean of per-animal posterior means)")
+    print("-" * 60)
+    for p in params:
+        vals = np.asarray(means.get(p, []), dtype=float)
+        vals = vals[np.isfinite(vals)]
+        if vals.size == 0:
+            print(f"{p:<12} : NaN")
+        else:
+            print(f"{p:<12} : {np.nanmean(vals):.4f}  (n={vals.size})")
+
+
 def load_samples_flat_for_norm_tied(
     results_dir: str,
     animal_batch_tuples: List[Tuple[str, int]],
@@ -794,6 +807,7 @@ def main(argv=None):
         means_overlay, _stds_overlay, _labels_overlay, _colors_overlay = load_means_stds_for_norm_tied(
             RESULTS_DIR, animal_tuples, params
         )
+        print_group_param_means(means_overlay, params)
         if args.fit_ellipses:
             # Grouped samples per animal to fit ellipses (colors by batch)
             grouped, labels_grp, colors_grp = load_samples_grouped_for_norm_tied(
@@ -858,6 +872,7 @@ def main(argv=None):
         if len(labels) == 0:
             print('No animals with Norm TIED results found for selected batches/params.')
             return
+        print_group_param_means(means, params)
         # Use a single color for all animals
         colors = ['#8B0000'] * len(labels)
         title = 'Norm TIED: per-animal parameter means'

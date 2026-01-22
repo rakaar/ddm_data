@@ -119,6 +119,7 @@
 ## supp
 - `corner_cum_animal_params_for_paper.py` - corner style, mean and sample covariance ellipse
 - `compare_animal_params_for_paper.py` - for each model, for each animal, param analysis - tables, descending order plots, ELBO & loglike comparison
+- `generate_latex_tables.py` - Generates LaTeX tables from CSV files for paper parameter tables (aborts, vanilla, norm models)
 
 ## Supplementary Lapses Figure
 

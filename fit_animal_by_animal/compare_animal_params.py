@@ -272,3 +272,113 @@ for model_title, param_means in overall_param_means.items():
             print(f"  {label}: {value:.6g}")
         except Exception:
             print(f"  {label}: {value}")
+
+
+# %%
+# %%
+# Create CSV files for each model with consistent animal order
+
+# First, find common animals across all 3 models
+models_to_export = ['vbmc_aborts_results', 'vbmc_vanilla_tied_results', 'vbmc_norm_tied_results']
+common_animals = set(animal_batch_tuples)
+
+for model_key in models_to_export:
+    model_animals = set()
+    for batch, animal_id in animal_batch_tuples:
+        pkl_fname = f'results_{batch}_animal_{animal_id}.pkl'
+        pkl_path = os.path.join(RESULTS_DIR, pkl_fname)
+        if not os.path.exists(pkl_path):
+            continue
+        with open(pkl_path, 'rb') as f:
+            results = pickle.load(f)
+        if model_key not in results:
+            continue
+        model_animals.add((batch, animal_id))
+    common_animals &= model_animals
+
+# Sort the common animals to ensure consistent ordering
+common_animals = sorted(list(common_animals), key=lambda x: (x[0], x[1]))
+print(f"Found {len(common_animals)} animals with data for all 3 models")
+
+# Create CSV for each model
+for model_key in models_to_export:
+    # Get model config
+    model_config = [mc for mc in model_configs if mc[0] == model_key][0]
+    _, param_keys, param_labels, plot_title = model_config
+
+    # Parameters to convert to ms (multiply by 1000)
+    params_to_ms = {
+        'vbmc_aborts_results': ['t_A_aff'],
+        'vbmc_vanilla_tied_results': ['T_0', 't_E_aff', 'del_go'],
+        'vbmc_norm_tied_results': ['T_0', 't_E_aff', 'del_go'],
+    }
+
+    # Build data dict
+    data = {'Animal': []}
+    for param_label in param_labels:
+        if param_label in params_to_ms.get(model_key, []):
+            data[f'{param_label}_ms'] = []
+            data[f'{param_label}_ms_std'] = []
+        else:
+            data[f'{param_label}_mean'] = []
+            data[f'{param_label}_std'] = []
+
+    for batch, animal_id in common_animals:
+        animal_name = f'{batch}-{animal_id}'
+        data['Animal'].append(animal_name)
+
+        pkl_fname = f'results_{batch}_animal_{animal_id}.pkl'
+        pkl_path = os.path.join(RESULTS_DIR, pkl_fname)
+        with open(pkl_path, 'rb') as f:
+            results = pickle.load(f)
+
+        for param_key, param_label in zip(param_keys, param_labels):
+            samples = np.asarray(results[model_key][param_key])
+            mean = np.mean(samples)
+            std = np.std(samples)
+
+            if param_label in params_to_ms.get(model_key, []):
+                # Convert to ms
+                data[f'{param_label}_ms'].append(mean * 1000)
+                data[f'{param_label}_ms_std'].append(std * 1000)
+            else:
+                data[f'{param_label}_mean'].append(mean)
+                data[f'{param_label}_std'].append(std)
+
+    # Save to CSV
+    df = pd.DataFrame(data)
+    csv_name = f'compare_animals_{model_key}.csv'
+    csv_path = os.path.join(RESULTS_DIR, csv_name)
+
+    # Add aggregate row at the end
+    agg_row = {'Animal': 'Aggregate'}
+    n_animals = len(common_animals)
+    for col in df.columns:
+        if col == 'Animal':
+            continue
+        values = df[col].values
+        if '_ms' in col and '_ms_std' not in col:
+            # Mean column for ms parameters
+            agg_row[col] = np.nanmean(values)
+        elif '_ms_std' in col:
+            # Std column for ms parameters - convert to standard error of mean
+            mean_col = col.replace('_ms_std', '_ms')
+            mean_values = df[mean_col].values
+            std_values = values
+            # SEM = std / sqrt(n)
+            agg_row[col] = np.nanmean(std_values) / np.sqrt(n_animals)
+        elif '_mean' in col:
+            # Mean column for non-ms parameters
+            agg_row[col] = np.nanmean(values)
+        elif '_std' in col:
+            # Std column for non-ms parameters - convert to standard error of    mean
+            mean_col = col.replace('_std', '_mean')
+            mean_values = df[mean_col].values
+            std_values = values
+            # SEM = std / sqrt(n)
+            agg_row[col] = np.nanmean(std_values) / np.sqrt(n_animals)
+
+    df = pd.concat([df, pd.DataFrame([agg_row])], ignore_index=True)
+    df.to_csv(csv_path, index=False)
+    print(f'Saved: {csv_name}')
+
