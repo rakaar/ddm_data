@@ -42,7 +42,8 @@
 - see_only_psycho_all_ILD_tied_for_paper.py: Psychometric plots, vanila, norm
 
 ## gamma cond by cond fit vs theoretical obtained from model fit
-- `fit_single_rat_condn_by_condn_fix_t_E_w_del_go_all_animals_loop_for_paper.py` - Fit cond by cond for each animal
+- `fit_single_rat_condn_by_condn_fix_t_E_w_del_go_all_animals_loop_for_paper.py` - Fit cond by cond for each animal (2 params: gamma, omega; w, t_E_aff, del_go fixed from parametric fit)
+- `fit_single_rat_condn_by_condn_5_params_all_animals_loop.py` - Fit cond by cond for each animal (5 params: gamma, omega, t_E_aff, w, del_go all fitted per condition). Saves to `each_animal_cond_fit_5_params_pkl_files/`
 - `diagnostics_cond_by_cond_fit_fix_t_E_aff_w_del_go_all_animals_for_paper.py` - Diagnostics for cond by cond fit done above
 - `compare_gamma_from_cond_fit_and_norm_model_fit_for_paper.py` - Compare gamma from cond by cond fit and gamma from vanilla,norm model fit
 
@@ -199,7 +200,12 @@ These scripts compare theoretical RT quantiles (from model fits) against empiric
 - **`quantile_gof_all_ILDs.py`** - Compute R² goodness-of-fit for all ILDs (1, 2, 4, 8, 16)
   - Parallel processing across ILDs for efficiency
   - Saves `quantiles_gof_ILD_{ild}.pkl` for each ILD with theory quantiles and R² metrics
-  - Compares cond-fit vs vanilla model at each ILD
+  - Compares cond-fit (2-param: gamma, omega) vs vanilla model at each ILD
+
+- **`quantile_gof_all_ILDs_more_params.py`** - Compute R² goodness-of-fit for 5-param condition fits
+  - Uses condition fits where gamma, omega, t_E_aff, w, del_go are all fitted per condition
+  - Reads pkl files from `each_animal_cond_fit_5_params_pkl_files/`
+  - Saves `quantiles_gof_ILD_{ild}_more_params.pkl` for integration with `plot_R2_vs_ILD.py`
 
 - **`ILD_quantiles_fit_compare_cond_vs_vanila.py`** - Generalized comparison plot for any ILD
   - Change `ILD_TARGET` (1, 2, 4, 8, or 16) at top of script

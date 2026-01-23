@@ -385,10 +385,17 @@ print("\nVBMC optimization complete!")
 # %%
 # Save results
 vp.save('vbmc_simulated_proactive_LED_fit.pkl')
+
+# Extract picklable data from results (avoid pickling the full results object)
+results_summary = {
+    'elbo': results.get('elbo', None),
+    'elbo_sd': results.get('elbo_sd', None),
+    'convergence_status': results.get('convergence_status', None)
+}
+
 with open('vbmc_simulated_proactive_LED_results.pkl', 'wb') as f:
     pickle.dump({
-        'vp': vp,
-        'results': results,
+        'results_summary': results_summary,
         'ground_truth': {
             'V_A_base': V_A_base_true,
             'V_A_post_LED': V_A_post_LED_true,
