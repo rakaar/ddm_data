@@ -1,3 +1,69 @@
+"""
+VBMC Fitting of Simulated Proactive Process Data with LED ON/OFF Conditions
+============================================================================
+
+This script performs parameter recovery on simulated data from a proactive process model
+using Variational Bayesian Monte Carlo (VBMC). It validates the fitting pipeline by:
+1. Simulating data with known ground truth parameters
+2. Fitting the model using VBMC
+3. Comparing fitted vs true parameters
+
+SCRIPT STRUCTURE (cell-by-cell):
+--------------------------------
+1. **Imports** - numpy, matplotlib, joblib, pandas, pyvbmc, corner
+2. **Load Data** - Load real experimental data to get LED/stimulus timing distributions
+3. **Ground Truth Parameters** - Define true parameters for simulation
+4. **Simulation Function** - `simulate_proactive_single_bound()`: Single-bound accumulator with drift change at LED onset
+5. **Generate Simulated Data** - Simulate N_sim trials (3000 default) with ground truth params
+6. **Likelihood Functions**:
+   - `PA_with_LEDON_2_adapted()`: PDF for LED ON trials (handles drift change)
+   - `led_off_pdf_truncated()`: PDF for LED OFF trials
+   - `led_on_survival_truncated()`: Survival probability for censored LED ON trials
+   - `led_off_survival_truncated()`: Survival probability for censored LED OFF trials
+   - `compute_trial_loglike()`: Single trial log-likelihood (handles truncation & censoring)
+   - `proactive_led_loglike()`: Total log-likelihood across all trials
+7. **Prior Functions** - Trapezoidal priors for VBMC
+8. **VBMC Setup** - Define bounds, plausible bounds, and joint function
+9. **Run VBMC** - Optimize and get posterior samples
+10. **Posterior Visualization** - Corner plot of posterior
+11. **Theoretical RTD Calculation** - Monte Carlo computation of theoretical RT distributions
+12. **Large-scale Simulation** - 200K trials with ground truth params for plotting
+13. **Comparison Plots**:
+    - RTD comparison: simulated vs theoretical (ground truth & fitted)
+    - RT wrt LED: histograms of RT - t_LED for ground truth vs fitted simulations
+
+MODEL PARAMETERS:
+-----------------
+- V_A_base: Base drift rate (before LED effect)
+- V_A_post_LED: Drift rate after LED onset + t_effect
+- theta_A: Decision threshold
+- t_aff: Afferent delay (process start time)
+- t_effect: Delay from LED onset to drift change
+- motor_delay: Motor execution delay added to decision time
+
+KEY CONCEPTS:
+-------------
+- **Truncation**: Trials with RT <= T_trunc (0.3s) are excluded
+- **Censoring**: Trials where RT > t_stim contribute survival probability instead of PDF
+- **LED ON**: Drift changes from V_A_base to V_A_post_LED at t_LED + t_effect
+- **LED OFF**: Constant drift V_A_base throughout
+
+OUTPUT FILES:
+-------------
+- vbmc_simulated_proactive_LED_corner.pdf: Posterior corner plot
+- vbmc_simulated_proactive_LED_rtd_comparison.pdf: RTD comparison plot
+- vbmc_simulated_proactive_LED_rt_wrt_led_comparison.pdf: RT wrt LED histograms
+- vbmc_simulated_proactive_LED_results.pkl: Saved VBMC results and VP samples
+
+DEPENDENCIES:
+-------------
+- psiam_tied_dv_map_utils_with_PDFs: d_A_RT, stupid_f_integral
+- post_LED_censor_utils: cum_A_t_fn
+- pyvbmc: VBMC optimizer
+
+Author: Raghavendra
+"""
+
 # %%
 import numpy as np
 import matplotlib.pyplot as plt
@@ -46,6 +112,8 @@ print(f"Number of LED ON trials in data: {len(df_on_1)}")
 print(f"Number of LED OFF trials in data: {len(df_off)}")
 
 # %%
+N_sim = int(3e3)
+
 # Ground truth parameters for simulation
 V_A_base_true = 1.8
 V_A_post_LED_true = 2.4
@@ -53,7 +121,7 @@ theta_A_true = 1.5
 t_aff_true = 40*1e-3
 t_effect_true = 35*1e-3
 motor_delay_true = 50*1e-3
-T_trunc = 0.6
+T_trunc = 0.3
 
 print("Ground truth parameters:")
 print(f"  V_A_base: {V_A_base_true}")
@@ -92,7 +160,6 @@ def simulate_proactive_single_bound(V_A_base, V_A_post_LED, theta_A, t_LED, t_st
 
 # %%
 # Generate simulated data (3000 trials)
-N_sim = int(10e3)
 print(f"Simulating {N_sim} trials...")
 
 def simulate_single_trial():
@@ -287,35 +354,35 @@ def proactive_led_loglike(params):
 # Bounds and priors
 # Ground truth: V_A_base=1.8, V_A_post_LED=2.4, theta_A=1.5, t_aff=0.04, t_effect=0.035, motor_delay=0.05
 
-# Old bounds (from V_A_step_jump_fit_censor_post_LED_real_data.py)
-# V_A_base_bounds = [0.1, 5]
-# V_A_post_LED_bounds = [0.1, 6]
-# theta_A_bounds = [0.5, 5]
-# t_aff_bounds = [0.01, 0.15]
-# t_effect_bounds = [0.01, 0.10]
-# motor_delay_bounds = [0.02, 0.12]
 
-# V_A_base_plausible = [0.5, 3]
-# V_A_post_LED_plausible = [1.0, 4]
-# theta_A_plausible = [1, 3]
-# t_aff_plausible = [0.03, 0.06]
-# t_effect_plausible = [0.02, 0.05]
-# motor_delay_plausible = [0.04, 0.07]
+V_A_base_bounds = [0.1, 5]
+V_A_post_LED_bounds = [0.1, 5]
+theta_A_bounds = [0.1, 5]
+t_aff_bounds = [-0.2, 0.1]
+t_effect_bounds = [0.001, 0.10]
+motor_delay_bounds = [0.001, 0.1]
+
+V_A_base_plausible = [0.5, 3]
+V_A_post_LED_plausible = [0.5, 3]
+theta_A_plausible = [0.5, 3]
+t_aff_plausible = [0.01, 0.07]
+t_effect_plausible = [0.01, 0.05]
+motor_delay_plausible = [0.01, 0.07]
 
 # Narrower bounds for better recovery on simulated data
-V_A_base_bounds = [0.5, 3.5]
-V_A_post_LED_bounds = [1.0, 4.0]
-theta_A_bounds = [0.8, 3.0]
-t_aff_bounds = [0.02, 0.08]
-t_effect_bounds = [0.015, 0.06]
-motor_delay_bounds = [0.03, 0.08]
+# V_A_base_bounds = [0.5, 3.5]
+# V_A_post_LED_bounds = [1.0, 4.0]
+# theta_A_bounds = [0.8, 3.0]
+# t_aff_bounds = [0.02, 0.08]
+# t_effect_bounds = [0.015, 0.06]
+# motor_delay_bounds = [0.03, 0.08]
 
-V_A_base_plausible = [1.0, 2.5]
-V_A_post_LED_plausible = [1.5, 3.5]
-theta_A_plausible = [1.0, 2.5]
-t_aff_plausible = [0.03, 0.055]
-t_effect_plausible = [0.025, 0.045]
-motor_delay_plausible = [0.04, 0.065]
+# V_A_base_plausible = [1.0, 2.5]
+# V_A_post_LED_plausible = [1.5, 3.5]
+# theta_A_plausible = [1.0, 2.5]
+# t_aff_plausible = [0.03, 0.055]
+# t_effect_plausible = [0.025, 0.045]
+# motor_delay_plausible = [0.04, 0.065]
 
 def trapezoidal_logpdf(x, a, b, c, d):
     if x < a or x > d:
@@ -510,15 +577,49 @@ pdf_theory_on_fit /= np.trapz(pdf_theory_on_fit, t_pts)
 pdf_theory_off_fit /= np.trapz(pdf_theory_off_fit, t_pts)
 
 # %%
+# Simulate  with ground truth parameters for RTD comparison
+N_trials_plot = int(200e3)
+print(f"Simulating {N_trials_plot} trials with ground truth parameters for RTD comparison...")
+
+def simulate_single_trial_plot():
+    is_led_trial = np.random.random() < 1/3
+    t_LED = np.random.choice(LED_times)  # Always sample t_LED for RT wrt LED calculation
+    if is_led_trial:
+        t_stim = np.random.choice(stim_times)
+    else:
+        t_stim = np.random.choice(stim_times_off)
+    rt = simulate_proactive_single_bound(
+        V_A_base_true, V_A_post_LED_true, theta_A_true,
+        t_LED if is_led_trial else None, t_stim, t_aff_true, t_effect_true, motor_delay_true, is_led_trial
+    )
+    return rt, is_led_trial, t_LED
+
+plot_sim_results = Parallel(n_jobs=30)(
+    delayed(simulate_single_trial_plot)() for _ in range(N_trials_plot)
+)
+
+plot_rts = [r[0] for r in plot_sim_results]
+plot_is_led = [r[1] for r in plot_sim_results]
+plot_t_LEDs = [r[2] for r in plot_sim_results]
+
+# Separate into LED ON/OFF and apply truncation, also get RT wrt LED
+plot_rts_on = [rt for rt, is_led in zip(plot_rts, plot_is_led) if is_led and rt > T_trunc]
+plot_rts_off = [rt for rt, is_led in zip(plot_rts, plot_is_led) if not is_led and rt > T_trunc]
+plot_rts_wrt_led_on = [rt - t_led for rt, is_led, t_led in zip(plot_rts, plot_is_led, plot_t_LEDs) if is_led and rt > T_trunc]
+plot_rts_wrt_led_off = [rt - t_led for rt, is_led, t_led in zip(plot_rts, plot_is_led, plot_t_LEDs) if not is_led and rt > T_trunc]
+
+print(f"Plot simulation: {len(plot_rts_on)} LED ON trials, {len(plot_rts_off)} LED OFF trials (after truncation)")
+
+# %%
 # Plot LED ON comparison
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
 bins = np.arange(T_trunc, t_max, 0.05)
-sim_hist_on, _ = np.histogram(sim_rts_on, bins=bins, density=True)
+sim_hist_on, _ = np.histogram(plot_rts_on, bins=bins, density=True)
 bin_centers = (bins[1:] + bins[:-1]) / 2
 
-axes[0].plot(bin_centers, sim_hist_on, label='Simulated data', lw=2, alpha=0.7)
-axes[0].plot(t_pts, pdf_theory_on_fit, label='Theory (fitted)', lw=2, ls='--')
+axes[0].plot(bin_centers, sim_hist_on, label='Simulated data', lw=2, alpha=0.5, color='b')
+axes[0].plot(t_pts, pdf_theory_on_fit, label='Theory (fitted)', lw=2, ls='--', color='k')
 axes[0].plot(t_pts, pdf_theory_on_true, label='Theory (ground truth)', lw=2, ls=':', color='red')
 axes[0].axvline(x=T_trunc, color='r', linestyle='--', alpha=0.5, label='Truncation')
 axes[0].set_xlabel('RT (s)', fontsize=12)
@@ -528,10 +629,10 @@ axes[0].legend(fontsize=10)
 
 
 # Plot LED OFF comparison
-sim_hist_off, _ = np.histogram(sim_rts_off, bins=bins, density=True)
+sim_hist_off, _ = np.histogram(plot_rts_off, bins=bins, density=True)
 
-axes[1].plot(bin_centers, sim_hist_off, label='Simulated data', lw=2, alpha=0.7)
-axes[1].plot(t_pts, pdf_theory_off_fit, label='Theory (fitted)', lw=2, ls='--')
+axes[1].plot(bin_centers, sim_hist_off, label='Simulated data', lw=2, alpha=0.5, color='b')
+axes[1].plot(t_pts, pdf_theory_off_fit, label='Theory (fitted)', lw=2, ls='--', color='k')
 axes[1].plot(t_pts, pdf_theory_off_true, label='Theory (ground truth)', lw=2, ls=':', color='red')
 axes[1].axvline(x=T_trunc, color='r', linestyle='--', alpha=0.5, label='Truncation')
 axes[1].set_xlabel('RT (s)', fontsize=12)
@@ -548,179 +649,74 @@ plt.show()
 print("\nScript complete!")
 
 # %%
+# Simulate with fitted parameters (VP mean) for validation
+print("\nSimulating trials with fitted parameters (VP mean)...")
+N_trials_fit = int(200e3)
 
-# TODO : LATER SORT IT
-# Plot RT distribution with respect to LED onset time
-# print("\nComputing RT distributions with respect to LED onset...")
+def simulate_single_trial_fit():
+    is_led_trial = np.random.random() < 1/3
+    t_LED = np.random.choice(LED_times)  # Always sample t_LED for RT wrt LED calculation
+    if is_led_trial:
+        t_stim = np.random.choice(stim_times)
+    else:
+        t_stim = np.random.choice(stim_times_off)
+    rt = simulate_proactive_single_bound(
+        param_means[0], param_means[1], param_means[2],  # V_A_base, V_A_post_LED, theta_A
+        t_LED if is_led_trial else None, t_stim,
+        param_means[3], param_means[4], param_means[5],  # t_aff, t_effect, motor_delay
+        is_led_trial
+    )
+    return rt, is_led_trial, t_LED
 
-# # Define time points with respect to LED
-# t_pts_wrt_LED = np.arange(-3, 3, 0.01)
-# N_mc_led = 1000
+fit_sim_results = Parallel(n_jobs=30)(
+    delayed(simulate_single_trial_fit)() for _ in range(N_trials_fit)
+)
 
-# # Compute theoretical RTD wrt LED for LED ON trials
-# def compute_theoretical_rtd_wrt_led_on(t_pts_wrt_LED, V_A_base, V_A_post_LED, theta_A, 
-#                                         t_aff, t_effect, motor_delay, N_mc=1000, T_trunc=None):
-#     """Compute theoretical RT distribution with respect to LED onset time"""
-#     pdf_samples = np.zeros((N_mc, len(t_pts_wrt_LED)))
-    
-#     for i in range(N_mc):
-#         # Sample a LED time
-#         t_led = np.random.choice(LED_times)
-        
-#         # Convert to time wrt fixation
-#         for j, t_rel_led in enumerate(t_pts_wrt_LED):
-#             t_wrt_fix = t_rel_led + t_led
-            
-#             # Let PA_with_LEDON_2_adapted handle truncation naturally
-#             pdf_samples[i, j] = PA_with_LEDON_2_adapted(
-#                 t_wrt_fix, V_A_base, V_A_post_LED, theta_A, t_aff, motor_delay, 
-#                 t_led, t_effect, T_trunc
-#             )
-    
-#     return np.mean(pdf_samples, axis=0)
+fit_rts = [r[0] for r in fit_sim_results]
+fit_is_led = [r[1] for r in fit_sim_results]
+fit_t_LEDs = [r[2] for r in fit_sim_results]
 
+# Separate into LED ON/OFF and apply truncation, also get RT wrt LED
+fit_rts_on = [rt for rt, is_led in zip(fit_rts, fit_is_led) if is_led and rt > T_trunc]
+fit_rts_off = [rt for rt, is_led in zip(fit_rts, fit_is_led) if not is_led and rt > T_trunc]
+fit_rts_wrt_led_on = [rt - t_led for rt, is_led, t_led in zip(fit_rts, fit_is_led, fit_t_LEDs) if is_led and rt > T_trunc]
+fit_rts_wrt_led_off = [rt - t_led for rt, is_led, t_led in zip(fit_rts, fit_is_led, fit_t_LEDs) if not is_led and rt > T_trunc]
 
-# # Compute theoretical RTD wrt LED for LED OFF trials
-# def compute_theoretical_rtd_wrt_led_off(t_pts_wrt_LED, V_A_base, theta_A, t_aff, 
-#                                          motor_delay, N_mc=1000, T_trunc=None):
-#     """Compute theoretical RT distribution with respect to LED onset time for LED OFF trials"""
-#     pdf_samples = np.zeros((N_mc, len(t_pts_wrt_LED)))
-    
-#     for i in range(N_mc):
-#         # Sample a LED time (even though LED is off, we use same timing distribution)
-#         t_led = np.random.choice(LED_times)
-        
-#         # Convert to time wrt fixation
-#         for j, t_rel_led in enumerate(t_pts_wrt_LED):
-#             t_wrt_fix = t_rel_led + t_led
-            
-#             # Let led_off_pdf_truncated handle truncation naturally
-#             pdf_samples[i, j] = led_off_pdf_truncated(
-#                 t_wrt_fix, V_A_base, theta_A, t_aff, motor_delay, T_trunc
-#             )
-    
-#     return np.mean(pdf_samples, axis=0)
+print(f"Fitted params simulation: {len(fit_rts_on)} LED ON trials, {len(fit_rts_off)} LED OFF trials (after truncation)")
 
+# %%
+# Plot RT wrt LED: ground truth sim vs fitted sim
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-# # Compute theoretical distributions with fitted parameters
-# # print("  Computing LED ON theory (fitted)...")
-# # pdf_theory_on_wrt_led = compute_theoretical_rtd_wrt_led_on(
-# #     t_pts_wrt_LED, param_means[0], param_means[1], param_means[2], 
-# #     param_means[3], param_means[4], param_means[5], N_mc=N_mc_led, T_trunc=T_trunc
-# # )
+bins_wrt_led = np.arange(-3, 3, 0.01)
+bin_centers_wrt_led = (bins_wrt_led[1:] + bins_wrt_led[:-1]) / 2
 
-# # print("  Computing LED OFF theory (fitted)...")
-# # pdf_theory_off_wrt_led = compute_theoretical_rtd_wrt_led_off(
-# #     t_pts_wrt_LED, param_means[0], param_means[2], param_means[3], 
-# #     param_means[5], N_mc=N_mc_led, T_trunc=T_trunc
-# # )
+# LED ON
+sim_hist_on_gt_wrt_led, _ = np.histogram(plot_rts_wrt_led_on, bins=bins_wrt_led, density=True)
+sim_hist_on_fit_wrt_led, _ = np.histogram(fit_rts_wrt_led_on, bins=bins_wrt_led, density=True)
 
+axes[0].plot(bin_centers_wrt_led, sim_hist_on_gt_wrt_led, label='Sim (ground truth)', lw=2, alpha=0.7, color='b')
+axes[0].plot(bin_centers_wrt_led, sim_hist_on_fit_wrt_led, label='Sim (fitted)', lw=2, alpha=0.7, color='r')
+axes[0].axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
+axes[0].set_xlabel('RT - t_LED (s)', fontsize=12)
+axes[0].set_ylabel('Density', fontsize=12)
+axes[0].set_title('LED ON Trials', fontsize=14)
+axes[0].legend(fontsize=10)
 
-# # Compute theoretical distributions with ground truth parameters
-# print("  Computing LED ON theory (ground truth)...")
-# pdf_theory_on_wrt_led_true = compute_theoretical_rtd_wrt_led_on(
-#     t_pts_wrt_LED, V_A_base_true, V_A_post_LED_true, theta_A_true, 
-#     t_aff_true, t_effect_true, motor_delay_true, N_mc=N_mc_led, T_trunc=T_trunc
-# )
+# LED OFF
+sim_hist_off_gt_wrt_led, _ = np.histogram(plot_rts_wrt_led_off, bins=bins_wrt_led, density=True)
+sim_hist_off_fit_wrt_led, _ = np.histogram(fit_rts_wrt_led_off, bins=bins_wrt_led, density=True)
 
-# print("  Computing LED OFF theory (ground truth)...")
-# pdf_theory_off_wrt_led_true = compute_theoretical_rtd_wrt_led_off(
-#     t_pts_wrt_LED, V_A_base_true, theta_A_true, t_aff_true, 
-#     motor_delay_true, N_mc=N_mc_led, T_trunc=T_trunc
-# )
-# # %%
-# # Compute simulated RT wrt LED
-# sim_rts_wrt_led_on = [rt - t_led for rt, t_led in zip(sim_rts_on, sim_t_LEDs_on)]
-# # For LED OFF, use the LED timing from the data distribution
-# sim_rts_wrt_led_off = [rt - np.random.choice(LED_times) for rt in sim_rts_off]
+axes[1].plot(bin_centers_wrt_led, sim_hist_off_gt_wrt_led, label='Sim (ground truth)', lw=2, alpha=0.7, color='b')
+axes[1].plot(bin_centers_wrt_led, sim_hist_off_fit_wrt_led, label='Sim (fitted)', lw=2, alpha=0.7, color='r')
+axes[1].axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
+axes[1].set_xlabel('RT - t_LED (s)', fontsize=12)
+axes[1].set_ylabel('Density', fontsize=12)
+axes[1].set_title('LED OFF Trials', fontsize=14)
+axes[1].legend(fontsize=10)
 
-# # %%
-# # Normalize theoretical PDFs
-# pdf_theory_on_wrt_led /= np.trapz(pdf_theory_on_wrt_led, t_pts_wrt_LED)
-# pdf_theory_off_wrt_led /= np.trapz(pdf_theory_off_wrt_led, t_pts_wrt_LED)
-# pdf_theory_on_wrt_led_true /= np.trapz(pdf_theory_on_wrt_led_true, t_pts_wrt_LED)
-# pdf_theory_off_wrt_led_true /= np.trapz(pdf_theory_off_wrt_led_true, t_pts_wrt_LED)
-
-# # %%
-# # Simulate new data with fitted parameters for validation
-# print("  Simulating data with fitted parameters...")
-# N_sim_fit = int(50e3)
-
-# def simulate_single_trial_fit():
-#     is_led_trial = np.random.random() < 1/3
-
-#     if is_led_trial:
-#         t_LED = np.random.choice(LED_times)
-#         t_stim = np.random.choice(stim_times)
-#     else:
-#         t_LED = None
-#         t_stim = np.random.choice(stim_times_off)
-
-#     rt = simulate_proactive_single_bound(
-#         param_means[0], param_means[1], param_means[2],  # V_A_base, V_A_post_LED, theta_A
-#         t_LED,
-#         t_stim,
-#         param_means[3], param_means[4], param_means[5],  # t_aff, t_effect, motor_delay
-#         is_led_trial
-#     )
-#     return rt, is_led_trial, t_stim, t_LED
-
-# sim_results_fit = Parallel(n_jobs=30)(
-#     delayed(simulate_single_trial_fit)() for _ in tqdm(range(N_sim_fit), desc="Simulating with fitted params")
-# )
-# sim_rts_fit = [r[0] for r in sim_results_fit]
-# sim_is_led_trials_fit = [r[1] for r in sim_results_fit]
-# sim_t_LEDs_fit = [r[3] for r in sim_results_fit]
-
-# # Separate into LED ON and OFF, apply truncation
-# sim_rts_fit_on = [rt for rt, is_led in zip(sim_rts_fit, sim_is_led_trials_fit) if is_led and rt > T_trunc]
-# sim_rts_fit_off = [rt for rt, is_led in zip(sim_rts_fit, sim_is_led_trials_fit) if not is_led and rt > T_trunc]
-# sim_t_LEDs_fit_on = [t_led for rt, is_led, t_led in zip(sim_rts_fit, sim_is_led_trials_fit, sim_t_LEDs_fit)
-#                      if is_led and rt > T_trunc]
-
-# # Compute RT wrt LED for fitted simulations
-# sim_rts_fit_wrt_led_on = [rt - t_led for rt, t_led in zip(sim_rts_fit_on, sim_t_LEDs_fit_on)]
-# sim_rts_fit_wrt_led_off = [rt - np.random.choice(LED_times) for rt in sim_rts_fit_off]
-
-# # %%
-
-# # Plot RT wrt LED
-# fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-
-# bins_wrt_led = np.arange(-3, 3, 0.05)
-# sim_hist_on_wrt_led, _ = np.histogram(sim_rts_wrt_led_on, bins=bins_wrt_led, density=True)
-# sim_hist_off_wrt_led, _ = np.histogram(sim_rts_wrt_led_off, bins=bins_wrt_led, density=True)
-# # sim_hist_fit_on_wrt_led, _ = np.histogram(sim_rts_fit_wrt_led_on, bins=bins_wrt_led, density=True)
-# # sim_hist_fit_off_wrt_led, _ = np.histogram(sim_rts_fit_wrt_led_off, bins=bins_wrt_led, density=True)
-# bin_centers_wrt_led = (bins_wrt_led[1:] + bins_wrt_led[:-1]) / 2
-
-# # LED ON plot
-# axes[0].plot(bin_centers_wrt_led, sim_hist_on_wrt_led, label='Simulated (ground truth)')
-# # axes[0].plot(bin_centers_wrt_led, sim_hist_fit_on_wrt_led, label='Simulated (fitted)', ls='-')
-# axes[0].plot(t_pts_wrt_LED, pdf_theory_on_wrt_led_true, label='Theory (ground truth)', color='red', alpha=0.5, lw=3)
-# # axes[0].plot(t_pts_wrt_LED, pdf_theory_on_wrt_led, label='Theory (fitted)', lw=2, ls='--')
-# axes[0].axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
-# axes[0].set_xlabel('RT wrt LED onset (s)', fontsize=12)
-# axes[0].set_ylabel('Density', fontsize=12)
-# axes[0].set_title('LED ON Trials', fontsize=14)
-# axes[0].legend(fontsize=10)
-# axes[0].axvline(T_trunc, color='k', linestyle='--', alpha=0.5, label='Motor delay + effect + affinity')
-
-# # LED OFF plot
-# axes[1].plot(bin_centers_wrt_led, sim_hist_off_wrt_led, label='Simulated (ground truth)')
-# # axes[1].plot(bin_centers_wrt_led, sim_hist_fit_off_wrt_led, label='Simulated (fitted)',ls='-')
-# axes[1].plot(t_pts_wrt_LED, pdf_theory_off_wrt_led_true, label='Theory (ground truth)', lw=2, ls=':', color='red')
-# # axes[1].plot(t_pts_wrt_LED, pdf_theory_off_wrt_led, label='Theory (fitted)', lw=2, ls='--')
-# axes[1].axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
-# axes[1].set_xlabel('RT wrt LED onset (s)', fontsize=12)
-# axes[1].set_ylabel('Density', fontsize=12)
-# axes[1].set_title('LED OFF Trials', fontsize=14)
-# axes[1].legend(fontsize=10)
-
-
-# plt.tight_layout()
-# plt.savefig('vbmc_simulated_proactive_LED_rtd_wrt_led.pdf', bbox_inches='tight')
-# print("RT distribution (wrt LED) saved as 'vbmc_simulated_proactive_LED_rtd_wrt_led.pdf'")
-# plt.show()
-
-# # %%
+plt.tight_layout()
+plt.savefig('vbmc_simulated_proactive_LED_rt_wrt_led_comparison.pdf', bbox_inches='tight')
+print("RT wrt LED comparison saved as 'vbmc_simulated_proactive_LED_rt_wrt_led_comparison.pdf'")
+plt.show()
+# %%

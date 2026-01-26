@@ -13,7 +13,7 @@
 - `simulate_and_fit_proactive_all_at_once.py` - Simulates proactive process with single bound accumulator, drift change after LED onset, and compares theoretical vs simulated RT distributions for LED ON/OFF trials
 - `testing_v1_proactive_LED_theory.py` - Same as above but with left truncation (T_trunc=0.6s) and censoring verification. Includes theoretical PDF calculations with truncation, Monte Carlo averaging over (t_stim, t_LED) pairs, and survival probability calculations for censoring validation
 - `test_vbmc_proactive_led_likelihood.py` - Simulates proactive LED ON/OFF data, defines truncation/censoring log-likelihood, and validates it via histogram vs theory plus censoring checks
-- `vbmc_simulated_data_proactive_LED_fit.py` - Generates 3000 simulated trials with proactive LED model (ground truth: V_A_base=1.8, V_A_post_LED=2.4, theta_A=1.5, t_aff=40ms, t_effect=35ms, motor_delay=50ms, T_trunc=0.6s), fits all 6 parameters using VBMC with trapezoidal priors, and validates parameter recovery via corner plots and RT distribution comparisons
+- `vbmc_simulated_data_proactive_LED_fit.py` - VBMC parameter recovery on simulated proactive LED data. Simulates 3000 trials (V_A_base=1.8, V_A_post_LED=2.4, theta_A=1.5, t_aff=40ms, t_effect=35ms, motor_delay=50ms, T_trunc=0.3s), fits all 6 params with trapezoidal priors, outputs corner plot, RTD comparison, and RT-wrt-LED histograms
 
 
 - `fit_added_noise/psiam_tied_dv_map_utils_with_PDFs.py` - has post LED effect funcs - `stupid_f_integral` and `PA_with_LEDON_2`
