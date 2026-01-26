@@ -20,36 +20,7 @@ SCRIPT STRUCTURE (cell-by-cell):
     - RTD wrt fixation: data hist, theory (fitted), sim (fitted) — for LED ON/OFF
     - RTD wrt LED: data hist, sim (fitted) — for LED ON/OFF
 
-MODEL PARAMETERS:
------------------
-- V_A_base: Base drift rate (before LED effect)
-- V_A_post_LED: Drift rate after LED onset + t_effect
-- theta_A: Decision threshold
-- t_aff: Afferent delay (process start time)
-- t_effect: Delay from LED onset to drift change
-- motor_delay: Motor execution delay added to decision time
 
-KEY CONCEPTS:
--------------
-- **Truncation**: Trials with RT <= T_trunc (0.3s) are excluded
-- **Censoring**: Trials where RT >= t_stim contribute survival probability instead of PDF
-- **LED ON**: Drift changes from V_A_base to V_A_post_LED at t_LED + t_effect
-- **LED OFF**: Constant drift V_A_base throughout
-
-OUTPUT FILES:
--------------
-- vbmc_real_{animal}_corner.pdf: Posterior corner plot
-- vbmc_real_{animal}_rtd_comparison.pdf: RTD comparison (data vs theory vs sim)
-- vbmc_real_{animal}_rt_wrt_led_comparison.pdf: RT wrt LED histograms (data vs sim)
-- vbmc_real_{animal}_results.pkl: Saved VBMC results and VP samples
-
-DEPENDENCIES:
--------------
-- psiam_tied_dv_map_utils_with_PDFs: d_A_RT, stupid_f_integral
-- post_LED_censor_utils: cum_A_t_fn
-- pyvbmc: VBMC optimizer
-
-Author: Raghavendra
 """
 
 # %%
@@ -322,12 +293,12 @@ def proactive_led_loglike(params):
 # =============================================================================
 # Bounds and priors
 # =============================================================================
-V_A_base_bounds = [0.1, 5]
-V_A_post_LED_bounds = [0.1, 5]
-theta_A_bounds = [0.1, 5]
-t_aff_bounds = [-0.2, 0.1]
-t_effect_bounds = [0.001, 0.10]
-motor_delay_bounds = [0.001, 0.1]
+V_A_base_bounds = [0.1, 8]
+V_A_post_LED_bounds = [0.1, 8]
+theta_A_bounds = [0.1, 8]
+t_aff_bounds = [-1, 0.1]
+t_effect_bounds = [0.001, 0.1]
+motor_delay_bounds = [-0.1, 0.1]
 
 V_A_base_plausible = [0.5, 3]
 V_A_post_LED_plausible = [0.5, 3]
@@ -399,12 +370,12 @@ pub = np.array([V_A_base_plausible[1], V_A_post_LED_plausible[1], theta_A_plausi
 # Initial point (use values similar to simulated ground truth)
 np.random.seed(42)
 x_0 = np.array([
-    1.8 + np.random.normal(0, 0.1),   # V_A_base
-    2.4 + np.random.normal(0, 0.1),   # V_A_post_LED
-    1.5 + np.random.normal(0, 0.1),   # theta_A
-    0.04 + np.random.normal(0, 0.005),  # t_aff
-    0.035 + np.random.normal(0, 0.005), # t_effect
-    0.05 + np.random.normal(0, 0.005)   # motor_delay
+    1.8 ,   # V_A_base
+    2.4 ,   # V_A_post_LED
+    1.5 ,   # theta_A
+    0.04 ,  # t_aff
+    0.035 , # t_effect
+    0.05   # motor_delay
 ])
 
 # Ensure x_0 is within plausible bounds
@@ -526,9 +497,13 @@ pdf_theory_off_fit /= np.trapz(pdf_theory_off_fit, t_pts)
 # =============================================================================
 # Simulate with fitted parameters for comparison
 # =============================================================================
-N_trials_sim = int(200e3)
+N_trials_sim = int(100e3)
 print(f"\nSimulating {N_trials_sim} trials with fitted parameters...")
 
+# ##############################################
+########### NOTE ###########################
+param_means[3] = -1.2
+#############################
 def simulate_single_trial_fit():
     is_led_trial = np.random.random() < 1/3
     t_LED = np.random.choice(LED_times)  # Always sample t_LED for RT wrt LED calculation
@@ -624,7 +599,7 @@ plt.show()
 # =============================================================================
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-bins_wrt_led = np.arange(-3, 3, 0.01)
+bins_wrt_led = np.arange(-3, 3, 0.05)
 bin_centers_wrt_led = (bins_wrt_led[1:] + bins_wrt_led[:-1]) / 2
 
 # LED ON
@@ -634,6 +609,7 @@ sim_hist_on_wrt_led, _ = np.histogram(sim_rts_wrt_led_on, bins=bins_wrt_led, den
 axes[0].plot(bin_centers_wrt_led, data_hist_on_wrt_led, label='Data (aborts)', lw=2, alpha=0.7, color='b')
 axes[0].plot(bin_centers_wrt_led, sim_hist_on_wrt_led, label='Sim (fitted)', lw=2, alpha=0.7, color='r')
 axes[0].axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
+axes[0].axvline(x=param_means[4], color='r', linestyle=':', alpha=0.5, label=f'LED effect={param_means[4]:.2f}')
 axes[0].set_xlabel('RT - t_LED (s)', fontsize=12)
 axes[0].set_ylabel('Density', fontsize=12)
 axes[0].set_title(f'LED ON Trials - Animal {animal}', fontsize=14)

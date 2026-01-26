@@ -32,36 +32,6 @@ SCRIPT STRUCTURE (cell-by-cell):
     - RTD comparison: simulated vs theoretical (ground truth & fitted)
     - RT wrt LED: histograms of RT - t_LED for ground truth vs fitted simulations
 
-MODEL PARAMETERS:
------------------
-- V_A_base: Base drift rate (before LED effect)
-- V_A_post_LED: Drift rate after LED onset + t_effect
-- theta_A: Decision threshold
-- t_aff: Afferent delay (process start time)
-- t_effect: Delay from LED onset to drift change
-- motor_delay: Motor execution delay added to decision time
-
-KEY CONCEPTS:
--------------
-- **Truncation**: Trials with RT <= T_trunc (0.3s) are excluded
-- **Censoring**: Trials where RT > t_stim contribute survival probability instead of PDF
-- **LED ON**: Drift changes from V_A_base to V_A_post_LED at t_LED + t_effect
-- **LED OFF**: Constant drift V_A_base throughout
-
-OUTPUT FILES:
--------------
-- vbmc_simulated_proactive_LED_corner.pdf: Posterior corner plot
-- vbmc_simulated_proactive_LED_rtd_comparison.pdf: RTD comparison plot
-- vbmc_simulated_proactive_LED_rt_wrt_led_comparison.pdf: RT wrt LED histograms
-- vbmc_simulated_proactive_LED_results.pkl: Saved VBMC results and VP samples
-
-DEPENDENCIES:
--------------
-- psiam_tied_dv_map_utils_with_PDFs: d_A_RT, stupid_f_integral
-- post_LED_censor_utils: cum_A_t_fn
-- pyvbmc: VBMC optimizer
-
-Author: Raghavendra
 """
 
 # %%
