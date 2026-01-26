@@ -24,9 +24,11 @@ abl_colors = {20: 'tab:blue', 40: 'tab:orange', 60: 'tab:green'}
 R2_cond_per_ABL = {abl: [] for abl in ABL_arr}
 R2_vanilla_per_ABL = {abl: [] for abl in ABL_arr}
 R2_norm_per_ABL = {abl: [] for abl in ABL_arr}
+R2_cond_more_per_ABL = {abl: [] for abl in ABL_arr}  # 5-param cond fit
 R2_cond_mean = []
 R2_vanilla_mean = []
 R2_norm_mean = []
+R2_cond_more_mean = []  # 5-param cond fit
 
 def compute_gof_metrics(theory_quantiles, theory_q_levels, emp_quantiles, emp_q_levels, emp_sem):
     """Compute goodness of fit metrics between theoretical and empirical quantiles."""
@@ -48,12 +50,12 @@ try:
     norm_continuous_plot_data = norm_data.get('continuous_plot_data', {})
     norm_quantile_levels = np.array(norm_data['QUANTILES_TO_PLOT'])
     print("Loaded norm_quant_fig2_data.pkl for norm R²")
-except FileNotFoundError:
+except (FileNotFoundError, AttributeError) as e:
     norm_data = None
     norm_plot_data = {}
     norm_continuous_plot_data = {}
     norm_quantile_levels = None
-    print("WARNING: norm_quant_fig2_data.pkl not found. Norm R² will be NaN.")
+    print(f"WARNING: Could not load norm_quant_fig2_data.pkl ({e}). Norm R² will be NaN.")
 
 def _get_norm_theoretical(plot_data, continuous_plot_data, abl, abs_ild):
     for key in (abs_ild, float(abs_ild)):
@@ -98,8 +100,22 @@ for ild in ILD_VALUES:
     R2_cond_mean.append(data['mean_R2']['cond'])
     R2_vanilla_mean.append(data['mean_R2']['vanilla'])
     R2_norm_mean.append(np.nanmean(norm_r2_values) if norm_r2_values else np.nan)
+    
+    # Load 5-param cond fit (more params)
+    more_params_file = f'quantiles_gof_ILD_{ild}_more_params.pkl'
+    try:
+        with open(more_params_file, 'rb') as f:
+            data_more = pickle.load(f)
+        for abl in ABL_arr:
+            R2_cond_more_per_ABL[abl].append(data_more['R2_per_ABL']['cond_more'].get(abl, np.nan))
+        R2_cond_more_mean.append(data_more['mean_R2']['cond_more'])
+    except FileNotFoundError:
+        for abl in ABL_arr:
+            R2_cond_more_per_ABL[abl].append(np.nan)
+        R2_cond_more_mean.append(np.nan)
+        print(f"WARNING: {more_params_file} not found")
 
-print("Loaded R² from all ILD pkl files")
+print("Loaded R² from all ILD pkl files (including 5-param)")
 
 # %%
 # =============================================================================
@@ -109,9 +125,12 @@ fig, ax = plt.subplots(figsize=(6, 5))
 
 for abl in ABL_arr:
     color = abl_colors[abl]
-    # Cond fit - dot marker
+    # Cond fit (2-param) - dot marker
     ax.plot(ILD_VALUES, R2_cond_per_ABL[abl], 'o', color=color, 
             markersize=10, label=f'ABL {abl} Cond')
+    # Cond fit (5-param) - star marker
+    ax.plot(ILD_VALUES, R2_cond_more_per_ABL[abl], '*', color=color, 
+            markersize=12, label=f'ABL {abl} Cond-5p')
     # Vanilla - cross marker
     ax.plot(ILD_VALUES, R2_vanilla_per_ABL[abl], 'x', color=color, 
             markersize=10, markeredgewidth=2, label=f'ABL {abl} Vanilla')
@@ -135,11 +154,12 @@ legend_elements = [
     Line2D([0], [0], marker='o', color='w', markerfacecolor='tab:blue', markersize=10, label='ABL 20'),
     Line2D([0], [0], marker='o', color='w', markerfacecolor='tab:orange', markersize=10, label='ABL 40'),
     Line2D([0], [0], marker='o', color='w', markerfacecolor='tab:green', markersize=10, label='ABL 60'),
-    Line2D([0], [0], marker='o', color='gray', linestyle='None', markersize=10, label='Cond fit'),
+    Line2D([0], [0], marker='o', color='gray', linestyle='None', markersize=10, label='Cond (2p)'),
+    Line2D([0], [0], marker='*', color='gray', linestyle='None', markersize=12, label='Cond (5p)'),
     Line2D([0], [0], marker='x', color='gray', linestyle='None', markersize=10, markeredgewidth=2, label='Vanilla'),
     Line2D([0], [0], marker='^', color='gray', linestyle='None', markersize=10, markeredgewidth=1.5, label='Norm'),
 ]
-ax.legend(handles=legend_elements, loc='lower right', fontsize=10)
+ax.legend(handles=legend_elements, loc='lower right', fontsize=9)
 
 plt.tight_layout()
 plt.savefig('R2_per_ABL_vs_ILD.png', dpi=300, bbox_inches='tight')
@@ -152,8 +172,10 @@ print("Saved: R2_per_ABL_vs_ILD.png")
 # =============================================================================
 fig, ax = plt.subplots(figsize=(6, 5))
 
-# Cond fit - dot
-ax.plot(ILD_VALUES, R2_cond_mean, 'o', color='black', markersize=12, label='Cond fit')
+# Cond fit (2-param) - dot
+ax.plot(ILD_VALUES, R2_cond_mean, 'o', color='black', markersize=12, label='Cond (2p)')
+# Cond fit (5-param) - star
+ax.plot(ILD_VALUES, R2_cond_more_mean, '*', color='black', markersize=14, label='Cond (5p)')
 # Vanilla - cross
 ax.plot(ILD_VALUES, R2_vanilla_mean, 'x', color='black', markersize=12, markeredgewidth=2, label='Vanilla')
 # Norm - triangle
@@ -286,13 +308,13 @@ print("Saved: R2_stimulus_set_colormap.png")
 # =============================================================================
 # Print summary table
 # =============================================================================
-print("\n" + "="*60)
+print("\n" + "="*70)
 print("R² Summary Table")
-print("="*60)
-print(f"\n{'ILD':<6} {'Cond (mean)':<14} {'Vanilla (mean)':<14} {'Norm (mean)':<14}")
-print("-"*48)
+print("="*70)
+print(f"\n{'ILD':<6} {'Cond-2p':<12} {'Cond-5p':<12} {'Vanilla':<12} {'Norm':<12}")
+print("-"*54)
 for i, ild in enumerate(ILD_VALUES):
-    print(f"{ild:<6} {R2_cond_mean[i]:<14.4f} {R2_vanilla_mean[i]:<14.4f} {R2_norm_mean[i]:<14.4f}")
+    print(f"{ild:<6} {R2_cond_mean[i]:<12.4f} {R2_cond_more_mean[i]:<12.4f} {R2_vanilla_mean[i]:<12.4f} {R2_norm_mean[i]:<12.4f}")
 
 print("\n" + "="*60)
 print("R² per ABL")
