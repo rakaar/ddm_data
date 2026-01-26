@@ -9,6 +9,14 @@ Normalized R² is computed on-the-fly from norm_quant_fig2_data.pkl.
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import defaultdict
+
+# Helper functions for unpickling the quantile data (must be defined before pickle.load)
+def _create_innermost_dict():
+    return {'empirical': [], 'theoretical': []}
+
+def _create_inner_defaultdict():
+    return defaultdict(_create_innermost_dict)
 
 # %%
 # =============================================================================
@@ -327,4 +335,74 @@ for i, ild in enumerate(ILD_VALUES):
           f"{R2_cond_per_ABL[60][i]:<10.4f} {R2_vanilla_per_ABL[60][i]:<10.4f} {R2_norm_per_ABL[60][i]:<10.4f}")
 
 # %%
-# TODO
+# =============================================================================
+# Comparison Table: Cond (5p) vs Norm
+# =============================================================================
+print("\n" + "="*70)
+print("Comparison: Cond (5p) vs Norm Model")
+print("="*70)
+
+# Per ILD (averaged across ABL)
+print("\n--- Averaged across ABL ---")
+print(f"{'ILD':<6} {'Cond-5p':<12} {'Norm':<12} {'Diff (5p-N)':<14} {'Winner':<10}")
+print("-"*54)
+for i, ild in enumerate(ILD_VALUES):
+    diff = R2_cond_more_mean[i] - R2_norm_mean[i]
+    winner = "Cond-5p" if diff > 0 else "Norm"
+    print(f"{ild:<6} {R2_cond_more_mean[i]:<12.4f} {R2_norm_mean[i]:<12.4f} {diff:<+14.4f} {winner:<10}")
+
+# Per ABL per ILD
+print("\n--- Per ABL ---")
+for abl in ABL_arr:
+    print(f"\nABL {abl}:")
+    print(f"  {'ILD':<6} {'Cond-5p':<12} {'Norm':<12} {'Diff (5p-N)':<14} {'Winner':<10}")
+    print(f"  " + "-"*52)
+    for i, ild in enumerate(ILD_VALUES):
+        c5p = R2_cond_more_per_ABL[abl][i]
+        norm = R2_norm_per_ABL[abl][i]
+        diff = c5p - norm
+        winner = "Cond-5p" if diff > 0 else "Norm"
+        print(f"  {ild:<6} {c5p:<12.4f} {norm:<12.4f} {diff:<+14.4f} {winner:<10}")
+
+# Overall summary
+print("\n--- Overall Summary ---")
+cond5p_wins = sum(1 for i in range(len(ILD_VALUES)) for abl in ABL_arr 
+                  if R2_cond_more_per_ABL[abl][i] > R2_norm_per_ABL[abl][i])
+norm_wins = len(ILD_VALUES) * len(ABL_arr) - cond5p_wins
+print(f"Cond-5p wins: {cond5p_wins}/{len(ILD_VALUES)*len(ABL_arr)} conditions")
+print(f"Norm wins:    {norm_wins}/{len(ILD_VALUES)*len(ABL_arr)} conditions")
+print(f"Mean R² Cond-5p: {np.mean(R2_cond_more_mean):.4f}")
+print(f"Mean R² Norm:    {np.mean(R2_norm_mean):.4f}")
+
+# %%
+# =============================================================================
+# Plot for paper: R² vs ILD (Cond-5p, Norm, Vanilla)
+# =============================================================================
+fig, ax = plt.subplots(figsize=(5, 4))
+
+# Plot mean R² across ABL for each model
+ax.plot(ILD_VALUES, R2_cond_more_mean, 'o', color='black', markersize=8, 
+        linewidth=1.5, label='Cond-5p')
+ax.plot(ILD_VALUES, R2_norm_mean, 'o', color='tab:green', markersize=8, 
+        linewidth=1.5, label='Norm')
+ax.plot(ILD_VALUES, R2_vanilla_mean, 'o', color='tab:red', markersize=8, 
+        linewidth=1.5, label='Vanilla')
+
+ax.set_xlabel('|ILD| (dB)', fontsize=12)
+ax.set_ylabel('R²', fontsize=12)
+ax.set_xscale('log', base=2)
+ax.set_xticks(ILD_VALUES)
+ax.set_xticklabels(ILD_VALUES)
+ax.set_ylim(0.94, 1)
+ax.set_yticks([0.95, 1])
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.tick_params(axis='both', which='major', labelsize=10)
+# ax.legend(loc='lower right', fontsize=10)
+
+plt.tight_layout()
+plt.savefig('R2_vs_ILD_for_paper.png', dpi=300, bbox_inches='tight')
+plt.savefig('R2_vs_ILD_for_paper.pdf', bbox_inches='tight')
+plt.show()
+print("Saved: R2_vs_ILD_for_paper.png and .pdf")
+# %%

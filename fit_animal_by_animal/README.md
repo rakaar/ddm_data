@@ -215,7 +215,21 @@ These scripts compare theoretical RT quantiles (from model fits) against empiric
 - **`plot_R2_vs_ILD.py`** - Plot R² vs ILD summary
   - Plot 1: R² per ABL vs ILD (colored by ABL: blue=20, orange=40, green=60; dot=cond, cross=vanilla)
   - Plot 2: R² averaged across ABL vs ILD (dot=cond, cross=vanilla)
-  - Outputs: `R2_per_ABL_vs_ILD.png`, `R2_mean_vs_ILD.png`
+  - Plot for paper: Clean R² comparison of Cond-5p, Norm, Vanilla models
+  - Includes comparison table: Cond-5p vs Norm
+  - Outputs: `R2_per_ABL_vs_ILD.png`, `R2_mean_vs_ILD.png`, `R2_vs_ILD_for_paper.png/.pdf`
+
+- **`plot_delay_vs_ILD_from_cond_fit.py`** - Plot t_E_aff (sensory delay) vs ILD
+  - Extracts t_E_aff from 5-param condition fits for all animals
+  - One figure per |ILD|, animals on y-axis, t_E_aff on x-axis
+  - Averages +ILD and -ILD values, colors by ABL
+  - Outputs: `t_E_aff_vs_animal_ILD_{1,2,4,8,16}.png`
+
+- **`plot_w_vs_ILD_from_cond_fit.py`** - Plot w (urgency weight) vs ILD
+  - Extracts w from 5-param condition fits for all animals
+  - One figure per |ILD|, animals on y-axis, w on x-axis
+  - Averages +ILD and -ILD values, colors by ABL
+  - Outputs: `w_vs_animal_ILD_{1,2,4,8,16}.png`
 
 - **`ABL_averaged_cond_vs_vanila_fit.py`** - ABL-averaged quantiles vs ILD plot
   - Averages RT quantiles across ABLs (20, 40, 60) for each ILD
