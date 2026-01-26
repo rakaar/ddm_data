@@ -132,8 +132,9 @@ df_off_fit = pd.DataFrame({
 # Combine
 fit_df = pd.concat([df_on_fit, df_off_fit], ignore_index=True)
 
-# Apply truncation
-fit_df = fit_df[fit_df['RT'] > T_trunc]
+# Apply truncation only to abort trials (RT < t_stim)
+# Keep all censored trials (RT >= t_stim) regardless of RT
+fit_df = fit_df[~((fit_df['RT'] < fit_df['t_stim']) & (fit_df['RT'] <= T_trunc))]
 
 print(f"\nFitting DataFrame summary (after truncation):")
 print(f"  Total trials: {len(fit_df)}")
