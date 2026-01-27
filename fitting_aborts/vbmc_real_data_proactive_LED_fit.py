@@ -41,7 +41,7 @@ import pickle
 # =============================================================================
 # PARAMETERS - Change ANIMAL_IDX to fit different animals
 # =============================================================================
-ANIMAL_IDX = 0  # Index into unique_animals array (0, 1, 2, ...)
+ANIMAL_IDX = 1  # Index into unique_animals array (0, 1, 2, ...)
 T_trunc = 0.3   # Left truncation threshold (exclude RT <= T_trunc)
 
 # %%
@@ -92,11 +92,11 @@ df_on_fit = pd.DataFrame({
     'LED_trial': 1
 })
 
-# For LED OFF trials
+# For LED OFF trials (keep t_LED for plotting, even though LED was off)
 df_off_fit = pd.DataFrame({
     'RT': df_off['timed_fix'].values,
     't_stim': df_off['intended_fix'].values,
-    't_LED': np.nan,  # No LED for OFF trials
+    't_LED': (df_off['intended_fix'] - df_off['LED_onset_time']).values,  # Keep for RT wrt LED plotting
     'LED_trial': 0
 })
 
@@ -253,11 +253,14 @@ def compute_trial_loglike(row, V_A_base, V_A_post_LED, theta_A, t_aff, t_effect,
     if is_led and (t_led is None or (isinstance(t_led, float) and np.isnan(t_led))):
         raise ValueError("LED trial has invalid t_LED (None/NaN).")
 
-    if t <= T_trunc:
+    if (t <= T_trunc) and (t < t_stim):
         return np.log(1e-50)
 
-    if t_stim <= T_trunc:
-        return np.log(1.0)
+    if (t_stim <= T_trunc):
+        if t < t_stim:
+            return np.log(1e-50)
+        else:
+            return np.log(1.0)
 
     if t < t_stim:
         if is_led:
@@ -502,7 +505,7 @@ print(f"\nSimulating {N_trials_sim} trials with fitted parameters...")
 
 # ##############################################
 ########### NOTE ###########################
-param_means[3] = -1.2
+# param_means[3] = -1.2
 #############################
 def simulate_single_trial_fit():
     is_led_trial = np.random.random() < 1/3
@@ -517,7 +520,7 @@ def simulate_single_trial_fit():
         param_means[3], param_means[4], param_means[5],  # t_aff, t_effect, motor_delay
         is_led_trial
     )
-    return rt, is_led_trial, t_LED
+    return rt, is_led_trial, t_LED, t_stim
 
 sim_results = Parallel(n_jobs=30)(
     delayed(simulate_single_trial_fit)() for _ in range(N_trials_sim)
@@ -526,14 +529,18 @@ sim_results = Parallel(n_jobs=30)(
 sim_rts = [r[0] for r in sim_results]
 sim_is_led = [r[1] for r in sim_results]
 sim_t_LEDs = [r[2] for r in sim_results]
+sim_t_stims = [r[3] for r in sim_results]
 
-# Separate into LED ON/OFF and apply truncation
+# Separate into LED ON/OFF, apply truncation (no RT < t_stim filter for RTD comparison with theory)
 sim_rts_on = [rt for rt, is_led in zip(sim_rts, sim_is_led) if is_led and rt > T_trunc]
 sim_rts_off = [rt for rt, is_led in zip(sim_rts, sim_is_led) if not is_led and rt > T_trunc]
-sim_rts_wrt_led_on = [rt - t_led for rt, is_led, t_led in zip(sim_rts, sim_is_led, sim_t_LEDs) if is_led and rt > T_trunc]
-sim_rts_wrt_led_off = [rt - t_led for rt, is_led, t_led in zip(sim_rts, sim_is_led, sim_t_LEDs) if not is_led and rt > T_trunc]
 
-print(f"Simulation: {len(sim_rts_on)} LED ON trials, {len(sim_rts_off)} LED OFF trials (after truncation)")
+# For RT wrt LED plots (abort rate), filter by RT < t_stim (aborts only)
+sim_rts_wrt_led_on = [rt - t_led for rt, is_led, t_led, t_stim in zip(sim_rts, sim_is_led, sim_t_LEDs, sim_t_stims) if is_led and rt > T_trunc and rt < t_stim]
+sim_rts_wrt_led_off = [rt - t_led for rt, is_led, t_led, t_stim in zip(sim_rts, sim_is_led, sim_t_LEDs, sim_t_stims) if not is_led and rt > T_trunc and rt < t_stim]
+
+print(f"Simulation: {len(sim_rts_on)} LED ON, {len(sim_rts_off)} LED OFF (RTD plot)")
+print(f"Simulation aborts: {len(sim_rts_wrt_led_on)} LED ON, {len(sim_rts_wrt_led_off)} LED OFF (abort rate plot)")
 
 # %%
 # =============================================================================
@@ -548,8 +555,8 @@ df_on_aborts = fit_df[(fit_df['LED_trial'] == 1) & (fit_df['RT'] < fit_df['t_sti
 df_off_aborts = fit_df[(fit_df['LED_trial'] == 0) & (fit_df['RT'] < fit_df['t_stim'])]
 
 data_rts_wrt_led_on = (df_on_aborts['RT'] - df_on_aborts['t_LED']).values
-# For LED OFF, use same t_LED distribution for comparison
-data_rts_wrt_led_off = df_off_aborts['RT'].values - np.random.choice(LED_times, size=len(df_off_aborts))
+# For LED OFF, use actual t_LED from data (same as aborts_animal_wise_explore.py)
+data_rts_wrt_led_off = (df_off_aborts['RT'] - df_off_aborts['t_LED']).values
 
 print(f"\nReal data (aborts only): {len(data_rts_on)} LED ON, {len(data_rts_off)} LED OFF")
 
@@ -630,6 +637,59 @@ axes[1].legend(fontsize=10)
 plt.tight_layout()
 plt.savefig(f'vbmc_real_{animal}_rt_wrt_led_comparison.pdf', bbox_inches='tight')
 print(f"RT wrt LED comparison saved as 'vbmc_real_{animal}_rt_wrt_led_comparison.pdf'")
+plt.show()
+
+# %%
+# =============================================================================
+# Plot 3: RT wrt LED - Abort rate (like aborts_animal_wise_explore.py)
+# =============================================================================
+# Compute abort rate = n_aborts / n_all_trials for each LED condition (from data)
+n_all_data_on = len(fit_df[fit_df['LED_trial'] == 1])
+n_all_data_off = len(fit_df[fit_df['LED_trial'] == 0])
+n_aborts_data_on = len(data_rts_wrt_led_on)
+n_aborts_data_off = len(data_rts_wrt_led_off)
+frac_data_on = n_aborts_data_on / n_all_data_on if n_all_data_on > 0 else 0
+frac_data_off = n_aborts_data_off / n_all_data_off if n_all_data_off > 0 else 0
+
+# Compute abort rate for sim (aborts = RT < t_stim, after truncation)
+n_all_sim_on = sum(1 for is_led in sim_is_led if is_led)
+n_all_sim_off = sum(1 for is_led in sim_is_led if not is_led)
+n_aborts_sim_on = sum(1 for rt, is_led, t_stim in zip(sim_rts, sim_is_led, sim_t_stims) if is_led and rt < t_stim and rt > T_trunc)
+n_aborts_sim_off = sum(1 for rt, is_led, t_stim in zip(sim_rts, sim_is_led, sim_t_stims) if not is_led and rt < t_stim and rt > T_trunc)
+frac_sim_on = n_aborts_sim_on / n_all_sim_on if n_all_sim_on > 0 else 0
+frac_sim_off = n_aborts_sim_off / n_all_sim_off if n_all_sim_off > 0 else 0
+
+# Create histograms with density=True then scale by fraction
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Data histograms (area = fraction)
+data_hist_on_wrt_led_dens, _ = np.histogram(data_rts_wrt_led_on, bins=bins_wrt_led, density=True)
+data_hist_off_wrt_led_dens, _ = np.histogram(data_rts_wrt_led_off, bins=bins_wrt_led, density=True)
+data_hist_on_scaled = data_hist_on_wrt_led_dens * frac_data_on
+data_hist_off_scaled = data_hist_off_wrt_led_dens * frac_data_off
+
+# Sim histograms (area = fraction)
+sim_hist_on_wrt_led_dens, _ = np.histogram(sim_rts_wrt_led_on, bins=bins_wrt_led, density=True)
+sim_hist_off_wrt_led_dens, _ = np.histogram(sim_rts_wrt_led_off, bins=bins_wrt_led, density=True)
+sim_hist_on_scaled = sim_hist_on_wrt_led_dens * frac_sim_on
+sim_hist_off_scaled = sim_hist_off_wrt_led_dens * frac_sim_off
+
+# Plot all on same axes
+ax.plot(bin_centers_wrt_led, data_hist_on_scaled, label=f'Data LED ON (frac={frac_data_on:.2f})', lw=2, alpha=0.7, color='b', linestyle='-')
+ax.plot(bin_centers_wrt_led, data_hist_off_scaled, label=f'Data LED OFF (frac={frac_data_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='--')
+ax.plot(bin_centers_wrt_led, sim_hist_on_scaled, label=f'Sim LED ON (frac={frac_sim_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='-')
+ax.plot(bin_centers_wrt_led, sim_hist_off_scaled, label=f'Sim LED OFF (frac={frac_sim_off:.2f})', lw=2, alpha=0.7, color='r', linestyle='--')
+
+ax.axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
+ax.axvline(x=param_means[4], color='g', linestyle=':', alpha=0.5, label=f't_effect={param_means[4]:.2f}')
+ax.set_xlabel('RT - t_LED (s)', fontsize=12)
+ax.set_ylabel('Rate (area = fraction)', fontsize=12)
+ax.set_title(f'RT wrt LED (area-weighted) - Animal {animal}', fontsize=14)
+ax.legend(fontsize=9)
+
+plt.tight_layout()
+plt.savefig(f'vbmc_real_{animal}_rt_wrt_led_rate.pdf', bbox_inches='tight')
+print(f"RT wrt LED rate plot saved as 'vbmc_real_{animal}_rt_wrt_led_rate.pdf'")
 plt.show()
 
 print(f"\nScript complete for animal {animal}!")

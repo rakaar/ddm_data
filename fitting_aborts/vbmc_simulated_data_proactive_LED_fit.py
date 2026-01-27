@@ -284,11 +284,14 @@ def compute_trial_loglike(row, V_A_base, V_A_post_LED, theta_A, t_aff, t_effect,
     if is_led and (t_led is None or (isinstance(t_led, float) and np.isnan(t_led))):
         raise ValueError("LED trial has invalid t_LED (None/NaN).")
 
-    if t <= T_trunc:
+    if (t <= T_trunc) and (t < t_stim):
         return np.log(1e-50)
 
-    if t_stim <= T_trunc:
-        return np.log(1.0)
+    if (t_stim <= T_trunc):
+        if t < t_stim:
+            return np.log(1e-50)
+        else:
+            return np.log(1.0)
 
     if t < t_stim:
         if is_led:
@@ -658,7 +661,7 @@ print(f"Fitted params simulation: {len(fit_rts_on)} LED ON trials, {len(fit_rts_
 # Plot RT wrt LED: ground truth sim vs fitted sim
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-bins_wrt_led = np.arange(-3, 3, 0.01)
+bins_wrt_led = np.arange(-3, 3, 0.05)
 bin_centers_wrt_led = (bins_wrt_led[1:] + bins_wrt_led[:-1]) / 2
 
 # LED ON
