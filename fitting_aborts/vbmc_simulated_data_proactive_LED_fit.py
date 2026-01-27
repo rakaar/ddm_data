@@ -82,15 +82,15 @@ print(f"Number of LED ON trials in data: {len(df_on_1)}")
 print(f"Number of LED OFF trials in data: {len(df_off)}")
 
 # %%
-N_sim = int(3e3)
+N_sim = int(6e3)
 
 # Ground truth parameters for simulation
 V_A_base_true = 1.8
 V_A_post_LED_true = 2.4
 theta_A_true = 1.5
-t_aff_true = 40*1e-3
+t_aff_true = -1 * 30*1e-3
 t_effect_true = 35*1e-3
-motor_delay_true = 50*1e-3
+motor_delay_true = 30*1e-3
 T_trunc = 0.3
 
 print("Ground truth parameters:")
@@ -331,9 +331,10 @@ def proactive_led_loglike(params):
 V_A_base_bounds = [0.1, 5]
 V_A_post_LED_bounds = [0.1, 5]
 theta_A_bounds = [0.1, 5]
-t_aff_bounds = [-0.2, 0.1]
+t_aff_bounds = [-1, 0.1]
 t_effect_bounds = [0.001, 0.10]
-motor_delay_bounds = [0.001, 0.1]
+motor_delay_bounds = [-0.1, 0.1]
+
 
 V_A_base_plausible = [0.5, 3]
 V_A_post_LED_plausible = [0.5, 3]
@@ -565,7 +566,7 @@ def simulate_single_trial_plot():
         V_A_base_true, V_A_post_LED_true, theta_A_true,
         t_LED if is_led_trial else None, t_stim, t_aff_true, t_effect_true, motor_delay_true, is_led_trial
     )
-    return rt, is_led_trial, t_LED
+    return rt, is_led_trial, t_LED, t_stim
 
 plot_sim_results = Parallel(n_jobs=30)(
     delayed(simulate_single_trial_plot)() for _ in range(N_trials_plot)
@@ -574,6 +575,7 @@ plot_sim_results = Parallel(n_jobs=30)(
 plot_rts = [r[0] for r in plot_sim_results]
 plot_is_led = [r[1] for r in plot_sim_results]
 plot_t_LEDs = [r[2] for r in plot_sim_results]
+plot_t_stims = [r[3] for r in plot_sim_results]
 
 # Separate into LED ON/OFF and apply truncation, also get RT wrt LED
 plot_rts_on = [rt for rt, is_led in zip(plot_rts, plot_is_led) if is_led and rt > T_trunc]
@@ -639,7 +641,7 @@ def simulate_single_trial_fit():
         param_means[3], param_means[4], param_means[5],  # t_aff, t_effect, motor_delay
         is_led_trial
     )
-    return rt, is_led_trial, t_LED
+    return rt, is_led_trial, t_LED, t_stim
 
 fit_sim_results = Parallel(n_jobs=30)(
     delayed(simulate_single_trial_fit)() for _ in range(N_trials_fit)
@@ -648,6 +650,7 @@ fit_sim_results = Parallel(n_jobs=30)(
 fit_rts = [r[0] for r in fit_sim_results]
 fit_is_led = [r[1] for r in fit_sim_results]
 fit_t_LEDs = [r[2] for r in fit_sim_results]
+fit_t_stims = [r[3] for r in fit_sim_results]
 
 # Separate into LED ON/OFF and apply truncation, also get RT wrt LED
 fit_rts_on = [rt for rt, is_led in zip(fit_rts, fit_is_led) if is_led and rt > T_trunc]
@@ -692,4 +695,56 @@ plt.tight_layout()
 plt.savefig('vbmc_simulated_proactive_LED_rt_wrt_led_comparison.pdf', bbox_inches='tight')
 print("RT wrt LED comparison saved as 'vbmc_simulated_proactive_LED_rt_wrt_led_comparison.pdf'")
 plt.show()
+
 # %%
+# Plot RT wrt LED rate (area-weighted by abort rate)
+# Compute abort rate for ground truth simulation (aborts = RT < t_stim, after truncation)
+n_all_gt_on = sum(1 for is_led in plot_is_led if is_led)
+n_all_gt_off = sum(1 for is_led in plot_is_led if not is_led)
+n_aborts_gt_on = sum(1 for rt, is_led, t_stim in zip(plot_rts, plot_is_led, plot_t_stims) if is_led and rt < t_stim and rt > T_trunc)
+n_aborts_gt_off = sum(1 for rt, is_led, t_stim in zip(plot_rts, plot_is_led, plot_t_stims) if not is_led and rt < t_stim and rt > T_trunc)
+frac_gt_on = n_aborts_gt_on / n_all_gt_on if n_all_gt_on > 0 else 0
+frac_gt_off = n_aborts_gt_off / n_all_gt_off if n_all_gt_off > 0 else 0
+
+# Compute abort rate for fitted simulation
+n_all_fit_on = sum(1 for is_led in fit_is_led if is_led)
+n_all_fit_off = sum(1 for is_led in fit_is_led if not is_led)
+n_aborts_fit_on = sum(1 for rt, is_led, t_stim in zip(fit_rts, fit_is_led, fit_t_stims) if is_led and rt < t_stim and rt > T_trunc)
+n_aborts_fit_off = sum(1 for rt, is_led, t_stim in zip(fit_rts, fit_is_led, fit_t_stims) if not is_led and rt < t_stim and rt > T_trunc)
+frac_fit_on = n_aborts_fit_on / n_all_fit_on if n_all_fit_on > 0 else 0
+frac_fit_off = n_aborts_fit_off / n_all_fit_off if n_all_fit_off > 0 else 0
+
+# Create histograms with density=True then scale by fraction
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Ground truth histograms (area = fraction)
+gt_hist_on_wrt_led_dens, _ = np.histogram(plot_rts_wrt_led_on, bins=bins_wrt_led, density=True)
+gt_hist_off_wrt_led_dens, _ = np.histogram(plot_rts_wrt_led_off, bins=bins_wrt_led, density=True)
+gt_hist_on_scaled = gt_hist_on_wrt_led_dens * frac_gt_on
+gt_hist_off_scaled = gt_hist_off_wrt_led_dens * frac_gt_off
+
+# Fitted histograms (area = fraction)
+fit_hist_on_wrt_led_dens, _ = np.histogram(fit_rts_wrt_led_on, bins=bins_wrt_led, density=True)
+fit_hist_off_wrt_led_dens, _ = np.histogram(fit_rts_wrt_led_off, bins=bins_wrt_led, density=True)
+fit_hist_on_scaled = fit_hist_on_wrt_led_dens * frac_fit_on
+fit_hist_off_scaled = fit_hist_off_wrt_led_dens * frac_fit_off
+
+# Plot all on same axes
+ax.plot(bin_centers_wrt_led, gt_hist_on_scaled, label=f'GT LED ON (frac={frac_gt_on:.2f})', lw=2, alpha=0.7, color='r')
+ax.plot(bin_centers_wrt_led, gt_hist_off_scaled, label=f'GT LED OFF (frac={frac_gt_off:.2f})', lw=2, alpha=0.7, color='b')
+ax.plot(bin_centers_wrt_led, fit_hist_on_scaled, label=f'Fit LED ON (frac={frac_fit_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='--')
+ax.plot(bin_centers_wrt_led, fit_hist_off_scaled, label=f'Fit LED OFF (frac={frac_fit_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='--')
+
+ax.axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
+ax.axvline(x=t_effect_true, color='g', linestyle=':', alpha=0.5, label=f't_effect (GT={t_effect_true:.2f})')
+ax.set_xlabel('RT - t_LED (s)', fontsize=12)
+ax.set_ylabel('Rate (area = fraction)', fontsize=12)
+ax.set_title('RT wrt LED (area-weighted)', fontsize=14)
+ax.legend(fontsize=9)
+
+plt.tight_layout()
+plt.savefig('vbmc_simulated_proactive_LED_rt_wrt_led_rate.pdf', bbox_inches='tight')
+print("RT wrt LED rate plot saved as 'vbmc_simulated_proactive_LED_rt_wrt_led_rate.pdf'")
+plt.show()
+# %%
+# TODO

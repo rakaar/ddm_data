@@ -458,25 +458,83 @@ plt.show()
 
 # %%
 # =============================================================================
-# Theoretical RTD calculation
+# Theoretical RTD calculation (conditioned on RT < t_stim, i.e., aborts only)
+# P(RT=t | abort) = P(RT=t) * P(t_stim > t) / P(abort)
 # =============================================================================
 def compute_theoretical_rtd_on(t_pts, V_A_base, V_A_post_LED, theta_A, t_aff, t_effect, motor_delay,
-                               N_mc=1000, T_trunc=None):
+                               N_mc=500, T_trunc=None):
+    """Compute theoretical RTD for LED ON, conditioned on RT < t_stim (aborts).
+    
+    Monte Carlo loop over t_led and t_stim samples, applying same conditions as likelihood.
+    """
     pdf_samples = np.zeros((N_mc, len(t_pts)))
+    
     for i in range(N_mc):
         t_led = np.random.choice(LED_times)
+        t_stim = np.random.choice(stim_times)
+        
+        # Skip if t_stim <= T_trunc (no valid abort region)
+        if t_stim <= T_trunc:
+            continue
+        
+        # Compute PDF for each t, applying conditions from likelihood
+        sample_pdf = np.zeros(len(t_pts))
         for j, t in enumerate(t_pts):
-            pdf_samples[i, j] = PA_with_LEDON_2_adapted(
-                t, V_A_base, V_A_post_LED, theta_A, t_aff, motor_delay, t_led, t_effect, T_trunc
-            )
+            # Condition 1: t <= T_trunc and t < t_stim -> 0
+            if (t <= T_trunc) and (t < t_stim):
+                sample_pdf[j] = 0
+            # Condition 2: t >= t_stim -> 0 (not an abort)
+            elif t >= t_stim:
+                sample_pdf[j] = 0
+            # Valid abort: T_trunc < t < t_stim
+            else:
+                sample_pdf[j] = PA_with_LEDON_2_adapted(
+                    t, V_A_base, V_A_post_LED, theta_A, t_aff, motor_delay, t_led, t_effect, T_trunc
+                )
+        
+        # Normalize this sample's PDF to integrate to 1 over valid region
+        norm = np.trapz(sample_pdf, t_pts)
+        if norm > 0:
+            pdf_samples[i, :] = sample_pdf / norm
+    
+    # Average over all MC samples
     return np.mean(pdf_samples, axis=0)
 
 
-def compute_theoretical_rtd_off(t_pts, V_A_base, theta_A, t_aff, motor_delay, T_trunc=None):
-    return np.array([
-        led_off_pdf_truncated(t, V_A_base, theta_A, t_aff, motor_delay, T_trunc)
-        for t in t_pts
-    ])
+def compute_theoretical_rtd_off(t_pts, V_A_base, theta_A, t_aff, motor_delay, T_trunc=None, N_mc=500):
+    """Compute theoretical RTD for LED OFF, conditioned on RT < t_stim (aborts).
+    
+    Monte Carlo loop over t_stim samples, applying same conditions as likelihood.
+    """
+    pdf_samples = np.zeros((N_mc, len(t_pts)))
+    
+    for i in range(N_mc):
+        t_stim = np.random.choice(stim_times_off)
+        
+        # Skip if t_stim <= T_trunc (no valid abort region)
+        if t_stim <= T_trunc:
+            continue
+        
+        # Compute PDF for each t, applying conditions from likelihood
+        sample_pdf = np.zeros(len(t_pts))
+        for j, t in enumerate(t_pts):
+            # Condition 1: t <= T_trunc and t < t_stim -> 0
+            if (t <= T_trunc) and (t < t_stim):
+                sample_pdf[j] = 0
+            # Condition 2: t >= t_stim -> 0 (not an abort)
+            elif t >= t_stim:
+                sample_pdf[j] = 0
+            # Valid abort: T_trunc < t < t_stim
+            else:
+                sample_pdf[j] = led_off_pdf_truncated(t, V_A_base, theta_A, t_aff, motor_delay, T_trunc)
+        
+        # Normalize this sample's PDF to integrate to 1 over valid region
+        norm = np.trapz(sample_pdf, t_pts)
+        if norm > 0:
+            pdf_samples[i, :] = sample_pdf / norm
+    
+    # Average over all MC samples
+    return np.mean(pdf_samples, axis=0)
 
 # Compute theoretical distributions with fitted parameters
 dt = 0.01
@@ -531,28 +589,27 @@ sim_is_led = [r[1] for r in sim_results]
 sim_t_LEDs = [r[2] for r in sim_results]
 sim_t_stims = [r[3] for r in sim_results]
 
-# Separate into LED ON/OFF, apply truncation (no RT < t_stim filter for RTD comparison with theory)
-sim_rts_on = [rt for rt, is_led in zip(sim_rts, sim_is_led) if is_led and rt > T_trunc]
-sim_rts_off = [rt for rt, is_led in zip(sim_rts, sim_is_led) if not is_led and rt > T_trunc]
+# Separate into LED ON/OFF, apply truncation AND filter aborts only (RT < t_stim) to match data
+sim_rts_on = [rt for rt, is_led, t_stim in zip(sim_rts, sim_is_led, sim_t_stims) if is_led and rt > T_trunc and rt < t_stim]
+sim_rts_off = [rt for rt, is_led, t_stim in zip(sim_rts, sim_is_led, sim_t_stims) if not is_led and rt > T_trunc and rt < t_stim]
 
-# For RT wrt LED plots (abort rate), filter by RT < t_stim (aborts only)
+# For RT wrt LED plots (abort rate), same filtering
 sim_rts_wrt_led_on = [rt - t_led for rt, is_led, t_led, t_stim in zip(sim_rts, sim_is_led, sim_t_LEDs, sim_t_stims) if is_led and rt > T_trunc and rt < t_stim]
 sim_rts_wrt_led_off = [rt - t_led for rt, is_led, t_led, t_stim in zip(sim_rts, sim_is_led, sim_t_LEDs, sim_t_stims) if not is_led and rt > T_trunc and rt < t_stim]
 
-print(f"Simulation: {len(sim_rts_on)} LED ON, {len(sim_rts_off)} LED OFF (RTD plot)")
-print(f"Simulation aborts: {len(sim_rts_wrt_led_on)} LED ON, {len(sim_rts_wrt_led_off)} LED OFF (abort rate plot)")
+print(f"Simulation (aborts only): {len(sim_rts_on)} LED ON, {len(sim_rts_off)} LED OFF")
 
 # %%
 # =============================================================================
 # Get real data RTs for plotting
 # =============================================================================
-# Aborts only (RT < t_stim) for RTD plot
-data_rts_on = fit_df[(fit_df['LED_trial'] == 1) & (fit_df['RT'] < fit_df['t_stim'])]['RT'].values
-data_rts_off = fit_df[(fit_df['LED_trial'] == 0) & (fit_df['RT'] < fit_df['t_stim'])]['RT'].values
+# Aborts only (RT < t_stim) with truncation (RT > T_trunc) for RTD plot
+data_rts_on = fit_df[(fit_df['LED_trial'] == 1) & (fit_df['RT'] < fit_df['t_stim']) & (fit_df['RT'] > T_trunc)]['RT'].values
+data_rts_off = fit_df[(fit_df['LED_trial'] == 0) & (fit_df['RT'] < fit_df['t_stim']) & (fit_df['RT'] > T_trunc)]['RT'].values
 
-# RT wrt LED for data
-df_on_aborts = fit_df[(fit_df['LED_trial'] == 1) & (fit_df['RT'] < fit_df['t_stim'])]
-df_off_aborts = fit_df[(fit_df['LED_trial'] == 0) & (fit_df['RT'] < fit_df['t_stim'])]
+# RT wrt LED for data (same filtering)
+df_on_aborts = fit_df[(fit_df['LED_trial'] == 1) & (fit_df['RT'] < fit_df['t_stim']) & (fit_df['RT'] > T_trunc)]
+df_off_aborts = fit_df[(fit_df['LED_trial'] == 0) & (fit_df['RT'] < fit_df['t_stim']) & (fit_df['RT'] > T_trunc)]
 
 data_rts_wrt_led_on = (df_on_aborts['RT'] - df_on_aborts['t_LED']).values
 # For LED OFF, use actual t_LED from data (same as aborts_animal_wise_explore.py)
