@@ -82,7 +82,7 @@ print(f"Number of LED ON trials in data: {len(df_on_1)}")
 print(f"Number of LED OFF trials in data: {len(df_off)}")
 
 # %%
-N_sim = int(6e3)
+N_sim = int(3e3)
 
 # Ground truth parameters for simulation
 V_A_base_true = 1.8

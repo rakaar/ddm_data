@@ -41,7 +41,7 @@ import pickle
 # =============================================================================
 # PARAMETERS - Change ANIMAL_IDX to fit different animals
 # =============================================================================
-ANIMAL_IDX = 1  # Index into unique_animals array (0, 1, 2, ...)
+ANIMAL_IDX = 2  # Index into unique_animals array (0, 1, 2, ...)
 T_trunc = 0.3   # Left truncation threshold (exclude RT <= T_trunc)
 
 # %%
@@ -462,7 +462,7 @@ plt.show()
 # P(RT=t | abort) = P(RT=t) * P(t_stim > t) / P(abort)
 # =============================================================================
 def compute_theoretical_rtd_on(t_pts, V_A_base, V_A_post_LED, theta_A, t_aff, t_effect, motor_delay,
-                               N_mc=500, T_trunc=None):
+                               N_mc=5000, T_trunc=None):
     """Compute theoretical RTD for LED ON, conditioned on RT < t_stim (aborts).
     
     Monte Carlo loop over t_led and t_stim samples, applying same conditions as likelihood.
@@ -495,13 +495,15 @@ def compute_theoretical_rtd_on(t_pts, V_A_base, V_A_post_LED, theta_A, t_aff, t_
         # Normalize this sample's PDF to integrate to 1 over valid region
         norm = np.trapz(sample_pdf, t_pts)
         if norm > 0:
-            pdf_samples[i, :] = sample_pdf / norm
+            # pdf_samples[i, :] = sample_pdf / norm
+            pdf_samples[i, :] = sample_pdf
+
     
     # Average over all MC samples
     return np.mean(pdf_samples, axis=0)
 
 
-def compute_theoretical_rtd_off(t_pts, V_A_base, theta_A, t_aff, motor_delay, T_trunc=None, N_mc=500):
+def compute_theoretical_rtd_off(t_pts, V_A_base, theta_A, t_aff, motor_delay, T_trunc=None, N_mc=5000):
     """Compute theoretical RTD for LED OFF, conditioned on RT < t_stim (aborts).
     
     Monte Carlo loop over t_stim samples, applying same conditions as likelihood.
@@ -531,7 +533,9 @@ def compute_theoretical_rtd_off(t_pts, V_A_base, theta_A, t_aff, motor_delay, T_
         # Normalize this sample's PDF to integrate to 1 over valid region
         norm = np.trapz(sample_pdf, t_pts)
         if norm > 0:
-            pdf_samples[i, :] = sample_pdf / norm
+            # pdf_samples[i, :] = sample_pdf / norm
+            pdf_samples[i, :] = sample_pdf
+
     
     # Average over all MC samples
     return np.mean(pdf_samples, axis=0)
@@ -544,7 +548,7 @@ t_pts = np.arange(T_trunc, t_max, dt)
 print("\nComputing theoretical RT distributions with fitted parameters...")
 pdf_theory_on_fit = compute_theoretical_rtd_on(
     t_pts, param_means[0], param_means[1], param_means[2], param_means[3], param_means[4], 
-    param_means[5], N_mc=500, T_trunc=T_trunc
+    param_means[5], N_mc=5000, T_trunc=T_trunc
 )
 pdf_theory_off_fit = compute_theoretical_rtd_off(
     t_pts, param_means[0], param_means[2], param_means[3], param_means[5], T_trunc=T_trunc
@@ -558,7 +562,7 @@ pdf_theory_off_fit /= np.trapz(pdf_theory_off_fit, t_pts)
 # =============================================================================
 # Simulate with fitted parameters for comparison
 # =============================================================================
-N_trials_sim = int(100e3)
+N_trials_sim = int(200e3)
 print(f"\nSimulating {N_trials_sim} trials with fitted parameters...")
 
 # ##############################################
@@ -732,10 +736,10 @@ sim_hist_on_scaled = sim_hist_on_wrt_led_dens * frac_sim_on
 sim_hist_off_scaled = sim_hist_off_wrt_led_dens * frac_sim_off
 
 # Plot all on same axes
-ax.plot(bin_centers_wrt_led, data_hist_on_scaled, label=f'Data LED ON (frac={frac_data_on:.2f})', lw=2, alpha=0.7, color='b', linestyle='-')
-ax.plot(bin_centers_wrt_led, data_hist_off_scaled, label=f'Data LED OFF (frac={frac_data_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='--')
-ax.plot(bin_centers_wrt_led, sim_hist_on_scaled, label=f'Sim LED ON (frac={frac_sim_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='-')
-ax.plot(bin_centers_wrt_led, sim_hist_off_scaled, label=f'Sim LED OFF (frac={frac_sim_off:.2f})', lw=2, alpha=0.7, color='r', linestyle='--')
+ax.plot(bin_centers_wrt_led, data_hist_on_scaled, label=f'Data LED ON (frac={frac_data_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='-')
+ax.plot(bin_centers_wrt_led, data_hist_off_scaled, label=f'Data LED OFF (frac={frac_data_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='-')
+ax.plot(bin_centers_wrt_led, sim_hist_on_scaled, label=f'Sim LED ON (frac={frac_sim_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='--')
+ax.plot(bin_centers_wrt_led, sim_hist_off_scaled, label=f'Sim LED OFF (frac={frac_sim_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='--')
 
 ax.axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
 ax.axvline(x=param_means[4], color='g', linestyle=':', alpha=0.5, label=f't_effect={param_means[4]:.2f}')
