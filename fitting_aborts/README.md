@@ -14,7 +14,9 @@
 - `testing_v1_proactive_LED_theory.py` - Same as above but with left truncation (T_trunc=0.6s) and censoring verification. Includes theoretical PDF calculations with truncation, Monte Carlo averaging over (t_stim, t_LED) pairs, and survival probability calculations for censoring validation
 - `test_vbmc_proactive_led_likelihood.py` - Simulates proactive LED ON/OFF data, defines truncation/censoring log-likelihood, and validates it via histogram vs theory plus censoring checks
 - `vbmc_simulated_data_proactive_LED_fit.py` - VBMC parameter recovery on simulated proactive LED data. Simulates 3000 trials (V_A_base=1.8, V_A_post_LED=2.4, theta_A=1.5, t_aff=40ms, t_effect=35ms, motor_delay=50ms, T_trunc=0.3s), fits all 6 params with trapezoidal priors, outputs corner plot, RTD comparison, and RT-wrt-LED histograms
-- `vbmc_real_data_proactive_LED_fit.py` - VBMC fitting of real animal data with proactive LED model. Set ANIMAL_IDX at top to select animal. Fits all 6 params, outputs corner plot, RTD comparison (data vs theory vs sim), and RT-wrt-LED histograms (data vs sim)
+- `vbmc_real_data_proactive_LED_fit.py` - VBMC fitting of real animal data with proactive LED model. Set ANIMAL_IDX at top to select animal. Fits all 6 params, outputs corner plot, RTD comparison (data vs theory vs sim), and RT-wrt-LED histograms (data vs sim). Uses trial index sampling to preserve (t_LED, t_stim) correlation
+- `vbmc_real_data_proactive_LED_fit_all_animals_agg.py` - Same as above but aggregates data from ALL animals instead of fitting a single animal. Outputs vbmc_real_all_animals_*.pdf/pkl files
+- `test_stim_timing_distributions.py` - Debug script to verify if t_stim and t_LED distributions differ between LED ON/OFF trials (they do not)
 
 
 - `fit_added_noise/psiam_tied_dv_map_utils_with_PDFs.py` - has post LED effect funcs - `stupid_f_integral` and `PA_with_LEDON_2`
