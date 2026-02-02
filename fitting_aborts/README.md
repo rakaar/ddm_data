@@ -16,6 +16,9 @@
 - `vbmc_simulated_data_proactive_LED_fit.py` - VBMC parameter recovery on simulated proactive LED data. Simulates 3000 trials (V_A_base=1.8, V_A_post_LED=2.4, theta_A=1.5, t_aff=40ms, t_effect=35ms, motor_delay=50ms, T_trunc=0.3s), fits all 6 params with trapezoidal priors, outputs corner plot, RTD comparison, and RT-wrt-LED histograms
 - `vbmc_real_data_proactive_LED_fit.py` - VBMC fitting of real animal data with proactive LED model. Set ANIMAL_IDX at top to select animal. Fits all 6 params, outputs corner plot, RTD comparison (data vs theory vs sim), and RT-wrt-LED histograms (data vs sim). Uses trial index sampling to preserve (t_LED, t_stim) correlation
 - `vbmc_real_data_proactive_LED_fit_all_animals_agg.py` - Same as above but aggregates data from ALL animals instead of fitting a single animal. Outputs vbmc_real_all_animals_*.pdf/pkl files
+- `vbmc_real_data_proactive_LED_fit_all_animals_agg_CORR_ID.py` - All-animals aggregate fit using identifiable delay parameterization (del_a_minus_del_LED, del_m_plus_del_LED); includes updated likelihood, posterior plots, and diagnostics
+- `check_proactive_LED_with_identifiable_params.py` - Sanity-check script comparing equivalent simulator parameterizations for identifiable delays
+- `sum_invariant_delays_proactive_rtds.py` - Utilities/experiments for invariances in proactive RTDs with combined delay parameters
 - `test_stim_timing_distributions.py` - Debug script to verify if t_stim and t_LED distributions differ between LED ON/OFF trials (they do not)
 
 
