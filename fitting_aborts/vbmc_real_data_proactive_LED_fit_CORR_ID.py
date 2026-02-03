@@ -1,15 +1,22 @@
 """
-VBMC Fitting of Real Animal Data with Proactive LED Model
-==========================================================
+VBMC Fitting of Real Animal Data with Proactive LED Model (Correctly Identified Parameters)
+============================================================================================
 
-This script fits the proactive process model to real experimental data aggregated across
-ALL animals using Variational Bayesian Monte Carlo (VBMC).
+This script fits the proactive process model to real experimental data from a single animal
+using Variational Bayesian Monte Carlo (VBMC).
+
+PARAMETERS (5 identifiable parameters):
+- V_A_base: Base drift rate of proactive accumulator
+- V_A_post_LED: Drift rate after LED effect kicks in
+- theta_A: Threshold for proactive accumulator
+- del_a_minus_del_LED: Composite delay = del_a - del_LED (afferent delay minus LED effect delay)
+- del_m_plus_del_LED: Composite delay = del_m + del_LED (motor delay plus LED effect delay)
 
 SCRIPT STRUCTURE (cell-by-cell):
 --------------------------------
 1. **Imports** - numpy, matplotlib, joblib, pandas, pyvbmc, corner
-2. **Parameters** - T_trunc truncation threshold
-3. **Load & Filter Data** - Load real data, filter by session/training, aggregate all animals
+2. **Parameters** - ANIMAL_IDX to select which animal to fit
+3. **Load & Filter Data** - Load real data, filter by session/training, select animal
 4. **Build Fitting DataFrame** - RT (timed_fix), t_stim (intended_fix), t_LED, LED_trial
 5. **Likelihood Functions** - Same as simulated version (truncation + censoring)
 6. **Prior Functions** - Trapezoidal priors for VBMC
@@ -40,8 +47,9 @@ import pickle
 
 # %%
 # =============================================================================
-# PARAMETERS
+# PARAMETERS - Change ANIMAL_IDX to fit different animals
 # =============================================================================
+ANIMAL_IDX = 5  # Index into unique_animals array (0, 1, 2, ...)
 T_trunc = 0.3   # Left truncation threshold (exclude RT <= T_trunc)
 
 # %%
@@ -62,19 +70,21 @@ df = df[(df['abort_event'] == 3) | (df['success'].isin([1, -1]))]
 # Filter out aborts < 300ms (T_trunc)
 df = df[~((df['abort_event'] == 3) & (df['timed_fix'] < T_trunc))]
 
-# Get unique animals (for info)
+# Get unique animals
 unique_animals = df['animal'].unique()
-print(f"Aggregating all {len(unique_animals)} animals: {unique_animals}")
+print(f"Available animals: {unique_animals}")
+print(f"Selected ANIMAL_IDX = {ANIMAL_IDX} -> Animal: {unique_animals[ANIMAL_IDX]}")
 
-# Use all animals (no filtering by animal)
-df_all = df
+# Select animal
+animal = unique_animals[ANIMAL_IDX]
+df_animal = df[df['animal'] == animal]
 
 # Separate LED ON and OFF
-df_on = df_all[df_all['LED_trial'] == 1]
-df_off = df_all[df_all['LED_trial'].isin([0, np.nan])]
+df_on = df_animal[df_animal['LED_trial'] == 1]
+df_off = df_animal[df_animal['LED_trial'].isin([0, np.nan])]
 
-print(f"\nAll animals aggregated data summary:")
-print(f"  Total trials: {len(df_all)}")
+print(f"\nAnimal {animal} data summary:")
+print(f"  Total trials: {len(df_animal)}")
 print(f"  LED ON trials: {len(df_on)}")
 print(f"  LED OFF trials: {len(df_off)}")
 
@@ -118,8 +128,8 @@ print(f"  Censored trials (RT >= t_stim): {n_censored}")
 
 # Get LED and stimulus timing distributions from ALL trials (for simulation and theoretical calculations)
 # IMPORTANT: Keep as paired arrays to preserve trial-level correlation (t_LED = t_stim - LED_onset_time)
-stim_times = df_all['intended_fix'].values
-LED_times = (df_all['intended_fix'] - df_all['LED_onset_time']).values
+stim_times = df_animal['intended_fix'].values
+LED_times = (df_animal['intended_fix'] - df_animal['LED_onset_time']).values
 n_trials_data = len(stim_times)  # For sampling by trial index
 
 # %%
@@ -398,11 +408,11 @@ print(f"  Plausible upper: {pub}")
 # =============================================================================
 # Run VBMC (or load saved results)
 # =============================================================================
-LOAD_SAVED_RESULTS = False
-VP_PKL_PATH = 'vbmc_real_all_animals_fit.pkl'
-RESULTS_PKL_PATH = 'vbmc_real_all_animals_results.pkl'
+LOAD_SAVED_RESULTS = True
+VP_PKL_PATH = f'vbmc_real_{animal}_CORR_ID_fit.pkl'
+RESULTS_PKL_PATH = f'vbmc_real_{animal}_CORR_ID_results.pkl'
 
-if LOAD_SAVED_RESULTS:
+if LOAD_SAVED_RESULTS and os.path.exists(VP_PKL_PATH):
     print(f"\nLoading saved VBMC results from {VP_PKL_PATH}...")
     with open(VP_PKL_PATH, 'rb') as f:
         vp = pickle.load(f)
@@ -415,13 +425,12 @@ if LOAD_SAVED_RESULTS:
         print(f"Warning: {RESULTS_PKL_PATH} is missing or empty; proceeding without saved summary.")
     print("Loaded saved VBMC results.")
 else:
-    print("\nRunning VBMC optimization for all animals aggregated...")
+    print(f"\nRunning VBMC optimization for animal {animal}...")
     vbmc = VBMC(vbmc_joint, x_0, lb, ub, plb, pub, options={'display': 'iter'})
     vp, results = vbmc.optimize()
 
     print("\nVBMC optimization complete!")
 
-    # %%
     # =============================================================================
     # Save results
     # =============================================================================
@@ -435,14 +444,14 @@ else:
     # %%
     with open(RESULTS_PKL_PATH, 'wb') as f:
         pickle.dump({
-            'animals': unique_animals.tolist(),
+            'animal': animal,
             'results_summary': results_summary,
             'fit_df': fit_df,
             'bounds': {
                 'lb': lb, 'ub': ub, 'plb': plb, 'pub': pub
             }
         }, f)
-    print("Results saved for all animals!")
+    print(f"Results saved for animal {animal}!")
 
 # %%
 # =============================================================================
@@ -454,11 +463,11 @@ param_labels = ['V_A_base', 'V_A_post_LED', 'theta_A', 'del_a_minus_del_LED', 'd
 param_means = np.mean(vp_samples, axis=0)
 param_stds = np.std(vp_samples, axis=0)
 
-print("\nPosterior summary (all animals aggregated):")
-print(f"{'Parameter':<15} {'Mean':<12} {'Std':<12}")
-print("-" * 40)
+print(f"\nPosterior summary for animal {animal}:")
+print(f"{'Parameter':<20} {'Mean':<12} {'Std':<12}")
+print("-" * 45)
 for i, label in enumerate(param_labels):
-    print(f"{label:<15} {param_means[i]:<12.4f} {param_stds[i]:<12.4f}")
+    print(f"{label:<20} {param_means[i]:<12.4f} {param_stds[i]:<12.4f}")
 
 # %%
 # =============================================================================
@@ -471,9 +480,9 @@ fig = corner.corner(
     title_fmt=".4f",
     quantiles=[0.025, 0.5, 0.975]
 )
-plt.suptitle('All Animals Aggregated Posterior', y=1.02)
-plt.savefig('vbmc_real_all_animals_corner.pdf', bbox_inches='tight')
-print("Corner plot saved as 'vbmc_real_all_animals_corner.pdf'")
+plt.suptitle(f'Animal {animal} Posterior (CORR_ID)', y=1.02)
+plt.savefig(f'vbmc_real_{animal}_CORR_ID_corner.pdf', bbox_inches='tight')
+print(f"Corner plot saved as 'vbmc_real_{animal}_CORR_ID_corner.pdf'")
 plt.show()
 
 # %%
@@ -490,11 +499,11 @@ ax.axvline(sum_delay_quantiles[1], color='k', linestyle='-', label=f'50%={sum_de
 ax.axvline(sum_delay_quantiles[2], color='k', linestyle='--', label=f'97.5%={sum_delay_quantiles[2]:.4f}')
 ax.set_xlabel('del_a_minus_del_LED + del_m_plus_del_LED (s)', fontsize=12)
 ax.set_ylabel('Density', fontsize=12)
-ax.set_title('Posterior: del_a_minus_del_LED + del_m_plus_del_LED', fontsize=13)
+ax.set_title(f'Animal {animal}: Posterior of del_a + del_m', fontsize=13)
 ax.legend(fontsize=9)
 plt.tight_layout()
-plt.savefig('vbmc_real_all_animals_sum_delay_posterior.pdf', bbox_inches='tight')
-print("Sum-delay posterior saved as 'vbmc_real_all_animals_sum_delay_posterior.pdf'")
+plt.savefig(f'vbmc_real_{animal}_CORR_ID_sum_delay_posterior.pdf', bbox_inches='tight')
+print(f"Sum-delay posterior saved as 'vbmc_real_{animal}_CORR_ID_sum_delay_posterior.pdf'")
 plt.show()
 
 # %%
@@ -607,15 +616,9 @@ pdf_theory_off_fit /= np.trapz(pdf_theory_off_fit, t_pts)
 # =============================================================================
 # Simulate with fitted parameters for comparison
 # =============================================================================
-N_trials_sim = int(300e3)
+N_trials_sim = int(200e3)
 print(f"\nSimulating {N_trials_sim} trials with fitted parameters...")
 
-# ##############################################
-########### NOTE ###########################
-# param_means[3] = -0.1751 - 0.0306 - 0.05
-# param_means[4] = 0.0
-# param_means[5] = 0.0306 + 0.05
-#############################
 def simulate_single_trial_fit():
     is_led_trial = np.random.random() < 1/3
     # Sample trial index to preserve (t_LED, t_stim) correlation
@@ -686,7 +689,7 @@ axes[0].plot(t_pts, pdf_theory_on_fit, label='Theory (fitted)', lw=2, ls='--', c
 axes[0].axvline(x=T_trunc, color='r', linestyle='--', alpha=0.5, label='Truncation')
 axes[0].set_xlabel('RT (s)', fontsize=12)
 axes[0].set_ylabel('Density', fontsize=12)
-axes[0].set_title('LED ON Trials - All Animals', fontsize=14)
+axes[0].set_title(f'LED ON Trials - Animal {animal}', fontsize=14)
 axes[0].legend(fontsize=10)
 
 # LED OFF
@@ -699,12 +702,12 @@ axes[1].plot(t_pts, pdf_theory_off_fit, label='Theory (fitted)', lw=2, ls='--', 
 axes[1].axvline(x=T_trunc, color='r', linestyle='--', alpha=0.5, label='Truncation')
 axes[1].set_xlabel('RT (s)', fontsize=12)
 axes[1].set_ylabel('Density', fontsize=12)
-axes[1].set_title('LED OFF Trials - All Animals', fontsize=14)
+axes[1].set_title(f'LED OFF Trials - Animal {animal}', fontsize=14)
 axes[1].legend(fontsize=10)
 
 plt.tight_layout()
-plt.savefig('vbmc_real_all_animals_rtd_comparison.pdf', bbox_inches='tight')
-print("RTD comparison saved as 'vbmc_real_all_animals_rtd_comparison.pdf'")
+plt.savefig(f'vbmc_real_{animal}_CORR_ID_rtd_comparison.pdf', bbox_inches='tight')
+print(f"RTD comparison saved as 'vbmc_real_{animal}_CORR_ID_rtd_comparison.pdf'")
 plt.show()
 
 # %%
@@ -726,7 +729,7 @@ axes[0].axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
 axes[0].axvline(x=param_means[4], color='r', linestyle=':', alpha=0.5, label=f'del_m_plus_del_LED={param_means[4]:.2f}')
 axes[0].set_xlabel('RT - t_LED (s)', fontsize=12)
 axes[0].set_ylabel('Density', fontsize=12)
-axes[0].set_title('LED ON Trials - All Animals', fontsize=14)
+axes[0].set_title(f'LED ON Trials - Animal {animal}', fontsize=14)
 axes[0].legend(fontsize=10)
 
 # LED OFF
@@ -738,12 +741,12 @@ axes[1].plot(bin_centers_wrt_led, sim_hist_off_wrt_led, label='Sim (fitted)', lw
 axes[1].axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
 axes[1].set_xlabel('RT - t_LED (s)', fontsize=12)
 axes[1].set_ylabel('Density', fontsize=12)
-axes[1].set_title('LED OFF Trials - All Animals', fontsize=14)
+axes[1].set_title(f'LED OFF Trials - Animal {animal}', fontsize=14)
 axes[1].legend(fontsize=10)
 
 plt.tight_layout()
-plt.savefig('vbmc_real_all_animals_rt_wrt_led_comparison.pdf', bbox_inches='tight')
-print("RT wrt LED comparison saved as 'vbmc_real_all_animals_rt_wrt_led_comparison.pdf'")
+plt.savefig(f'vbmc_real_{animal}_CORR_ID_rt_wrt_led_comparison.pdf', bbox_inches='tight')
+print(f"RT wrt LED comparison saved as 'vbmc_real_{animal}_CORR_ID_rt_wrt_led_comparison.pdf'")
 plt.show()
 
 # %%
@@ -751,7 +754,7 @@ plt.show()
 # Plot 3: RT wrt LED - Abort rate (like aborts_animal_wise_explore.py)
 # =============================================================================
 # Compute abort rate = n_aborts / n_all_trials for each LED condition (from data)
-bins_wrt_led = np.arange(-3, 3, 0.001)
+bins_wrt_led = np.arange(-3, 3, 0.05)
 bin_centers_wrt_led = (bins_wrt_led[1:] + bins_wrt_led[:-1]) / 2
 
 n_all_data_on = len(fit_df[fit_df['LED_trial'] == 1])
@@ -770,7 +773,7 @@ frac_sim_on = n_aborts_sim_on / n_all_sim_on if n_all_sim_on > 0 else 0
 frac_sim_off = n_aborts_sim_off / n_all_sim_off if n_all_sim_off > 0 else 0
 
 # Create histograms with density=True then scale by fraction
-fig, ax = plt.subplots(figsize=(15, 6))
+fig, ax = plt.subplots(figsize=(10, 6))
 
 # Data histograms (area = fraction)
 data_hist_on_wrt_led_dens, _ = np.histogram(data_rts_wrt_led_on, bins=bins_wrt_led, density=True)
@@ -785,22 +788,25 @@ sim_hist_on_scaled = sim_hist_on_wrt_led_dens * frac_sim_on
 sim_hist_off_scaled = sim_hist_off_wrt_led_dens * frac_sim_off
 
 # Plot all on same axes
-ax.plot(bin_centers_wrt_led, data_hist_on_scaled, label=f'Data LED ON (frac={frac_data_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='-')
-ax.plot(bin_centers_wrt_led, data_hist_off_scaled, label=f'Data LED OFF (frac={frac_data_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='-')
-ax.plot(bin_centers_wrt_led, sim_hist_on_scaled, label=f'Sim LED ON (frac={frac_sim_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='--')
-ax.plot(bin_centers_wrt_led, sim_hist_off_scaled, label=f'Sim LED OFF (frac={frac_sim_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='--')
-
+ax.plot(bin_centers_wrt_led, data_hist_on_scaled, label=f'Data LED ON (frac={frac_data_on:.4f})', lw=2, alpha=0.4, color='r', linestyle='-')
+ax.plot(bin_centers_wrt_led, data_hist_off_scaled, label=f'Data LED OFF (frac={frac_data_off:.4f})', lw=2, alpha=0.4, color='b', linestyle='-')
+ax.plot(bin_centers_wrt_led, sim_hist_on_scaled, label=f'Sim LED ON (frac={frac_sim_on:.4f})', lw=2, alpha=0.7, color='r', linestyle='--')
+ax.plot(bin_centers_wrt_led, sim_hist_off_scaled, label=f'Sim LED OFF (frac={frac_sim_off:.4f})', lw=2, alpha=0.7, color='b', linestyle='--')
+ax.set_xlim(-0.2, 0.4)
 ax.axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
 ax.axvline(x=param_means[4], color='g', linestyle=':', alpha=0.5, label=f'del_m_plus_del_LED={param_means[4]:.2f}')
 ax.set_xlabel('RT - t_LED (s)', fontsize=12)
 ax.set_ylabel('Rate (area = fraction)', fontsize=12)
-ax.set_title('RT wrt LED (area-weighted) - All Animals', fontsize=14)
+ax.set_title(f'RT wrt LED (area-weighted) - Animal {animal}', fontsize=14)
 ax.legend(fontsize=9)
 
-ax.set_xlim(-0.1,0.2)
 plt.tight_layout()
-plt.savefig('vbmc_real_all_animals_rt_wrt_led_rate.pdf', bbox_inches='tight')
-print("RT wrt LED rate plot saved as 'vbmc_real_all_animals_rt_wrt_led_rate.pdf'")
+plt.savefig(f'vbmc_real_{animal}_CORR_ID_rt_wrt_led_rate.pdf', bbox_inches='tight')
+print(f"RT wrt LED rate plot saved as 'vbmc_real_{animal}_CORR_ID_rt_wrt_led_rate.pdf'")
 plt.show()
 
-print("\nScript complete for all animals aggregated!")
+print(f"\nScript complete for animal {animal}!")
+# %%
+print(f"Data abort fraction ON: {frac_data_on:.4f}")
+print(f"Sim abort fraction ON: {frac_sim_on:.4f}")
+# %%
