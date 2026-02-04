@@ -51,6 +51,9 @@ fig, ax = plt.subplots(figsize=(6, 4))
 colors = ['green' if diff > 0 else 'red' for diff in loglike_diffs]
 ax.scatter(lapse_rates, loglike_diffs, c=colors, alpha=0.7, s=45, edgecolors='black', linewidth=0.5)
 ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
+median_lapse_rate = float(np.median(lapse_rates)) if len(lapse_rates) > 0 else np.nan
+if np.isfinite(median_lapse_rate):
+    ax.axvline(x=median_lapse_rate, color='black', linestyle=':', linewidth=1)
 
 ax.set_xlabel('Lapse rate (%)', fontsize=14)
 ax.set_ylabel('NPL - (IPL + lapses)\nLL', fontsize=14)
@@ -107,6 +110,9 @@ fig, ax = plt.subplots(figsize=(6, 4))
 colors = ['green' if diff > 0 else 'red' for diff in loglike_diffs]
 ax.scatter(lapse_rates, loglike_diffs, c=colors, alpha=0.7, s=45, edgecolors='black', linewidth=0.5)
 ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
+median_lapse_rate = float(np.median(lapse_rates)) if len(lapse_rates) > 0 else np.nan
+if np.isfinite(median_lapse_rate):
+    ax.axvline(x=median_lapse_rate, color='black', linestyle=':', linewidth=1)
 
 ax.set_xlabel('Lapse rate (%)', fontsize=14)
 ax.set_ylabel('(NPL + lapses) - (IPL + lapses)\nLL', fontsize=14)
