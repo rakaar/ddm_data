@@ -9,6 +9,25 @@ import sys
 sys.path.insert(0, '/home/rlab/raghavendra/ddm_data/fit_each_condn')
 import led_off_gamma_omega_pdf_utils  # Required for unpickling VBMC files
 
+DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
+
+
+def get_valid_batch_animal_pairs():
+    import pandas as pd
+
+    base_dir = '/home/rlab/raghavendra/ddm_data/fit_animal_by_animal'
+    batch_dir = os.path.join(base_dir, 'batch_csvs')
+    batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
+
+    merged_data = pd.concat([
+        pd.read_csv(os.path.join(batch_dir, fname)) for fname in batch_files
+        if os.path.exists(os.path.join(batch_dir, fname))
+    ], ignore_index=True)
+
+    merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
+    pairs = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
+    return [(batch, int(animal)) for batch, animal in pairs]
+
 # %%
 # 1. lapses distribution, median vertical line
 def plot_lapse_distribution():
@@ -23,9 +42,19 @@ def plot_lapse_distribution():
     with open(pkl_path, 'rb') as f:
         lapse_params = pickle.load(f)
     
+    valid_pairs = set(get_valid_batch_animal_pairs())
+
     # Extract average lapse_prob (vanilla_lapse + norm_lapse) for all animals
     lapse_probs = []
     for (batch, animal), data in lapse_params.items():
+        try:
+            key = (batch, int(animal))
+        except (TypeError, ValueError):
+            continue
+
+        if key not in valid_pairs:
+            continue
+
         vanilla_lp = data['vanilla_lapse']['lapse_prob']
         norm_lp = data['norm_lapse']['lapse_prob']
         
@@ -137,17 +166,7 @@ def load_gamma_by_median_lapse_data():
         lapse_params = pickle.load(f)
     
     # Get batch-animal pairs
-    DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
-    batch_dir = os.path.join(base_dir, 'batch_csvs')
-    batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
-    
-    merged_data = pd.concat([
-        pd.read_csv(os.path.join(batch_dir, fname)) for fname in batch_files 
-        if os.path.exists(os.path.join(batch_dir, fname))
-    ], ignore_index=True)
-    
-    merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
-    batch_animal_pairs = sorted(list(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values)))
+    batch_animal_pairs = get_valid_batch_animal_pairs()
     
     print(f"\nFound {len(batch_animal_pairs)} batch-animal pairs")
     
@@ -483,10 +502,14 @@ def load_rate_norm_l_vs_lapse_data():
     animal_data = []
     n_samples_per_animal = 5000
     
+    valid_pairs = set(get_valid_batch_animal_pairs())
+
     for pkl_path in norm_lapse_files:
         filename = os.path.basename(pkl_path)
         try:
             batch, animal = parse_filename_norm_lapse(filename)
+            if (batch, int(animal)) not in valid_pairs:
+                continue
             print(f"Processing {batch} animal {animal}...")
             params = extract_params_from_norm_lapse_pkl(pkl_path, n_samples_per_animal)
             
@@ -815,9 +838,19 @@ def plot_psychometric_low_vs_high_lapse():
     with open(lapse_pkl_path, 'rb') as f:
         lapse_params = pickle.load(f)
     
+    valid_pairs = set(get_valid_batch_animal_pairs())
+
     # Extract average lapse_prob for all animals
     lapse_rates = {}
     for (batch, animal), data in lapse_params.items():
+        try:
+            key = (batch, int(animal))
+        except (TypeError, ValueError):
+            continue
+
+        if key not in valid_pairs:
+            continue
+
         vanilla_lp = data['vanilla_lapse']['lapse_prob']
         norm_lp = data['norm_lapse']['lapse_prob']
         
@@ -844,7 +877,6 @@ def plot_psychometric_low_vs_high_lapse():
     print(f"  High lapse animals: {len(high_lapse_animals)}")
     
     # Load batch CSVs
-    DESIRED_BATCHES = ['SD', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even']
     batch_dir = os.path.join(base_dir, 'batch_csvs')
     batch_files = [f'batch_{batch_name}_valid_and_aborts.csv' for batch_name in DESIRED_BATCHES]
     

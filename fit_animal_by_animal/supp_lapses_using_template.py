@@ -79,6 +79,8 @@ def plot_gamma_by_median_lapse(axes, data):
     gamma_high_lapse = data['gamma_high_lapse']
     low_lapse_animals = data['low_lapse_animals']
     high_lapse_animals = data['high_lapse_animals']
+
+    print('Gamma colors: black = low lapse, red = high lapse')
     
     for abl_idx, ABL in enumerate(all_ABL):
         ax_gamma = axes[abl_idx]
@@ -100,9 +102,9 @@ def plot_gamma_by_median_lapse(axes, data):
             label_high = None
         
         ax_gamma.errorbar(all_ILD_sorted, mean_gamma_low, yerr=sem_gamma_low, fmt='o', 
-                            color='k', label=label_low, capsize=0, alpha=0.7)
+                            color='k', label=label_low, capsize=0, alpha=0.7, markersize=8)
         ax_gamma.errorbar(all_ILD_sorted, mean_gamma_high, yerr=sem_gamma_high, fmt='o', 
-                            color='red', label=label_high, capsize=0, alpha=0.7)
+                            color='red', label=label_high, capsize=0, alpha=0.7, markersize=8)
         
         # Add title with ABL value
         ax_gamma.set_title(f'ABL={ABL}', fontsize=ft.STYLE.TITLE_FONTSIZE)
@@ -120,10 +122,6 @@ def plot_gamma_by_median_lapse(axes, data):
         # Remove top and right spines
         ax_gamma.spines['top'].set_visible(False)
         ax_gamma.spines['right'].set_visible(False)
-        
-        # Add legend only to first plot
-        if abl_idx == 0:
-            ax_gamma.legend(fontsize=ft.STYLE.LEGEND_FONTSIZE, frameon=False, loc='best', handletextpad=-0.5)
         
         # Make plot square
         ax_gamma.set_box_aspect(1)
@@ -228,7 +226,9 @@ if __name__ == '__main__':
         height_ratios=[1],
         hspace=0.3,
         wspace=0.3,
-        figsize=(28, 5.5)
+        # figsize=(28, 5.5)
+        figsize=(17.5, 4.35)
+
     )
     
     # Panel a: Lapse distribution histogram

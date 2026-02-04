@@ -1407,3 +1407,9 @@ plt.show()
 print(f"\nParameter comparison plot (Norm) saved to: {params_comparison_norm_path}")
 
 # %%
+
+ild_range = np.arange(-16,16,0.1)
+plt.plot(ild_range, np.tanh(1.02 * ild_range/17.37))
+plt.plot(ild_range, np.tanh(2 * ild_range/17.37))
+
+plt.show()
