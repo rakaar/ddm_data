@@ -176,6 +176,7 @@ This section documents the workflow for creating the supplementary figure showin
 - `lapse_rate_and_gamma_effect_on_psychometric.py` - Toy psychometric curves showing lapse-rate/gamma effects.
 - `lapses_likelihood_plot_for_paper.py` - Plots lapse rate vs log-likelihood differences (NPL - (IPL + lapses) and NPL + lapses - (IPL + lapses)). Saves `lapse_rate_loglike_diff_data.pkl`.
 - `plot_gamma_for_norm_lapse_for_paper.py` - Plots norm+lapse gamma across ABL=20/40/60 in a single panel using `gamma_sep_by_median_lapse_rate_data.pkl`. Outputs `gamma_norm_lapse_all_ABL.png/.pdf`.
+- `params_npl_npl_plus_lapse_ordered_for_paper.py` - Plots norm vs norm+lapse params ordered by NPL lapse rate (rate_norm_l, lambda, theta_E, T_0). Outputs `param_<param>_ordered_by_npl_lapse.png/.pdf`.
 
 ## Lapse model comparisons
 - `compare_vanilla_norm_lapse_elbos.py` - Compare ELBOs for vanilla/norm vs lapse variants (CSV + plots).
