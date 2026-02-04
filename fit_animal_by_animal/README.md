@@ -168,11 +168,13 @@ This section documents the workflow for creating the supplementary figure showin
 - `supp_lapses_distr_plot.pkl` - Lapse rate histogram data
 - `gamma_sep_by_median_lapse_rate_data.pkl` - Gamma data split by median lapse rate
 - `rate_norm_l_vs_lapse_prob_data.pkl` - Scatter plot data with ellipses
+- `lapse_rate_loglike_diff_data.pkl` - Lapse-rate vs log-likelihood difference data (for lapses likelihood plots)
 
 ### Additional lapse-rate diagnostics
 - `rate_lambda_vs_lapse_prob_save_data.py` - Samples `rate_lambda` vs lapse rate from norm+lapse fits and saves `rate_lambda_vs_lapse_prob_data.pkl` plus scatter plot.
 - `theta_vs_lapse_prob_save_data.py` - Samples `theta_E` vs lapse rate from norm+lapse fits and saves `theta_vs_lapse_prob_data.pkl` plus scatter plot.
 - `lapse_rate_and_gamma_effect_on_psychometric.py` - Toy psychometric curves showing lapse-rate/gamma effects.
+- `lapses_likelihood_plot_for_paper.py` - Plots lapse rate vs log-likelihood differences (NPL - (IPL + lapses) and NPL + lapses - (IPL + lapses)). Saves `lapse_rate_loglike_diff_data.pkl`.
 
 ## Lapse model comparisons
 - `compare_vanilla_norm_lapse_elbos.py` - Compare ELBOs for vanilla/norm vs lapse variants (CSV + plots).
