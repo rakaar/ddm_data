@@ -198,7 +198,7 @@ for config in param_configs:
         norm_means,
         yerr=[norm_means - norm_low, norm_high - norm_means],
         fmt='o',
-        color='green',
+        color='black',
         alpha=0.7,
         capsize=0,
         label='Norm',
