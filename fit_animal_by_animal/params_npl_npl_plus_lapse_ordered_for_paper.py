@@ -164,6 +164,9 @@ param_configs = [
 ]
 
 x_pos = np.arange(len(entries))
+lapse_probs = np.array([entry['lapse_prob'] for entry in entries], dtype=float)
+median_lapse_prob = np.median(lapse_probs)
+median_lapse_x = np.interp(median_lapse_prob, lapse_probs, x_pos)
 tick_map = {
     'rate_norm_l': [0.8, 0.9, 1.0],
     'rate_lambda': [0.1, 0.2],
@@ -217,6 +220,7 @@ for config in param_configs:
         markersize=6,
         linewidth=1.5,
     )
+    ax.axvline(median_lapse_x, color='gray', linestyle='--', linewidth=1)
 
     ax.set_xlabel('Rat', fontsize=12)
     ax.set_ylabel(config['label'], fontsize=12)
@@ -226,7 +230,7 @@ for config in param_configs:
         ax.set_yticks(tick_map[param])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.legend(frameon=False, fontsize=10)
+    # ax.legend(frameon=False, fontsize=10)
 
     output_prefix = os.path.join(BASE_DIR, f"param_{param}_ordered_by_npl_lapse")
     plt.tight_layout()
@@ -236,5 +240,51 @@ for config in param_configs:
 
     print(f"Saved: {output_prefix}.png")
     print(f"Saved: {output_prefix}.pdf")
+
+# %%
+# Save all param plot data to a single pkl for the template figure
+params_plot_data = {
+    'param_configs': param_configs,
+    'x_pos': x_pos,
+    'median_lapse_x': median_lapse_x,
+    'tick_map': tick_map,
+    'params': {},
+}
+
+for config in param_configs:
+    param = config['name']
+    convert_ms = config['convert_ms']
+
+    norm_means = np.array([entry['norm_params'][param]['mean'] for entry in entries], dtype=float)
+    norm_low = np.array([entry['norm_params'][param]['percentile_2_5'] for entry in entries], dtype=float)
+    norm_high = np.array([entry['norm_params'][param]['percentile_97_5'] for entry in entries], dtype=float)
+
+    norm_lapse_means = np.array([entry['norm_lapse_params'][param]['mean'] for entry in entries], dtype=float)
+    norm_lapse_low = np.array([entry['norm_lapse_params'][param]['percentile_2_5'] for entry in entries], dtype=float)
+    norm_lapse_high = np.array([entry['norm_lapse_params'][param]['percentile_97_5'] for entry in entries], dtype=float)
+
+    if convert_ms:
+        norm_means *= 1000
+        norm_low *= 1000
+        norm_high *= 1000
+        norm_lapse_means *= 1000
+        norm_lapse_low *= 1000
+        norm_lapse_high *= 1000
+
+    params_plot_data['params'][param] = {
+        'label': config['label'],
+        'norm_means': norm_means,
+        'norm_low': norm_low,
+        'norm_high': norm_high,
+        'norm_lapse_means': norm_lapse_means,
+        'norm_lapse_low': norm_lapse_low,
+        'norm_lapse_high': norm_lapse_high,
+    }
+
+pkl_path = os.path.join(BASE_DIR, 'params_npl_npl_plus_lapse_plot_data.pkl')
+with open(pkl_path, 'wb') as handle:
+    pickle.dump(params_plot_data, handle)
+
+print(f'Saved data: {pkl_path}')
 
 # %%
