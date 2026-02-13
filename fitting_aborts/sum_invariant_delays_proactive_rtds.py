@@ -87,8 +87,18 @@ param_stds = np.std(vp_samples, axis=0)
 print("\nPosterior summary (all animals aggregated):")
 print(f"{'Parameter':<15} {'Mean':<12} {'Std':<12}")
 print("-" * 40)
-for i, label in enumerate(param_labels):
-    print(f"{label:<15} {param_means[i]:<12.4f} {param_stds[i]:<12.4f}")
+# for i, label in enumerate(param_labels):
+#     print(f"{label:<15} {param_means[i]:<12.4f} {param_stds[i]:<12.4f}")
+
+param_means = [
+    1.6,
+    3.3,
+    2.5,
+    -0.200,
+    0.03,
+    0.01
+]
+# %%
 
 # %%
 # =============================================================================

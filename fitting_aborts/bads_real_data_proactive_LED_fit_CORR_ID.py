@@ -1,9 +1,9 @@
 """
-VBMC Fitting of Real Animal Data with Proactive LED Model (Correctly Identified Parameters)
+BADS Fitting of Real Animal Data with Proactive LED Model (Correctly Identified Parameters)
 ============================================================================================
 
 This script fits the proactive process model to real experimental data from a single animal
-using Variational Bayesian Monte Carlo (VBMC).
+using Bayesian Adaptive Direct Search (BADS).
 
 PARAMETERS (5 identifiable parameters):
 - V_A_base: Base drift rate of proactive accumulator
@@ -14,16 +14,14 @@ PARAMETERS (5 identifiable parameters):
 
 SCRIPT STRUCTURE (cell-by-cell):
 --------------------------------
-1. **Imports** - numpy, matplotlib, joblib, pandas, pyvbmc, corner
+1. **Imports** - numpy, matplotlib, joblib, pandas, pybads
 2. **Parameters** - ANIMAL_IDX to select which animal to fit
 3. **Load & Filter Data** - Load real data, filter by session/training, select animal
 4. **Build Fitting DataFrame** - RT (timed_fix), t_stim (intended_fix), t_LED, LED_trial
-5. **Likelihood Functions** - Same as simulated version (truncation + censoring)
-6. **Prior Functions** - Trapezoidal priors for VBMC
-7. **VBMC Setup** - Define bounds, plausible bounds, and joint function
-8. **Run VBMC** - Optimize and get posterior samples
-9. **Posterior Visualization** - Corner plot of posterior
-10. **Diagnostic Plots**:
+5. **Likelihood Functions** - Same as VBMC version (truncation + censoring)
+6. **BADS Setup** - Define bounds, plausible bounds, neg-loglikelihood objective
+7. **Run BADS** - Optimize and get best-fit parameters
+8. **Diagnostic Plots**:
     - RTD wrt fixation: data hist, theory (fitted), sim (fitted) — for LED ON/OFF
     - RTD wrt LED: data hist, sim (fitted) — for LED ON/OFF
 
@@ -41,8 +39,7 @@ import sys
 sys.path.append('../fit_each_condn')
 from psiam_tied_dv_map_utils_with_PDFs import stupid_f_integral, d_A_RT
 from post_LED_censor_utils import cum_A_t_fn
-from pyvbmc import VBMC
-import corner
+from pybads import BADS
 import pickle
 
 # %%
@@ -312,7 +309,14 @@ def proactive_led_loglike(params):
 
 # %%
 # =============================================================================
-# Bounds and priors
+# Objective function for BADS (minimize negative log-likelihood)
+# =============================================================================
+def neg_loglike(params):
+    return -proactive_led_loglike(params)
+
+# %%
+# =============================================================================
+# Bounds
 # =============================================================================
 V_A_base_bounds = [0.1, 8]
 V_A_post_LED_bounds = [0.1, 8]
@@ -326,54 +330,9 @@ theta_A_plausible = [0.5, 3]
 del_a_minus_del_LED_plausible = [0.01, 0.07]
 del_m_plus_del_LED_plausible = [0.01, 0.07]
 
-
-def trapezoidal_logpdf(x, a, b, c, d):
-    if x < a or x > d:
-        return -np.inf
-    area = ((b - a) + (d - c)) / 2 + (c - b)
-    h_max = 1.0 / area
-    
-    if a <= x <= b:
-        pdf_value = ((x - a) / (b - a)) * h_max
-    elif b < x < c:
-        pdf_value = h_max
-    elif c <= x <= d:
-        pdf_value = ((d - x) / (d - c)) * h_max
-    else:
-        pdf_value = 0.0
-
-    if pdf_value <= 0.0:
-        return -np.inf
-    else:
-        return np.log(pdf_value)
-
-
-def vbmc_prior_fn(params):
-    V_A_base, V_A_post_LED, theta_A, del_a_minus_del_LED, del_m_plus_del_LED = params
-
-    log_prior = 0
-    log_prior += trapezoidal_logpdf(V_A_base, V_A_base_bounds[0], V_A_base_plausible[0], 
-                                     V_A_base_plausible[1], V_A_base_bounds[1])
-    log_prior += trapezoidal_logpdf(V_A_post_LED, V_A_post_LED_bounds[0], V_A_post_LED_plausible[0], 
-                                     V_A_post_LED_plausible[1], V_A_post_LED_bounds[1])
-    log_prior += trapezoidal_logpdf(theta_A, theta_A_bounds[0], theta_A_plausible[0], 
-                                     theta_A_plausible[1], theta_A_bounds[1])
-    log_prior += trapezoidal_logpdf(del_a_minus_del_LED, del_a_minus_del_LED_bounds[0], del_a_minus_del_LED_plausible[0], 
-                                     del_a_minus_del_LED_plausible[1], del_a_minus_del_LED_bounds[1])
-    log_prior += trapezoidal_logpdf(del_m_plus_del_LED, del_m_plus_del_LED_bounds[0], del_m_plus_del_LED_plausible[0], 
-                                     del_m_plus_del_LED_plausible[1], del_m_plus_del_LED_bounds[1])
-    return log_prior
-
-
-def vbmc_joint(params):
-    log_prior = vbmc_prior_fn(params)
-    if not np.isfinite(log_prior):
-        return -np.inf
-    return log_prior + proactive_led_loglike(params)
-
 # %%
 # =============================================================================
-# Set up VBMC
+# Set up BADS
 # =============================================================================
 lb = np.array([V_A_base_bounds[0], V_A_post_LED_bounds[0], theta_A_bounds[0], 
                del_a_minus_del_LED_bounds[0], del_m_plus_del_LED_bounds[0]])
@@ -385,7 +344,7 @@ pub = np.array([V_A_base_plausible[1], V_A_post_LED_plausible[1], theta_A_plausi
                 del_a_minus_del_LED_plausible[1], del_m_plus_del_LED_plausible[1]])
 
 # Initial point (use values similar to simulated ground truth)
-np.random.seed(50)
+np.random.seed(55)
 x_0 = np.array([
     np.random.uniform(V_A_base_plausible[0], V_A_base_plausible[1]),   # V_A_base
     np.random.uniform(V_A_post_LED_plausible[0], V_A_post_LED_plausible[1]),   # V_A_post_LED
@@ -404,7 +363,7 @@ print(f"  del_m_plus_del_LED: {x_0[4]:.3f}")
 # Ensure x_0 is within plausible bounds
 x_0 = np.clip(x_0, plb, pub)
 
-print("\nVBMC setup:")
+print("\nBADS setup:")
 print(f"  Initial point: {x_0}")
 print(f"  Lower bounds: {lb}")
 print(f"  Upper bounds: {ub}")
@@ -413,105 +372,56 @@ print(f"  Plausible upper: {pub}")
 
 # %%
 # =============================================================================
-# Run VBMC (or load saved results)
+# Run BADS (or load saved results)
 # =============================================================================
 LOAD_SAVED_RESULTS = False
-VP_PKL_PATH = f'vbmc_real_{animal}_CORR_ID_fit.pkl'
-RESULTS_PKL_PATH = f'vbmc_real_{animal}_CORR_ID_results.pkl'
+RESULTS_PKL_PATH = f'bads_real_{animal}_CORR_ID_results.pkl'
 
-if LOAD_SAVED_RESULTS and os.path.exists(VP_PKL_PATH):
-    print(f"\nLoading saved VBMC results from {VP_PKL_PATH}...")
-    with open(VP_PKL_PATH, 'rb') as f:
-        vp = pickle.load(f)
-    results_summary = {}
-    if os.path.exists(RESULTS_PKL_PATH) and os.path.getsize(RESULTS_PKL_PATH) > 0:
-        with open(RESULTS_PKL_PATH, 'rb') as f:
-            saved_results = pickle.load(f)
-        results_summary = saved_results.get('results_summary', {})
-    else:
-        print(f"Warning: {RESULTS_PKL_PATH} is missing or empty; proceeding without saved summary.")
-    print("Loaded saved VBMC results.")
+if LOAD_SAVED_RESULTS and os.path.exists(RESULTS_PKL_PATH):
+    print(f"\nLoading saved BADS results from {RESULTS_PKL_PATH}...")
+    with open(RESULTS_PKL_PATH, 'rb') as f:
+        saved_results = pickle.load(f)
+    best_params = saved_results['best_params']
+    best_fval = saved_results['best_fval']
+    print("Loaded saved BADS results.")
 else:
-    print(f"\nRunning VBMC optimization for animal {animal}...")
-    vbmc = VBMC(vbmc_joint, x_0, lb, ub, plb, pub, options={'display': 'iter', 'max_fun_evals': 600, 'max_iter': 600})
-    vp, results = vbmc.optimize()
+    print(f"\nRunning BADS optimization for animal {animal}...")
+    bads = BADS(neg_loglike, x_0, lb, ub, plb, pub)
+    optimize_result = bads.optimize()
 
-    print("\nVBMC optimization complete!")
+    best_params = optimize_result['x']
+    best_fval = optimize_result['fval']
+
+    print("\nBADS optimization complete!")
 
     # =============================================================================
     # Save results
     # =============================================================================
-    vp.save(VP_PKL_PATH, overwrite=True)
-
-    results_summary = {
-        'elbo': results.get('elbo', None),
-        'elbo_sd': results.get('elbo_sd', None),
-        'convergence_status': results.get('convergence_status', None)
-    }
-    # %%
     with open(RESULTS_PKL_PATH, 'wb') as f:
         pickle.dump({
             'animal': animal,
-            'results_summary': results_summary,
+            'best_params': best_params,
+            'best_fval': best_fval,
             'fit_df': fit_df,
             'bounds': {
                 'lb': lb, 'ub': ub, 'plb': plb, 'pub': pub
             }
         }, f)
-    print(f"Results saved for animal {animal}!")
+    print(f"Results saved to {RESULTS_PKL_PATH}")
 
 # %%
 # =============================================================================
-# Sample from posterior
+# Print best-fit parameters
 # =============================================================================
-vp_samples = vp.sample(int(1e5))[0]
-
 param_labels = ['V_A_base', 'V_A_post_LED', 'theta_A', 'del_a_minus_del_LED', 'del_m_plus_del_LED']
-param_means = np.mean(vp_samples, axis=0)
-param_stds = np.std(vp_samples, axis=0)
 
-print(f"\nPosterior summary for animal {animal}:")
-print(f"{'Parameter':<20} {'Mean':<12} {'Std':<12}")
-print("-" * 45)
+print(f"\nBest-fit parameters for animal {animal}:")
+print(f"{'Parameter':<25} {'Value':<12}")
+print("-" * 37)
 for i, label in enumerate(param_labels):
-    print(f"{label:<20} {param_means[i]:<12.4f} {param_stds[i]:<12.4f}")
-
-# %%
-# =============================================================================
-# Corner plot
-# =============================================================================
-fig = corner.corner(
-    vp_samples, 
-    labels=param_labels, 
-    show_titles=True, 
-    title_fmt=".4f",
-    quantiles=[0.025, 0.5, 0.975]
-)
-plt.suptitle(f'Animal {animal} Posterior (CORR_ID)', y=1.02)
-plt.savefig(f'vbmc_real_{animal}_CORR_ID_corner.pdf', bbox_inches='tight')
-print(f"Corner plot saved as 'vbmc_real_{animal}_CORR_ID_corner.pdf'")
-plt.show()
-
-# %%
-# =============================================================================
-# Distribution of del_a_minus_del_LED + del_m_plus_del_LED
-# =============================================================================
-sum_delay_samples = vp_samples[:, 3] + vp_samples[:, 4]
-sum_delay_quantiles = np.quantile(sum_delay_samples, [0.025, 0.5, 0.975])
-
-fig, ax = plt.subplots(figsize=(8, 5))
-ax.hist(sum_delay_samples, bins=50, density=True, alpha=0.7, color='steelblue')
-ax.axvline(sum_delay_quantiles[0], color='k', linestyle='--', label=f'2.5%={sum_delay_quantiles[0]:.4f}')
-ax.axvline(sum_delay_quantiles[1], color='k', linestyle='-', label=f'50%={sum_delay_quantiles[1]:.4f}')
-ax.axvline(sum_delay_quantiles[2], color='k', linestyle='--', label=f'97.5%={sum_delay_quantiles[2]:.4f}')
-ax.set_xlabel('del_a_minus_del_LED + del_m_plus_del_LED (s)', fontsize=12)
-ax.set_ylabel('Density', fontsize=12)
-ax.set_title(f'Animal {animal}: Posterior of del_a + del_m', fontsize=13)
-ax.legend(fontsize=9)
-plt.tight_layout()
-plt.savefig(f'vbmc_real_{animal}_CORR_ID_sum_delay_posterior.pdf', bbox_inches='tight')
-print(f"Sum-delay posterior saved as 'vbmc_real_{animal}_CORR_ID_sum_delay_posterior.pdf'")
-plt.show()
+    print(f"{label:<25} {best_params[i]:<12.4f}")
+print(f"\nNeg log-likelihood: {best_fval:.4f}")
+print(f"Log-likelihood: {-best_fval:.4f}")
 
 # %%
 # =============================================================================
@@ -608,11 +518,11 @@ t_pts = np.arange(T_trunc, t_max, dt)
 
 print("\nComputing theoretical RT distributions with fitted parameters...")
 pdf_theory_on_fit = compute_theoretical_rtd_on(
-    t_pts, param_means[0], param_means[1], param_means[2], param_means[3], param_means[4],
+    t_pts, best_params[0], best_params[1], best_params[2], best_params[3], best_params[4],
     N_mc=5000, T_trunc=T_trunc
 )
 pdf_theory_off_fit = compute_theoretical_rtd_off(
-    t_pts, param_means[0], param_means[2], param_means[3], param_means[4], T_trunc=T_trunc
+    t_pts, best_params[0], best_params[2], best_params[3], best_params[4], T_trunc=T_trunc
 )
 
 # Normalize
@@ -633,9 +543,9 @@ def simulate_single_trial_fit():
     t_LED = LED_times[trial_idx]
     t_stim = stim_times[trial_idx]
     rt = simulate_proactive_single_bound(
-        param_means[0], param_means[1], param_means[2],  # V_A_base, V_A_post_LED, theta_A
+        best_params[0], best_params[1], best_params[2],  # V_A_base, V_A_post_LED, theta_A
         t_LED if is_led_trial else None, t_stim,
-        param_means[3], param_means[4],  # del_a_minus_del_LED, del_m_plus_del_LED
+        best_params[3], best_params[4],  # del_a_minus_del_LED, del_m_plus_del_LED
         is_led_trial
     )
     return rt, is_led_trial, t_LED, t_stim
@@ -713,8 +623,8 @@ axes[1].set_title(f'LED OFF Trials - Animal {animal}', fontsize=14)
 axes[1].legend(fontsize=10)
 
 plt.tight_layout()
-plt.savefig(f'vbmc_real_{animal}_CORR_ID_rtd_comparison.pdf', bbox_inches='tight')
-print(f"RTD comparison saved as 'vbmc_real_{animal}_CORR_ID_rtd_comparison.pdf'")
+plt.savefig(f'bads_real_{animal}_CORR_ID_rtd_comparison.pdf', bbox_inches='tight')
+print(f"RTD comparison saved as 'bads_real_{animal}_CORR_ID_rtd_comparison.pdf'")
 plt.show()
 
 # %%
@@ -733,7 +643,7 @@ sim_hist_on_wrt_led, _ = np.histogram(sim_rts_wrt_led_on, bins=bins_wrt_led, den
 axes[0].plot(bin_centers_wrt_led, data_hist_on_wrt_led, label='Data (aborts)', lw=2, alpha=0.7, color='b')
 axes[0].plot(bin_centers_wrt_led, sim_hist_on_wrt_led, label='Sim (fitted)', lw=2, alpha=0.7, color='r')
 axes[0].axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
-axes[0].axvline(x=param_means[4], color='r', linestyle=':', alpha=0.5, label=f'del_m_plus_del_LED={param_means[4]:.2f}')
+axes[0].axvline(x=best_params[4], color='r', linestyle=':', alpha=0.5, label=f'del_m_plus_del_LED={best_params[4]:.2f}')
 axes[0].set_xlabel('RT - t_LED (s)', fontsize=12)
 axes[0].set_ylabel('Density', fontsize=12)
 axes[0].set_title(f'LED ON Trials - Animal {animal}', fontsize=14)
@@ -752,8 +662,8 @@ axes[1].set_title(f'LED OFF Trials - Animal {animal}', fontsize=14)
 axes[1].legend(fontsize=10)
 
 plt.tight_layout()
-plt.savefig(f'vbmc_real_{animal}_CORR_ID_rt_wrt_led_comparison.pdf', bbox_inches='tight')
-print(f"RT wrt LED comparison saved as 'vbmc_real_{animal}_CORR_ID_rt_wrt_led_comparison.pdf'")
+plt.savefig(f'bads_real_{animal}_CORR_ID_rt_wrt_led_comparison.pdf', bbox_inches='tight')
+print(f"RT wrt LED comparison saved as 'bads_real_{animal}_CORR_ID_rt_wrt_led_comparison.pdf'")
 plt.show()
 
 # %%
@@ -801,15 +711,15 @@ ax.plot(bin_centers_wrt_led, sim_hist_on_scaled, label=f'Sim LED ON (frac={frac_
 ax.plot(bin_centers_wrt_led, sim_hist_off_scaled, label=f'Sim LED OFF (frac={frac_sim_off:.4f})', lw=2, alpha=0.7, color='b', linestyle='--')
 ax.set_xlim(-1,1)
 ax.axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
-ax.axvline(x=param_means[4], color='g', linestyle=':', alpha=0.5, label=f'del_m_plus_del_LED={param_means[4]:.2f}')
+ax.axvline(x=best_params[4], color='g', linestyle=':', alpha=0.5, label=f'del_m_plus_del_LED={best_params[4]:.2f}')
 ax.set_xlabel('RT - t_LED (s)', fontsize=12)
 ax.set_ylabel('Rate (area = fraction)', fontsize=12)
 ax.set_title(f'RT wrt LED (area-weighted) - Animal {animal}', fontsize=14)
 ax.legend(fontsize=9)
 
 plt.tight_layout()
-plt.savefig(f'vbmc_real_{animal}_CORR_ID_rt_wrt_led_rate.pdf', bbox_inches='tight')
-print(f"RT wrt LED rate plot saved as 'vbmc_real_{animal}_CORR_ID_rt_wrt_led_rate.pdf'")
+plt.savefig(f'bads_real_{animal}_CORR_ID_rt_wrt_led_rate.pdf', bbox_inches='tight')
+print(f"RT wrt LED rate plot saved as 'bads_real_{animal}_CORR_ID_rt_wrt_led_rate.pdf'")
 plt.show()
 
 print(f"\nScript complete for animal {animal}!")

@@ -19,8 +19,11 @@
 - `vbmc_real_data_proactive_LED_fit_all_animals_agg_CORR_ID.py` - All-animals aggregate fit using identifiable delay parameterization (del_a_minus_del_LED, del_m_plus_del_LED); includes updated likelihood, posterior plots, and diagnostics
 - `vbmc_real_data_proactive_LED_fit_CORR_ID.py` - Single-animal fit using identifiable delay parameterization (del_a_minus_del_LED, del_m_plus_del_LED); set ANIMAL_IDX at top to select animal. Fits 5 params, outputs corner plot, RTD comparison (data vs theory vs sim), and RT-wrt-LED histograms
 - `check_proactive_LED_with_identifiable_params.py` - Sanity-check script comparing equivalent simulator parameterizations for identifiable delays
+- `bads_real_data_proactive_LED_fit_CORR_ID.py` - Same as vbmc_real_data_proactive_LED_fit_CORR_ID.py but uses BADS (Bayesian Adaptive Direct Search) for point-estimate optimization instead of VBMC. Minimizes negative log-likelihood directly (no priors). Outputs best-fit params, RTD comparison, and RT-wrt-LED diagnostics
+- `vbmc_compare_LED_fit_average_animals.py` - Averages RT-wrt-LED abort-rate scaled histograms across all animals. Loads per-animal VBMC posteriors (CORR_ID), computes data and simulated scaled histograms per animal, then averages and plots
 - `sum_invariant_delays_proactive_rtds.py` - Utilities/experiments for invariances in proactive RTDs with combined delay parameters
 - `test_stim_timing_distributions.py` - Debug script to verify if t_stim and t_LED distributions differ between LED ON/OFF trials (they do not)
+- `post_LED_censor_utils.py` - Utility functions for post-LED censoring (cum_A_t_fn etc.)
 
 
 - `fit_added_noise/psiam_tied_dv_map_utils_with_PDFs.py` - has post LED effect funcs - `stupid_f_integral` and `PA_with_LEDON_2`
