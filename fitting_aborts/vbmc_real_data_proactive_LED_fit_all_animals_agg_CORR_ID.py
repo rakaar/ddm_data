@@ -398,7 +398,7 @@ print(f"  Plausible upper: {pub}")
 # =============================================================================
 # Run VBMC (or load saved results)
 # =============================================================================
-LOAD_SAVED_RESULTS = False
+LOAD_SAVED_RESULTS = True
 VP_PKL_PATH = 'vbmc_real_all_animals_fit.pkl'
 RESULTS_PKL_PATH = 'vbmc_real_all_animals_results.pkl'
 
@@ -421,10 +421,7 @@ else:
 
     print("\nVBMC optimization complete!")
 
-    # %%
-    # =============================================================================
     # Save results
-    # =============================================================================
     vp.save(VP_PKL_PATH, overwrite=True)
 
     results_summary = {
@@ -432,7 +429,6 @@ else:
         'elbo_sd': results.get('elbo_sd', None),
         'convergence_status': results.get('convergence_status', None)
     }
-    # %%
     with open(RESULTS_PKL_PATH, 'wb') as f:
         pickle.dump({
             'animals': unique_animals.tolist(),
@@ -748,10 +744,66 @@ plt.show()
 
 # %%
 # =============================================================================
+# Theoretical RTD wrt LED (Monte Carlo over trial timings)
+# =============================================================================
+N_mc_theory_wrt_led = 5000
+t_pts_wrt_led_theory = np.arange(-2, 2, 0.005)
+
+print("\nComputing theoretical RT distributions wrt LED...")
+rtd_theory_on_wrt_led = np.zeros(len(t_pts_wrt_led_theory))
+rtd_theory_off_wrt_led = np.zeros(len(t_pts_wrt_led_theory))
+
+for i in tqdm(range(N_mc_theory_wrt_led)):
+    trial_idx = np.random.randint(n_trials_data)
+    t_led = LED_times[trial_idx]
+    t_stim = stim_times[trial_idx]
+
+    if t_stim <= T_trunc:
+        continue
+
+    t_pts_wrt_fix = t_pts_wrt_led_theory + t_led
+
+    # Pre-compute LED ON truncation factor for this t_led
+    cdf_pts = np.arange(0, T_trunc + 0.001, 0.001)
+    cdf_vals = np.array([
+        PA_with_LEDON_2_adapted(ti, param_means[0], param_means[1], param_means[2],
+                                param_means[3], param_means[4], t_led, None)
+        for ti in cdf_pts
+    ])
+    cdf_trunc_on = np.trapz(cdf_vals, cdf_pts)
+    trunc_factor_on = 1 - cdf_trunc_on
+
+    for j, (t_wrt_led, t_wrt_fix) in enumerate(zip(t_pts_wrt_led_theory, t_pts_wrt_fix)):
+        if (t_wrt_fix <= T_trunc) and (t_wrt_fix < t_stim):
+            continue
+        elif t_wrt_fix >= t_stim:
+            continue
+        else:
+            # LED OFF
+            rtd_theory_off_wrt_led[j] += led_off_pdf_truncated(
+                t_wrt_fix, param_means[0], param_means[2], param_means[3], param_means[4], T_trunc
+            )
+            # LED ON (use T_trunc=None, apply pre-computed factor)
+            pdf_on = PA_with_LEDON_2_adapted(
+                t_wrt_fix, param_means[0], param_means[1], param_means[2],
+                param_means[3], param_means[4], t_led, None
+            )
+            if trunc_factor_on > 0:
+                pdf_on = pdf_on / trunc_factor_on
+            rtd_theory_on_wrt_led[j] += pdf_on
+
+rtd_theory_on_wrt_led /= N_mc_theory_wrt_led
+rtd_theory_off_wrt_led /= N_mc_theory_wrt_led
+
+print(f"  Theory wrt LED area ON={np.trapz(rtd_theory_on_wrt_led, t_pts_wrt_led_theory):.4f}, "
+      f"OFF={np.trapz(rtd_theory_off_wrt_led, t_pts_wrt_led_theory):.4f}")
+
+# %%
+# =============================================================================
 # Plot 3: RT wrt LED - Abort rate (like aborts_animal_wise_explore.py)
 # =============================================================================
 # Compute abort rate = n_aborts / n_all_trials for each LED condition (from data)
-bins_wrt_led = np.arange(-3, 3, 0.001)
+bins_wrt_led = np.arange(-3, 3, 0.005)
 bin_centers_wrt_led = (bins_wrt_led[1:] + bins_wrt_led[:-1]) / 2
 
 n_all_data_on = len(fit_df[fit_df['LED_trial'] == 1])
@@ -787,14 +839,16 @@ sim_hist_off_scaled = sim_hist_off_wrt_led_dens * frac_sim_off
 # Plot all on same axes
 ax.plot(bin_centers_wrt_led, data_hist_on_scaled, label=f'Data LED ON (frac={frac_data_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='-')
 ax.plot(bin_centers_wrt_led, data_hist_off_scaled, label=f'Data LED OFF (frac={frac_data_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='-')
-ax.plot(bin_centers_wrt_led, sim_hist_on_scaled, label=f'Sim LED ON (frac={frac_sim_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='--')
-ax.plot(bin_centers_wrt_led, sim_hist_off_scaled, label=f'Sim LED OFF (frac={frac_sim_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='--')
+# ax.plot(bin_centers_wrt_led, sim_hist_on_scaled, label=f'Sim LED ON (frac={frac_sim_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='--')
+# ax.plot(bin_centers_wrt_led, sim_hist_off_scaled, label=f'Sim LED OFF (frac={frac_sim_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='--')
+ax.plot(t_pts_wrt_led_theory, rtd_theory_on_wrt_led, label='Theory LED ON', lw=2, alpha=0.7, color='r', linestyle=':')
+ax.plot(t_pts_wrt_led_theory, rtd_theory_off_wrt_led, label='Theory LED OFF', lw=2, alpha=0.7, color='b', linestyle=':')
 
 ax.axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
 ax.axvline(x=param_means[4], color='g', linestyle=':', alpha=0.5, label=f'del_m_plus_del_LED={param_means[4]:.2f}')
 ax.set_xlabel('RT - t_LED (s)', fontsize=12)
 ax.set_ylabel('Rate (area = fraction)', fontsize=12)
-ax.set_title('RT wrt LED (area-weighted) - All Animals', fontsize=14)
+ax.set_title('RT wrt LED (area-weighted) - Aggregate Animals', fontsize=14)
 ax.legend(fontsize=9)
 
 ax.set_xlim(-0.1,0.2)
@@ -804,3 +858,5 @@ print("RT wrt LED rate plot saved as 'vbmc_real_all_animals_rt_wrt_led_rate.pdf'
 plt.show()
 
 print("\nScript complete for all animals aggregated!")
+
+# %%
