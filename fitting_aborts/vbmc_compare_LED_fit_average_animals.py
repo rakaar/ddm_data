@@ -28,11 +28,16 @@ from post_LED_censor_utils import cum_A_t_fn
 # =============================================================================
 # Global settings
 # =============================================================================
-ANIMALS = [92, 93, 98, 99, 100, 103]
+# ANIMALS = [92, 93, 98, 99, 100, 103]
+ANIMALS = [93, 98, 99, 100]
+
 T_trunc = 0.3
 N_trials_sim = int(200e3)
 SIM_PKL_PATH = 'vbmc_compare_LED_fit_average_animals_simdata.pkl'
 LOAD_SAVED_SIM = os.path.exists(SIM_PKL_PATH)
+
+AGG_METHOD = 'median'  # 'mean' or 'median'
+agg_fn = np.mean if AGG_METHOD == 'mean' else np.median
 
 # %%
 # =============================================================================
@@ -240,7 +245,7 @@ else:
 # =============================================================================
 # Compute per-animal scaled histograms and average
 # =============================================================================
-bins_wrt_led = np.arange(-3, 3, 0.025)
+bins_wrt_led = np.arange(-3, 3, 0.005)
 bin_centers_wrt_led = (bins_wrt_led[1:] + bins_wrt_led[:-1]) / 2
 
 all_data_hist_on = []
@@ -269,13 +274,14 @@ for animal in ANIMALS:
     all_sim_hist_on.append(h_on_s * frac_sim_on)
     all_sim_hist_off.append(h_off_s * frac_sim_off)
 
-mean_data_hist_on = np.mean(all_data_hist_on, axis=0)
-mean_data_hist_off = np.mean(all_data_hist_off, axis=0)
-mean_sim_hist_on = np.mean(all_sim_hist_on, axis=0)
-mean_sim_hist_off = np.mean(all_sim_hist_off, axis=0)
-mean_del_m_plus_del_LED = np.mean(all_del_m_plus_del_LED)
+agg_data_hist_on = agg_fn(all_data_hist_on, axis=0)
+agg_data_hist_off = agg_fn(all_data_hist_off, axis=0)
+agg_sim_hist_on = agg_fn(all_sim_hist_on, axis=0)
+agg_sim_hist_off = agg_fn(all_sim_hist_off, axis=0)
+agg_del_m_plus_del_LED = agg_fn(all_del_m_plus_del_LED)
 
-print(f"\nMean del_m_plus_del_LED across animals: {mean_del_m_plus_del_LED:.4f}")
+
+print(f"\n{AGG_METHOD.capitalize()} del_m_plus_del_LED across animals: {agg_del_m_plus_del_LED:.4f}")
 
 # %%
 # =============================================================================
@@ -283,26 +289,26 @@ print(f"\nMean del_m_plus_del_LED across animals: {mean_del_m_plus_del_LED:.4f}"
 # =============================================================================
 fig, ax = plt.subplots(figsize=(10, 6))
 
-ax.plot(bin_centers_wrt_led, mean_data_hist_on,
+ax.plot(bin_centers_wrt_led, agg_data_hist_on,
         label='Data LED ON', lw=2, alpha=0.4, color='r', linestyle='-')
-ax.plot(bin_centers_wrt_led, mean_data_hist_off,
+ax.plot(bin_centers_wrt_led, agg_data_hist_off,
         label='Data LED OFF', lw=2, alpha=0.4, color='b', linestyle='-')
-ax.plot(bin_centers_wrt_led, mean_sim_hist_on,
+ax.plot(bin_centers_wrt_led, agg_sim_hist_on,
         label='Sim LED ON', lw=2, alpha=0.7, color='r', linestyle='--')
-ax.plot(bin_centers_wrt_led, mean_sim_hist_off,
+ax.plot(bin_centers_wrt_led, agg_sim_hist_off,
         label='Sim LED OFF', lw=2, alpha=0.7, color='b', linestyle='--')
 
 ax.set_xlim(-1,1)
 ax.axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
-ax.axvline(x=mean_del_m_plus_del_LED, color='g', linestyle=':', alpha=0.5,
-           label=f'mean del_m_plus_del_LED={mean_del_m_plus_del_LED:.2f}')
+ax.axvline(x=agg_del_m_plus_del_LED, color='g', linestyle=':', alpha=0.5,
+           label=f'{AGG_METHOD} del_m_plus_del_LED={agg_del_m_plus_del_LED:.2f}')
 ax.set_xlabel('RT - t_LED (s)', fontsize=12)
 ax.set_ylabel('Rate (area = fraction)', fontsize=12)
-ax.set_title('RT wrt LED (area-weighted) — Average across animals', fontsize=14)
+ax.set_title(f'RT wrt LED (area-weighted) — {AGG_METHOD.capitalize()} across animals', fontsize=14)
 ax.legend(fontsize=9)
 
 plt.tight_layout()
-outfile = 'vbmc_average_animals_CORR_ID_rt_wrt_led_rate.pdf'
+outfile = f'vbmc_{AGG_METHOD}_animals_CORR_ID_rt_wrt_led_rate.pdf'
 plt.savefig(outfile, bbox_inches='tight')
 print(f"\nSaved: {outfile}")
 plt.show()
@@ -374,35 +380,35 @@ for animal in ANIMALS:
     print(f"  area ON={np.trapz(rtd_on_acc, t_pts_wrt_led):.4f}, "
           f"OFF={np.trapz(rtd_off_acc, t_pts_wrt_led):.4f}")
 
-mean_theory_on = np.mean(all_theory_on, axis=0)
-mean_theory_off = np.mean(all_theory_off, axis=0)
+agg_theory_on = agg_fn(all_theory_on, axis=0)
+agg_theory_off = agg_fn(all_theory_off, axis=0)
 
 # %%
 # =============================================================================
 # Plot: Theory + Data (average across animals)
 # =============================================================================
-fig, ax = plt.subplots(figsize=(10, 6))
+fig, ax = plt.subplots(figsize=(15, 6))
 
-ax.plot(bin_centers_wrt_led, mean_data_hist_on,
+ax.plot(bin_centers_wrt_led, agg_data_hist_on,
         label='Data LED ON', lw=2, alpha=0.4, color='r', linestyle='-')
-ax.plot(bin_centers_wrt_led, mean_data_hist_off,
+ax.plot(bin_centers_wrt_led, agg_data_hist_off,
         label='Data LED OFF', lw=2, alpha=0.4, color='b', linestyle='-')
-ax.plot(t_pts_wrt_led, mean_theory_on,
+ax.plot(t_pts_wrt_led, agg_theory_on,
         label='Theory LED ON', lw=2, alpha=0.7, color='r', linestyle='--')
-ax.plot(t_pts_wrt_led, mean_theory_off,
+ax.plot(t_pts_wrt_led, agg_theory_off,
         label='Theory LED OFF', lw=2, alpha=0.7, color='b', linestyle='--')
 
-ax.set_xlim(-0.2, 0.4)
+ax.set_xlim(-0.1, 0.2)
 ax.axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
-ax.axvline(x=mean_del_m_plus_del_LED, color='g', linestyle=':', alpha=0.5,
-           label=f'mean del_m_plus_del_LED={mean_del_m_plus_del_LED:.2f}')
+ax.axvline(x=agg_del_m_plus_del_LED, color='g', linestyle=':', alpha=0.5,
+           label=f'{AGG_METHOD} del_m_plus_del_LED={agg_del_m_plus_del_LED:.2f}')
 ax.set_xlabel('RT - t_LED (s)', fontsize=12)
 ax.set_ylabel('Rate (area = fraction)', fontsize=12)
-ax.set_title('RT wrt LED — Theory vs Data (average across animals)', fontsize=14)
+ax.set_title(f'RT wrt LED — Theory vs Data ({AGG_METHOD} across animals)', fontsize=14)
 ax.legend(fontsize=9)
 
 plt.tight_layout()
-outfile_theory = 'vbmc_average_animals_CORR_ID_rt_wrt_led_theory_vs_data.pdf'
+outfile_theory = f'vbmc_{AGG_METHOD}_animals_CORR_ID_rt_wrt_led_theory_vs_data.pdf'
 plt.savefig(outfile_theory, bbox_inches='tight')
 print(f"\nSaved: {outfile_theory}")
 plt.show()
@@ -412,26 +418,26 @@ plt.show()
 # =============================================================================
 fig, ax = plt.subplots(figsize=(10, 6))
 
-ax.plot(bin_centers_wrt_led, mean_sim_hist_on,
+ax.plot(bin_centers_wrt_led, agg_sim_hist_on,
         label='Sim LED ON', lw=2, alpha=0.7, color='r', linestyle='-')
-ax.plot(bin_centers_wrt_led, mean_sim_hist_off,
+ax.plot(bin_centers_wrt_led, agg_sim_hist_off,
         label='Sim LED OFF', lw=2, alpha=0.7, color='b', linestyle='-')
-ax.plot(t_pts_wrt_led, mean_theory_on,
+ax.plot(t_pts_wrt_led, agg_theory_on,
         label='Theory LED ON', lw=2, alpha=0.4, color='r', linestyle='--')
-ax.plot(t_pts_wrt_led, mean_theory_off,
+ax.plot(t_pts_wrt_led, agg_theory_off,
         label='Theory LED OFF', lw=2, alpha=0.4, color='b', linestyle='--')
 
 ax.set_xlim(-1,1)
 ax.axvline(x=0, color='k', linestyle='--', alpha=0.5, label='LED onset')
-ax.axvline(x=mean_del_m_plus_del_LED, color='g', linestyle=':', alpha=0.5,
-           label=f'mean del_m_plus_del_LED={mean_del_m_plus_del_LED:.2f}')
+ax.axvline(x=agg_del_m_plus_del_LED, color='g', linestyle=':', alpha=0.5,
+           label=f'{AGG_METHOD} del_m_plus_del_LED={agg_del_m_plus_del_LED:.2f}')
 ax.set_xlabel('RT - t_LED (s)', fontsize=12)
 ax.set_ylabel('Rate (area = fraction)', fontsize=12)
-ax.set_title('RT wrt LED — Theory vs Sim (average across animals)', fontsize=14)
+ax.set_title(f'RT wrt LED — Theory vs Sim ({AGG_METHOD} across animals)', fontsize=14)
 ax.legend(fontsize=9)
 
 plt.tight_layout()
-outfile_ts = 'vbmc_average_animals_CORR_ID_rt_wrt_led_theory_vs_sim.pdf'
+outfile_ts = f'vbmc_{AGG_METHOD}_animals_CORR_ID_rt_wrt_led_theory_vs_sim.pdf'
 plt.savefig(outfile_ts, bbox_inches='tight')
 print(f"\nSaved: {outfile_ts}")
 plt.show()

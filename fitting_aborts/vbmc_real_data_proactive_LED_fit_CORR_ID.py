@@ -263,6 +263,9 @@ def led_on_survival_truncated(t_stim, t_led, v, vON, a, del_a_minus_del_LED, del
 
 
 def compute_trial_loglike(row, V_A_base, V_A_post_LED, theta_A, del_a_minus_del_LED, del_m_plus_del_LED, T_trunc):
+    upweight_led_on = True
+    led_on_weight = 10
+
     t = row['RT']
     t_stim = row['t_stim']
     is_led = row['LED_trial'] == 1
@@ -298,7 +301,12 @@ def compute_trial_loglike(row, V_A_base, V_A_post_LED, theta_A, del_a_minus_del_
     if likelihood <= 0 or np.isnan(likelihood):
         likelihood = 1e-50
 
-    return np.log(likelihood)
+    log_like = np.log(likelihood)
+
+    if upweight_led_on and is_led:
+        log_like *= led_on_weight
+
+    return log_like
 
 
 def proactive_led_loglike(params):
