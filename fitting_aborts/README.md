@@ -8,8 +8,10 @@
 - `V_A_step_jump_fit_censor_post_LED_real_data.ipynb` - Post LED censoring on real data, Able to fit Post LED aborts with step jump change in drift
 - `V_A_step_jump_fit_censor_post_LED_real_data.py` - python file, same as above
 - `post_LED_drift_and_motor_fit_VBMC.ipynb` - LED on data, fits post-LED drift and motor delay (2 params), V_A and theta_A fixed
-- `aborts_animal_wise_explore.py` - plots abort rate vs LED onset time per animal for LED ON/OFF, with peak time and area calculations
+- `aborts_animal_wise_explore.py` - plots abort rate vs LED onset time per animal for LED ON/OFF, with peak time and area calculations. **Includes permutation test for abort-fraction differences across LED ON conditions (left/right/bilateral inhibition)**
 - `less_than_300_LED7.py` - analyzes aborts with timed_fix < 300ms for LED7 session across animals
+- `explore_animal_variability_LED_ON.py` - **NEW: explores animal-by-animal variability in LED ON abort patterns and statistics**
+- `plot_vbmc_param_summary_per_animal.py` - **NEW: generates summary plots of VBMC parameter estimates per animal for LED ON fits**
 - `simulate_and_fit_proactive_all_at_once.py` - Simulates proactive process with single bound accumulator, drift change after LED onset, and compares theoretical vs simulated RT distributions for LED ON/OFF trials
 - `testing_v1_proactive_LED_theory.py` - Same as above but with left truncation (T_trunc=0.6s) and censoring verification. Includes theoretical PDF calculations with truncation, Monte Carlo averaging over (t_stim, t_LED) pairs, and survival probability calculations for censoring validation
 - `test_vbmc_proactive_led_likelihood.py` - Simulates proactive LED ON/OFF data, defines truncation/censoring log-likelihood, and validates it via histogram vs theory plus censoring checks
@@ -17,7 +19,7 @@
 - `vbmc_real_data_proactive_LED_fit.py` - VBMC fitting of real animal data with proactive LED model. Set ANIMAL_IDX at top to select animal. Fits all 6 params, outputs corner plot, RTD comparison (data vs theory vs sim), and RT-wrt-LED histograms (data vs sim). Uses trial index sampling to preserve (t_LED, t_stim) correlation
 - `vbmc_real_data_proactive_LED_fit_all_animals_agg.py` - Same as above but aggregates data from ALL animals instead of fitting a single animal. Outputs vbmc_real_all_animals_*.pdf/pkl files
 - `plot_data_rt_wrt_led_all_animals.py` - generates data-only RT wrt LED plots for all animals in one row, uses same filtering and abort/truncation logic as vbmc_real_data_proactive_LED_fit_CORR_ID.py, plots LED ON/OFF area-weighted histograms (density * abort fraction), x-range -0.2 to 0.2, bin width 0.05, saves PNG data_rt_wrt_led_all_animals_1x6.png
-- `tachometric_and_abort_fraction_analysis.py` - analyzes tachometric curves and abort fractions using the same filtering as plot_data_rt_wrt_led_all_animals.py, plots RT vs |ILD| with error bars and abort rate analysis
+- `tachometric_and_abort_fraction_analysis.py` - **DELETED: functionality merged into other analysis scripts**
 - `vbmc_compare_LED_fit_average_animals.py` - UPDATED: now supports both mean and median aggregation methods via AGG_METHOD parameter, changed animal list to [93, 98, 99, 100], updated bin width to 0.005, outputs files with aggregation method in filename
 - `vbmc_real_data_proactive_LED_fit_CORR_ID.py` - UPDATED: added LED ON trial upweighting (weight=10) in compute_trial_loglike function to emphasize LED ON trials during fitting
 - `check_proactive_LED_with_identifiable_params.py` - Sanity-check script comparing equivalent simulator parameterizations for identifiable delays
