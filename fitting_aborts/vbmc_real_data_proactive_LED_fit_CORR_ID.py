@@ -49,7 +49,7 @@ import pickle
 # =============================================================================
 # PARAMETERS - Change ANIMAL_IDX to fit different animals
 # =============================================================================
-ANIMAL_IDX = 5  # Index into unique_animals array (0, 1, 2, ...)
+ANIMAL_IDX = 1  # Index into unique_animals array (0, 1, 2, ...)
 T_trunc = 0.3   # Left truncation threshold (exclude RT <= T_trunc)
 
 # %%
@@ -80,7 +80,11 @@ animal = unique_animals[ANIMAL_IDX]
 df_animal = df[df['animal'] == animal]
 
 # Separate LED ON and OFF
-df_on = df_animal[df_animal['LED_trial'] == 1]
+df_on = df_animal[
+    (df_animal['LED_trial'] == 1)
+    & (df_animal['LED_powerR'] != 0)
+    & (df_animal['LED_powerL'] != 0)
+]
 df_off = df_animal[df_animal['LED_trial'].isin([0, np.nan])]
 
 print(f"\nAnimal {animal} data summary:")
@@ -424,8 +428,8 @@ print(f"  Plausible upper: {pub}")
 # Run VBMC (or load saved results)
 # =============================================================================
 LOAD_SAVED_RESULTS = False
-VP_PKL_PATH = f'vbmc_real_{animal}_CORR_ID_fit.pkl'
-RESULTS_PKL_PATH = f'vbmc_real_{animal}_CORR_ID_results.pkl'
+VP_PKL_PATH = f'vbmc_real_{animal}_CORR_ID_fit_bilateral.pkl'
+RESULTS_PKL_PATH = f'vbmc_real_{animal}_CORR_ID_results_bilateral.pkl'
 
 if LOAD_SAVED_RESULTS and os.path.exists(VP_PKL_PATH):
     print(f"\nLoading saved VBMC results from {VP_PKL_PATH}...")
