@@ -43,7 +43,7 @@ import pickle
 # PARAMETERS
 # =============================================================================
 # T_trunc removed (no truncation)
-ANIMAL_ID = 4  # None for all animals, or integer index (0, 1, 2...)
+ANIMAL_ID = 0  # None for all animals, or integer index (0, 1, 2...)
 
 # %%
 # =============================================================================
@@ -379,7 +379,7 @@ print(f"  Plausible upper: {pub}")
 # =============================================================================
 # Run VBMC (or load saved results)
 # =============================================================================
-LOAD_SAVED_RESULTS = False
+LOAD_SAVED_RESULTS = True
 VP_PKL_PATH = f'vbmc_real_{file_tag}_fit_NO_TRUNC_with_lapse.pkl'
 RESULTS_PKL_PATH = f'vbmc_real_{file_tag}_results_NO_TRUNC_with_lapse.pkl'
 
@@ -984,8 +984,8 @@ sim_hist_off_scaled = sim_hist_off_wrt_led_dens * frac_sim_off
 # Plot all on same axes
 ax.plot(bin_centers_wrt_led, data_hist_on_scaled, label=f'Data LED ON (frac={frac_data_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='-')
 ax.plot(bin_centers_wrt_led, data_hist_off_scaled, label=f'Data LED OFF (frac={frac_data_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='-')
-# ax.plot(bin_centers_wrt_led, sim_hist_on_scaled, label=f'Sim LED ON (frac={frac_sim_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='--')
-# ax.plot(bin_centers_wrt_led, sim_hist_off_scaled, label=f'Sim LED OFF (frac={frac_sim_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='--')
+ax.plot(bin_centers_wrt_led, sim_hist_on_scaled, label=f'Sim LED ON (frac={frac_sim_on:.2f})', lw=2, alpha=0.7, color='r', linestyle='--')
+ax.plot(bin_centers_wrt_led, sim_hist_off_scaled, label=f'Sim LED OFF (frac={frac_sim_off:.2f})', lw=2, alpha=0.7, color='b', linestyle='--')
 ax.plot(t_pts_wrt_led_theory, rtd_theory_on_wrt_led, label='Theory LED ON', lw=2, alpha=0.7, color='r', linestyle=':')
 ax.plot(t_pts_wrt_led_theory, rtd_theory_off_wrt_led, label='Theory LED OFF', lw=2, alpha=0.7, color='b', linestyle=':')
 
@@ -996,8 +996,8 @@ ax.set_ylabel('Rate (area = fraction)', fontsize=12)
 ax.set_title(f'RT wrt LED (area-weighted) - {animal_label}', fontsize=14)
 ax.legend(fontsize=9)
 
-# ax.set_xlim(-0.1,0.2)
-ax.set_xlim(-0.5, 0.4)
+ax.set_xlim(-0.5,0.4)
+# ax.set_xlim(-0.5, 0.4)
 
 plt.tight_layout()
 plt.savefig(f'vbmc_real_{file_tag}_rt_wrt_led_rate.pdf', bbox_inches='tight')

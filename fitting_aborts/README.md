@@ -20,6 +20,8 @@
 - `vbmc_real_data_proactive_LED_fit_all_animals_agg.py` - Same as above but aggregates data from ALL animals instead of fitting a single animal. Outputs vbmc_real_all_animals_*.pdf/pkl files
 - `vbmc_real_data_proactive_LED_fit_all_animals_agg_CORR_ID_no_trunc_exp_lapse.py` - Aggregates data from ALL animals, uses CORR_ID logic, no truncation, exponential lapse.
 - `plot_data_rt_wrt_led_all_animals.py` - generates data-only RT wrt LED plots for all animals in one row, uses same filtering and abort/truncation logic as vbmc_real_data_proactive_LED_fit_CORR_ID.py, plots LED ON/OFF area-weighted histograms (density * abort fraction), x-range -0.2 to 0.2, bin width 0.05, saves PNG data_rt_wrt_led_all_animals_1x6.png
+- `plot_data_rt_wrt_led_trunc_vs_no_trunc_per_animal.py` - **NEW: compares RT wrt LED distributions with vs. without truncation (removing aborts < T_trunc) for each animal in a grid layout.**
+- `plot_vbmc_param_summary_per_animal_NO_TRUNC_with_lapse.py` - **NEW: generates summary error-bar plots (mean ± 95% CI) of VBMC parameters per animal + aggregate for the NO_TRUNC_with_lapse model.**
 - `tachometric_and_abort_fraction_analysis.py` - **DELETED: functionality merged into other analysis scripts**
 - `vbmc_compare_LED_fit_average_animals.py` - UPDATED: now supports both mean and median aggregation methods via AGG_METHOD parameter, changed animal list to [93, 98, 99, 100], updated bin width to 0.005, outputs files with aggregation method in filename
 - `vbmc_real_data_proactive_LED_fit_CORR_ID.py` - UPDATED: added LED ON trial upweighting (weight=10) in compute_trial_loglike function to emphasize LED ON trials during fitting
