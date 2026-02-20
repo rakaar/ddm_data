@@ -540,3 +540,68 @@ def cum_pro_and_reactive_time_vary_fn(t, V_A, theta_A, t_A_aff, gamma, omega, t_
         CDF_E_minus_small_t_NORM_omega_gamma_time_varying_fn(t - t_stim - t_E_aff,gamma, omega,-1,int_phi_t_E_g,w,K_max)
     
     return c_A + c_E - c_A * c_E
+
+
+def rho_E_minus_small_t_NORM_omega_gamma_with_w_VEC_fn(t_pts, gamma, omega, bound, w, K_max):
+    """
+    Vectorized Reactive PDF.
+    t_pts: array of time points.
+    delays should be already subtracted before calling func.
+    """
+    t_pts = np.asarray(t_pts)
+    density_all = np.zeros_like(t_pts, dtype=float)
+
+    # Filter for t > 0
+    valid_mask = t_pts > 0
+    if not np.any(valid_mask):
+        return density_all
+
+    t = t_pts[valid_mask]
+
+    # evidence v
+    v = gamma
+
+    a = 2.0
+    if bound == 1:
+        v = -v
+        w = 1.0 - w
+
+    t_theta = 1.0 / omega
+    t_scaled = t / t_theta
+
+    # non_sum_term calculation
+    # (1/a^2) * (a^3 / sqrt(2*pi*t^3)) * exp(...)
+    term1 = (1.0 / a**2) * (a**3 / np.sqrt(2 * np.pi * t_scaled**3))
+    term2 = np.exp(-v * a * w - (v**2 * t_scaled) / 2.0)
+    non_sum_term = term1 * term2
+
+    # Summation term
+    K_limit = int(K_max / 2)
+    k_vals = np.linspace(-K_limit, K_limit, 2 * K_limit + 1)  # Shape (M,)
+
+    # w + 2k
+    w_plus_2k = w + 2 * k_vals  # Shape (M,)
+
+    # Exponent for sum: -(a^2 * (w+2k)^2) / (2t)
+    # Broadcast: (M, 1) / (1, N) -> (M, N)
+    numerator = a**2 * (w_plus_2k**2)
+    denominator = 2 * t_scaled
+    exponent = numerator[:, np.newaxis] / denominator[np.newaxis, :]
+    
+    sum_exp_term = np.exp(-exponent)  # Shape (M, N)
+    
+    # Weighted sum: sum( (w+2k) * exp(...) )
+    # Broadcast w_plus_2k to (M, 1)
+    product = w_plus_2k[:, np.newaxis] * sum_exp_term
+    sum_result = np.sum(product, axis=0)  # Sum over k, result shape (N,)
+
+    # Final density for valid points
+    density = non_sum_term * sum_result
+    
+    # Clip small values
+    density = np.maximum(density, 1e-16)
+    
+    # Scale by t_theta
+    density_all[valid_mask] = density / t_theta
+
+    return density_all

@@ -43,7 +43,7 @@ import pickle
 # PARAMETERS
 # =============================================================================
 # T_trunc removed (no truncation)
-ANIMAL_ID = None  # None for all animals, or integer index (0, 1, 2...)
+ANIMAL_ID = 4  # None for all animals, or integer index (0, 1, 2...)
 
 # %%
 # =============================================================================
