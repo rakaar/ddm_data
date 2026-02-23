@@ -16,6 +16,7 @@ ANIMALS = None  # e.g. ["92", "93", "98"]; None => discover from pkl files
 INCLUDE_AGGREGATE = True
 AGGREGATE_LABEL = "Agg"
 N_POSTERIOR_SAMPLES = int(1e5)
+X_OFFSET = 0.14
 
 PARAM_LABELS = [
     "V_A_base",
@@ -27,9 +28,22 @@ PARAM_LABELS = [
     "beta_lapse",
 ]
 DELAY_PARAM_INDICES = {3, 4}
+OLD_PARAM_LABELS = [
+    "V_A_base",
+    "V_A_post_LED",
+    "theta_A",
+    "del_a_minus_del_LED",
+    "del_m_plus_del_LED",
+]
+OLD_PARAM_TO_INDEX = {name: idx for idx, name in enumerate(OLD_PARAM_LABELS)}
 
 PER_ANIMAL_PATTERN = re.compile(r"^vbmc_real_animal_(.+)_fit_NO_TRUNC_with_lapse\.pkl$")
 AGGREGATE_FILENAME = "vbmc_real_all_animals_fit_NO_TRUNC_with_lapse.pkl"
+OLD_PER_ANIMAL_TEMPLATE = "vbmc_real_{animal}_CORR_ID_fit.pkl"
+OLD_AGGREGATE_CANDIDATES = [
+    "vbmc_real_all_animals_CORR_ID_fit.pkl",
+    "vbmc_real_all_animals_fit.pkl",
+]
 
 
 # %%
@@ -60,6 +74,18 @@ def load_param_stats(vp_path: str, n_samples: int) -> tuple[np.ndarray, np.ndarr
     q025 = np.quantile(vp_samples, 0.025, axis=0)
     q975 = np.quantile(vp_samples, 0.975, axis=0)
     return mean, q025, q975
+
+
+def old_fit_path_for_label(label: str) -> str | None:
+    if label == AGGREGATE_LABEL:
+        for filename in OLD_AGGREGATE_CANDIDATES:
+            path = os.path.join(SCRIPT_DIR, filename)
+            if os.path.exists(path):
+                return path
+        return None
+
+    path = os.path.join(SCRIPT_DIR, OLD_PER_ANIMAL_TEMPLATE.format(animal=label))
+    return path if os.path.exists(path) else None
 
 
 # %%
@@ -113,6 +139,24 @@ means_all = np.array(means_all)
 q025_all = np.array(q025_all)
 q975_all = np.array(q975_all)
 
+# Load old-fit summaries aligned to x_labels (if available)
+old_means_all = np.full((len(x_labels), len(OLD_PARAM_LABELS)), np.nan)
+old_q025_all = np.full((len(x_labels), len(OLD_PARAM_LABELS)), np.nan)
+old_q975_all = np.full((len(x_labels), len(OLD_PARAM_LABELS)), np.nan)
+
+for i, label in enumerate(x_labels):
+    old_path = old_fit_path_for_label(str(label))
+    if old_path is None:
+        print(f"Warning: old-fit file not found for '{label}', skipping old overlay at this x-position.")
+        continue
+
+    old_mean, old_q025, old_q975 = load_param_stats(old_path, N_POSTERIOR_SAMPLES)
+    n_old = min(len(OLD_PARAM_LABELS), old_mean.shape[0])
+    old_means_all[i, :n_old] = old_mean[:n_old]
+    old_q025_all[i, :n_old] = old_q025[:n_old]
+    old_q975_all[i, :n_old] = old_q975[:n_old]
+    print(f"Included old fit: {os.path.basename(old_path)} for '{label}'")
+
 
 # %%
 # =============================================================================
@@ -128,30 +172,67 @@ for p_idx, p_name in enumerate(PARAM_LABELS):
     yerr = np.vstack([y - y_low, y_high - y])
 
     x_pos = np.arange(len(x_labels))
+    old_param_idx = OLD_PARAM_TO_INDEX.get(p_name)
 
     fig, ax = plt.subplots(figsize=(max(9, 0.95 * len(x_labels)), 4.8))
+    x_new = x_pos if old_param_idx is None else (x_pos - X_OFFSET)
     ax.errorbar(
-        x_pos,
+        x_new,
         y,
         yerr=yerr,
         fmt="o",
-        color="k",
+        color="tab:blue",
         ecolor="tab:blue",
         elinewidth=2,
         capsize=4,
         ms=6,
+        label="New fit (NO_TRUNC + lapse)",
     )
+
+    if old_param_idx is not None:
+        old_y = old_means_all[:, old_param_idx] * scale
+        old_y_low = old_q025_all[:, old_param_idx] * scale
+        old_y_high = old_q975_all[:, old_param_idx] * scale
+        old_mask = np.isfinite(old_y) & np.isfinite(old_y_low) & np.isfinite(old_y_high)
+
+        if np.any(old_mask):
+            old_yerr = np.vstack([old_y[old_mask] - old_y_low[old_mask], old_y_high[old_mask] - old_y[old_mask]])
+            ax.errorbar(
+                x_pos[old_mask] + X_OFFSET,
+                old_y[old_mask],
+                yerr=old_yerr,
+                fmt="o",
+                color="tab:red",
+                ecolor="tab:red",
+                elinewidth=2,
+                capsize=4,
+                ms=6,
+                label="Old fit (trunc, no lapse)",
+            )
+    else:
+        ax.text(
+            0.02,
+            0.97,
+            "Old fit N/A for lapse params",
+            transform=ax.transAxes,
+            ha="left",
+            va="top",
+            fontsize=9,
+            color="tab:red",
+        )
+
     ax.set_xlabel("Animal")
     y_label = f"{p_name} ({unit})" if unit else p_name
     ax.set_ylabel(y_label)
-    ax.set_title(f"{y_label} (mean with 2.5-97.5 percentile)")
+    ax.set_title(f"{y_label} (blue: new, red: old) (mean with 2.5-97.5 percentile)")
     ax.set_xticks(x_pos)
     ax.set_xticklabels(x_labels)
     ax.grid(axis="y", alpha=0.25)
+    ax.legend(fontsize=9)
 
     plt.tight_layout()
     out_path = os.path.join(
-        SCRIPT_DIR, f"vbmc_NO_TRUNC_with_lapse_{p_name}_per_animal_plus_aggregate_errorbar.png"
+        SCRIPT_DIR, f"vbmc_compare_NO_TRUNC_with_lapse_vs_old_{p_name}_per_animal_plus_aggregate_errorbar.png"
     )
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
     print(f"Saved: {out_path}")
