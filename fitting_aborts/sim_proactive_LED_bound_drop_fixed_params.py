@@ -23,6 +23,7 @@ DT = 1e-4
 RNG_SEED = 123
 LED_ON_PROB = 1 / 3
 THETA_FLOOR = 0
+THETA_LED_MIN = 1.8  # LED bound lower limit: bound will not go below this value
 
 # Posterior means from image (all animals aggregated)
 V_A_BASE = 1.4730
@@ -37,6 +38,12 @@ BETA_LAPSE = 4.1832
 
 # LED effect now acts on bound (decrease magnitude).
 BOUND_DECREASE_PARAM = -0.1
+USE_DYNAMIC_BOUND_DROP = True  # False: old step drop to theta_post_led, True: linear dynamic drop
+# Dynamic drop settings (relative to t_effect): drop starts at 50 ms, and by 400 ms
+# theta has dropped by DYNAMIC_DROP_BY_THETA.
+DYNAMIC_DROP_START_S = 0.0
+DYNAMIC_DROP_TARGET_TIME_S = 0.3
+DYNAMIC_DROP_BY_THETA = 0.3
 # AI window center relative to bound-switch onset (t_effect).
 # 0.0 means T == t_effect.
 DELTA_LED_FOR_AI_WINDOW = 0.005 # s, after change
@@ -121,6 +128,11 @@ def effective_bound_drop(bound_decrease_param):
     return abs(bound_decrease_param)
 
 
+def compute_dynamic_drop_slope(dynamic_drop_by_theta, dynamic_drop_start_s, dynamic_drop_target_time_s):
+    drop_duration = max(dynamic_drop_target_time_s - dynamic_drop_start_s, 1e-12)
+    return abs(dynamic_drop_by_theta) / drop_duration
+
+
 def simulate_proactive_single_bound_bound_drop(
     V_A_base,
     theta_pre,
@@ -131,12 +143,17 @@ def simulate_proactive_single_bound_bound_drop(
     is_led_trial,
     delta_led_for_ai_window=0.0,
     ai_window_seconds=0.005,
+    use_dynamic_bound_drop=False,
+    dynamic_drop_start_s=0.05,
+    dynamic_drop_slope=0.0,
+    theta_floor=0.0,
     dt=1e-4,
 ):
     """
     Proactive single-accumulator simulator with bound drop after LED effect onset.
     Drift stays at V_A_base. For LED ON trials, bound switches from theta_pre to
-    theta_post at t_LED - del_a_minus_del_LED.
+    theta_post at t_LED - del_a_minus_del_LED (constant mode), or decreases
+    linearly after dynamic_drop_start_s in dynamic mode.
     """
     AI = 0.0
     t = 0.0
@@ -150,7 +167,17 @@ def simulate_proactive_single_bound_bound_drop(
     ai_window_values = []
 
     while True:
-        theta_t = theta_post if t >= t_effect else theta_pre
+        if t < t_effect:
+            theta_t = theta_pre
+        elif not use_dynamic_bound_drop:
+            theta_t = theta_post
+        else:
+            dt_since_effect = t - t_effect
+            if dt_since_effect < dynamic_drop_start_s:
+                theta_t = theta_pre
+            else:
+                theta_t = theta_pre - dynamic_drop_slope * (dt_since_effect - dynamic_drop_start_s)
+            theta_t = max(theta_floor, theta_t)
         AI += V_A_base * dt + np.random.normal(0.0, dB)
         t += dt
 
@@ -188,6 +215,10 @@ def simulate_single_trial_bound_drop(theta_post_led):
             is_led_trial,
             delta_led_for_ai_window=DELTA_LED_FOR_AI_WINDOW,
             ai_window_seconds=ai_window_seconds,
+            use_dynamic_bound_drop=USE_DYNAMIC_BOUND_DROP,
+            dynamic_drop_start_s=DYNAMIC_DROP_START_S,
+            dynamic_drop_slope=dynamic_drop_slope,
+            theta_floor=theta_led_min,
             dt=DT,
         )
     return rt, is_led_trial, t_LED, t_stim, ai_rel_t, ai_vals, is_lapse
@@ -202,14 +233,40 @@ def safe_hist_density(values, bins):
 
 
 bound_drop = effective_bound_drop(BOUND_DECREASE_PARAM)
-theta_post_led = max(THETA_FLOOR, THETA_A - bound_drop)
+theta_led_min = max(THETA_FLOOR, THETA_LED_MIN)
+theta_post_led = max(theta_led_min, THETA_A - bound_drop)
+if USE_DYNAMIC_BOUND_DROP:
+    if DYNAMIC_DROP_TARGET_TIME_S <= DYNAMIC_DROP_START_S:
+        raise ValueError("DYNAMIC_DROP_TARGET_TIME_S must be greater than DYNAMIC_DROP_START_S.")
+    dynamic_drop_slope = compute_dynamic_drop_slope(
+        DYNAMIC_DROP_BY_THETA,
+        DYNAMIC_DROP_START_S,
+        DYNAMIC_DROP_TARGET_TIME_S,
+    )
+    theta_at_dynamic_target = max(
+        theta_led_min,
+        THETA_A - abs(DYNAMIC_DROP_BY_THETA),
+    )
+else:
+    dynamic_drop_slope = 0.0
+    theta_at_dynamic_target = theta_post_led
 
 print('\nFixed parameters used:')
 print(f'  V_A_base = {V_A_BASE:.4f}')
 print(f'  V_A_post_LED (image reference, unused here) = {V_A_POST_LED_IMAGE:.4f}')
 print(f'  theta_A_pre = {THETA_A:.4f}')
 print(f'  bound_decrease_param = {BOUND_DECREASE_PARAM:.4f} -> effective drop = {bound_drop:.4f}')
+print(f'  theta_LED_min = {theta_led_min:.4f}')
 print(f'  theta_A_post_LED = {theta_post_led:.4f}')
+if USE_DYNAMIC_BOUND_DROP:
+    print(
+        f'  Dynamic bound drop ON: start={DYNAMIC_DROP_START_S*1000:.1f} ms, '
+        f'target_time={DYNAMIC_DROP_TARGET_TIME_S*1000:.1f} ms, '
+        f'drop_by={abs(DYNAMIC_DROP_BY_THETA):.4f}, slope={dynamic_drop_slope:.4f}/s'
+    )
+    print(f'  theta at target_time = {theta_at_dynamic_target:.4f}')
+else:
+    print('  Dynamic bound drop OFF: using constant theta_A_post_LED after t_effect')
 print(f'  del_a_minus_del_LED = {DEL_A_MINUS_DEL_LED:.4f}')
 print(f'  del_m_plus_del_LED = {DEL_M_PLUS_DEL_LED:.4f}')
 print(f'  lapse_prob = {LAPSE_PROB:.4f}, beta_lapse = {BETA_LAPSE:.4f}')
@@ -288,8 +345,15 @@ data_rts_wrt_led_off = (df_off_aborts['RT'] - df_off_aborts['t_LED']).values
 
 print(f"Real data (aborts only): {len(data_rts_on)} LED ON, {len(data_rts_off)} LED OFF")
 
-bound_tag = f"{BOUND_DECREASE_PARAM:+.2f}".replace('+', 'p').replace('-', 'm').replace('.', 'p')
-out_prefix = f"bound_drop_real_{file_tag}_{bound_tag}"
+if USE_DYNAMIC_BOUND_DROP:
+    mode_tag = (
+        f"dyn_s{int(round(DYNAMIC_DROP_START_S*1000)):03d}"
+        f"_t{int(round(DYNAMIC_DROP_TARGET_TIME_S*1000)):03d}"
+        f"_drop{abs(DYNAMIC_DROP_BY_THETA):.2f}"
+    ).replace('.', 'p')
+else:
+    mode_tag = f"const_{BOUND_DECREASE_PARAM:+.2f}".replace('+', 'p').replace('-', 'm').replace('.', 'p')
+out_prefix = f"bound_drop_real_{file_tag}_{mode_tag}"
 
 # %%
 # =============================================================================
@@ -406,7 +470,11 @@ ax.axvline(x=DEL_M_PLUS_DEL_LED, color='g', linestyle=':', alpha=0.5, label=f'de
 ax.set_xlabel('RT - t_LED (s)', fontsize=12)
 ax.set_ylabel('Rate (area = fraction)', fontsize=12)
 ax.set_title(
-    f'RT wrt LED (area-weighted) - {animal_label} | theta drop={bound_drop:.2f} (from og theta= {THETA_A:.2f})',
+    (
+        f'RT wrt LED (area-weighted) - {animal_label} | '
+        f'{"dynamic drop" if USE_DYNAMIC_BOUND_DROP else f"theta drop={bound_drop:.2f}"} '
+        f'(from og theta={THETA_A:.2f})'
+    ),
     fontsize=14,
 )
 ax.legend(fontsize=9)
@@ -452,7 +520,16 @@ ax.set_ylabel('Density')
 ax.set_title('DV distribution in [T-5ms, T+5ms], T: time pt of change')
 
 ax.axvline(THETA_A, color='k', ls=':', alpha=0.8, label=f'theta_pre={THETA_A:.2f}')
-ax.axvline(theta_post_led, color='r', ls=':', alpha=0.8, label=f'theta_post={theta_post_led:.2f}')
+if USE_DYNAMIC_BOUND_DROP:
+    ax.axvline(
+        theta_at_dynamic_target,
+        color='r',
+        ls=':',
+        alpha=0.8,
+        label=f'theta@{DYNAMIC_DROP_TARGET_TIME_S*1000:.0f}ms={theta_at_dynamic_target:.2f}',
+    )
+else:
+    ax.axvline(theta_post_led, color='r', ls=':', alpha=0.8, label=f'theta_post={theta_post_led:.2f}')
 ax.legend(fontsize=9)
 
 plt.tight_layout()
@@ -532,5 +609,62 @@ plt.savefig(out_diag_weighted, bbox_inches='tight')
 print(f"Weighted CDF plot saved as '{out_diag_weighted}'")
 plt.show()
 
+
+# %%
+# =============================================================================
+# Plot 4: Decision bound over time (0 = t_LED)
+# =============================================================================
+bound_time_wrt_led = np.arange(-0.2, 0.6 + 1e-12, 0.001)
+bound_led_on = np.full_like(bound_time_wrt_led, THETA_A, dtype=float)
+bound_led_off = np.full_like(bound_time_wrt_led, THETA_A, dtype=float)
+
+dt_since_effect_wrt_led = bound_time_wrt_led + DEL_A_MINUS_DEL_LED
+effect_onset_wrt_led = -DEL_A_MINUS_DEL_LED
+
+if not USE_DYNAMIC_BOUND_DROP:
+    bound_led_on[dt_since_effect_wrt_led >= 0.0] = theta_post_led
+else:
+    mask_dynamic = dt_since_effect_wrt_led >= DYNAMIC_DROP_START_S
+    bound_led_on[mask_dynamic] = (
+        THETA_A - dynamic_drop_slope * (dt_since_effect_wrt_led[mask_dynamic] - DYNAMIC_DROP_START_S)
+    )
+    bound_led_on = np.maximum(bound_led_on, theta_led_min)
+
+fig, ax = plt.subplots(figsize=(9, 5))
+ax.plot(bound_time_wrt_led, bound_led_on, color='r', lw=2, label='LED ON bound')
+ax.plot(bound_time_wrt_led, bound_led_off, color='b', lw=2, ls='--', label='LED OFF bound')
+
+ax.axvline(0.0, color='k', ls='--', alpha=0.6, label='t_LED (0)')
+ax.axvline(effect_onset_wrt_led, color='tab:green', ls=':', alpha=0.8, label='t_effect')
+if USE_DYNAMIC_BOUND_DROP:
+    ax.axvline(
+        effect_onset_wrt_led + DYNAMIC_DROP_START_S,
+        color='tab:orange',
+        ls=':',
+        alpha=0.8,
+        label='dynamic drop start',
+    )
+    ax.axvline(
+        effect_onset_wrt_led + DYNAMIC_DROP_TARGET_TIME_S,
+        color='tab:red',
+        ls=':',
+        alpha=0.8,
+        label='dynamic target time',
+    )
+
+ax.set_title(f'Bound vs t')
+ax.set_xlabel('Time wrt LED onset (s)')
+ax.set_ylabel('bound')
+ax.set_xlim(-0.2, 0.6)
+# ax.set_ylim(bottom=max(0.0, THETA_FLOOR - 0.05))
+ax.set_ylim(1.5, 2.5)
+
+ax.legend(fontsize=9)
+
+plt.tight_layout()
+out_bound = f'{out_prefix}_bound_wrt_led.pdf'
+plt.savefig(out_bound, bbox_inches='tight')
+print(f"Bound-vs-time plot saved as '{out_bound}'")
+plt.show()
 
 # %%
