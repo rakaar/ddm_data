@@ -23,8 +23,16 @@ from scipy.stats import gaussian_kde
 from scipy.integrate import trapezoid
 
 # %%
-# Define desired batches and paths
-DESIRED_BATCHES = ['SD', 'LED2', 'LED34', 'LED6', 'LED8', 'LED7', 'LED34_even'] # Excluded LED1 as per original logic
+# Define desired batches and paths (exact 30 animals)
+EXPECTED_BATCH_ANIMALS = {
+    'LED34': [45, 57, 59, 61, 63],
+    'LED34_even': [48, 52, 56, 60],
+    'LED6': [81, 82, 84, 86],
+    'LED7': [92, 93, 98, 99, 100, 103],
+    'LED8': [105, 107, 108, 109, 112],
+    'SD': [48, 49, 50, 52, 53, 55],
+}
+DESIRED_BATCHES = list(EXPECTED_BATCH_ANIMALS.keys())
 csv_dir = os.path.join(os.path.dirname(__file__), 'batch_csvs')
 
 # --- Data loading ---
@@ -43,17 +51,27 @@ merged_data = pd.concat(all_data_list, ignore_index=True)
 
 # --- Identify valid trials and batch-animal pairs ---
 merged_valid = merged_data[merged_data['success'].isin([1, -1])].copy()
+merged_valid['animal'] = merged_valid['animal'].astype(int)
+merged_valid = merged_valid[merged_valid['batch_name'].isin(DESIRED_BATCHES)].copy()
 
 # Get initial pairs from CSV data
 base_pairs = set(map(tuple, merged_valid[['batch_name', 'animal']].drop_duplicates().values))
-
-# Apply specific exclusion logic from the original script
-excluded_animals_led2 = {40, 41, 43}
-
+expected_pairs = sorted(
+    (batch, animal)
+    for batch, animals in EXPECTED_BATCH_ANIMALS.items()
+    for animal in animals
+)
 batch_animal_pairs = sorted([
-    (batch, animal) for batch, animal in base_pairs 
-    if not (batch == 'LED2' and animal in excluded_animals_led2)
+    (batch, animal) for batch, animal in base_pairs
+    if animal in EXPECTED_BATCH_ANIMALS[batch]
 ])
+
+missing_pairs = sorted(set(expected_pairs) - set(batch_animal_pairs))
+unexpected_pairs = sorted(set(batch_animal_pairs) - set(expected_pairs))
+if missing_pairs or unexpected_pairs:
+    print(f"Missing expected pairs: {missing_pairs}")
+    print(f"Unexpected pairs: {unexpected_pairs}")
+    raise ValueError("Batch-animal pairs do not exactly match the expected 30 animals.")
 
 # --- Print animal table for verification ---
 print(f"Found {len(batch_animal_pairs)} batch-animal pairs from {len(set(p[0] for p in batch_animal_pairs))} batches:")
