@@ -4,8 +4,29 @@ import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
 from tqdm import tqdm
 import pandas as pd
+from pathlib import Path
+
+
 # %%
-og_df = pd.read_csv('fit_animal_by_animal/batch_csvs/batch_LED8_valid_and_aborts.csv')
+# Parameters
+BATCH_CSV_REL_PATH = Path("fit_animal_by_animal/batch_csvs/batch_LED8_valid_and_aborts.csv")
+
+
+def find_repo_root(start_path: Path, sentinel_rel_path: Path) -> Path:
+    """Walk upward from start_path until sentinel_rel_path exists."""
+    for candidate in [start_path, *start_path.parents]:
+        if (candidate / sentinel_rel_path).exists():
+            return candidate
+    raise FileNotFoundError(
+        f"Could not locate repository root containing '{sentinel_rel_path}'. "
+        f"Started search at '{start_path}'."
+    )
+
+
+# %%
+start_path = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd().resolve()
+repo_root = find_repo_root(start_path, BATCH_CSV_REL_PATH)
+og_df = pd.read_csv(repo_root / BATCH_CSV_REL_PATH)
 df_valid = og_df[
     og_df['success'].isin([1, -1]) &
     ((og_df['LED_trial'] == 0) | og_df['LED_trial'].isna())
@@ -34,7 +55,7 @@ for ABL in ABL_unique:
         histtype='step',
         label=f'ABL={ABL}'
     )
-plt.xlim(0, 700)
+plt.xlim(0, 200)
 plt.legend()
 plt.title('RT Distribution by ABL')
 # %%
@@ -60,7 +81,7 @@ def silverman_bandwidth(samples):
     return max(1.06 * sigma * (n ** (-1 / 5)), 0.01)
 
 
-x_grid = np.linspace(0, 1000, 1000)
+x_grid = np.linspace(0, 1000, 500)
 for ABL in ABL_unique:
     df_valid_ABL = df_valid[df_valid['ABL'] == ABL]
     # rt_abl = (1000.0 * (df_valid_ABL['timed_fix'] - df_valid_ABL['intended_fix'])).dropna().to_numpy()
@@ -79,11 +100,38 @@ for ABL in ABL_unique:
         label=f'ABL={ABL} KDE'
     )
 
-plt.xlim(0, 700)
-plt.xticks(np.arange(0, 701, 100))
+plt.xlim(0, 200)
+# plt.xticks(np.arange(0, 701, 100))
 plt.xlabel('RT (ms)')
 plt.ylabel('Density')
 plt.title('RT Distribution by ABL (Epanechnikov KDE)')
+plt.legend()
+
+# %%
+# CDFs of RT distributions by ABL
+for ABL in ABL_unique:
+    df_valid_ABL = df_valid[df_valid['ABL'] == ABL]
+    rt_abl_ms = (1000.0 * df_valid_ABL['RTwrtStim']).dropna().to_numpy()
+    rt_abl_ms = rt_abl_ms[rt_abl_ms >= 0]
+    if rt_abl_ms.size == 0:
+        continue
+
+    rt_sorted = np.sort(rt_abl_ms)
+    cdf_vals = np.arange(1, rt_sorted.size + 1) / rt_sorted.size
+    plt.step(
+        rt_sorted,
+        cdf_vals,
+        where='post',
+        color=ABL_colors.get(ABL, 'black'),
+        linewidth=2,
+        label=f'ABL={ABL} CDF'
+    )
+
+plt.xlim(0, 200)
+plt.ylim(0, 1.01)
+plt.xlabel('RT (ms)')
+plt.ylabel('Cumulative probability')
+plt.title('RT CDF by ABL')
 plt.legend()
 
 # %%

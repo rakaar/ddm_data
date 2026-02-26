@@ -2,6 +2,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from pathlib import Path
+
+
+# %%
+# Parameters
+MERGED_SUBJECTS_REL_PATH = Path("merged_all_subjects.csv")
+
+
+def find_repo_root(start_path: Path, sentinel_rel_path: Path) -> Path:
+    """Walk upward from start_path until sentinel_rel_path exists."""
+    for candidate in [start_path, *start_path.parents]:
+        if (candidate / sentinel_rel_path).exists():
+            return candidate
+    raise FileNotFoundError(
+        f"Could not locate repository root containing '{sentinel_rel_path}'. "
+        f"Started search at '{start_path}'."
+    )
 
 def prepare_data(
     df,
@@ -106,7 +123,9 @@ def add_stim_dur(df, sound_col="sound_index", session_col="session_type",
     df["stim_dur_label"] = np.where(df[out_col] == RT_MS, "RT", df[out_col].astype(str) + "ms")
     return df
 # %%
-og_df = pd.read_csv('merged_all_subjects.csv')
+start_path = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd().resolve()
+repo_root = find_repo_root(start_path, MERGED_SUBJECTS_REL_PATH)
+og_df = pd.read_csv(repo_root / MERGED_SUBJECTS_REL_PATH)
 og_df = prepare_data(og_df)
 # %%
 og_df['session'].unique()
@@ -298,6 +317,33 @@ for i, ABL in enumerate(ABL_uniq):
         ax.set_ylabel("CDF")
         ax.legend(frameon=False, ncol=2)
 plt.xlim(0.04, 0.15)
+plt.tight_layout()
+
+# %%
+# Aggregate CDF across all |ILD| values (one curve per ABL)
+for ABL in ABL_uniq:
+    rt_abl_ms = (1000.0 * df_plot[df_plot["ABL"] == ABL]["timed_rt"]).dropna().to_numpy()
+    rt_abl_ms = rt_abl_ms[rt_abl_ms >= 0]
+    if rt_abl_ms.size == 0:
+        continue
+
+    rt_sorted = np.sort(rt_abl_ms)
+    cdf_vals = np.arange(1, rt_sorted.size + 1) / rt_sorted.size
+    plt.step(
+        rt_sorted,
+        cdf_vals,
+        where="post",
+        color=ABL_color.get(ABL, "black"),
+        linewidth=2,
+        label=f"ABL={ABL} CDF",
+    )
+
+plt.xlim(0, 200)
+plt.ylim(0, 1.01)
+plt.xlabel("RT (ms)")
+plt.ylabel("Cumulative probability")
+plt.title("RT CDF by ABL")
+plt.legend()
 plt.tight_layout()
 
 # %%
