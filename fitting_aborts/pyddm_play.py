@@ -1,65 +1,149 @@
 # %%
 import numpy as np
-import pandas as pd
+import matplotlib.pyplot as plt
 import pyddm
-from pyddm import Model, Fittable, Sample
-from pyddm.models import Drift, Bound, NoiseConstant, ICPointSourceCenter
-from pyddm.models import OverlayChain, OverlayNonDecision, OverlayPoissonMixture
-from pyddm.models.loss import LossLikelihood, LossRobustLikelihood
+from tqdm.auto import tqdm
 
 
-class Drift_LEDLinear(Drift):
-    """v(t) = v0 + opto * v_slope * max(0, t - led_onset)"""
-    name = "Drift: baseline + linear change after LED"
-    required_parameters = ["v0", "v_slope"]
-    required_conditions = ["opto", "led_onset"]
+# %%
+# Single-bound process params
+V_A = 1.4730
+theta_A = 2.1596
+sigma_A = 1.0
 
-    def get_drift(self, t, conditions, **kwargs):
-        v = self.v0
-        if conditions["opto"] in [1, True]:
-            tau = max(0.0, t - float(conditions["led_onset"]))
-            v = v + self.v_slope * tau
-        return v
+# PyDDM 2-bound params
+# Bounds are +/-theta_E and start is x * theta_E.
+theta_E = 100
+x = 1.0 - (theta_A / theta_E)  # ensures start->upper distance is theta_A
 
+# Numerical settings
+dt = 1e-3
+dx = 1e-3
+T_dur = 6
 
-class Bound_LEDLinear(Bound):
-    """B(t) = max(Bmin, B0 - opto * B_collapse * max(0, t - led_onset))"""
-    name = "Bound: constant then linear collapse after LED"
-    required_parameters = ["B0", "B_collapse", "Bmin"]
-    required_conditions = ["opto", "led_onset"]
+# Simulator settings (no LED, no t_stim)
+sim_dt = 1e-3
+N_sim = 3000
+sim_seed = 123
 
-    def get_bound(self, t, conditions, **kwargs):
-        B = self.B0
-        if conditions["opto"] in [1, True]:
-            tau = max(0.0, t - float(conditions["led_onset"]))
-            B = max(self.Bmin, self.B0 - self.B_collapse * tau)
-        return B
+if theta_A <= 0:
+    raise ValueError("theta_A must be > 0.")
+if theta_E <= theta_A:
+    raise ValueError("theta_E must be > theta_A so x < 1 and the upper bound stays ahead.")
+if not (-1.0 <= x <= 1.0):
+    raise ValueError("Derived x must lie in [-1, 1].")
 
+upper_dist = theta_E * (1.0 - x)
+lower_dist = theta_E * (1.0 + x)
 
-model = Model(
-    drift=Drift_LEDLinear(
-        v0=Fittable(minval=-5, maxval=5),
-        v_slope=Fittable(minval=-20, maxval=20),  # units: drift/sec after LED
-    ),
-    noise=NoiseConstant(noise=1.0),
-    bound=Bound_LEDLinear(
-        B0=Fittable(minval=0.2, maxval=5.0),
-        B_collapse=Fittable(minval=0.0, maxval=20.0),  # collapse rate (1/sec)
-        Bmin=0.05,  # floor to keep bounds > 0
-    ),
-    IC=ICPointSourceCenter(),
-    overlay=OverlayChain(overlays=[
-        OverlayNonDecision(nondectime=Fittable(minval=0.0, maxval=0.8)),
-        # optional but strongly recommended for likelihood robustness:
-        OverlayPoissonMixture(pmixturecoef=Fittable(minval=0.0, maxval=0.05)),
-    ]),
-    dx=0.01,
-    dt=0.001,
-    T_dur=2.0,  # must be >= max RT in your data (seconds)
-    choice_names=("hit", "other"),
+m_true = pyddm.gddm(
+    drift=V_A,
+    noise=sigma_A,
+    bound=theta_E,  # PyDDM bounds are +/-theta_E
+    starting_position=x,  # ratio in [-1, 1]
+    nondecision=0.0,
+    mixture_coef=0.0,  # pure DDM, no contaminant mixture
+    dt=dt,
+    dx=dx,
+    T_dur=T_dur,
+    choice_names=("upper_hit", "lower_hit"),
 )
 
-# quick sanity solve
-sol = model.solve(conditions={"opto": 1, "led_onset": 0.25})
-print("P(hit):", sol.prob("hit"), "P(other):", sol.prob("other"))
-print("pdf(hit) at rt=0.40:", sol.evaluate(rt=0.40, choice="hit"))
+# %%
+sol_true = m_true.solve()
+t = sol_true.t_domain
+pdf_upper = sol_true.pdf("upper_hit")
+pdf_lower = sol_true.pdf("lower_hit")
+P_upper = sol_true.prob("upper_hit")
+P_lower = sol_true.prob("lower_hit")
+print(f'P_upper = {P_upper}, P_lower = {P_lower}')
+# %%
+pdf_upper_cond = pdf_upper / P_upper if P_upper > 0 else np.zeros_like(pdf_upper)
+
+# Numerical integral checks
+int_upper = np.trapz(pdf_upper, t)
+int_lower = np.trapz(pdf_lower, t)
+int_upper_cond = np.trapz(pdf_upper_cond, t)
+# Conditional density given upper hit ("upper-only likelihood"), integrates to 1.
+
+print(f"V_A={V_A:.4f}, theta_A={theta_A:.4f}, theta_E={theta_E:.4f}, sigma={sigma_A:.3f}")
+print(
+    "PyDDM params:",
+    f"bound(theta_E)={theta_E:.4f},",
+    f"starting_position(x)={x:.4f}",
+)
+print(
+    "Distance checks:",
+    f"start->upper={upper_dist:.4f}",
+    f"start->lower={lower_dist:.4f}",
+)
+print(
+    f"Theoretical hit probs: upper={P_upper:.6f}, "
+    f"lower={P_lower:.6f}"
+)
+print(
+    f"Integral checks: int(pdf_upper)={int_upper:.6f}, \n"
+    f"int(pdf_lower)={int_lower:.6f}, \n"
+    f"int(pdf_upper_cond)={int_upper_cond:.6f}"
+)
+
+# %%
+# simulator for comparison
+def simulate_single_bound_rt(V_A, theta_A, sigma_A=1.0, dt=1e-4, max_t=6.0):
+    """
+    Simple single-bound simulation:
+    dA = V_A*dt + sigma_A*dW, hit when A >= theta_A.
+    """
+    A = 0.0
+    t_now = 0.0
+    dB = sigma_A * np.sqrt(dt)
+
+    while t_now < max_t:
+        A += V_A * dt + np.random.normal(0.0, dB)
+        t_now += dt
+        if A >= theta_A:
+            return t_now
+
+    return np.nan
+
+
+def simulate_single_trial():
+    return simulate_single_bound_rt(
+        V_A=V_A,
+        theta_A=theta_A,
+        sigma_A=sigma_A,
+        dt=sim_dt,
+        max_t=T_dur,
+    )
+
+
+N_sim = int(50e3)
+sim_dt = 1e-4
+sim_results = [simulate_single_trial() for _ in tqdm(range(N_sim), desc="Simulating RTs")]
+sim_rts = np.array([rt for rt in sim_results if np.isfinite(rt)], dtype=float)
+
+print(
+    f"Simulation: n_hit_by_Tdur={len(sim_rts)} / {N_sim}, "
+    f"frac_hit_by_Tdur={len(sim_rts)/N_sim:.6f}, sim_dt={sim_dt}"
+)
+
+# %%
+plt.figure(figsize=(7, 4))
+plt.plot(t, pdf_upper_cond, label="pyddm theory")
+if len(sim_rts) > 0:
+    bins = np.arange(0, T_dur, 0.05)
+    plt.hist(
+        sim_rts,
+        bins=bins,
+        density=True,
+        histtype="step",
+        lw=1.5,
+        label=f"single-bound simulation",
+    )
+plt.xlabel("RT (s)")
+plt.ylabel("Density")
+plt.title("pyddm")
+plt.legend()
+plt.tight_layout()
+
+# %%
