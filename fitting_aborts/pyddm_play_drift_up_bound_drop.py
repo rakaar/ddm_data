@@ -155,12 +155,27 @@ P_upper = sol.prob("upper_hit")
 P_lower = sol.prob("lower_hit")
 pdf_upper_cond = pdf_upper / P_upper if P_upper > 0 else np.zeros_like(pdf_upper)
 
+# Build curve via PyDDM likelihood machinery on a 1-ms grid.
+t_pts_like = np.arange(0.0, T_dur, 0.001)
+sample_like = pyddm.Sample.from_numpy_array(
+    np.column_stack([t_pts_like, np.ones_like(t_pts_like)]),
+    choice_names=("upper_hit", "lower_hit"),
+)
+loss_like = pyddm.LossLikelihood(sample=sample_like, dt=m.dt, T_dur=m.T_dur)
+sols_like = loss_like.cache_by_conditions(m)
+key_like = next(iter(sols_like.keys()))
+idx_upper_like = np.asarray(loss_like.hist_indexes[key_like][0], dtype=int)
+pdf_upper_from_loss = sols_like[key_like].pdf("_top")[idx_upper_like]
+pdf_upper_cond_from_loss = pdf_upper_from_loss / P_upper if P_upper > 0 else np.zeros_like(pdf_upper_from_loss)
+max_like_curve_diff = np.max(np.abs(pdf_upper_cond_from_loss - pdf_upper_cond[idx_upper_like]))
+
 print(f"PyDDM hit probs: upper={P_upper:.6f}, lower={P_lower:.6f}")
 print(
     f"Integral checks: upper={np.trapz(pdf_upper, t):.6f}, "
     f"lower={np.trapz(pdf_lower, t):.6f}, "
     f"upper_cond={np.trapz(pdf_upper_cond, t):.6f}"
 )
+print(f"Max |LossLikelihood-curve - direct pdf curve| = {max_like_curve_diff:.3e}")
 
 
 # %%
@@ -178,7 +193,12 @@ print(f"Max |single theta(t) - PyDDM upper-distance(t)| = {max_bound_diff:.3e}")
 # %%
 plt.figure(figsize=(7.5, 4.5))
 bins = np.linspace(0, T_dur, 110)
-plt.plot(t, pdf_upper_cond, lw=2, label="PyDDM likelihood")
+# plt.plot(t, pdf_upper_cond, lw=2, label="PyDDM likelihood")
+plt.plot(
+    t_pts_like,
+    pdf_upper_cond_from_loss,
+    label="LossLikelihood-derived curve (1 ms grid)",
+)
 if len(sim_rts) > 0:
     plt.hist(
         sim_rts,
