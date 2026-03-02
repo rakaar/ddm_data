@@ -16,10 +16,12 @@ Notes:
 # %%
 import os
 import pickle
+import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import pyddm
+from joblib import Parallel, delayed
 from pyvbmc import VBMC
 import corner
 
@@ -38,8 +40,8 @@ PYDDM_T_DUR = 3.0
 # Condition handling for LED ON trials
 # If True, each unique t_LED is treated as its own condition (no binning).
 # This is exact but can be very slow in VBMC.
-USE_EXACT_T_LED = True
-T_LED_BIN_WIDTH = 0.001
+USE_EXACT_T_LED = False
+T_LED_BIN_WIDTH = 0.1
 
 # Mapping single-bound -> PyDDM two-bound
 THETA_E0_FIXED = 20.0     # must stay greater than theta_A
@@ -47,8 +49,10 @@ THETA_A_MIN = 0.05       # minimum upper distance to avoid bound crossing start
 LIKELIHOOD_EPS = 1e-50
 
 # Runtime controls
-LOAD_SAVED_RESULTS = False
+LOAD_SAVED_RESULTS = True
 VBMC_OPTIONS = {"display": "iter"}
+N_JOBS = 25
+PARALLEL_BACKEND = "loky"  # "loky" for processes, "threading" for threads
 
 # Plot/simulation controls
 SIM_DT = 1e-4
@@ -239,6 +243,65 @@ def build_pyddm_model(V_A_base, drift_slope, theta_A, bound_slope, t_change):
     )
 
 
+def _group_loglike(
+    grp,
+    V_A_base,
+    drift_slope,
+    theta_A,
+    bound_slope,
+    del_a_minus_del_LED,
+    del_m_plus_del_LED,
+    lapse_prob,
+    beta_lapse,
+):
+    """Log-likelihood contribution for one (LED_trial, t_led_cond) group."""
+    is_led = grp["is_led"]
+    t_led_cond = grp["t_led_cond"]
+    abort_rts = grp["abort_rts"]
+    cens_tstims = grp["cens_tstims"]
+
+    if is_led == 1:
+        t_change = t_led_cond - del_a_minus_del_LED
+    else:
+        # no LED effect for OFF trials
+        t_change = PYDDM_T_DUR + 10.0
+
+    shift_total = del_a_minus_del_LED + del_m_plus_del_LED
+
+    model = build_pyddm_model(
+        V_A_base=V_A_base,
+        drift_slope=drift_slope,
+        theta_A=theta_A,
+        bound_slope=bound_slope,
+        t_change=t_change,
+    )
+    sol = model.solve()
+
+    pdf_upper = sol.pdf("upper_hit")
+    cdf_upper = np.cumsum(pdf_upper) * PYDDM_DT
+    p_upper = sol.prob("upper_hit")
+
+    group_loglike = 0.0
+
+    # Abort trials: density term
+    if abort_rts.size > 0:
+        t_proc_abort = abort_rts - shift_total
+        proactive_pdf_vals = _pdf_lookup_on_grid(pdf_upper, t_proc_abort, PYDDM_DT, PYDDM_T_DUR)
+        lapse_pdf_vals = lapse_pdf(abort_rts, beta_lapse)
+        mix_pdf = (1.0 - lapse_prob) * proactive_pdf_vals + lapse_prob * lapse_pdf_vals
+        group_loglike += np.sum(np.log(np.clip(mix_pdf, LIKELIHOOD_EPS, None)))
+
+    # Censored trials: survival term at t_stim
+    if cens_tstims.size > 0:
+        t_proc_cens = cens_tstims - shift_total
+        proactive_surv_vals = _upper_survival_lookup(cdf_upper, p_upper, t_proc_cens, PYDDM_DT, PYDDM_T_DUR)
+        lapse_surv_vals = lapse_survival(cens_tstims, beta_lapse)
+        mix_surv = (1.0 - lapse_prob) * proactive_surv_vals + lapse_prob * lapse_surv_vals
+        group_loglike += np.sum(np.log(np.clip(mix_surv, LIKELIHOOD_EPS, None)))
+
+    return float(group_loglike)
+
+
 def proactive_led_loglike(params):
     """
     Total log-likelihood over fit_df with right-censoring at t_stim.
@@ -270,53 +333,38 @@ def proactive_led_loglike(params):
     if beta_lapse <= 0:
         return -np.inf
 
-    # Observed RT = process_time + shift_total
-    shift_total = del_a_minus_del_LED + del_m_plus_del_LED
-
-    total_loglike = 0.0
-
-    for grp in condition_groups:
-        is_led = grp["is_led"]
-        t_led_cond = grp["t_led_cond"]
-        abort_rts = grp["abort_rts"]
-        cens_tstims = grp["cens_tstims"]
-
-        if is_led == 1:
-            t_change = t_led_cond - del_a_minus_del_LED
-        else:
-            # no LED effect for OFF trials
-            t_change = PYDDM_T_DUR + 10.0
-
-        model = build_pyddm_model(
-            V_A_base=V_A_base,
-            drift_slope=drift_slope,
-            theta_A=theta_A,
-            bound_slope=bound_slope,
-            t_change=t_change,
+    if N_JOBS == 1:
+        ll_by_group = [
+            _group_loglike(
+                grp,
+                V_A_base,
+                drift_slope,
+                theta_A,
+                bound_slope,
+                del_a_minus_del_LED,
+                del_m_plus_del_LED,
+                lapse_prob,
+                beta_lapse,
+            )
+            for grp in condition_groups
+        ]
+    else:
+        ll_by_group = Parallel(n_jobs=N_JOBS, backend=PARALLEL_BACKEND)(
+            delayed(_group_loglike)(
+                grp,
+                V_A_base,
+                drift_slope,
+                theta_A,
+                bound_slope,
+                del_a_minus_del_LED,
+                del_m_plus_del_LED,
+                lapse_prob,
+                beta_lapse,
+            )
+            for grp in condition_groups
         )
-        sol = model.solve()
 
-        pdf_upper = sol.pdf("upper_hit")
-        cdf_upper = np.cumsum(pdf_upper) * PYDDM_DT
-        p_upper = sol.prob("upper_hit")
-
-        # Abort trials: density term
-        if abort_rts.size > 0:
-            t_proc_abort = abort_rts - shift_total
-            proactive_pdf_vals = _pdf_lookup_on_grid(pdf_upper, t_proc_abort, PYDDM_DT, PYDDM_T_DUR)
-            lapse_pdf_vals = lapse_pdf(abort_rts, beta_lapse)
-            mix_pdf = (1.0 - lapse_prob) * proactive_pdf_vals + lapse_prob * lapse_pdf_vals
-            total_loglike += np.sum(np.log(np.clip(mix_pdf, LIKELIHOOD_EPS, None)))
-
-        # Censored trials: survival term at t_stim
-        if cens_tstims.size > 0:
-            t_proc_cens = cens_tstims - shift_total
-            proactive_surv_vals = _upper_survival_lookup(cdf_upper, p_upper, t_proc_cens, PYDDM_DT, PYDDM_T_DUR)
-            lapse_surv_vals = lapse_survival(cens_tstims, beta_lapse)
-            mix_surv = (1.0 - lapse_prob) * proactive_surv_vals + lapse_prob * lapse_surv_vals
-            total_loglike += np.sum(np.log(np.clip(mix_surv, LIKELIHOOD_EPS, None)))
-
-    return float(total_loglike)
+    return float(np.sum(ll_by_group))
 
 
 # %%
@@ -324,9 +372,9 @@ def proactive_led_loglike(params):
 # Priors and joint
 # =============================================================================
 V_A_base_bounds = [0.1, 5.0]
-drift_slope_bounds = [0.0, 0.5]
+drift_slope_bounds = [0.0, 2]
 theta_A_bounds = [0.1, 5.5]
-bound_slope_bounds = [0.0, 0.5]
+bound_slope_bounds = [0.0, 2]
 del_a_minus_del_LED_bounds = [-1.1, 1.1]
 del_m_plus_del_LED_bounds = [0.001, 0.2]
 lapse_prob_bounds = [0.0, 1.0]
@@ -666,15 +714,32 @@ def simulate_single_trial_fit():
             dt=SIM_DT,
         )
 
-    return rt, is_led_trial, t_stim
+    return rt, is_led_trial, t_led, t_stim
+
+
+def _chunk_sizes(n_total, n_jobs):
+    n_jobs_eff = max(1, min(int(n_jobs), int(n_total)))
+    chunks = np.full(n_jobs_eff, n_total // n_jobs_eff, dtype=int)
+    chunks[: n_total % n_jobs_eff] += 1
+    return [int(c) for c in chunks if c > 0]
+
+
+def _simulate_chunk_basic(n_chunk):
+    return [simulate_single_trial_fit() for _ in range(n_chunk)]
 
 
 print(f"\nSimulating {N_TRIALS_SIM} trials with fitted params...")
-sim_results = [simulate_single_trial_fit() for _ in range(N_TRIALS_SIM)]
+if N_JOBS == 1:
+    sim_results = _simulate_chunk_basic(N_TRIALS_SIM)
+else:
+    sim_chunks = Parallel(n_jobs=min(N_JOBS, N_TRIALS_SIM), backend=PARALLEL_BACKEND)(
+        delayed(_simulate_chunk_basic)(n_chunk) for n_chunk in _chunk_sizes(N_TRIALS_SIM, N_JOBS)
+    )
+    sim_results = [item for chunk in sim_chunks for item in chunk]
 
 sim_rts = [r[0] for r in sim_results]
 sim_led = [r[1] for r in sim_results]
-sim_t_stim = [r[2] for r in sim_results]
+sim_t_stim = [r[3] for r in sim_results]
 
 sim_rts_on = [rt for rt, is_led, t_stim in zip(sim_rts, sim_led, sim_t_stim) if is_led and np.isfinite(rt) and rt < t_stim]
 sim_rts_off = [rt for rt, is_led, t_stim in zip(sim_rts, sim_led, sim_t_stim) if (not is_led) and np.isfinite(rt) and rt < t_stim]
@@ -719,3 +784,430 @@ plt.tight_layout()
 plt.savefig(f"vbmc_real_{file_tag}_rtd_data_vs_sim_drift_up_bound_drop_PYDDM.pdf", bbox_inches="tight")
 print("RTD data-vs-sim plot saved.")
 plt.show()
+
+# %%
+
+# =============================================================================
+# Plot: RTD wrt LED (area-weighted by abort fraction)
+# =============================================================================
+def _safe_hist_density(vals, bins):
+    if len(vals) == 0:
+        return np.zeros(len(bins) - 1, dtype=float)
+    hist, _ = np.histogram(vals, bins=bins, density=True)
+    return np.nan_to_num(hist, nan=0.0, posinf=0.0, neginf=0.0)
+
+# Data abort RTs wrt LED
+df_on_aborts = fit_df[(fit_df["LED_trial"] == 1) & (fit_df["RT"] < fit_df["t_stim"])]
+df_off_aborts = fit_df[(fit_df["LED_trial"] == 0) & (fit_df["RT"] < fit_df["t_stim"])]
+data_rts_wrt_led_on = (df_on_aborts["RT"] - df_on_aborts["t_LED"]).values
+data_rts_wrt_led_off = (df_off_aborts["RT"] - df_off_aborts["t_LED"]).values
+
+# Sim abort RTs wrt LED
+sim_rts_wrt_led_on = [
+    rt - t_led
+    for rt, is_led, t_led, t_stim in sim_results
+    if is_led and np.isfinite(rt) and rt < t_stim
+]
+sim_rts_wrt_led_off = [
+    rt - t_led
+    for rt, is_led, t_led, t_stim in sim_results
+    if (not is_led) and np.isfinite(rt) and rt < t_stim
+]
+
+bins_wrt_led = np.arange(-3.0, 3.0, 0.005)
+bin_centers_wrt_led = (bins_wrt_led[1:] + bins_wrt_led[:-1]) / 2
+
+# Abort fractions (area targets)
+n_all_data_on = int(np.sum(fit_df["LED_trial"] == 1))
+n_all_data_off = int(np.sum(fit_df["LED_trial"] == 0))
+n_aborts_data_on = len(data_rts_wrt_led_on)
+n_aborts_data_off = len(data_rts_wrt_led_off)
+frac_data_on = n_aborts_data_on / n_all_data_on if n_all_data_on > 0 else 0.0
+frac_data_off = n_aborts_data_off / n_all_data_off if n_all_data_off > 0 else 0.0
+
+n_all_sim_on = sum(1 for _, is_led, _, _ in sim_results if is_led)
+n_all_sim_off = sum(1 for _, is_led, _, _ in sim_results if not is_led)
+n_aborts_sim_on = len(sim_rts_wrt_led_on)
+n_aborts_sim_off = len(sim_rts_wrt_led_off)
+frac_sim_on = n_aborts_sim_on / n_all_sim_on if n_all_sim_on > 0 else 0.0
+frac_sim_off = n_aborts_sim_off / n_all_sim_off if n_all_sim_off > 0 else 0.0
+
+data_hist_on_scaled = _safe_hist_density(data_rts_wrt_led_on, bins_wrt_led) * frac_data_on
+data_hist_off_scaled = _safe_hist_density(data_rts_wrt_led_off, bins_wrt_led) * frac_data_off
+sim_hist_on_scaled = _safe_hist_density(sim_rts_wrt_led_on, bins_wrt_led) * frac_sim_on
+sim_hist_off_scaled = _safe_hist_density(sim_rts_wrt_led_off, bins_wrt_led) * frac_sim_off
+
+fig, ax = plt.subplots(figsize=(15, 6))
+ax.plot(
+    bin_centers_wrt_led,
+    data_hist_on_scaled,
+    label=f"Data LED ON (frac={frac_data_on:.2f})",
+    lw=2,
+    alpha=0.8,
+    color="r",
+    linestyle="-",
+)
+ax.plot(
+    bin_centers_wrt_led,
+    data_hist_off_scaled,
+    label=f"Data LED OFF (frac={frac_data_off:.2f})",
+    lw=2,
+    alpha=0.8,
+    color="b",
+    linestyle="-",
+)
+ax.plot(
+    bin_centers_wrt_led,
+    sim_hist_on_scaled,
+    label=f"Sim LED ON (frac={frac_sim_on:.2f})",
+    lw=2,
+    alpha=0.8,
+    color="r",
+    linestyle="--",
+)
+ax.plot(
+    bin_centers_wrt_led,
+    sim_hist_off_scaled,
+    label=f"Sim LED OFF (frac={frac_sim_off:.2f})",
+    lw=2,
+    alpha=0.8,
+    color="b",
+    linestyle="--",
+)
+
+ax.axvline(x=0.0, color="k", linestyle="--", alpha=0.5, label="LED onset")
+ax.axvline(
+    x=param_means[5],
+    color="g",
+    linestyle=":",
+    alpha=0.6,
+    label=f"del_m_plus_del_LED={param_means[5]:.3f}",
+)
+ax.set_xlabel("RT - t_LED (s)")
+ax.set_ylabel("Rate (area = fraction)")
+ax.set_title(f"RT wrt LED (area-weighted) - {animal_label}")
+ax.legend(fontsize=9)
+# ax.set_xlim(-0.5, 0.4)
+ax.set_xlim(-0.2, 0.3)
+
+
+plt.tight_layout()
+plt.savefig(
+    f"vbmc_real_{file_tag}_rt_wrt_led_rate_drift_up_bound_drop_PYDDM.pdf",
+    bbox_inches="tight",
+)
+print(
+    "RT wrt LED rate plot saved as "
+    f"'vbmc_real_{file_tag}_rt_wrt_led_rate_drift_up_bound_drop_PYDDM.pdf'"
+)
+plt.show()
+
+# %%
+# =============================================================================
+# Plot: Theoretical RTD wrt LED (area-weighted, smooth theory vs data)
+# =============================================================================
+N_THEORY_SAMPLES = 1000
+t_pts_wrt_led_theory = np.arange(-1.0, 1.0, 0.001)
+
+# Fitted params
+V_A_base_fit      = param_means[0]
+drift_slope_fit   = param_means[1]
+theta_A_fit       = param_means[2]
+bound_slope_fit   = param_means[3]
+del_a_minus_fit   = param_means[4]
+del_m_plus_fit    = param_means[5]
+lapse_prob_fit    = param_means[6]
+beta_lapse_fit    = param_means[7]
+shift_total_fit   = del_a_minus_fit + del_m_plus_fit
+
+# ---- LED ON theory ----
+df_on_all = fit_df[fit_df["LED_trial"] == 1]
+sampled_on = df_on_all.sample(n=N_THEORY_SAMPLES, replace=True, random_state=42)
+sampled_on_tled = sampled_on["t_LED"].values
+sampled_on_tstim = sampled_on["t_stim"].values
+
+# Bin t_LED the same way as in fitting to reuse models
+if USE_EXACT_T_LED:
+    sampled_on_tled_bin = sampled_on_tled.copy()
+else:
+    sampled_on_tled_bin = np.round(sampled_on_tled / T_LED_BIN_WIDTH) * T_LED_BIN_WIDTH
+
+# Solve PyDDM once per unique bin
+unique_bins_on = np.unique(sampled_on_tled_bin)
+print(f"\nTheory wrt LED: solving {len(unique_bins_on)} LED ON conditions ...")
+pdf_cache_on = {}
+for tled_bin in unique_bins_on:
+    t_change = tled_bin - del_a_minus_fit
+    model = build_pyddm_model(V_A_base_fit, drift_slope_fit, theta_A_fit, bound_slope_fit, t_change)
+    sol = model.solve()
+    pdf_cache_on[tled_bin] = sol.pdf("upper_hit")
+
+# Accumulate
+theory_pdf_on = np.zeros_like(t_pts_wrt_led_theory)
+for i in range(N_THEORY_SAMPLES):
+    t_LED_i  = sampled_on_tled[i]
+    t_stim_i = sampled_on_tstim[i]
+    pdf_upper = pdf_cache_on[sampled_on_tled_bin[i]]
+
+    t_abs  = t_pts_wrt_led_theory + t_LED_i
+    t_proc = t_abs - shift_total_fit
+
+    pro_vals = _pdf_lookup_on_grid(pdf_upper, t_proc, PYDDM_DT, PYDDM_T_DUR)
+    lap_vals = lapse_pdf(np.clip(t_abs, 0, None), beta_lapse_fit)
+    lap_vals[t_abs < 0] = 0.0
+
+    mix = (1.0 - lapse_prob_fit) * pro_vals + lapse_prob_fit * lap_vals
+    mix[(t_abs < 0) | (t_abs >= t_stim_i)] = 0.0
+    theory_pdf_on += mix
+
+theory_pdf_on /= N_THEORY_SAMPLES
+
+# ---- LED OFF theory ----
+df_off_all = fit_df[fit_df["LED_trial"] == 0]
+sampled_off = df_off_all.sample(n=N_THEORY_SAMPLES, replace=True, random_state=42)
+sampled_off_tled = sampled_off["t_LED"].values
+sampled_off_tstim = sampled_off["t_stim"].values
+
+# Single model for OFF (no LED effect)
+t_change_off = PYDDM_T_DUR + 10.0
+model_off = build_pyddm_model(V_A_base_fit, drift_slope_fit, theta_A_fit, bound_slope_fit, t_change_off)
+sol_off = model_off.solve()
+pdf_upper_off = sol_off.pdf("upper_hit")
+print("Theory wrt LED: solved LED OFF condition.")
+
+theory_pdf_off = np.zeros_like(t_pts_wrt_led_theory)
+for i in range(N_THEORY_SAMPLES):
+    t_LED_i  = sampled_off_tled[i]
+    t_stim_i = sampled_off_tstim[i]
+
+    t_abs  = t_pts_wrt_led_theory + t_LED_i
+    t_proc = t_abs - shift_total_fit
+
+    pro_vals = _pdf_lookup_on_grid(pdf_upper_off, t_proc, PYDDM_DT, PYDDM_T_DUR)
+    lap_vals = lapse_pdf(np.clip(t_abs, 0, None), beta_lapse_fit)
+    lap_vals[t_abs < 0] = 0.0
+
+    mix = (1.0 - lapse_prob_fit) * pro_vals + lapse_prob_fit * lap_vals
+    mix[(t_abs < 0) | (t_abs >= t_stim_i)] = 0.0
+    theory_pdf_off += mix
+
+theory_pdf_off /= N_THEORY_SAMPLES
+
+# ---- Plot: data histogram vs theory ----
+fig, ax = plt.subplots(figsize=(15, 6))
+
+ax.plot(
+    bin_centers_wrt_led, data_hist_on_scaled,
+    label=f"Data LED ON (frac={frac_data_on:.2f})",
+    lw=2, alpha=0.8, color="r", linestyle="-",
+)
+ax.plot(
+    bin_centers_wrt_led, data_hist_off_scaled,
+    label=f"Data LED OFF (frac={frac_data_off:.2f})",
+    lw=2, alpha=0.8, color="b", linestyle="-",
+)
+ax.plot(
+    t_pts_wrt_led_theory, theory_pdf_on,
+    label="Theory LED ON", lw=2, alpha=0.8, color="r", linestyle="--",
+)
+ax.plot(
+    t_pts_wrt_led_theory, theory_pdf_off,
+    label="Theory LED OFF", lw=2, alpha=0.8, color="b", linestyle="--",
+)
+
+ax.axvline(x=0.0, color="k", linestyle="--", alpha=0.5, label="LED onset")
+ax.axvline(
+    x=param_means[5], color="g", linestyle=":", alpha=0.6,
+    label=f"del_m_plus_del_LED={param_means[5]:.3f}",
+)
+ax.set_xlabel("RT - t_LED (s)")
+ax.set_ylabel("Rate (area = fraction)")
+ax.set_title(f"RT wrt LED (Theory vs Data, area-weighted) - {animal_label}")
+ax.legend(fontsize=9)
+ax.set_xlim(-0.2, 0.3)
+
+plt.tight_layout()
+plt.savefig(
+    f"vbmc_real_{file_tag}_rt_wrt_led_THEORY_drift_up_bound_drop_PYDDM.pdf",
+    bbox_inches="tight",
+)
+print(
+    "Theory RT wrt LED plot saved as "
+    f"'vbmc_real_{file_tag}_rt_wrt_led_THEORY_drift_up_bound_drop_PYDDM.pdf'"
+)
+plt.show()
+
+# %%
+# =============================================================================
+# Plot: Drift and Bound over time (wrt LED onset)
+# =============================================================================
+# Time grid centred on t_change = 0 (ignoring delays)
+t_grid = np.linspace(-1.0, 1.0, 2000)
+
+drift_on = np.array([
+    V_A_base_fit + drift_slope_fit * max(0.0, t)
+    for t in t_grid
+])
+bound_on = np.array([
+    max(THETA_A_MIN, theta_A_fit - bound_slope_fit * max(0.0, t))
+    for t in t_grid
+])
+
+drift_off = np.full_like(t_grid, V_A_base_fit)
+bound_off = np.full_like(t_grid, theta_A_fit)
+
+xlims = [-0.4,0.4]
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# -- Drift --
+axes[0].plot(t_grid, drift_on, color="r", lw=2, label="LED ON")
+axes[0].plot(t_grid, drift_off, color="b", lw=2, label="LED OFF")
+axes[0].axvline(0.0, color="k", ls="--", alpha=0.5, label="t_change")
+axes[0].set_xlabel("Time wrt t_change (s)")
+axes[0].set_ylabel("Drift rate")
+axes[0].set_title(f"Drift over time - {animal_label}")
+axes[0].legend(fontsize=9)
+axes[0].set_xlim(xlims)
+# -- Bound (distance to upper) --
+axes[1].plot(t_grid, bound_on, color="r", lw=2, label="LED ON")
+axes[1].plot(t_grid, bound_off, color="b", lw=2, label="LED OFF")
+axes[1].axvline(0.0, color="k", ls="--", alpha=0.5, label="t_change")
+axes[1].set_xlabel("Time wrt t_change (s)")
+axes[1].set_ylabel("Bound (θ_A)")
+axes[1].set_title(f"Bound over time - {animal_label}")
+axes[1].legend(fontsize=9)
+axes[1].set_xlim(xlims)
+plt.tight_layout()
+plt.savefig(
+    f"vbmc_real_{file_tag}_drift_bound_over_time_PYDDM.pdf",
+    bbox_inches="tight",
+)
+print(
+    "Drift & bound plot saved as "
+    f"'vbmc_real_{file_tag}_drift_bound_over_time_PYDDM.pdf'"
+)
+plt.show()
+
+# %%
+# =============================================================================
+# Compare likelihood on random LED ON subset: binned t_LED vs exact t_LED
+# =============================================================================
+N_COMPARE_LED_ON = 1000
+COMPARE_RANDOM_SEED = 42
+
+df_on_all = fit_df[fit_df["LED_trial"] == 1]
+n_on_sample = min(N_COMPARE_LED_ON, len(df_on_all))
+if n_on_sample < N_COMPARE_LED_ON:
+    print(
+        f"Only {n_on_sample} LED ON trials available; "
+        f"using all available trials instead of {N_COMPARE_LED_ON}."
+    )
+
+sampled_on_df = df_on_all.sample(
+    n=n_on_sample, replace=False, random_state=COMPARE_RANDOM_SEED
+).copy()
+
+print("\nLikelihood comparison on random LED ON subset:")
+print(f"  Requested LED ON trials: {N_COMPARE_LED_ON}")
+print(f"  Used LED ON trials:      {n_on_sample}")
+print(f"  Random seed:             {COMPARE_RANDOM_SEED}")
+
+
+def _build_led_on_condition_groups(df_led_on, use_exact_t_led):
+    if use_exact_t_led:
+        t_led_cond_vals = df_led_on["t_LED"].values.astype(float)
+    else:
+        t_led_cond_vals = np.round(df_led_on["t_LED"].values / T_LED_BIN_WIDTH) * T_LED_BIN_WIDTH
+
+    df_tmp = df_led_on.copy()
+    df_tmp["t_led_cond_eval"] = t_led_cond_vals
+
+    eval_condition_groups = []
+    for t_led_cond, grp in df_tmp.groupby("t_led_cond_eval", sort=True):
+        abort_rts = grp.loc[grp["is_abort"], "RT"].values.astype(float)
+        cens_tstims = grp.loc[~grp["is_abort"], "t_stim"].values.astype(float)
+        eval_condition_groups.append(
+            {
+                "is_led": 1,
+                "t_led_cond": float(t_led_cond),
+                "abort_rts": abort_rts,
+                "cens_tstims": cens_tstims,
+                "n_trials": len(grp),
+                "n_abort": len(abort_rts),
+                "n_cens": len(cens_tstims),
+            }
+        )
+
+    return eval_condition_groups
+
+
+def _sum_loglike_over_groups(eval_condition_groups, params):
+    (
+        V_A_base_m,
+        drift_slope_m,
+        theta_A_m,
+        bound_slope_m,
+        del_a_m,
+        del_m_m,
+        lapse_prob_m,
+        beta_lapse_m,
+    ) = params
+
+    if N_JOBS == 1 or len(eval_condition_groups) <= 1:
+        ll_parts = [
+            _group_loglike(
+                grp,
+                V_A_base_m,
+                drift_slope_m,
+                theta_A_m,
+                bound_slope_m,
+                del_a_m,
+                del_m_m,
+                lapse_prob_m,
+                beta_lapse_m,
+            )
+            for grp in eval_condition_groups
+        ]
+    else:
+        n_jobs_eff = min(N_JOBS, len(eval_condition_groups))
+        ll_parts = Parallel(n_jobs=n_jobs_eff, backend=PARALLEL_BACKEND)(
+            delayed(_group_loglike)(
+                grp,
+                V_A_base_m,
+                drift_slope_m,
+                theta_A_m,
+                bound_slope_m,
+                del_a_m,
+                del_m_m,
+                lapse_prob_m,
+                beta_lapse_m,
+            )
+            for grp in eval_condition_groups
+        )
+
+    return float(np.sum(ll_parts))
+
+
+t0 = time.perf_counter()
+binned_condition_groups = _build_led_on_condition_groups(sampled_on_df, use_exact_t_led=False)
+ll_binned = _sum_loglike_over_groups(binned_condition_groups, param_means)
+binned_elapsed_s = time.perf_counter() - t0
+
+t0 = time.perf_counter()
+exact_condition_groups = _build_led_on_condition_groups(sampled_on_df, use_exact_t_led=True)
+ll_exact = _sum_loglike_over_groups(exact_condition_groups, param_means)
+exact_elapsed_s = time.perf_counter() - t0
+
+ll_diff = ll_binned - ll_exact
+rel_diff_pct = abs(ll_diff) / max(abs(ll_exact), 1e-12) * 100.0
+
+print(f"\nBinned t_LED groups (width={T_LED_BIN_WIDTH:.3f}s): {len(binned_condition_groups)}")
+print(f"Exact t_LED groups:                                {len(exact_condition_groups)}")
+print(f"Log-likelihood (binned t_LED):                     {ll_binned:.4f}")
+print(f"Time taken (binned):                               {binned_elapsed_s:.3f} s")
+print(f"Log-likelihood (exact  t_LED):                     {ll_exact:.4f}")
+print(f"Time taken (exact):                                {exact_elapsed_s:.3f} s")
+print(f"Difference (binned - exact):                       {ll_diff:.4f}")
+print(f"Relative difference:                               {rel_diff_pct:.4f}%")
+
+# %%
