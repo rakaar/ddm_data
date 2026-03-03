@@ -275,14 +275,15 @@ def build_pyddm_model(V_A_base, theta_A, bound_slope, t_change):
       the lower bound.
     """
     x = 1.0 - (theta_A / THETA_E0_FIXED)
-    x_abs = x * THETA_E0_FIXED
-    theta_E_min = x_abs + THETA_A_MIN
+    # x_abs = x * THETA_E0_FIXED
+    # theta_E_min = x_abs + THETA_A_MIN
     def drift_fn(t):
         return V_A_base
 
     def bound_fn(t):
         B_t = THETA_E0_FIXED - bound_slope * max(0.0, t - t_change)
-        return max(theta_E_min, B_t)
+        # return max(theta_E_min, B_t)
+        return B_t
 
     return pyddm.gddm(
         drift=drift_fn,
