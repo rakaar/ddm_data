@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+import corner
+from matplotlib.ticker import FuncFormatter
 
 ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT / "fit_each_condn"))
@@ -194,7 +196,7 @@ rtd_theory_on_wrt_led /= N_MC_THEORY_WRT_LED
 rtd_theory_off_wrt_led /= N_MC_THEORY_WRT_LED
 
 # %%
-HIST_DT = 0.025
+HIST_DT = 0.01
 
 # Data aborts (RT < t_stim)
 df_on_aborts = fit_df[(fit_df["LED_trial"] == 1) & (fit_df["RT"] < fit_df["t_stim"])]
@@ -294,6 +296,7 @@ SCHEMATIC_DT_MS = 1.0
 SCHEMATIC_NOISE_SD = 1.0
 SCHEMATIC_POST_MULTIPLIER = 10.0
 SCHEMATIC_DELTA_A_SHRINK = 4.0
+SCHEMATIC_PRE_LINE_GAIN = 5
 SCHEMATIC_DELTA_M_MS = 12.0
 
 # Use fitted drifts and bound.
@@ -358,12 +361,12 @@ ax.axhline(bound_level, color="0.35", lw=1.6, ls="--", zorder=2)
 ax.axvline(0, color="0.35", lw=1.2, ls="-.", alpha=0.8, zorder=2)
 ax.axvline(t_switch_ms, color="0.35", lw=1.4, ls=":", zorder=2)
 
-# Drift arrows.
+# Drift reference lines (thin solid, no arrows).
 valid_idx = np.where(np.isfinite(a))[0]
 pre_idx = valid_idx[t_ms[valid_idx] <= t_switch_ms]
 post_idx = valid_idx[t_ms[valid_idx] > t_switch_ms]
 
-# Pre-LED arrow: start at delayed accumulation onset; enforce a visible positive slope.
+# Pre-LED line starts at delayed accumulation onset.
 if len(pre_idx) > 0:
     pre_x0_ms = t_ms[pre_idx[0]]
     pre_y0 = a[pre_idx[0]]
@@ -371,70 +374,44 @@ else:
     pre_x0_ms = accum_start_ms
     pre_y0 = np.interp(pre_x0_ms, t_ms, det_traj)
 
-pre_arrow_ms = 18.0
-pre_x1_ms = min(t_switch_ms - 1.0, pre_x0_ms + pre_arrow_ms)
-pre_dy = max(slope_pre * ((pre_x1_ms - pre_x0_ms) / 1000.0), 0.05 * bound_level)
-pre_y1 = pre_y0 + pre_dy
+pre_x1_ms = min(t_switch_ms, SCHEMATIC_X_MAX_MS)
+pre_line_slope_per_ms = (slope_pre * SCHEMATIC_PRE_LINE_GAIN) / 1000.0
+post_line_slope_per_ms = max(slope_post / 1000.0, 1e-9)
+pre_line_slope_per_ms = min(pre_line_slope_per_ms, 0.85 * post_line_slope_per_ms)
+pre_y1 = pre_y0 + pre_line_slope_per_ms * (pre_x1_ms - pre_x0_ms)
+if pre_x1_ms > pre_x0_ms:
+    ax.plot(
+        [pre_x0_ms, pre_x1_ms],
+        [pre_y0, pre_y1],
+        color="#1f77b4",
+        lw=1.4,
+        alpha=0.95,
+        zorder=6,
+    )
 
-ax.annotate(
-    "",
-    xy=(pre_x1_ms, pre_y1),
-    xytext=(pre_x0_ms, pre_y0),
-    arrowprops=dict(arrowstyle="-|>", lw=2.6, color="#1f77b4", mutation_scale=20),
-    zorder=6,
-)
-
-# Post-LED arrow: start at first point after switch; steeper slope than pre-LED.
+# Post-LED line starts at first point after switch.
 if len(post_idx) > 0:
     post_i0 = post_idx[0]
     post_x0_ms, post_y0 = t_ms[post_i0], a[post_i0]
 else:
     post_x0_ms, post_y0 = t_switch_ms + 1.0, np.interp(t_switch_ms + 1.0, t_ms, det_traj)
 
-post_arrow_ms = 10.0
-post_x1_ms = min(SCHEMATIC_X_MAX_MS, post_x0_ms + post_arrow_ms)
-post_dy = max(slope_post * ((post_x1_ms - post_x0_ms) / 1000.0), 0.14 * bound_level)
-post_y1 = min(bound_level * 1.05, post_y0 + post_dy)
-
-ax.annotate(
-    "",
-    xy=(post_x1_ms, post_y1),
-    xytext=(post_x0_ms, post_y0),
-    arrowprops=dict(arrowstyle="-|>", lw=2.8, color="#d62728", mutation_scale=21),
-    zorder=6,
-)
-
-# Dashed slope guides (same colors as arrows).
-pre_guide_x_end = min(t_switch_ms, SCHEMATIC_X_MAX_MS)
-if pre_guide_x_end > pre_x1_ms:
-    pre_guide_y_end = pre_y1 + (slope_pre / 1000.0) * (pre_guide_x_end - pre_x1_ms)
-    ax.plot(
-        [pre_x1_ms, pre_guide_x_end],
-        [pre_y1, pre_guide_y_end],
-        color="#1f77b4",
-        lw=1.6,
-        ls=(0, (4, 3)),
-        alpha=0.9,
-        zorder=5,
-    )
-
 if slope_post > 1e-9:
-    x_theta_post = post_x1_ms + 1000.0 * (bound_level - post_y1) / slope_post
-    post_guide_x_end = np.clip(x_theta_post, post_x1_ms, SCHEMATIC_X_MAX_MS)
+    x_theta_post = post_x0_ms + 1000.0 * (bound_level - post_y0) / slope_post
+    post_x1_ms = np.clip(x_theta_post, post_x0_ms, SCHEMATIC_X_MAX_MS)
 else:
-    post_guide_x_end = post_x1_ms
-
-if post_guide_x_end > post_x1_ms:
-    post_guide_y_end = post_y1 + (slope_post / 1000.0) * (post_guide_x_end - post_x1_ms)
+    post_x1_ms = post_x0_ms
+post_y1 = post_y0 + (slope_post / 1000.0) * (post_x1_ms - post_x0_ms)
+if post_x1_ms > post_x0_ms:
     ax.plot(
-        [post_x1_ms, post_guide_x_end],
-        [post_y1, post_guide_y_end],
+        [post_x0_ms, post_x1_ms],
+        [post_y0, post_y1],
         color="#d62728",
-        lw=1.8,
-        ls=(0, (4, 3)),
-        alpha=0.9,
-        zorder=5,
+        lw=1.4,
+        alpha=0.95,
+        zorder=6,
     )
+post_guide_x_end = post_x1_ms
 
 # Delay annotations: delta_a (ending at trajectory start), delta_LED (LED -> switch),
 # delta_m (decision -> RT), and RT line.
@@ -460,7 +437,6 @@ if pre_x0_ms > SCHEMATIC_X_MIN_MS:
             lw=1.8,
             color="0.6",
             mutation_scale=16,
-            linestyle=(0, (3, 3)),
         ),
         zorder=7,
     )
@@ -552,6 +528,110 @@ plt.tight_layout()
 schematic_out = ROOT / f"schematic_{file_tag}_drift_switch_single_bound.pdf"
 plt.savefig(schematic_out, bbox_inches="tight")
 print(f"Saved drift-switch schematic: {schematic_out}")
+
+if SHOW_PLOT:
+    plt.show()
+
+# %%
+# =============================================================================
+# Corner plot (first 5 params only; lapse params excluded)
+# =============================================================================
+
+corner_samples = vp_samples[:, :5].copy()
+# Convert delay parameters from seconds to milliseconds.
+corner_samples[:, 3] *= 1000.0
+corner_samples[:, 4] *= 1000.0
+
+corner_labels = [
+    r"$V_A^{pre\!-\!LED}$",
+    r"$V_A^{post\!-\!LED}$",
+    r"$\theta_A$",
+    r"$\delta_a-\delta_{LED}$ (ms)",
+    r"$\delta_m+\delta_{LED}$ (ms)",
+]
+
+fig = corner.corner(
+    corner_samples,
+    labels=corner_labels,
+    show_titles=False,
+    color="tab:blue",
+    fill_contours=True,
+    plot_datapoints=False,
+    plot_density=False,
+    bins=40,
+    levels=[0.50, 0.80, 0.975],
+    # First band is transparent so background outside contours stays clear.
+    contourf_kwargs={"colors": [(1, 1, 1, 0), "#deebf7", "#9ecae1", "#4292c6"], "alpha": 1.0},
+    contour_kwargs={"colors": "tab:blue", "linewidths": 1.2},
+    hist_kwargs={"alpha": 0.8},
+    quantiles=[0.025, 0.50, 0.975],
+)
+
+# Move parameter titles to top (diagonal titles only).
+medians = np.median(corner_samples, axis=0)
+param_q = np.quantile(corner_samples, [0.025, 0.975], axis=0)
+n_dim = corner_samples.shape[1]
+axes = np.array(fig.axes).reshape((n_dim, n_dim))
+
+
+def _fmt_corner_tick(x, pos):
+    ax = abs(x)
+    if ax >= 100:
+        return f"{x:.0f}"
+    if ax >= 10:
+        return f"{x:.1f}"
+    return f"{x:.2f}"
+
+
+def _pick_first_third_ticks(ticks, lo, hi):
+    ticks = np.asarray(ticks, dtype=float)
+    ticks = ticks[np.isfinite(ticks)]
+    ticks = ticks[(ticks >= min(lo, hi)) & (ticks <= max(lo, hi))]
+    if ticks.size >= 3:
+        return [ticks[0], ticks[2]]
+    if ticks.size >= 2:
+        return [ticks[0], ticks[-1]]
+    if ticks.size == 1:
+        return [ticks[0]]
+    return [lo, hi]
+
+
+# Remove bottom/left axis labels and increase tick font size.
+# Use only 2.5% and 97.5% ticks per parameter; show labels only on outer axes.
+for i in range(n_dim):
+    for j in range(n_dim):
+        ax_ij = axes[i, j]
+        if i < j:
+            # Upper triangle: keep fully empty (no stray tick labels).
+            ax_ij.set_axis_off()
+            continue
+
+        ax_ij.set_xlabel("")
+        ax_ij.set_ylabel("")
+        ax_ij.set_xticks([param_q[0, j], param_q[1, j]])
+        ax_ij.xaxis.set_major_formatter(FuncFormatter(_fmt_corner_tick))
+
+        if i > j:
+            ax_ij.set_yticks([param_q[0, i], param_q[1, i]])
+            ax_ij.yaxis.set_major_formatter(FuncFormatter(_fmt_corner_tick))
+        else:
+            ax_ij.set_yticks([])
+
+        ax_ij.tick_params(axis="both", labelsize=13)
+        if i == n_dim - 1:
+            ax_ij.tick_params(axis="x", labelrotation=0)
+        else:
+            ax_ij.tick_params(axis="x", labelbottom=False)
+        if j != 0:
+            ax_ij.tick_params(axis="y", labelleft=False)
+
+for i in range(n_dim):
+    axes[i, i].set_title(corner_labels[i], fontsize=14, pad=12)
+    axes[i, i].axvline(medians[i], color="tab:blue", ls=":", lw=1.8, alpha=0.95)
+
+corner_out = ROOT / f"schematic_{file_tag}_corner_5params.pdf"
+plt.savefig(corner_out, bbox_inches="tight")
+print(f"Saved corner plot: {corner_out}")
 
 if SHOW_PLOT:
     plt.show()
