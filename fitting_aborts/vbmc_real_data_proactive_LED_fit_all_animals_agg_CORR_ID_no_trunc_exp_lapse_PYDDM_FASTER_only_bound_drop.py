@@ -46,7 +46,6 @@ T_LED_BIN_WIDTH = 0.1
 
 # Mapping single-bound -> PyDDM two-bound
 THETA_E0_FIXED = 20.0     # must stay greater than theta_A
-THETA_A_MIN = 0.0    # minimum upper distance to avoid bound crossing start
 LIKELIHOOD_EPS = 1e-50
 MODEL_TAG = "bound_drop_saturating"
 
@@ -275,17 +274,15 @@ def build_pyddm_model(V_A_base, theta_A, bound_slope, theta_A_saturate, t_change
       clipped to avoid crossing the lower bound.
     """
     x = 1.0 - (theta_A / THETA_E0_FIXED)
-    x_abs = x * THETA_E0_FIXED
-    theta_E_min = x_abs + THETA_A_MIN
-    theta_E_sat = THETA_E0_FIXED - (theta_A - theta_A_saturate)
-    theta_E_floor = max(theta_E_min, theta_E_sat)
+    # theta_A_saturate is constrained > 0, so no extra max(..., 0.0) is needed.
+    
 
     def drift_fn(t):
         return V_A_base
 
     def bound_fn(t):
         B_t = THETA_E0_FIXED - bound_slope * max(0.0, t - t_change)
-        return max(theta_E_floor, B_t)
+        return max(theta_A_saturate, B_t)
 
     return pyddm.gddm(
         drift=drift_fn,
@@ -395,11 +392,11 @@ def proactive_led_loglike(params):
     ) = params
 
     # Hard validity checks
-    if theta_A <= THETA_A_MIN or theta_A >= THETA_E0_FIXED:
+    if theta_A <= 0.0 or theta_A >= THETA_E0_FIXED:
         return -np.inf
     if bound_slope < 0.01:
         return -np.inf
-    if theta_A_saturate <= THETA_A_MIN or theta_A_saturate >= THETA_E0_FIXED:
+    if theta_A_saturate <= 0.0 or theta_A_saturate >= THETA_E0_FIXED:
         return -np.inf
     if not (0.0 <= lapse_prob <= 1.0):
         return -np.inf
@@ -449,7 +446,7 @@ def proactive_led_loglike(params):
 V_A_base_bounds = [0.1, 5.0]
 theta_A_bounds = [0.1, 5.5]
 bound_slope_bounds = [0.01, 2.0]
-theta_A_saturate_bounds = [0.1, 4.0]
+theta_A_saturate_bounds = [0.1, 19.99]
 del_a_minus_del_LED_bounds = [-1.1, 1.1]
 del_m_plus_del_LED_bounds = [0.001, 0.2]
 lapse_prob_bounds = [0.0, 1.0]
@@ -460,7 +457,7 @@ V_A_base_plausible = [0.5, 3.0]
 
 theta_A_plausible = [0.8, 4]
 bound_slope_plausible = [0.02, 0.5]
-theta_A_saturate_plausible = [0.5, 3.0]
+theta_A_saturate_plausible = [15, 19.5]
 
 del_a_minus_del_LED_plausible = [0.01, 0.07]
 del_m_plus_del_LED_plausible = [0.01, 0.07]
@@ -754,7 +751,7 @@ def simulate_proactive_single_bound_bound_drop_saturating(
     while True:
         v_t = V_A_base
         theta_t = max(
-            THETA_A_MIN,
+            0.0,
             max(theta_A_saturate, theta_A - bound_slope * max(0.0, t - t_change)),
         )
 
@@ -1125,7 +1122,7 @@ drift_on = np.array([
     for t in t_grid
 ])
 bound_on = np.array([
-    max(THETA_A_MIN, max(theta_A_sat_fit, theta_A_fit - bound_slope_fit * max(0.0, t)))
+    max(0.0, max(theta_A_sat_fit, theta_A_fit - bound_slope_fit * max(0.0, t)))
     for t in t_grid
 ])
 

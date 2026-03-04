@@ -51,7 +51,7 @@ LIKELIHOOD_EPS = 1e-50
 MODEL_TAG = "bound_drop_no_saturate"
 
 # Runtime controls
-LOAD_SAVED_RESULTS = False
+LOAD_SAVED_RESULTS = True
 VBMC_OPTIONS = {"display": "iter"}
 N_JOBS = 25
 PARALLEL_BACKEND = "loky"  # "loky" for processes, "threading" for threads
@@ -1247,5 +1247,282 @@ print(f"Log-likelihood (exact  t_LED):                     {ll_exact:.4f}")
 print(f"Time taken (exact):                                {exact_elapsed_s:.3f} s")
 print(f"Difference (binned - exact):                       {ll_diff:.4f}")
 print(f"Relative difference:                               {rel_diff_pct:.4f}%")
+
+# %%
+# =============================================================================
+# Effect of t_LED bin width on theoretical RT wrt LED curves
+# =============================================================================
+N_THEORY_SAMPLES_BIN_SWEEP = 1000
+THEORY_T_LED_BIN_WIDTHS = [0.025]  # 10, 50, 100, 200 ms
+THEORY_PROGRESS_STEPS = [0.2, 0.4, 0.6, 0.8, 1.0]
+t_pts_wrt_led_theory_sweep = np.arange(-1.0, 1.0, 0.001)
+
+V_A_base_fit = param_means[0]
+theta_A_fit = param_means[1]
+bound_slope_fit = param_means[2]
+del_a_minus_fit = param_means[3]
+del_m_plus_fit = param_means[4]
+lapse_prob_fit = param_means[5]
+beta_lapse_fit = param_means[6]
+shift_total_fit = del_a_minus_fit + del_m_plus_fit
+
+# Keep sampled t_LED and t_stim fixed across all bin-width cases.
+df_on_all = fit_df[fit_df["LED_trial"] == 1]
+sampled_on_sweep = df_on_all.sample(
+    n=N_THEORY_SAMPLES_BIN_SWEEP, replace=True, random_state=42
+)
+sampled_on_tled_sweep = sampled_on_sweep["t_LED"].values
+sampled_on_tstim_sweep = sampled_on_sweep["t_stim"].values
+
+df_off_all = fit_df[fit_df["LED_trial"] == 0]
+sampled_off_sweep = df_off_all.sample(
+    n=N_THEORY_SAMPLES_BIN_SWEEP, replace=True, random_state=42
+)
+sampled_off_tled_sweep = sampled_off_sweep["t_LED"].values
+sampled_off_tstim_sweep = sampled_off_sweep["t_stim"].values
+
+# LED OFF theory is unchanged by t_LED binning; compute once and reuse.
+t_change_off = PYDDM_T_DUR + 10.0
+model_off = build_pyddm_model(V_A_base_fit, theta_A_fit, bound_slope_fit, t_change_off)
+sol_off = model_off.solve()
+pdf_upper_off = sol_off.pdf("upper_hit")
+print("\nBin-width sweep: solved LED OFF theory once.")
+
+print(
+    "Bin-width sweep: averaging LED OFF theory over "
+    f"{N_THEORY_SAMPLES_BIN_SWEEP} samples serially."
+)
+theory_pdf_off_sweep = np.zeros_like(t_pts_wrt_led_theory_sweep)
+for i in range(N_THEORY_SAMPLES_BIN_SWEEP):
+    t_LED_i = sampled_off_tled_sweep[i]
+    t_stim_i = sampled_off_tstim_sweep[i]
+
+    t_abs = t_pts_wrt_led_theory_sweep + t_LED_i
+    t_proc = t_abs - shift_total_fit
+
+    pro_vals = _pdf_lookup_on_grid(pdf_upper_off, t_proc, PYDDM_DT, PYDDM_T_DUR)
+    lap_vals = lapse_pdf(np.clip(t_abs, 0, None), beta_lapse_fit)
+    lap_vals[t_abs < 0] = 0.0
+
+    mix = (1.0 - lapse_prob_fit) * pro_vals + lapse_prob_fit * lap_vals
+    mix[(t_abs < 0) | (t_abs >= t_stim_i)] = 0.0
+    theory_pdf_off_sweep += mix
+theory_pdf_off_sweep /= N_THEORY_SAMPLES_BIN_SWEEP
+
+
+def _theory_led_on_for_bin_width(t_led_bin_width):
+    ms = int(round(1000 * t_led_bin_width))
+    t0_case = time.perf_counter()
+
+    sampled_on_tled_bin = (
+        np.round(sampled_on_tled_sweep / t_led_bin_width) * t_led_bin_width
+    )
+    unique_bins_on = np.unique(sampled_on_tled_bin)
+    print(
+        f"\n[t_LED bin={ms} ms] Solving {len(unique_bins_on)} LED ON conditions ..."
+    )
+
+    pdf_cache_on = {}
+    for tled_bin in unique_bins_on:
+        t_change = tled_bin - del_a_minus_fit
+        model = build_pyddm_model(V_A_base_fit, theta_A_fit, bound_slope_fit, t_change)
+        sol = model.solve()
+        pdf_cache_on[tled_bin] = sol.pdf("upper_hit")
+
+    print(
+        f"[t_LED bin={ms} ms] Averaging {N_THEORY_SAMPLES_BIN_SWEEP} samples serially."
+    )
+    theory_pdf_on = np.zeros_like(t_pts_wrt_led_theory_sweep)
+    progress_points = {
+        max(1, int(np.ceil(N_THEORY_SAMPLES_BIN_SWEEP * frac)))
+        for frac in THEORY_PROGRESS_STEPS
+    }
+
+    for i in range(N_THEORY_SAMPLES_BIN_SWEEP):
+        t_LED_i = sampled_on_tled_sweep[i]
+        t_stim_i = sampled_on_tstim_sweep[i]
+        pdf_upper = pdf_cache_on[sampled_on_tled_bin[i]]
+
+        t_abs = t_pts_wrt_led_theory_sweep + t_LED_i
+        t_proc = t_abs - shift_total_fit
+
+        pro_vals = _pdf_lookup_on_grid(pdf_upper, t_proc, PYDDM_DT, PYDDM_T_DUR)
+        lap_vals = lapse_pdf(np.clip(t_abs, 0, None), beta_lapse_fit)
+        lap_vals[t_abs < 0] = 0.0
+
+        mix = (1.0 - lapse_prob_fit) * pro_vals + lapse_prob_fit * lap_vals
+        mix[(t_abs < 0) | (t_abs >= t_stim_i)] = 0.0
+        theory_pdf_on += mix
+
+        n_done = i + 1
+        if n_done in progress_points:
+            pct = int(round(100.0 * n_done / N_THEORY_SAMPLES_BIN_SWEEP))
+            print(
+                f"[t_LED bin={ms} ms] Progress: {n_done}/{N_THEORY_SAMPLES_BIN_SWEEP} "
+                f"samples ({pct}%)"
+            )
+
+    theory_pdf_on /= N_THEORY_SAMPLES_BIN_SWEEP
+    elapsed_s = time.perf_counter() - t0_case
+    print(f"[t_LED bin={ms} ms] Time taken: {elapsed_s:.3f} s")
+    return theory_pdf_on, elapsed_s, len(unique_bins_on)
+
+
+theory_on_by_bin = {}
+timing_by_bin = {}
+n_unique_bins_by_case = {}
+for bw in THEORY_T_LED_BIN_WIDTHS:
+    theory_pdf_on_bw, elapsed_bw, n_uniq_bw = _theory_led_on_for_bin_width(bw)
+    theory_on_by_bin[bw] = theory_pdf_on_bw
+    timing_by_bin[bw] = elapsed_bw
+    n_unique_bins_by_case[bw] = n_uniq_bw
+
+# %%
+fig, axes = plt.subplots(1, len(THEORY_T_LED_BIN_WIDTHS), figsize=(24, 5), sharey=True)
+axes = np.atleast_1d(axes)
+for ax, bw in zip(axes, THEORY_T_LED_BIN_WIDTHS):
+    bw_ms = int(round(1000 * bw))
+    ax.plot(
+        bin_centers_wrt_led,
+        data_hist_on_scaled,
+        label=f"Data LED ON (frac={frac_data_on:.2f})",
+        lw=2,
+        alpha=0.3,
+        color="r",
+        linestyle="-",
+    )
+    ax.plot(
+        bin_centers_wrt_led,
+        data_hist_off_scaled,
+        label=f"Data LED OFF (frac={frac_data_off:.2f})",
+        lw=2,
+        alpha=0.3,
+        color="b",
+        linestyle="-",
+    )
+    ax.plot(
+        t_pts_wrt_led_theory_sweep,
+        theory_on_by_bin[bw],
+        label="Theory LED ON",
+        lw=2,
+        alpha=0.9,
+        color="r",
+        linestyle="--",
+    )
+    ax.plot(
+        t_pts_wrt_led_theory_sweep,
+        theory_pdf_off_sweep,
+        label="Theory LED OFF",
+        lw=2,
+        alpha=0.9,
+        color="b",
+        linestyle="--",
+    )
+
+    ax.axvline(x=0.0, color="k", linestyle="--", alpha=0.5)
+    ax.axvline(x=param_means[4], color="g", linestyle=":", alpha=0.6)
+    ax.set_xlim(-0.1, 0.2)
+    ax.set_xlabel("RT - t_LED (s)")
+    ax.set_title(f"t_LED binning = {bw_ms} ms")
+
+axes[0].set_ylabel("Rate (area = fraction)")
+axes[0].legend(fontsize=8)
+plt.tight_layout()
+
+theory_bin_compare_base = (
+    f"vbmc_real_{file_tag}_rt_wrt_led_THEORY_tled_bin_compare_{MODEL_TAG}_PYDDM"
+)
+savefig_both(theory_bin_compare_base, bbox_inches="tight")
+print(
+    "Theory t_LED bin-width comparison plot saved as "
+    f"'{theory_bin_compare_base}.pdf' and '{theory_bin_compare_base}.png'"
+)
+
+print("\nBin-width sweep runtime summary:")
+for bw in THEORY_T_LED_BIN_WIDTHS:
+    bw_ms = int(round(1000 * bw))
+    print(
+        f"  {bw_ms:>3} ms -> {timing_by_bin[bw]:.3f} s "
+        f"(unique LED ON bins: {n_unique_bins_by_case[bw]})"
+    )
+
+plt.show()
+
+# %%
+# Compare likelihood on random LED ON subset: 25 ms vs 100 ms t_LED bin widths
+N_COMPARE_LED_ON_BIN_SWEEP = 1000
+COMPARE_BIN_SWEEP_RANDOM_SEED = 45
+BIN_WIDTH_25_MS = 0.025
+BIN_WIDTH_100_MS = 0.100
+
+df_on_all = fit_df[fit_df["LED_trial"] == 1]
+n_on_sample_bin_sweep = min(N_COMPARE_LED_ON_BIN_SWEEP, len(df_on_all))
+if n_on_sample_bin_sweep < N_COMPARE_LED_ON_BIN_SWEEP:
+    print(
+        f"Only {n_on_sample_bin_sweep} LED ON trials available; "
+        f"using all available trials instead of {N_COMPARE_LED_ON_BIN_SWEEP}."
+    )
+
+sampled_on_bin_sweep_df = df_on_all.sample(
+    n=n_on_sample_bin_sweep, replace=False, random_state=COMPARE_BIN_SWEEP_RANDOM_SEED
+).copy()
+
+
+def _build_led_on_condition_groups_with_bin_width(df_led_on, t_led_bin_width):
+    t_led_cond_vals = (
+        np.round(df_led_on["t_LED"].values / t_led_bin_width) * t_led_bin_width
+    )
+    df_tmp = df_led_on.copy()
+    df_tmp["t_led_cond_eval"] = t_led_cond_vals
+
+    eval_condition_groups = []
+    for t_led_cond, grp in df_tmp.groupby("t_led_cond_eval", sort=True):
+        abort_rts = grp.loc[grp["is_abort"], "RT"].values.astype(float)
+        cens_tstims = grp.loc[~grp["is_abort"], "t_stim"].values.astype(float)
+        eval_condition_groups.append(
+            {
+                "is_led": 1,
+                "t_led_cond": float(t_led_cond),
+                "abort_rts": abort_rts,
+                "cens_tstims": cens_tstims,
+                "n_trials": len(grp),
+                "n_abort": len(abort_rts),
+                "n_cens": len(cens_tstims),
+            }
+        )
+    return eval_condition_groups
+
+
+t0 = time.perf_counter()
+condition_groups_25ms = _build_led_on_condition_groups_with_bin_width(
+    sampled_on_bin_sweep_df, BIN_WIDTH_25_MS
+)
+ll_25ms = _sum_loglike_over_groups(condition_groups_25ms, param_means)
+elapsed_25ms_s = time.perf_counter() - t0
+
+t0 = time.perf_counter()
+condition_groups_100ms = _build_led_on_condition_groups_with_bin_width(
+    sampled_on_bin_sweep_df, BIN_WIDTH_100_MS
+)
+ll_100ms = _sum_loglike_over_groups(condition_groups_100ms, param_means)
+elapsed_100ms_s = time.perf_counter() - t0
+
+ll_diff_signed = ll_25ms - ll_100ms
+ll_diff_abs = abs(ll_diff_signed)
+ll_diff_pct = ll_diff_abs / max(abs(ll_100ms), 1e-12) * 100.0
+
+print("\nLikelihood comparison on random LED ON subset (bin-width sweep):")
+print(f"  Requested LED ON trials: {N_COMPARE_LED_ON_BIN_SWEEP}")
+print(f"  Used LED ON trials:      {n_on_sample_bin_sweep}")
+print(f"  Random seed:             {COMPARE_BIN_SWEEP_RANDOM_SEED}")
+print(f"  25 ms groups:            {len(condition_groups_25ms)}")
+print(f"  100 ms groups:           {len(condition_groups_100ms)}")
+print(f"  Log-likelihood (25 ms):  {ll_25ms:.4f}")
+print(f"  Time taken (25 ms):      {elapsed_25ms_s:.3f} s")
+print(f"  Log-likelihood (100 ms): {ll_100ms:.4f}")
+print(f"  Time taken (100 ms):     {elapsed_100ms_s:.3f} s")
+print(f"  Signed diff (25-100):    {ll_diff_signed:.4f}")
+print(f"  Absolute diff:           {ll_diff_abs:.4f}")
+print(f"  Percentage diff:         {ll_diff_pct:.4f}%")
 
 # %%
