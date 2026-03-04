@@ -15,6 +15,8 @@ import corner
 from matplotlib.ticker import FuncFormatter
 
 ROOT = Path(__file__).resolve().parent
+EXPORT_DIR = ROOT / "fct_march_26"
+EXPORT_DIR.mkdir(parents=True, exist_ok=True)
 sys.path.append(str(ROOT / "fit_each_condn"))
 from psiam_tied_dv_map_utils_with_PDFs import stupid_f_integral, d_A_RT
 
@@ -143,6 +145,13 @@ def safe_density_hist(values, bins):
         return np.zeros(len(bins) - 1)
     hist, _ = np.histogram(values, bins=bins, density=True)
     return np.nan_to_num(hist, nan=0.0, posinf=0.0, neginf=0.0)
+
+
+def save_plot_payload(plot_name, payload):
+    payload_path = EXPORT_DIR / f"{plot_name}_{file_tag}.pkl"
+    with open(payload_path, "wb") as f:
+        pickle.dump(payload, f)
+    print(f"Saved plot data: {payload_path}")
 
 
 # %%
@@ -281,6 +290,30 @@ plt.tight_layout()
 out_path = ROOT / f"schematic_{file_tag}_rt_wrt_led_theory_data.pdf"
 plt.savefig(out_path, bbox_inches="tight")
 print(f"Saved plot: {out_path}")
+save_plot_payload(
+    "rt_wrt_led_theory_data",
+    {
+        "plot_name": "rt_wrt_led_theory_data",
+        "animal_label": animal_label,
+        "file_tag": file_tag,
+        "pdf_path": str(out_path),
+        "data_x_ms": data_x_ms,
+        "theory_x_ms": theory_x_ms,
+        "data_hist_on_scaled": data_hist_on_scaled,
+        "data_hist_off_scaled": data_hist_off_scaled,
+        "rtd_theory_on_wrt_led": rtd_theory_on_wrt_led,
+        "rtd_theory_off_wrt_led": rtd_theory_off_wrt_led,
+        "frac_data_on": frac_data_on,
+        "frac_data_off": frac_data_off,
+        "data_rts_wrt_led_on": data_rts_wrt_led_on,
+        "data_rts_wrt_led_off": data_rts_wrt_led_off,
+        "del_m_plus_del_LED_ms": del_m_plus_del_LED * 1000.0,
+        "xlim_ms": PLOT_XLIM_MS,
+        "xticks_ms": [-400, 0, 400],
+        "xlabel": "RT wrt LED onset (ms)",
+        "ylabel": "Abort Rate (Hz)",
+    },
+)
 
 if SHOW_PLOT:
     plt.show()
@@ -528,6 +561,55 @@ plt.tight_layout()
 schematic_out = ROOT / f"schematic_{file_tag}_drift_switch_single_bound.pdf"
 plt.savefig(schematic_out, bbox_inches="tight")
 print(f"Saved drift-switch schematic: {schematic_out}")
+save_plot_payload(
+    "drift_switch_single_bound",
+    {
+        "plot_name": "drift_switch_single_bound",
+        "animal_label": animal_label,
+        "file_tag": file_tag,
+        "pdf_path": str(schematic_out),
+        "t_ms": t_ms,
+        "t_s": t_s,
+        "trajectory": a,
+        "det_traj": det_traj,
+        "mask_pre": mask_pre,
+        "mask_post": mask_post,
+        "bound_level": bound_level,
+        "t_switch_ms": t_switch_ms,
+        "accum_start_ms": accum_start_ms,
+        "pre_line": {
+            "x0_ms": pre_x0_ms,
+            "y0": pre_y0,
+            "x1_ms": pre_x1_ms,
+            "y1": pre_y1,
+        },
+        "post_line": {
+            "x0_ms": post_x0_ms,
+            "y0": post_y0,
+            "x1_ms": post_x1_ms,
+            "y1": post_y1,
+        },
+        "decision_x_ms": decision_x_ms,
+        "rt_x_ms": rt_x_ms,
+        "delta_m_ms": SCHEMATIC_DELTA_M_MS,
+        "xlim_ms": (SCHEMATIC_X_MIN_MS, SCHEMATIC_X_MAX_MS),
+        "xticks_ms": (
+            [SCHEMATIC_X_MIN_MS, 0, SCHEMATIC_X_MAX_MS]
+            if SCHEMATIC_X_MIN_MS <= 0 <= SCHEMATIC_X_MAX_MS
+            else [SCHEMATIC_X_MIN_MS, SCHEMATIC_X_MAX_MS]
+        ),
+        "xlabel": "Time from LED onset (ms)",
+        "labels": {
+            "pre": r"$V_A^{pre\!-\!LED}$",
+            "post": r"$V_A^{post\!-\!LED}$",
+            "theta": r"$\theta$",
+            "delta_a": r"$\delta_{a}$",
+            "delta_led": r"$\delta_{LED}$",
+            "delta_m": r"$\delta_{m}$",
+            "rt": "RT",
+        },
+    },
+)
 
 if SHOW_PLOT:
     plt.show()
@@ -636,6 +718,158 @@ for i in range(1, n_dim):
 corner_out = ROOT / f"schematic_{file_tag}_corner_5params.pdf"
 plt.savefig(corner_out, bbox_inches="tight")
 print(f"Saved corner plot: {corner_out}")
+save_plot_payload(
+    "corner_5params",
+    {
+        "plot_name": "corner_5params",
+        "animal_label": animal_label,
+        "file_tag": file_tag,
+        "pdf_path": str(corner_out),
+        "corner_samples": corner_samples,
+        "corner_labels": corner_labels,
+        "medians": medians,
+        "param_q": param_q,
+        "levels": [0.50, 0.80, 0.975],
+        "bins": 40,
+        "quantiles": [0.025, 0.50, 0.975],
+        "style": {
+            "color": "tab:blue",
+            "fill_contours": True,
+            "plot_datapoints": False,
+            "plot_density": False,
+            "contourf_colors": [(1, 1, 1, 0), "#deebf7", "#9ecae1", "#4292c6"],
+        },
+    },
+)
+
+if SHOW_PLOT:
+    plt.show()
+
+# %%
+# =============================================================================
+# Plot: RTD wrt fixation (data + theory, ON/OFF together)
+# =============================================================================
+max_fix_s = float(np.nanmax(stim_times))
+t_pts_wrt_fix_theory = np.arange(0.0, max_fix_s + THEORY_DT, THEORY_DT)
+rtd_theory_on_wrt_fix = np.zeros(len(t_pts_wrt_fix_theory))
+rtd_theory_off_wrt_fix = np.zeros(len(t_pts_wrt_fix_theory))
+
+for _ in tqdm(range(N_MC_THEORY_WRT_LED), desc="Theory wrt fixation"):
+    trial_idx = rng.integers(n_trials_data)
+    t_led = LED_times[trial_idx]
+    t_stim = stim_times[trial_idx]
+    if t_stim <= 0:
+        continue
+
+    mask = (t_pts_wrt_fix_theory > 0) & (t_pts_wrt_fix_theory < t_stim)
+    if not np.any(mask):
+        continue
+
+    proactive_on = np.array(
+        [
+            PA_with_LEDON_2_adapted(
+                t_wrt_fix,
+                V_A_base,
+                V_A_post_LED,
+                theta_A,
+                del_a_minus_del_LED,
+                del_m_plus_del_LED,
+                t_led,
+            )
+            for t_wrt_fix in t_pts_wrt_fix_theory[mask]
+        ]
+    )
+    proactive_off = np.array(
+        [led_off_pdf(t_wrt_fix, V_A_base, theta_A, del_a_minus_del_LED, del_m_plus_del_LED) for t_wrt_fix in t_pts_wrt_fix_theory[mask]]
+    )
+    lapse_vals = lapse_pdf(t_pts_wrt_fix_theory[mask], beta_lapse)
+
+    rtd_theory_on_wrt_fix[mask] += (1 - lapse_prob) * proactive_on + lapse_prob * lapse_vals
+    rtd_theory_off_wrt_fix[mask] += (1 - lapse_prob) * proactive_off + lapse_prob * lapse_vals
+
+rtd_theory_on_wrt_fix /= N_MC_THEORY_WRT_LED
+rtd_theory_off_wrt_fix /= N_MC_THEORY_WRT_LED
+
+data_rts_on_fix = df_on_aborts["RT"].values
+data_rts_off_fix = df_off_aborts["RT"].values
+HIST_DT = 0.01
+bins_wrt_fix = np.arange(0.0, max_fix_s + HIST_DT, HIST_DT)
+bin_centers_wrt_fix = (bins_wrt_fix[1:] + bins_wrt_fix[:-1]) / 2
+data_hist_on_fix_scaled = safe_density_hist(data_rts_on_fix, bins_wrt_fix) * frac_data_on
+data_hist_off_fix_scaled = safe_density_hist(data_rts_off_fix, bins_wrt_fix) * frac_data_off
+
+fig, ax = plt.subplots(figsize=(15, 6))
+ax.plot(
+    bin_centers_wrt_fix * 1000.0,
+    data_hist_on_fix_scaled,
+    lw=2,
+    alpha=0.4,
+    color="r",
+    linestyle="-",
+)
+ax.plot(
+    bin_centers_wrt_fix * 1000.0,
+    data_hist_off_fix_scaled,
+    lw=2,
+    alpha=0.4,
+    color="b",
+    linestyle="-",
+)
+ax.plot(
+    t_pts_wrt_fix_theory * 1000.0,
+    rtd_theory_on_wrt_fix,
+    lw=2.4,
+    alpha=1.0,
+    color="r",
+    linestyle="-",
+)
+ax.plot(
+    t_pts_wrt_fix_theory * 1000.0,
+    rtd_theory_off_wrt_fix,
+    lw=2.4,
+    alpha=1.0,
+    color="b",
+    linestyle="-",
+)
+ax.set_xlabel("RT wrt fixation (ms)", fontsize=22)
+ax.set_ylabel("Abort Rate (Hz)", fontsize=22)
+ax.set_xlim(0, 2000)
+ax.set_xticks([0, 500, 1000, 1500, 2000])
+ax.set_yticks([])
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["bottom"].set_linewidth(2.5)
+ax.spines["left"].set_linewidth(2.5)
+ax.tick_params(axis="x", labelsize=18, width=2.6, length=10)
+ax.tick_params(axis="y", width=0, length=0)
+plt.tight_layout()
+
+fix_out = ROOT / f"schematic_{file_tag}_rtd_wrt_fixation_theory_data.pdf"
+plt.savefig(fix_out, bbox_inches="tight")
+print(f"Saved RTD wrt fixation plot: {fix_out}")
+save_plot_payload(
+    "rtd_wrt_fixation_theory_data",
+    {
+        "plot_name": "rtd_wrt_fixation_theory_data",
+        "animal_label": animal_label,
+        "file_tag": file_tag,
+        "pdf_path": str(fix_out),
+        "data_x_ms": bin_centers_wrt_fix * 1000.0,
+        "theory_x_ms": t_pts_wrt_fix_theory * 1000.0,
+        "data_hist_on_scaled": data_hist_on_fix_scaled,
+        "data_hist_off_scaled": data_hist_off_fix_scaled,
+        "rtd_theory_on_wrt_fix": rtd_theory_on_wrt_fix,
+        "rtd_theory_off_wrt_fix": rtd_theory_off_wrt_fix,
+        "frac_data_on": frac_data_on,
+        "frac_data_off": frac_data_off,
+        "data_rts_on_fix": data_rts_on_fix,
+        "data_rts_off_fix": data_rts_off_fix,
+        "xlim_ms": (0, 2000),
+        "xticks_ms": [0, 500, 1000, 1500, 2000],
+        "xlabel": "RT wrt fixation (ms)",
+        "ylabel": "Abort Rate (Hz)",
+    },
+)
 
 if SHOW_PLOT:
     plt.show()

@@ -1,5 +1,9 @@
 # DDM Data Repository
 
+## Root Level Scripts
+
+- `schematics_for_fct.py`: Generates schematic plots for the proactive LED model including RT wrt LED theory/data comparisons, drift switch visualizations, corner plots, and RTD wrt fixation plots. Includes `save_plot_payload()` calls for data persistence and comprehensive plot metadata storage.
+
 ## `fitting_aborts/` Scripts
 
 - `compare_vbmc_model_fits.py`: Compares VBMC model fits between drift jump and bound drop models. Loads pickle files from both models, extracts ELBO and log-likelihood values, and displays side-by-side comparison with clear print statements. Uses cell structure (# %%) for easy execution.
