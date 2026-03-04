@@ -626,8 +626,12 @@ for i in range(n_dim):
             ax_ij.tick_params(axis="y", labelleft=False)
 
 for i in range(n_dim):
-    axes[i, i].set_title(corner_labels[i], fontsize=14, pad=12)
+    axes[i, i].set_title(corner_labels[i], fontsize=17, pad=14)
     axes[i, i].axvline(medians[i], color="tab:blue", ls=":", lw=1.8, alpha=0.95)
+
+# Left-side y labels (same text as top titles) for readability.
+for i in range(1, n_dim):
+    axes[i, 0].set_ylabel(corner_labels[i], fontsize=16, labelpad=16)
 
 corner_out = ROOT / f"schematic_{file_tag}_corner_5params.pdf"
 plt.savefig(corner_out, bbox_inches="tight")
