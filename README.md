@@ -8,8 +8,6 @@
 
 ## `fit_animal_by_animal/` Scripts
 
-- `proactive_plus_lapse_plus_reactive_uitls.py`: Utility functions for proactive + lapse + reactive model fitting with post-censoring at 150ms after stimulus. Includes likelihood functions and parameter handling for combined proactive, lapse, and reactive processes.
-
 ## `fitting_aborts/` Scripts
 
 - `compare_vbmc_model_fits.py`: Compares VBMC model fits between drift jump and bound drop models. Loads pickle files from both models, extracts ELBO and log-likelihood values, and displays side-by-side comparison with clear print statements. Uses cell structure (# %%) for easy execution.

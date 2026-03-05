@@ -35,6 +35,7 @@
 - `sum_invariant_delays_proactive_rtds.py` - Utilities/experiments for invariances in proactive RTDs with combined delay parameters
 - `test_stim_timing_distributions.py` - Debug script to verify if t_stim and t_LED distributions differ between LED ON/OFF trials (they do not)
 - `post_LED_censor_utils.py` - Utility functions for post-LED censoring (cum_A_t_fn etc.)
+- `../fit_animal_by_animal/proactive_plus_lapse_plus_reactive_uitls.py` - Utility functions for proactive + lapse + reactive model fitting with post-censoring at 150ms after stimulus. Includes likelihood functions and parameter handling for combined proactive, lapse, and reactive processes.
 - `fit_only_LED_off_with_LED_ON_fits.py` - **NEW: Fits normalized TIED parameters on LED-OFF data using proactive+lapse parameters loaded from proactive VP pickles. Supports both aggregate and animal-wise fitting modes with post-censoring at 150ms after stimulus. Includes corner plot generation and comprehensive result saving.**
 
 
