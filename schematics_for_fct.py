@@ -318,7 +318,6 @@ save_plot_payload(
 if SHOW_PLOT:
     plt.show()
 
-# %%
 # =============================================================================
 # Schematic: single-bound trajectory with drift change at LED onset + delay
 # =============================================================================
@@ -614,7 +613,6 @@ save_plot_payload(
 if SHOW_PLOT:
     plt.show()
 
-# %%
 # =============================================================================
 # Corner plot (first 5 params only; lapse params excluded)
 # =============================================================================
@@ -747,6 +745,104 @@ if SHOW_PLOT:
 
 # %%
 # =============================================================================
+# Plot: RT wrt LED (data + theory only) - zoomed, 5 ms bins
+# =============================================================================
+HIST_DT_ZOOM = 0.005
+PLOT_XLIM_ZOOM = (-0.2, 0.2)
+PLOT_XLIM_ZOOM_MS = (PLOT_XLIM_ZOOM[0] * 1000.0, PLOT_XLIM_ZOOM[1] * 1000.0)
+
+bins_wrt_led_zoom = np.arange(HIST_X_RANGE[0], HIST_X_RANGE[1], HIST_DT_ZOOM)
+bin_centers_wrt_led_zoom = (bins_wrt_led_zoom[1:] + bins_wrt_led_zoom[:-1]) / 2.0
+data_hist_on_zoom_scaled = safe_density_hist(data_rts_wrt_led_on, bins_wrt_led_zoom) * frac_data_on
+data_hist_off_zoom_scaled = safe_density_hist(data_rts_wrt_led_off, bins_wrt_led_zoom) * frac_data_off
+
+data_x_zoom_ms = bin_centers_wrt_led_zoom * 1000.0
+theory_x_zoom_ms = t_pts_wrt_led_theory * 1000.0
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.plot(
+    data_x_zoom_ms,
+    data_hist_on_zoom_scaled,
+    lw=2,
+    alpha=0.4,
+    color="r",
+    linestyle="-",
+)
+ax.plot(
+    data_x_zoom_ms,
+    data_hist_off_zoom_scaled,
+    lw=2,
+    alpha=0.4,
+    color="b",
+    linestyle="-",
+)
+ax.plot(
+    theory_x_zoom_ms,
+    rtd_theory_on_wrt_led,
+    lw=2.4,
+    alpha=1.0,
+    color="r",
+    linestyle="-",
+)
+ax.plot(
+    theory_x_zoom_ms,
+    rtd_theory_off_wrt_led,
+    lw=2.4,
+    alpha=1.0,
+    color="b",
+    linestyle="-",
+)
+
+ax.axvline(x=0, color="0.2", linestyle="--", alpha=0.7)
+ax.axvline(
+    x=del_m_plus_del_LED * 1000.0,
+    color="0.2",
+    linestyle=":",
+    alpha=0.7,
+)
+ax.set_xlabel("RT wrt LED onset (ms)", fontsize=16)
+ax.set_ylabel("Abort Rate (Hz)", fontsize=16)
+ax.set_xticks([-200, 0, 200])
+ax.set_xlim(PLOT_XLIM_ZOOM_MS)
+ax.set_yticks([])
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["bottom"].set_linewidth(2.5)
+ax.spines["left"].set_linewidth(2.5)
+ax.tick_params(axis="x", labelsize=13, width=2.0, length=7)
+ax.tick_params(axis="y", width=0, length=0)
+plt.tight_layout()
+
+rt_led_zoom_out = ROOT / f"schematic_{file_tag}_rt_wrt_led_theory_data_zoom_5ms.pdf"
+plt.savefig(rt_led_zoom_out, bbox_inches="tight")
+print(f"Saved zoomed RT wrt LED plot: {rt_led_zoom_out}")
+save_plot_payload(
+    "rt_wrt_led_theory_data_zoom_5ms",
+    {
+        "plot_name": "rt_wrt_led_theory_data_zoom_5ms",
+        "animal_label": animal_label,
+        "file_tag": file_tag,
+        "pdf_path": str(rt_led_zoom_out),
+        "data_x_ms": data_x_zoom_ms,
+        "theory_x_ms": theory_x_zoom_ms,
+        "data_hist_on_scaled": data_hist_on_zoom_scaled,
+        "data_hist_off_scaled": data_hist_off_zoom_scaled,
+        "rtd_theory_on_wrt_led": rtd_theory_on_wrt_led,
+        "rtd_theory_off_wrt_led": rtd_theory_off_wrt_led,
+        "frac_data_on": frac_data_on,
+        "frac_data_off": frac_data_off,
+        "bin_size_s": HIST_DT_ZOOM,
+        "xlim_ms": PLOT_XLIM_ZOOM_MS,
+        "xlabel": "RT wrt LED onset (ms)",
+        "ylabel": "Abort Rate (Hz)",
+    },
+)
+
+if SHOW_PLOT:
+    plt.show()
+
+# %%
+# =============================================================================
 # Plot: RTD wrt fixation (data + theory, ON/OFF together)
 # =============================================================================
 max_fix_s = float(np.nanmax(stim_times))
@@ -868,6 +964,62 @@ save_plot_payload(
         "xticks_ms": [0, 500, 1000, 1500, 2000],
         "xlabel": "RT wrt fixation (ms)",
         "ylabel": "Abort Rate (Hz)",
+    },
+)
+
+if SHOW_PLOT:
+    plt.show()
+
+# %%
+# t_LED  and t_stim
+# show relationship between t_LED and t_stim
+# =============================================================================
+# Plot: t_LED and t_stim distributions
+# =============================================================================
+dist_bins = np.arange(0.0, 2 + 0.01, 0.01)
+dist_centers = (dist_bins[1:] + dist_bins[:-1]) / 2.0
+
+t_led_vals = fit_df["t_LED"].values
+t_stim_vals = fit_df["t_stim"].values
+
+t_led_hist = safe_density_hist(t_led_vals, dist_bins)
+t_stim_hist = safe_density_hist(t_stim_vals, dist_bins)
+
+fig, ax = plt.subplots(figsize=(15, 6))
+ax.plot(dist_centers, t_led_hist, color="tab:blue", lw=2.6, alpha=0.95, label=r"$t_{LED}$")
+ax.plot(dist_centers, t_stim_hist, color="tab:red", lw=2.6, alpha=0.95, label=r"$t_{stim}$")
+
+ax.set_xlim(0.0, 1.0)
+ax.set_ylim(0, 3)
+ax.set_xlabel("Time (s)", fontsize=22)
+ax.set_ylabel("Density (1/s)", fontsize=22)
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["bottom"].set_linewidth(2.5)
+ax.spines["left"].set_linewidth(2.5)
+ax.tick_params(axis="both", labelsize=18, width=2.0, length=8)
+ax.legend(frameon=False, fontsize=16)
+plt.tight_layout()
+
+tled_stim_out = ROOT / f"schematic_{file_tag}_t_led_t_stim_distributions.pdf"
+plt.savefig(tled_stim_out, bbox_inches="tight")
+print(f"Saved t_LED/t_stim distribution plot: {tled_stim_out}")
+save_plot_payload(
+    "t_led_t_stim_distributions",
+    {
+        "plot_name": "t_led_t_stim_distributions",
+        "animal_label": animal_label,
+        "file_tag": file_tag,
+        "pdf_path": str(tled_stim_out),
+        "bin_centers_s": dist_centers,
+        "bins_s": dist_bins,
+        "t_led_hist_density": t_led_hist,
+        "t_stim_hist_density": t_stim_hist,
+        "t_led_values_s": t_led_vals,
+        "t_stim_values_s": t_stim_vals,
+        "xlabel": "Time (s)",
+        "ylabel": "Density (1/s)",
+        "xlim_s": (0.0, 2.5),
     },
 )
 
