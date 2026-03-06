@@ -35,8 +35,12 @@
 - `sum_invariant_delays_proactive_rtds.py` - Utilities/experiments for invariances in proactive RTDs with combined delay parameters
 - `test_stim_timing_distributions.py` - Debug script to verify if t_stim and t_LED distributions differ between LED ON/OFF trials (they do not)
 - `post_LED_censor_utils.py` - Utility functions for post-LED censoring (cum_A_t_fn etc.)
-- `../fit_animal_by_animal/proactive_plus_lapse_plus_reactive_uitls.py` - Utility functions for proactive + lapse + reactive model fitting with post-censoring at 150ms after stimulus. Includes likelihood functions and parameter handling for combined proactive, lapse, and reactive processes.
+- `../fit_animal_by_animal/proactive_plus_lapse_plus_reactive_uitls.py` - Utility functions for proactive + lapse + reactive model fitting with both post-censoring at 150ms after stimulus and right-truncation helpers for the 130ms LED-OFF fit variant.
 - `fit_only_LED_off_with_LED_ON_fits.py` - **NEW: Fits normalized TIED parameters on LED-OFF data using proactive+lapse parameters loaded from proactive VP pickles. Supports both aggregate and animal-wise fitting modes with post-censoring at 150ms after stimulus. Includes corner plot generation and comprehensive result saving.**
+- `fit_only_LED_off_with_LED_ON_fit_diagnostics.py` - **NEW: Aggregate diagnostics for the censoring-based LED-OFF tied fit. Rebuilds the filtered LED-OFF dataset, loads the aggregate fit pickle, Monte Carlo-averages the raw RT-wrt-stim theory, and compares it to empirical data with the 150ms censor threshold marked.**
+- `fit_only_LED_off_with_LED_ON_fits_truncate_NOT_censor.py` - **NEW: Right-truncated variant of the LED-OFF tied fit. Keeps only trials with `0 < RTwrtStim <= 130 ms` during fitting and renormalizes retained trial likelihoods by the mass in `(t_stim, t_stim + 130 ms]`.**
+- `fit_only_LED_off_with_LED_ON_fit_diagnostics_truncate_not_censor.py` - **NEW: Aggregate diagnostics for the truncation-based LED-OFF tied fit. Loads the truncation-fit pickle, plots the raw full RT-wrt-stim comparison against all filtered trials, and also saves a second plot clipped to `0..130 ms` with the clipped theory renormalized to area 1.**
+- `compare_fit_only_LED_off_with_LED_ON_censor_vs_truncate.py` - **NEW: Loads the censoring and truncation fit result pickles side-by-side, compares posterior/proactive parameter summaries, rebuilds the training datasets for both fits, and cross-evaluates each posterior mean under the censor, truncation, and raw no-censor likelihoods.**
 
 
 - `fit_added_noise/psiam_tied_dv_map_utils_with_PDFs.py` - has post LED effect funcs - `stupid_f_integral` and `PA_with_LEDON_2`
