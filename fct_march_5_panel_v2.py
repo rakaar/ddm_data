@@ -35,8 +35,8 @@ FIGSIZE = (22, 15.5)
 FIG_BOUNDS = dict(left=0.05, right=0.95, top=0.95, bottom=0.08)
 # Choose width ratios so the bottom-right corner slot is close to square
 # after accounting for the top timing-header row height.
-OUTER_WIDTH_RATIOS = (1.15, 1.0)
-OUTER_WSPACE = 0.06
+OUTER_WIDTH_RATIOS = (0.95, 1.0)
+OUTER_WSPACE = 0.01
 OUTER_HSPACE = 0.14
 TIMING_HEADER_HEIGHT_FRAC = 0.34
 BOTTOM_ROW_HEIGHT_FRAC = 0.38
@@ -49,6 +49,11 @@ BOTTOM_ROW_LAYOUT_RATIOS = (0.13, 0.62, 0.18, 0.72, 0.69)
 
 LABEL_FS = 14
 TICK_FS = 13
+BOTTOM_LABEL_FS = 16
+BOTTOM_TICK_FS = 15
+BOTTOM_AXIS_LW = 2.2
+BOTTOM_TICK_LW = 1.8
+BOTTOM_TICK_LEN = 6
 TIMING_LABEL_FS = 18
 TIMING_DIST_LABEL_FS = LABEL_FS
 TIMING_DIST_TICK_FS = 10
@@ -56,10 +61,13 @@ TIMING_LINE_COLOR = "black"
 TIMING_LINE_WIDTH = 2.0
 TIMING_DIST_FILL_COLOR = "0.75"
 TIMING_DIST_LINE_COLOR = "0.35"
+SCHEMATIC_DELAY_LABEL_FS = 12
+DELTA_LED_VISUAL_MIN_SPAN_MS = 18.0
+DELTA_M_VISUAL_MIN_SPAN_MS = 18.0
 
 # Corner plot typography tuned for readability without overlap.
 CORNER_TICK_FS = 25
-CORNER_TITLE_FS = 28
+CORNER_TITLE_FS = 34
 CORNER_YLABEL_FS = 28
 
 
@@ -192,6 +200,12 @@ def compute_density(values, bins=80, data_range=None):
     return centers, hist, (lo, hi)
 
 
+def expanded_interval(x0, x1, min_span):
+    center = 0.5 * (x0 + x1)
+    half_span = max(0.5 * abs(x1 - x0), 0.5 * min_span)
+    return center - half_span, center + half_span
+
+
 def plot_timing_header(ax, tled_stim_payload):
     t_led = np.asarray(tled_stim_payload["t_led_values_s"], dtype=float)
     t_stim = np.asarray(tled_stim_payload["t_stim_values_s"], dtype=float)
@@ -297,11 +311,13 @@ def plot_abl_delay_overlay(ax, payload):
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_linewidth(BOTTOM_AXIS_LW)
+    ax.spines["bottom"].set_linewidth(BOTTOM_AXIS_LW)
     ax.set_xlim(0.0, float(payload["config"]["truncate_rt_wrt_stim_ms"]))
-    ax.set_xlabel(payload["config"]["xlabel"], fontsize=LABEL_FS)
-    ax.set_ylabel(payload["config"]["ylabel"], fontsize=LABEL_FS)
+    ax.set_xlabel(payload["config"]["xlabel"], fontsize=BOTTOM_LABEL_FS)
+    ax.set_ylabel(payload["config"]["ylabel"], fontsize=BOTTOM_LABEL_FS)
     ax.margins(x=0.0)
-    ax.tick_params(axis="both", labelsize=TICK_FS, direction="out", length=4, width=1)
+    ax.tick_params(axis="both", labelsize=BOTTOM_TICK_FS, direction="out", length=BOTTOM_TICK_LEN, width=BOTTOM_TICK_LW)
     ax.set_xticks([0, 100])
     ax.set_yticks([0, 40])
     ax.set_ylim(0.0, max(peak_density * 1.05, 40.0) if peak_density > 0 else 40.0)
@@ -316,11 +332,13 @@ def plot_delay_bar(ax, payload):
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.spines["bottom"].set_position(("data", 0.0))
-    ax.set_ylabel("Delay (ms)", fontsize=LABEL_FS)
+    ax.spines["left"].set_linewidth(BOTTOM_AXIS_LW)
+    ax.spines["bottom"].set_linewidth(BOTTOM_AXIS_LW)
+    ax.set_ylabel("Delay (ms)", fontsize=BOTTOM_LABEL_FS)
     ax.set_xticks(x)
-    ax.set_xticklabels(["", *labels[1:]], fontsize=TICK_FS, rotation=0)
-    ax.tick_params(axis="y", labelsize=TICK_FS, direction="out", length=4, width=1)
-    ax.tick_params(axis="x", direction="out", length=0, width=1)
+    ax.set_xticklabels(["", *labels[1:]], fontsize=BOTTOM_TICK_FS, rotation=0)
+    ax.tick_params(axis="y", labelsize=BOTTOM_TICK_FS, direction="out", length=BOTTOM_TICK_LEN, width=BOTTOM_TICK_LW)
+    ax.tick_params(axis="x", direction="out", length=0, width=BOTTOM_TICK_LW)
     ax.set_xlim(-0.55, len(labels) - 0.45)
     ax.set_axisbelow(True)
 
@@ -332,7 +350,7 @@ def plot_delay_bar(ax, payload):
     ax.set_yticks([-60, 0, 60])
 
     first_label_y = 0.03 * (ax.get_ylim()[1] - ax.get_ylim()[0])
-    ax.text(x[0], first_label_y, labels[0], ha="center", va="bottom", fontsize=TICK_FS)
+    ax.text(x[0], first_label_y, labels[0], ha="center", va="bottom", fontsize=BOTTOM_TICK_FS)
 
 
 # %%
@@ -476,8 +494,8 @@ if pre_line["x0_ms"] > xmin + 1e-9:
 
 ax_schematic.annotate(
     "",
-    xy=(t_switch_ms, delay_y),
-    xytext=(0, delay_y),
+    xy=(expanded_interval(0.0, t_switch_ms, DELTA_LED_VISUAL_MIN_SPAN_MS)[1], delay_y),
+    xytext=(expanded_interval(0.0, t_switch_ms, DELTA_LED_VISUAL_MIN_SPAN_MS)[0], delay_y),
     arrowprops=dict(arrowstyle="<->", lw=1.7, color="0.55", mutation_scale=14),
     zorder=7,
 )
@@ -486,16 +504,17 @@ ax_schematic.text(
     delay_y + 0.015 * bound_level,
     labels["delta_led"],
     color="0.45",
-    fontsize=12,
+    fontsize=SCHEMATIC_DELAY_LABEL_FS,
     ha="center",
     va="bottom",
 )
 
 if rt_x_ms > decision_x_ms + 0.3:
+    delta_m_x0, delta_m_x1 = expanded_interval(decision_x_ms, rt_x_ms, DELTA_M_VISUAL_MIN_SPAN_MS)
     ax_schematic.annotate(
         "",
-        xy=(rt_x_ms, delay_y - 0.02 * bound_level),
-        xytext=(decision_x_ms, delay_y - 0.02 * bound_level),
+        xy=(delta_m_x1, delay_y - 0.02 * bound_level),
+        xytext=(delta_m_x0, delay_y - 0.02 * bound_level),
         arrowprops=dict(arrowstyle="<->", lw=1.7, color="0.55", mutation_scale=14),
         zorder=7,
     )
@@ -504,7 +523,7 @@ if rt_x_ms > decision_x_ms + 0.3:
         delay_y + 0.003 * bound_level,
         labels["delta_m"],
         color="0.45",
-        fontsize=12,
+        fontsize=SCHEMATIC_DELAY_LABEL_FS,
         ha="center",
         va="bottom",
     )
@@ -577,6 +596,7 @@ ax_rt_led_zoom.tick_params(axis="y", width=0, length=0)
 corner_img = render_corner_image(corner_payload)
 ax_corner.imshow(corner_img)
 ax_corner.set_aspect("equal")
+ax_corner.set_anchor("W")
 ax_corner.axis("off")
 
 
