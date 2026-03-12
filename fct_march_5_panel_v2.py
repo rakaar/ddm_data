@@ -75,9 +75,11 @@ TIMING_DIST_YLABEL_PAD = 2
 
 # Corner plot typography tuned for readability without overlap.
 CORNER_TICK_FS = 30
-CORNER_TITLE_FS = 34
-CORNER_YLABEL_FS = 32
-CORNER_YLABEL_PAD = 40
+CORNER_TITLE_FS = 36
+CORNER_YLABEL_FS = 36
+CORNER_YLABEL_PAD = 100 
+CORNER_YTICK_PAD = 1
+CORNER_YLABEL_X = -0.5
 
 
 # %%
@@ -156,7 +158,7 @@ def render_corner_image(corner_payload):
                 ax_ij.set_yticks([])
             ax_ij.tick_params(axis="both", labelsize=CORNER_TICK_FS)
             ax_ij.tick_params(axis="x", pad=2)
-            ax_ij.tick_params(axis="y", pad=2)
+            ax_ij.tick_params(axis="y", pad=CORNER_YTICK_PAD)
             if i != n_dim - 1:
                 ax_ij.tick_params(axis="x", labelbottom=False)
             if j != 0:
@@ -167,6 +169,7 @@ def render_corner_image(corner_payload):
         axes[i, i].axvline(medians[i], color="tab:blue", ls=":", lw=1.6, alpha=0.95)
     for i in range(1, n_dim):
         axes[i, 0].set_ylabel(labels[i], fontsize=CORNER_YLABEL_FS, labelpad=CORNER_YLABEL_PAD)
+        axes[i, 0].yaxis.set_label_coords(CORNER_YLABEL_X, 0.5)
 
     buf = BytesIO()
     fig_tmp.savefig(buf, format="png", dpi=520, bbox_inches="tight", facecolor="white")
@@ -577,7 +580,7 @@ ax_rt_fix.step(rt_fix_payload["data_x_ms"], rt_fix_payload["data_hist_off_scaled
 ax_rt_fix.plot(rt_fix_payload["theory_x_ms"], rt_fix_payload["rtd_theory_on_wrt_fix"], color="r", alpha=1.0, lw=2.4)
 ax_rt_fix.plot(rt_fix_payload["theory_x_ms"], rt_fix_payload["rtd_theory_off_wrt_fix"], color="b", alpha=1.0, lw=2.4)
 ax_rt_fix.set_xlim(rt_fix_payload["xlim_ms"])
-ax_rt_fix.set_xticks(rt_fix_payload["xticks_ms"])
+ax_rt_fix.set_xticks([0, 1000])
 ax_rt_fix.set_yticks([])
 ax_rt_fix.set_xlabel(rt_fix_payload.get("xlabel", "RT wrt fixation (ms)"), fontsize=LABEL_FS, labelpad=PANEL_XLABEL_PAD)
 ax_rt_fix.set_ylabel("Density", fontsize=LABEL_FS, labelpad=PANEL_YLABEL_PAD)
