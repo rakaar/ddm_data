@@ -3,6 +3,7 @@ Publication-style composite panel:
 - Top-left: timing schematic + stacked timing distributions
 - Bottom-left: 2x2 square panels (schematic, RT wrt fixation, RT wrt LED, RT wrt LED zoomed)
 - Bottom-right: one large corner panel aligned to the lower 2x2 block
+- Bottom row: ABL-wise delay-fit overlay + delay bar plot
 """
 
 # %%
@@ -21,32 +22,36 @@ from matplotlib.ticker import FuncFormatter
 # =============================================================================
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "fct_march_26"
+ABL_DELAY_DIAG_DIR = ROOT / "fitting_aborts" / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_ABL_delay" / "diagnostics"
 FILE_TAG = "all_animals"
+ABL_DELAY_TRUNC_TAG = "115ms"
 
 SHOW_PLOT = True
 SAVE_DPI = 500
 SHOW_TIMING_HEADER = True
 SHOW_TIMING_DISTRIBUTIONS = True
 
-FIGSIZE = (22, 12)
+FIGSIZE = (22, 15.5)
 FIG_BOUNDS = dict(left=0.05, right=0.95, top=0.95, bottom=0.08)
 # Choose width ratios so the bottom-right corner slot is close to square
 # after accounting for the top timing-header row height.
-OUTER_WIDTH_RATIOS = (1.54, 1.0)
+OUTER_WIDTH_RATIOS = (1.15, 1.0)
 OUTER_WSPACE = 0.06
 OUTER_HSPACE = 0.14
 TIMING_HEADER_HEIGHT_FRAC = 0.34
+BOTTOM_ROW_HEIGHT_FRAC = 0.38
 TIMING_HEADER_WIDTH_RATIOS = (3, 1)
 TIMING_HEADER_WSPACE = 0.12
 TIMING_DISTS_HSPACE = 0.28
-LEFT_GRID_WSPACE = 0.90
-LEFT_GRID_HSPACE = 0.15
+LEFT_GRID_WSPACE = 0.08
+LEFT_GRID_HSPACE = 0.22
+BOTTOM_ROW_LAYOUT_RATIOS = (0.13, 0.62, 0.18, 0.72, 0.69)
 
 LABEL_FS = 14
-TICK_FS = 11
+TICK_FS = 13
 TIMING_LABEL_FS = 18
-TIMING_DIST_LABEL_FS = 10
-TIMING_DIST_TICK_FS = 8
+TIMING_DIST_LABEL_FS = LABEL_FS
+TIMING_DIST_TICK_FS = 10
 TIMING_LINE_COLOR = "black"
 TIMING_LINE_WIDTH = 2.0
 TIMING_DIST_FILL_COLOR = "0.75"
@@ -70,6 +75,11 @@ def load_payload(prefix, file_tag):
             raise FileNotFoundError(f"No payload found for prefix '{prefix}' in {DATA_DIR}")
         payload_path = matches[0]
         print(f"[WARN] Using {payload_path.name} (requested tag: {file_tag})")
+    with open(payload_path, "rb") as f:
+        return pickle.load(f)
+
+
+def load_pickle_payload(payload_path):
     with open(payload_path, "rb") as f:
         return pickle.load(f)
 
@@ -233,7 +243,7 @@ def plot_timing_header(ax, tled_stim_payload):
     ax.text(0.5 * (x_led + x_stim), arrow_y_stim + 0.12, r"$t_{stim}$", color=TIMING_LINE_COLOR, fontsize=TIMING_LABEL_FS - 1, ha="center", va="center")
 
 
-def style_timing_distribution_axis(ax, centers, density, xlim, label, show_xlabel=False):
+def style_timing_distribution_axis(ax, centers, density, xlim, label, show_xlabel=False, show_left_spine=False):
     ax.step(centers, density, where="mid", color=TIMING_DIST_LINE_COLOR, lw=1.4)
     ax.fill_between(centers, 0, density, step="mid", color=TIMING_DIST_FILL_COLOR, alpha=0.9)
     ax.set_xlim(*xlim)
@@ -241,7 +251,8 @@ def style_timing_distribution_axis(ax, centers, density, xlim, label, show_xlabe
     ax.set_yticks([])
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.spines["left"].set_visible(False)
+    ax.spines["left"].set_visible(show_left_spine)
+    ax.spines["left"].set_linewidth(1.2)
     ax.spines["bottom"].set_linewidth(1.2)
     ax.tick_params(axis="x", labelsize=TIMING_DIST_TICK_FS, width=1.0, length=3)
     ax.tick_params(axis="y", width=0, length=0)
@@ -249,12 +260,12 @@ def style_timing_distribution_axis(ax, centers, density, xlim, label, show_xlabe
     if not show_xlabel:
         ax.tick_params(axis="x", labelbottom=False)
     else:
-        ax.set_xlabel("Time (s)", fontsize=TIMING_DIST_LABEL_FS)
+        ax.set_xlabel("Time (ms)", fontsize=TIMING_DIST_LABEL_FS)
 
 
 def plot_timing_distributions(ax_t_led, ax_t_stim, tled_stim_payload):
-    t_led = np.asarray(tled_stim_payload["t_led_values_s"], dtype=float)
-    t_stim = np.asarray(tled_stim_payload["t_stim_values_s"], dtype=float)
+    t_led = 1e3 * np.asarray(tled_stim_payload["t_led_values_s"], dtype=float)
+    t_stim = 1e3 * np.asarray(tled_stim_payload["t_stim_values_s"], dtype=float)
     t_stim_wrt_led = t_stim - t_led
     valid_led = np.isfinite(t_led)
     valid_stim = np.isfinite(t_stim_wrt_led)
@@ -263,20 +274,88 @@ def plot_timing_distributions(ax_t_led, ax_t_stim, tled_stim_payload):
     stim_hi = float(np.percentile(t_stim_wrt_led[valid_stim], 99.5))
     stim_centers, stim_density, stim_xlim = compute_density(t_stim_wrt_led[valid_stim], bins=70, data_range=(0.0, stim_hi))
 
-    style_timing_distribution_axis(ax_t_led, led_centers, led_density, led_xlim, r"$P(t_{LED})$", show_xlabel=False)
-    style_timing_distribution_axis(ax_t_stim, stim_centers, stim_density, stim_xlim, r"$P(t_{stim})$", show_xlabel=True)
+    style_timing_distribution_axis(ax_t_led, led_centers, led_density, led_xlim, r"$P(t_{LED})$", show_xlabel=False, show_left_spine=False)
+    style_timing_distribution_axis(ax_t_stim, stim_centers, stim_density, stim_xlim, r"$P(t_{stim})$", show_xlabel=True, show_left_spine=True)
+
+
+def plot_abl_delay_overlay(ax, payload):
+    t_ms = np.asarray(payload["t_pts_truncated_ms"], dtype=float)
+    bin_centers_ms = np.asarray(payload["data_hist_centers_truncated_ms"], dtype=float)
+    supported_abls = [int(abl) for abl in payload["config"]["supported_ABL_values"]]
+    abl_colors = {20: "tab:blue", 40: "tab:orange", 60: "tab:green"}
+
+    peak_density = 0.0
+    for abl in supported_abls:
+        curves = payload["abl_curves"][abl]
+        data_density = np.asarray(curves["data_density_truncated"], dtype=float)
+        theory_density = np.asarray(curves["theory_density_truncated_norm"], dtype=float)
+        color = abl_colors.get(abl, "0.35")
+
+        ax.step(bin_centers_ms, data_density, where="mid", lw=1.2, color=color, alpha=0.65)
+        ax.plot(t_ms, theory_density, lw=2.5, color=color)
+        peak_density = max(peak_density, float(np.max(data_density)), float(np.max(theory_density)))
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.set_xlim(0.0, float(payload["config"]["truncate_rt_wrt_stim_ms"]))
+    ax.set_xlabel(payload["config"]["xlabel"], fontsize=LABEL_FS)
+    ax.set_ylabel(payload["config"]["ylabel"], fontsize=LABEL_FS)
+    ax.margins(x=0.0)
+    ax.tick_params(axis="both", labelsize=TICK_FS, direction="out", length=4, width=1)
+    ax.set_xticks([0, 100])
+    ax.set_yticks([0, 40])
+    ax.set_ylim(0.0, max(peak_density * 1.05, 40.0) if peak_density > 0 else 40.0)
+
+
+def plot_delay_bar(ax, payload):
+    labels = payload["labels"]
+    values_ms = np.asarray(payload["values_ms"], dtype=float)
+    x = np.arange(len(labels))
+
+    ax.bar(x, values_ms, width=0.68, color="#808080", edgecolor="black", linewidth=0.8)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["bottom"].set_position(("data", 0.0))
+    ax.set_ylabel("Delay (ms)", fontsize=LABEL_FS)
+    ax.set_xticks(x)
+    ax.set_xticklabels(["", *labels[1:]], fontsize=TICK_FS, rotation=0)
+    ax.tick_params(axis="y", labelsize=TICK_FS, direction="out", length=4, width=1)
+    ax.tick_params(axis="x", direction="out", length=0, width=1)
+    ax.set_xlim(-0.55, len(labels) - 0.45)
+    ax.set_axisbelow(True)
+
+    ymin = float(np.min(values_ms))
+    ymax = float(np.max(values_ms))
+    ymin_plot = ymin * 1.18 if ymin < 0 else 0.0
+    ymax_plot = ymax * 1.18 if ymax > 0 else 1.0
+    ax.set_ylim(ymin_plot, ymax_plot)
+    ax.set_yticks([-60, 0, 60])
+
+    first_label_y = 0.03 * (ax.get_ylim()[1] - ax.get_ylim()[0])
+    ax.text(x[0], first_label_y, labels[0], ha="center", va="bottom", fontsize=TICK_FS)
 
 
 # %%
 # =============================================================================
 # Load payloads
 # =============================================================================
+abl_delay_overlay_payload_path = (
+    ABL_DELAY_DIAG_DIR
+    / f"diag_norm_tied_batch_LED7_aggregate_ledoff_truncated_{ABL_DELAY_TRUNC_TAG}_rtwrtstim_by_ABL_publication_truncate_not_censor_ABL_delay.pkl"
+)
+delay_bar_payload_path = (
+    ABL_DELAY_DIAG_DIR
+    / "diag_norm_tied_batch_LED7_aggregate_ledoff_delay_bars_truncate_not_censor_ABL_delay.pkl"
+)
+
 schematic_payload = load_payload("drift_switch_single_bound", FILE_TAG)
 rt_led_payload = load_payload("rt_wrt_led_theory_data", FILE_TAG)
 rt_fix_payload = load_payload("rtd_wrt_fixation_theory_data", FILE_TAG)
 rt_led_zoom_payload = load_payload("rt_wrt_led_theory_data_zoom_5ms", FILE_TAG)
 tled_stim_payload = load_payload("t_led_t_stim_distributions", FILE_TAG) if (SHOW_TIMING_HEADER or SHOW_TIMING_DISTRIBUTIONS) else None
 corner_payload = load_payload("corner_5params", FILE_TAG)
+abl_delay_overlay_payload = load_pickle_payload(abl_delay_overlay_payload_path)
+delay_bar_payload = load_pickle_payload(delay_bar_payload_path)
 
 file_tag = rt_led_payload.get("file_tag", FILE_TAG)
 
@@ -287,16 +366,22 @@ file_tag = rt_led_payload.get("file_tag", FILE_TAG)
 plt.close("all")
 fig = plt.figure(figsize=FIGSIZE)
 show_top_strip = SHOW_TIMING_HEADER or SHOW_TIMING_DISTRIBUTIONS
+main = fig.add_gridspec(
+    2,
+    1,
+    height_ratios=[1.0, BOTTOM_ROW_HEIGHT_FRAC],
+    hspace=0.26,
+    **FIG_BOUNDS,
+)
 
 if show_top_strip:
-    outer = fig.add_gridspec(
+    outer = main[0, 0].subgridspec(
         2,
         2,
         width_ratios=OUTER_WIDTH_RATIOS,
         height_ratios=[TIMING_HEADER_HEIGHT_FRAC, 1.0],
         wspace=OUTER_WSPACE,
         hspace=OUTER_HSPACE,
-        **FIG_BOUNDS,
     )
     header = outer[0, 0].subgridspec(1, 2, width_ratios=TIMING_HEADER_WIDTH_RATIOS, wspace=TIMING_HEADER_WSPACE)
     header_dists = header[0, 1].subgridspec(2, 1, hspace=TIMING_DISTS_HSPACE)
@@ -307,11 +392,16 @@ if show_top_strip:
     ax_timing_dist_stim = fig.add_subplot(header_dists[1, 0])
     ax_corner = fig.add_subplot(outer[1, 1])
 else:
-    left = fig.add_gridspec(2, 2, wspace=LEFT_GRID_WSPACE, hspace=LEFT_GRID_HSPACE, left=0.05, right=0.35, top=0.95, bottom=0.08)
-    ax_corner = fig.add_subplot(fig.add_gridspec(1, 1, left=0.43, right=0.95, top=0.95, bottom=0.08)[0, 0])
+    outer = main[0, 0].subgridspec(1, 2, width_ratios=OUTER_WIDTH_RATIOS, wspace=OUTER_WSPACE)
+    left = outer[0, 0].subgridspec(2, 2, wspace=LEFT_GRID_WSPACE, hspace=LEFT_GRID_HSPACE)
+    ax_corner = fig.add_subplot(outer[0, 1])
     ax_timing_header = None
     ax_timing_dist_led = None
     ax_timing_dist_stim = None
+
+bottom = main[1, 0].subgridspec(1, 5, width_ratios=BOTTOM_ROW_LAYOUT_RATIOS, wspace=0.0)
+ax_abl_delay = fig.add_subplot(bottom[0, 1])
+ax_delay_bar = fig.add_subplot(bottom[0, 3])
 
 ax_schematic = fig.add_subplot(left[0, 0])
 ax_rt_fix = fig.add_subplot(left[0, 1])
@@ -488,6 +578,13 @@ corner_img = render_corner_image(corner_payload)
 ax_corner.imshow(corner_img)
 ax_corner.set_aspect("equal")
 ax_corner.axis("off")
+
+
+# =============================================================================
+# Bottom row: ABL-wise delay fit + delay bar plot
+# =============================================================================
+plot_abl_delay_overlay(ax_abl_delay, abl_delay_overlay_payload)
+plot_delay_bar(ax_delay_bar, delay_bar_payload)
 
 
 # =============================================================================

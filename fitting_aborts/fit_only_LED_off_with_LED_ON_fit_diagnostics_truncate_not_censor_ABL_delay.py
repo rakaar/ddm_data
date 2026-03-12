@@ -56,12 +56,19 @@ t_pts = np.arange(-2.0, 2.001, 0.001)
 truncate_rt_wrt_stim_s_override = None  # None -> load from fit results pickle
 supported_abl_values = (20, 40, 60)
 abl_colors = {20: "tab:blue", 40: "tab:orange", 60: "tab:green"}
+publication_figsize = (6.2, 4.0)
+publication_plot_dpi = 300
+publication_data_linewidth = 1.2
+publication_theory_linewidth = 2.5
+publication_data_alpha = 1.0
+publication_xlabel = r"RT - $t_{stim}$ (ms)"
+publication_ylabel = "Density"
 
 is_norm = True
 is_time_vary = False
 phi_params_obj = np.nan
 K_max = 10
-
+# %%
 if N_mc_per_abl_panel <= 0:
     raise ValueError("N_mc_per_abl_panel must be positive.")
 
@@ -189,6 +196,13 @@ abl_split_plot_base = (
 )
 abl_split_plot_pdf_path = output_dir / f"{abl_split_plot_base}.pdf"
 abl_split_plot_png_path = output_dir / f"{abl_split_plot_base}.png"
+publication_plot_base = (
+    f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_truncated_{truncate_label_tag}_rtwrtstim_"
+    "by_ABL_publication_truncate_not_censor_ABL_delay"
+)
+publication_plot_pdf_path = output_dir / f"{publication_plot_base}.pdf"
+publication_plot_png_path = output_dir / f"{publication_plot_base}.png"
+publication_plot_pkl_path = output_dir / f"{publication_plot_base}.pkl"
 
 if truncate_rt_wrt_stim_s_from_fit is None:
     print(f"Using diagnostics truncation threshold: {truncate_rt_wrt_stim_s:.3f} s ({truncate_label_ms})")
@@ -225,7 +239,7 @@ required_pro_keys = [
 for key in required_pro_keys:
     if key not in loaded_pro:
         raise KeyError(f"Missing key in loaded_proactive_params: {key}")
-
+# %%
 rate_lambda = float(np.mean(vbmc_results["rate_lambda_samples"]))
 T_0 = float(np.mean(vbmc_results["T_0_samples"]))
 theta_E = float(np.mean(vbmc_results["theta_E_samples"]))
@@ -639,9 +653,8 @@ for abl in supported_abl_values:
         f"ABL={abl}: n_rows={len(df_abl)}, n_truncated={len(data_rtwrtstim_abl_truncated)}, "
         f"data_norm={data_area_abl_norm:.6f}, theory_norm={theory_area_abl_norm:.6f}"
     )
-
+# %%
 fig_abl, axes_abl = plt.subplots(1, 4, figsize=(20, 4.8), sharex=True, sharey=True)
-
 for ax, abl in zip(axes_abl[:3], supported_abl_values):
     abl_int = int(abl)
     color = abl_colors[abl_int]
@@ -721,9 +734,8 @@ fig_abl.suptitle(
 fig_abl.tight_layout(rect=[0, 0, 1, 0.97])
 fig_abl.savefig(abl_split_plot_pdf_path, bbox_inches="tight")
 fig_abl.savefig(abl_split_plot_png_path, dpi=200, bbox_inches="tight")
-if show_plot:
-    plt.show()
-plt.close(fig_abl)
+plt.show()
+# plt.close(fig_abl)
 
 print(f"Saved ABL-split truncated diagnostics plot (PDF): {abl_split_plot_pdf_path}")
 print(f"Saved ABL-split truncated diagnostics plot (PNG): {abl_split_plot_png_path}")
@@ -767,6 +779,9 @@ diagnostics_payload = {
         "truncated_plot_png_path": str(truncated_plot_png_path),
         "abl_split_plot_pdf_path": str(abl_split_plot_pdf_path),
         "abl_split_plot_png_path": str(abl_split_plot_png_path),
+        "publication_plot_pdf_path": str(publication_plot_pdf_path),
+        "publication_plot_png_path": str(publication_plot_png_path),
+        "publication_plot_pkl_path": str(publication_plot_pkl_path),
     },
     "parameter_snapshot": {
         "normalized_tied_means": {
@@ -856,4 +871,228 @@ with open(payload_path, "wb") as f:
 
 print(f"Saved diagnostics payload: {payload_path}")
 print("Done.")
+
+
+# %%
+############ Publication-style combined ABL plot ############
+publication_plot_payload = {
+    "config": {
+        "batch_name": batch_name,
+        "truncate_rt_wrt_stim_s": truncate_rt_wrt_stim_s,
+        "truncate_rt_wrt_stim_ms": truncate_rt_wrt_stim_s * 1e3,
+        "supported_ABL_values": list(supported_abl_values),
+        "xlabel": publication_xlabel,
+        "ylabel": publication_ylabel,
+    },
+    "t_pts_truncated": t_pts_truncated,
+    "t_pts_truncated_ms": t_pts_truncated * 1e3,
+    "data_hist_centers_truncated": data_bin_centers_truncated,
+    "data_hist_centers_truncated_ms": data_bin_centers_truncated * 1e3,
+    "abl_curves": {
+        int(abl): {
+            "data_density_truncated": abl_panel_payload[int(abl)]["data_density_truncated"],
+            "theory_density_truncated_norm": abl_panel_payload[int(abl)]["theory_density_truncated_norm"],
+        }
+        for abl in supported_abl_values
+    },
+}
+
+with open(publication_plot_pkl_path, "wb") as f:
+    pickle.dump(publication_plot_payload, f)
+
+fig_pub, ax_pub = plt.subplots(figsize=publication_figsize)
+publication_peak_density = 0.0
+publication_label_points = []
+publication_t_pts_truncated_ms = np.asarray(
+    publication_plot_payload["t_pts_truncated_ms"], dtype=np.float64
+)
+publication_data_bin_centers_truncated_ms = np.asarray(
+    publication_plot_payload["data_hist_centers_truncated_ms"], dtype=np.float64
+)
+publication_truncate_rt_wrt_stim_ms = float(
+    publication_plot_payload["config"]["truncate_rt_wrt_stim_ms"]
+)
+
+for abl in supported_abl_values:
+    abl_int = int(abl)
+    color = abl_colors[abl_int]
+    data_density = np.asarray(
+        publication_plot_payload["abl_curves"][abl_int]["data_density_truncated"],
+        dtype=np.float64,
+    )
+    theory_density = np.asarray(
+        publication_plot_payload["abl_curves"][abl_int]["theory_density_truncated_norm"],
+        dtype=np.float64,
+    )
+
+    ax_pub.step(
+        publication_data_bin_centers_truncated_ms,
+        data_density,
+        where="mid",
+        lw=publication_data_linewidth,
+        color=color,
+        alpha=publication_data_alpha,
+    )
+    ax_pub.plot(
+        publication_t_pts_truncated_ms,
+        theory_density,
+        lw=publication_theory_linewidth,
+        color=color,
+    )
+
+    publication_peak_density = max(
+        publication_peak_density,
+        float(np.max(data_density)),
+        float(np.max(theory_density)),
+    )
+
+    label_x = float(publication_t_pts_truncated_ms[-1])
+    label_y = float(theory_density[-1])
+    publication_label_points.append((abl_int, label_x, label_y, color))
+
+ax_pub.spines["top"].set_visible(False)
+ax_pub.spines["right"].set_visible(False)
+ax_pub.set_xlim(0.0, publication_truncate_rt_wrt_stim_ms)
+ax_pub.set_xlabel(publication_xlabel)
+ax_pub.set_ylabel(publication_ylabel)
+ax_pub.margins(x=0.0)
+ax_pub.tick_params(direction="out", length=4, width=1)
+ax_pub.set_xticks([0, 100])
+ax_pub.set_yticks([0, 40])
+
+if publication_peak_density > 0:
+    ax_pub.set_ylim(0.0, publication_peak_density * 1.05)
+else:
+    ax_pub.set_ylim(0.0, 1.0)
+
+if ax_pub.get_ylim()[1] < 40:
+    ax_pub.set_ylim(0.0, 40.0)
+
+# for abl_int, label_x, label_y, color in publication_label_points:
+#     ax_pub.text(
+#         label_x * 0.985,
+#         label_y,
+#         f"ABL {abl_int}",
+#         color=color,
+#         fontsize=10,
+#         ha="right",
+#         va="center",
+#     )
+
+
+fig_pub.tight_layout()
+fig_pub.savefig(publication_plot_pdf_path, bbox_inches="tight")
+fig_pub.savefig(publication_plot_png_path, dpi=publication_plot_dpi, bbox_inches="tight")
+if show_plot:
+    plt.show()
+plt.close(fig_pub)
+
+print(f"Saved publication ABL overlay payload: {publication_plot_pkl_path}")
+print(f"Saved publication ABL overlay plot (PDF): {publication_plot_pdf_path}")
+print(f"Saved publication ABL overlay plot (PNG): {publication_plot_png_path}")
+
+# %%
+############ Publication-style delay bar plot ############
+delay_bar_figsize = (6.8, 3.8)
+delay_bar_dpi = 300
+delay_bar_width = 0.68
+delay_bar_color = "#808080"
+delay_bar_edgecolor = "black"
+delay_bar_linewidth = 0.8
+delay_bar_ylabel = "Delay (ms)"
+delay_bar_tick_fontsize = 11
+delay_bar_label_fontsize = 12
+delay_bar_rotation = 0
+
+delay_bar_base = (
+    f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_delay_bars_"
+    "truncate_not_censor_ABL_delay"
+)
+delay_bar_pdf_path = output_dir / f"{delay_bar_base}.pdf"
+delay_bar_png_path = output_dir / f"{delay_bar_base}.png"
+delay_bar_pkl_path = output_dir / f"{delay_bar_base}.pkl"
+
+delay_bar_labels = [
+    r"$\delta_a - \delta_{LED}$",
+    r"$\delta_{LED} + \delta_m$",
+    r"$\delta_e^{20}$",
+    r"$\delta_e^{40}$",
+    r"$\delta_e^{60}$",
+]
+delay_bar_values_ms = np.array(
+    [
+        del_a_minus_del_LED,
+        del_m_plus_del_LED,
+        t_E_aff_20,
+        t_E_aff_40,
+        t_E_aff_60,
+    ],
+    dtype=np.float64,
+) * 1e3
+delay_bar_x = np.arange(len(delay_bar_labels))
+
+delay_bar_payload = {
+    "labels": delay_bar_labels,
+    "values_ms": delay_bar_values_ms,
+    "batch_name": batch_name,
+    "pdf_path": str(delay_bar_pdf_path),
+    "png_path": str(delay_bar_png_path),
+}
+
+with open(delay_bar_pkl_path, "wb") as f:
+    pickle.dump(delay_bar_payload, f)
+
+fig_delay, ax_delay = plt.subplots(figsize=delay_bar_figsize)
+ax_delay.bar(
+    delay_bar_x,
+    delay_bar_values_ms,
+    width=delay_bar_width,
+    color=delay_bar_color,
+    edgecolor=delay_bar_edgecolor,
+    linewidth=delay_bar_linewidth,
+)
+
+ax_delay.spines["top"].set_visible(False)
+ax_delay.spines["right"].set_visible(False)
+ax_delay.spines["bottom"].set_position(("data", 0.0))
+ax_delay.set_ylabel(delay_bar_ylabel, fontsize=delay_bar_label_fontsize)
+ax_delay.set_xticks(delay_bar_x)
+ax_delay.set_xticklabels(
+    ["", *delay_bar_labels[1:]],
+    fontsize=delay_bar_tick_fontsize,
+    rotation=delay_bar_rotation,
+)
+ax_delay.tick_params(axis="y", labelsize=delay_bar_tick_fontsize, direction="out", length=4, width=1)
+ax_delay.tick_params(axis="x", direction="out", length=0, width=1)
+ax_delay.set_xlim(-0.55, len(delay_bar_labels) - 0.45)
+ax_delay.set_axisbelow(True)
+
+delay_bar_ymin = float(np.min(delay_bar_values_ms))
+delay_bar_ymax = float(np.max(delay_bar_values_ms))
+delay_bar_ymin_plot = delay_bar_ymin * 1.18 if delay_bar_ymin < 0 else 0.0
+delay_bar_ymax_plot = delay_bar_ymax * 1.18 if delay_bar_ymax > 0 else 1.0
+ax_delay.set_ylim(delay_bar_ymin_plot, delay_bar_ymax_plot)
+ax_delay.set_yticks([-60, 0, 60])
+
+delay_bar_first_label_y = 0.03 * (ax_delay.get_ylim()[1] - ax_delay.get_ylim()[0])
+ax_delay.text(
+    delay_bar_x[0],
+    delay_bar_first_label_y,
+    delay_bar_labels[0],
+    ha="center",
+    va="bottom",
+    fontsize=delay_bar_tick_fontsize,
+)
+
+fig_delay.tight_layout()
+fig_delay.savefig(delay_bar_pdf_path, bbox_inches="tight")
+fig_delay.savefig(delay_bar_png_path, dpi=delay_bar_dpi, bbox_inches="tight")
+if show_plot:
+    plt.show()
+plt.close(fig_delay)
+
+print(f"Saved delay bar payload: {delay_bar_pkl_path}")
+print(f"Saved delay bar plot (PDF): {delay_bar_pdf_path}")
+print(f"Saved delay bar plot (PNG): {delay_bar_png_path}")
+
 # %%
