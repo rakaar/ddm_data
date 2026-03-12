@@ -1,7 +1,8 @@
 """
 Publication-style composite panel:
-- Left: 2x2 square panels (schematic, RT wrt LED + inset, RT wrt fixation, RT wrt LED zoomed)
-- Right: one large corner panel aligned to full left-panel height
+- Top-left: timing schematic + stacked timing distributions
+- Bottom-left: 2x2 square panels (schematic, RT wrt fixation, RT wrt LED, RT wrt LED zoomed)
+- Bottom-right: one large corner panel aligned to the lower 2x2 block
 """
 
 # %%
@@ -24,22 +25,36 @@ FILE_TAG = "all_animals"
 
 SHOW_PLOT = True
 SAVE_DPI = 500
+SHOW_TIMING_HEADER = True
+SHOW_TIMING_DISTRIBUTIONS = True
 
-# Match the left 2x2 panel sizing used in figure_4_with_corner_using_template.py.
-FIGSIZE = (22, 10)
-LEFT_GRID_BOUNDS = dict(left=0.05, right=0.35, top=0.95, bottom=0.08)
+FIGSIZE = (22, 12)
+FIG_BOUNDS = dict(left=0.05, right=0.95, top=0.95, bottom=0.08)
+# Choose width ratios so the bottom-right corner slot is close to square
+# after accounting for the top timing-header row height.
+OUTER_WIDTH_RATIOS = (1.54, 1.0)
+OUTER_WSPACE = 0.06
+OUTER_HSPACE = 0.14
+TIMING_HEADER_HEIGHT_FRAC = 0.34
+TIMING_HEADER_WIDTH_RATIOS = (3, 1)
+TIMING_HEADER_WSPACE = 0.12
+TIMING_DISTS_HSPACE = 0.28
 LEFT_GRID_WSPACE = 0.90
 LEFT_GRID_HSPACE = 0.15
-CORNER_BOUNDS = dict(left=0.43, right=0.95, top=0.95, bottom=0.08)
 
 LABEL_FS = 14
 TICK_FS = 11
-INSET_LABEL_FS = 9
-INSET_TICK_FS = 7
+TIMING_LABEL_FS = 18
+TIMING_DIST_LABEL_FS = 10
+TIMING_DIST_TICK_FS = 8
+TIMING_LINE_COLOR = "black"
+TIMING_LINE_WIDTH = 2.0
+TIMING_DIST_FILL_COLOR = "0.75"
+TIMING_DIST_LINE_COLOR = "0.35"
 
 # Corner plot typography tuned for readability without overlap.
 CORNER_TICK_FS = 25
-CORNER_TITLE_FS = 24
+CORNER_TITLE_FS = 28
 CORNER_YLABEL_FS = 28
 
 
@@ -142,6 +157,116 @@ def style_axes(ax):
     ax.tick_params(axis="y", labelsize=TICK_FS, width=1.8, length=6)
 
 
+def compute_density(values, bins=80, data_range=None):
+    arr = np.asarray(values, dtype=float)
+    arr = arr[np.isfinite(arr)]
+    if arr.size == 0:
+        raise ValueError("Cannot compute density for empty values.")
+
+    if data_range is None:
+        lo = max(0.0, float(np.percentile(arr, 0.2)))
+        hi = float(np.percentile(arr, 99.5))
+    else:
+        lo, hi = data_range
+
+    if not np.isfinite(lo):
+        lo = 0.0
+    if not np.isfinite(hi) or hi <= lo:
+        hi = float(np.max(arr))
+    if hi <= lo:
+        hi = lo + 1e-3
+
+    edges = np.linspace(lo, hi, bins + 1)
+    hist, _ = np.histogram(arr, bins=edges, density=True)
+    centers = 0.5 * (edges[:-1] + edges[1:])
+    return centers, hist, (lo, hi)
+
+
+def plot_timing_header(ax, tled_stim_payload):
+    t_led = np.asarray(tled_stim_payload["t_led_values_s"], dtype=float)
+    t_stim = np.asarray(tled_stim_payload["t_stim_values_s"], dtype=float)
+    t_stim_wrt_led = t_stim - t_led
+    valid = np.isfinite(t_led) & np.isfinite(t_stim_wrt_led)
+    t_led = t_led[valid]
+    t_stim_wrt_led = t_stim_wrt_led[valid]
+
+    t_led_ref = float(np.percentile(t_led, 60))
+    t_stim_ref = float(np.percentile(t_stim_wrt_led, 60))
+    total_ref = max(float(np.percentile(t_led + t_stim_wrt_led, 95)), t_led_ref + t_stim_ref)
+
+    x_fix = 0.22
+    x_end = 0.95
+    span = x_end - x_fix
+    scale = span / total_ref if total_ref > 0 else 1.0
+    led_gap = max(t_led_ref * scale, 0.24)
+    stim_gap = max(t_stim_ref * scale, 0.24)
+    x_led = min(x_fix + led_gap, 0.58)
+    x_stim = min(x_led + stim_gap, 0.82)
+
+    y_fix = 2.15
+    y_led = 1.20
+    y_stim = 0.25
+    step_h = 0.52
+
+    ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(-0.05, 2.95)
+    ax.axis("off")
+
+    def draw_step(y0, x_step, x_start):
+        ax.plot([x_start, x_step], [y0, y0], color=TIMING_LINE_COLOR, lw=TIMING_LINE_WIDTH, solid_capstyle="round")
+        ax.plot([x_step, x_step], [y0, y0 + step_h], color=TIMING_LINE_COLOR, lw=TIMING_LINE_WIDTH, solid_capstyle="round")
+        ax.plot([x_step, x_end], [y0 + step_h, y0 + step_h], color=TIMING_LINE_COLOR, lw=TIMING_LINE_WIDTH, solid_capstyle="round")
+
+    draw_step(y_fix, x_fix, 0.08)
+    draw_step(y_led, x_led, 0.11)
+    draw_step(y_stim, x_stim, 0.13)
+
+    ax.text(0.00, y_fix + 0.03, "Fixation", color=TIMING_LINE_COLOR, fontsize=TIMING_LABEL_FS, ha="left", va="bottom")
+    ax.text(0.03, y_led + 0.03, "LED", color=TIMING_LINE_COLOR, fontsize=TIMING_LABEL_FS, ha="left", va="bottom")
+    ax.text(0.00, y_stim + 0.03, "Stimulus", color=TIMING_LINE_COLOR, fontsize=TIMING_LABEL_FS, ha="left", va="bottom")
+
+    arrow_y_led = y_led + 0.20
+    arrow_y_stim = y_stim + 0.36
+    ax.annotate("", xy=(x_led, arrow_y_led), xytext=(x_fix, arrow_y_led), arrowprops=dict(arrowstyle="<->", lw=1.6, color=TIMING_LINE_COLOR, mutation_scale=16))
+    ax.annotate("", xy=(x_stim, arrow_y_stim), xytext=(x_led, arrow_y_stim), arrowprops=dict(arrowstyle="<->", lw=1.6, color=TIMING_LINE_COLOR, mutation_scale=16))
+    ax.text(0.5 * (x_fix + x_led), arrow_y_led + 0.12, r"$t_{LED}$", color=TIMING_LINE_COLOR, fontsize=TIMING_LABEL_FS - 1, ha="center", va="center")
+    ax.text(0.5 * (x_led + x_stim), arrow_y_stim + 0.12, r"$t_{stim}$", color=TIMING_LINE_COLOR, fontsize=TIMING_LABEL_FS - 1, ha="center", va="center")
+
+
+def style_timing_distribution_axis(ax, centers, density, xlim, label, show_xlabel=False):
+    ax.step(centers, density, where="mid", color=TIMING_DIST_LINE_COLOR, lw=1.4)
+    ax.fill_between(centers, 0, density, step="mid", color=TIMING_DIST_FILL_COLOR, alpha=0.9)
+    ax.set_xlim(*xlim)
+    ax.set_ylim(0, max(float(np.max(density)) * 1.18, 1e-6))
+    ax.set_yticks([])
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+    ax.spines["bottom"].set_linewidth(1.2)
+    ax.tick_params(axis="x", labelsize=TIMING_DIST_TICK_FS, width=1.0, length=3)
+    ax.tick_params(axis="y", width=0, length=0)
+    ax.set_ylabel(label, fontsize=TIMING_DIST_LABEL_FS, rotation=90, labelpad=8)
+    if not show_xlabel:
+        ax.tick_params(axis="x", labelbottom=False)
+    else:
+        ax.set_xlabel("Time (s)", fontsize=TIMING_DIST_LABEL_FS)
+
+
+def plot_timing_distributions(ax_t_led, ax_t_stim, tled_stim_payload):
+    t_led = np.asarray(tled_stim_payload["t_led_values_s"], dtype=float)
+    t_stim = np.asarray(tled_stim_payload["t_stim_values_s"], dtype=float)
+    t_stim_wrt_led = t_stim - t_led
+    valid_led = np.isfinite(t_led)
+    valid_stim = np.isfinite(t_stim_wrt_led)
+
+    led_centers, led_density, led_xlim = compute_density(t_led[valid_led], bins=90, data_range=(0.0, float(np.percentile(t_led[valid_led], 99.5))))
+    stim_hi = float(np.percentile(t_stim_wrt_led[valid_stim], 99.5))
+    stim_centers, stim_density, stim_xlim = compute_density(t_stim_wrt_led[valid_stim], bins=70, data_range=(0.0, stim_hi))
+
+    style_timing_distribution_axis(ax_t_led, led_centers, led_density, led_xlim, r"$P(t_{LED})$", show_xlabel=False)
+    style_timing_distribution_axis(ax_t_stim, stim_centers, stim_density, stim_xlim, r"$P(t_{stim})$", show_xlabel=True)
+
+
 # %%
 # =============================================================================
 # Load payloads
@@ -150,7 +275,7 @@ schematic_payload = load_payload("drift_switch_single_bound", FILE_TAG)
 rt_led_payload = load_payload("rt_wrt_led_theory_data", FILE_TAG)
 rt_fix_payload = load_payload("rtd_wrt_fixation_theory_data", FILE_TAG)
 rt_led_zoom_payload = load_payload("rt_wrt_led_theory_data_zoom_5ms", FILE_TAG)
-tled_stim_payload = load_payload("t_led_t_stim_distributions", FILE_TAG)
+tled_stim_payload = load_payload("t_led_t_stim_distributions", FILE_TAG) if (SHOW_TIMING_HEADER or SHOW_TIMING_DISTRIBUTIONS) else None
 corner_payload = load_payload("corner_5params", FILE_TAG)
 
 file_tag = rt_led_payload.get("file_tag", FILE_TAG)
@@ -161,19 +286,57 @@ file_tag = rt_led_payload.get("file_tag", FILE_TAG)
 # =============================================================================
 plt.close("all")
 fig = plt.figure(figsize=FIGSIZE)
-left = fig.add_gridspec(2, 2, wspace=LEFT_GRID_WSPACE, hspace=LEFT_GRID_HSPACE, **LEFT_GRID_BOUNDS)
-corner_grid = fig.add_gridspec(1, 1, **CORNER_BOUNDS)
+show_top_strip = SHOW_TIMING_HEADER or SHOW_TIMING_DISTRIBUTIONS
+
+if show_top_strip:
+    outer = fig.add_gridspec(
+        2,
+        2,
+        width_ratios=OUTER_WIDTH_RATIOS,
+        height_ratios=[TIMING_HEADER_HEIGHT_FRAC, 1.0],
+        wspace=OUTER_WSPACE,
+        hspace=OUTER_HSPACE,
+        **FIG_BOUNDS,
+    )
+    header = outer[0, 0].subgridspec(1, 2, width_ratios=TIMING_HEADER_WIDTH_RATIOS, wspace=TIMING_HEADER_WSPACE)
+    header_dists = header[0, 1].subgridspec(2, 1, hspace=TIMING_DISTS_HSPACE)
+    left = outer[1, 0].subgridspec(2, 2, wspace=LEFT_GRID_WSPACE, hspace=LEFT_GRID_HSPACE)
+
+    ax_timing_header = fig.add_subplot(header[0, 0])
+    ax_timing_dist_led = fig.add_subplot(header_dists[0, 0])
+    ax_timing_dist_stim = fig.add_subplot(header_dists[1, 0])
+    ax_corner = fig.add_subplot(outer[1, 1])
+else:
+    left = fig.add_gridspec(2, 2, wspace=LEFT_GRID_WSPACE, hspace=LEFT_GRID_HSPACE, left=0.05, right=0.35, top=0.95, bottom=0.08)
+    ax_corner = fig.add_subplot(fig.add_gridspec(1, 1, left=0.43, right=0.95, top=0.95, bottom=0.08)[0, 0])
+    ax_timing_header = None
+    ax_timing_dist_led = None
+    ax_timing_dist_stim = None
 
 ax_schematic = fig.add_subplot(left[0, 0])
 ax_rt_fix = fig.add_subplot(left[0, 1])
 ax_rt_led = fig.add_subplot(left[1, 0])
 ax_rt_led_zoom = fig.add_subplot(left[1, 1])
 
-# Keep all four left panels square and same size.
 for ax in [ax_schematic, ax_rt_led, ax_rt_fix, ax_rt_led_zoom]:
     ax.set_box_aspect(1)
 
-ax_corner = fig.add_subplot(corner_grid[0, 0])
+
+# =============================================================================
+# Top strip: task timing schematic + timing distributions
+# =============================================================================
+if SHOW_TIMING_HEADER and ax_timing_header is not None:
+    plot_timing_header(ax_timing_header, tled_stim_payload)
+elif ax_timing_header is not None:
+    ax_timing_header.axis("off")
+
+if SHOW_TIMING_DISTRIBUTIONS and ax_timing_dist_led is not None and ax_timing_dist_stim is not None:
+    plot_timing_distributions(ax_timing_dist_led, ax_timing_dist_stim, tled_stim_payload)
+else:
+    if ax_timing_dist_led is not None:
+        ax_timing_dist_led.axis("off")
+    if ax_timing_dist_stim is not None:
+        ax_timing_dist_stim.axis("off")
 
 
 # =============================================================================
@@ -271,7 +434,7 @@ ax_schematic.tick_params(axis="y", width=0, length=0)
 
 
 # =============================================================================
-# Panel 2: RT wrt LED (main) + inset t_stim/t_LED
+# Panel 2: RT wrt LED
 # =============================================================================
 ax_rt_led.step(rt_led_payload["data_x_ms"], rt_led_payload["data_hist_on_scaled"], where="mid", color="r", alpha=0.4, lw=2.0)
 ax_rt_led.step(rt_led_payload["data_x_ms"], rt_led_payload["data_hist_off_scaled"], where="mid", color="b", alpha=0.4, lw=2.0)
@@ -285,25 +448,6 @@ ax_rt_led.set_yticks([])
 ax_rt_led.set_xlabel(rt_led_payload.get("xlabel", "RT wrt LED onset (ms)"), fontsize=LABEL_FS)
 style_axes(ax_rt_led)
 ax_rt_led.tick_params(axis="y", width=0, length=0)
-
-# Inset: t_stim / t_LED
-ax_inset = ax_rt_led.inset_axes([0.06, 0.63, 0.31, 0.31], zorder=15)
-ax_inset.plot(tled_stim_payload["bin_centers_s"], tled_stim_payload["t_led_hist_density"], color="tab:blue", lw=1.8, alpha=0.95)
-ax_inset.plot(tled_stim_payload["bin_centers_s"], tled_stim_payload["t_stim_hist_density"], color="tab:red", lw=1.8, alpha=0.95)
-xlim_s = tled_stim_payload.get("xlim_s", (0.0, 1.0))
-ax_inset.set_xlim(xlim_s)
-ax_inset.set_ylim(0, 3)
-ax_inset.set_yticks([])
-ax_inset.set_xlabel("Time (s)", fontsize=INSET_LABEL_FS)
-ax_inset.tick_params(axis="x", labelsize=INSET_TICK_FS, width=1.0, length=4)
-ax_inset.tick_params(axis="y", width=0, length=0)
-ax_inset.spines["top"].set_visible(False)
-ax_inset.spines["right"].set_visible(False)
-ax_inset.spines["left"].set_linewidth(1.2)
-ax_inset.spines["bottom"].set_linewidth(1.2)
-ax_inset.set_title(r"$t_{stim}$ and $t_{LED}$", fontsize=INSET_LABEL_FS + 1, pad=2)
-ax_inset.set_facecolor("white")
-ax_inset.patch.set_alpha(0.95)
 
 
 # =============================================================================
@@ -342,7 +486,7 @@ ax_rt_led_zoom.tick_params(axis="y", width=0, length=0)
 # =============================================================================
 corner_img = render_corner_image(corner_payload)
 ax_corner.imshow(corner_img)
-ax_corner.set_aspect("auto")
+ax_corner.set_aspect("equal")
 ax_corner.axis("off")
 
 
