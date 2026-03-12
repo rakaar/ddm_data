@@ -144,7 +144,7 @@ ax.grid(True, alpha=0.2)
 
 out_dir = os.path.join(os.path.dirname(__file__), "plots")
 os.makedirs(out_dir, exist_ok=True)
-out_path = os.path.join(out_dir, "unidentifiability_match_line.pdf")
+out_path = os.path.join(out_dir, "unidentifiability_match_line.png")
 plt.tight_layout()
 plt.savefig(out_path, dpi=200, bbox_inches="tight")
 print(f"Saved plot to: {out_path}")

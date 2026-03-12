@@ -245,5 +245,7 @@ fig = builder.finish()
 fig.tight_layout()
 fig.savefig('fig2_final_figure.png', dpi=300, bbox_inches='tight')
 fig.savefig('fig2_final_figure.pdf', dpi=300, bbox_inches='tight')
+fig.savefig('fig2_final_figure.eps', dpi=300, bbox_inches='tight')
+
 
 # %%

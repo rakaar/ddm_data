@@ -757,6 +757,8 @@ fig.suptitle('Figure 1', fontsize=SUPTITLE_FONTSIZE)
 # Save as PNG (high resolution) and PDF (vector format)
 plt.savefig('fig1_from_pickle.png', dpi=300, bbox_inches='tight')
 plt.savefig('fig1_from_pickle.pdf', bbox_inches='tight', format='pdf')
+plt.savefig('fig1_from_pickle.eps', bbox_inches='tight', format='pdf')
+
 plt.show()
 
 print("\nFigure saved as fig1_from_pickle.png and fig1_from_pickle.pdf")
