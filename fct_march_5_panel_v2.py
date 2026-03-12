@@ -31,32 +31,34 @@ SAVE_DPI = 500
 SHOW_TIMING_HEADER = True
 SHOW_TIMING_DISTRIBUTIONS = True
 
-FIGSIZE = (22, 15.5)
+FIGSIZE = (24, 17.5)
 FIG_BOUNDS = dict(left=0.05, right=0.95, top=0.95, bottom=0.08)
 # Choose width ratios so the bottom-right corner slot is close to square
 # after accounting for the top timing-header row height.
-OUTER_WIDTH_RATIOS = (0.95, 1.0)
-OUTER_WSPACE = 0.01
-OUTER_HSPACE = 0.14
+OUTER_WIDTH_RATIOS = (0.70, 1.0)
+OUTER_WSPACE = 0.0
+OUTER_HSPACE = 0.22
 TIMING_HEADER_HEIGHT_FRAC = 0.34
 BOTTOM_ROW_HEIGHT_FRAC = 0.38
 TIMING_HEADER_WIDTH_RATIOS = (3, 1)
 TIMING_HEADER_WSPACE = 0.12
-TIMING_DISTS_HSPACE = 0.28
+TIMING_DISTS_HSPACE = 0.42
 LEFT_GRID_WSPACE = 0.08
-LEFT_GRID_HSPACE = 0.22
+LEFT_GRID_HSPACE = 0.32
 BOTTOM_ROW_LAYOUT_RATIOS = (0.13, 0.62, 0.18, 0.72, 0.69)
+MAIN_HSPACE = 0.34
+BOTTOM_ROW_WSPACE = 0.08
 
-LABEL_FS = 14
-TICK_FS = 13
-BOTTOM_LABEL_FS = 16
-BOTTOM_TICK_FS = 15
+LABEL_FS = 25
+TICK_FS = 24
+BOTTOM_LABEL_FS = LABEL_FS
+BOTTOM_TICK_FS = TICK_FS
 BOTTOM_AXIS_LW = 2.2
 BOTTOM_TICK_LW = 1.8
 BOTTOM_TICK_LEN = 6
 TIMING_LABEL_FS = 18
 TIMING_DIST_LABEL_FS = LABEL_FS
-TIMING_DIST_TICK_FS = 10
+TIMING_DIST_TICK_FS = TICK_FS
 TIMING_LINE_COLOR = "black"
 TIMING_LINE_WIDTH = 2.0
 TIMING_DIST_FILL_COLOR = "0.75"
@@ -64,11 +66,18 @@ TIMING_DIST_LINE_COLOR = "0.35"
 SCHEMATIC_DELAY_LABEL_FS = 12
 DELTA_LED_VISUAL_MIN_SPAN_MS = 18.0
 DELTA_M_VISUAL_MIN_SPAN_MS = 18.0
+PANEL_XLABEL_PAD = 3
+PANEL_YLABEL_PAD = 2
+BOTTOM_XLABEL_PAD = 3
+BOTTOM_YLABEL_PAD = 2
+TIMING_DIST_XLABEL_PAD = 2
+TIMING_DIST_YLABEL_PAD = 2
 
 # Corner plot typography tuned for readability without overlap.
-CORNER_TICK_FS = 25
+CORNER_TICK_FS = 30
 CORNER_TITLE_FS = 34
-CORNER_YLABEL_FS = 28
+CORNER_YLABEL_FS = 32
+CORNER_YLABEL_PAD = 40
 
 
 # %%
@@ -157,7 +166,7 @@ def render_corner_image(corner_payload):
         axes[i, i].set_title(labels[i], fontsize=CORNER_TITLE_FS, pad=10)
         axes[i, i].axvline(medians[i], color="tab:blue", ls=":", lw=1.6, alpha=0.95)
     for i in range(1, n_dim):
-        axes[i, 0].set_ylabel(labels[i], fontsize=CORNER_YLABEL_FS, labelpad=28)
+        axes[i, 0].set_ylabel(labels[i], fontsize=CORNER_YLABEL_FS, labelpad=CORNER_YLABEL_PAD)
 
     buf = BytesIO()
     fig_tmp.savefig(buf, format="png", dpi=520, bbox_inches="tight", facecolor="white")
@@ -270,11 +279,11 @@ def style_timing_distribution_axis(ax, centers, density, xlim, label, show_xlabe
     ax.spines["bottom"].set_linewidth(1.2)
     ax.tick_params(axis="x", labelsize=TIMING_DIST_TICK_FS, width=1.0, length=3)
     ax.tick_params(axis="y", width=0, length=0)
-    ax.set_ylabel(label, fontsize=TIMING_DIST_LABEL_FS, rotation=90, labelpad=8)
+    ax.set_ylabel(label, fontsize=TIMING_DIST_LABEL_FS, rotation=90, labelpad=TIMING_DIST_YLABEL_PAD)
     if not show_xlabel:
         ax.tick_params(axis="x", labelbottom=False)
     else:
-        ax.set_xlabel("Time (ms)", fontsize=TIMING_DIST_LABEL_FS)
+        ax.set_xlabel("Time (ms)", fontsize=TIMING_DIST_LABEL_FS, labelpad=TIMING_DIST_XLABEL_PAD)
 
 
 def plot_timing_distributions(ax_t_led, ax_t_stim, tled_stim_payload):
@@ -314,8 +323,8 @@ def plot_abl_delay_overlay(ax, payload):
     ax.spines["left"].set_linewidth(BOTTOM_AXIS_LW)
     ax.spines["bottom"].set_linewidth(BOTTOM_AXIS_LW)
     ax.set_xlim(0.0, float(payload["config"]["truncate_rt_wrt_stim_ms"]))
-    ax.set_xlabel(payload["config"]["xlabel"], fontsize=BOTTOM_LABEL_FS)
-    ax.set_ylabel(payload["config"]["ylabel"], fontsize=BOTTOM_LABEL_FS)
+    ax.set_xlabel(payload["config"]["xlabel"], fontsize=BOTTOM_LABEL_FS, labelpad=BOTTOM_XLABEL_PAD)
+    ax.set_ylabel(payload["config"]["ylabel"], fontsize=BOTTOM_LABEL_FS, labelpad=BOTTOM_YLABEL_PAD)
     ax.margins(x=0.0)
     ax.tick_params(axis="both", labelsize=BOTTOM_TICK_FS, direction="out", length=BOTTOM_TICK_LEN, width=BOTTOM_TICK_LW)
     ax.set_xticks([0, 100])
@@ -334,7 +343,7 @@ def plot_delay_bar(ax, payload):
     ax.spines["bottom"].set_position(("data", 0.0))
     ax.spines["left"].set_linewidth(BOTTOM_AXIS_LW)
     ax.spines["bottom"].set_linewidth(BOTTOM_AXIS_LW)
-    ax.set_ylabel("Delay (ms)", fontsize=BOTTOM_LABEL_FS)
+    ax.set_ylabel("Delay (ms)", fontsize=BOTTOM_LABEL_FS, labelpad=BOTTOM_YLABEL_PAD)
     ax.set_xticks(x)
     ax.set_xticklabels(["", *labels[1:]], fontsize=BOTTOM_TICK_FS, rotation=0)
     ax.tick_params(axis="y", labelsize=BOTTOM_TICK_FS, direction="out", length=BOTTOM_TICK_LEN, width=BOTTOM_TICK_LW)
@@ -388,7 +397,7 @@ main = fig.add_gridspec(
     2,
     1,
     height_ratios=[1.0, BOTTOM_ROW_HEIGHT_FRAC],
-    hspace=0.26,
+    hspace=MAIN_HSPACE,
     **FIG_BOUNDS,
 )
 
@@ -417,7 +426,7 @@ else:
     ax_timing_dist_led = None
     ax_timing_dist_stim = None
 
-bottom = main[1, 0].subgridspec(1, 5, width_ratios=BOTTOM_ROW_LAYOUT_RATIOS, wspace=0.0)
+bottom = main[1, 0].subgridspec(1, 5, width_ratios=BOTTOM_ROW_LAYOUT_RATIOS, wspace=BOTTOM_ROW_WSPACE)
 ax_abl_delay = fig.add_subplot(bottom[0, 1])
 ax_delay_bar = fig.add_subplot(bottom[0, 3])
 
@@ -537,7 +546,7 @@ ax_schematic.set_xlim(xmin, xmax)
 ax_schematic.set_ylim(0, bound_level * 1.10)
 ax_schematic.set_xticks(schematic_payload["xticks_ms"])
 ax_schematic.set_yticks([])
-ax_schematic.set_xlabel(schematic_payload.get("xlabel", "Time from LED onset (ms)"), fontsize=LABEL_FS)
+ax_schematic.set_xlabel(schematic_payload.get("xlabel", "Time from LED onset (ms)"), fontsize=LABEL_FS, labelpad=PANEL_XLABEL_PAD)
 style_axes(ax_schematic)
 ax_schematic.tick_params(axis="y", width=0, length=0)
 
@@ -554,7 +563,8 @@ ax_rt_led.axvline(rt_led_payload["del_m_plus_del_LED_ms"], color="0.2", ls=":", 
 ax_rt_led.set_xlim(rt_led_payload["xlim_ms"])
 ax_rt_led.set_xticks(rt_led_payload["xticks_ms"])
 ax_rt_led.set_yticks([])
-ax_rt_led.set_xlabel(rt_led_payload.get("xlabel", "RT wrt LED onset (ms)"), fontsize=LABEL_FS)
+ax_rt_led.set_xlabel(rt_led_payload.get("xlabel", "RT wrt LED onset (ms)"), fontsize=LABEL_FS, labelpad=PANEL_XLABEL_PAD)
+ax_rt_led.set_ylabel("Density", fontsize=LABEL_FS, labelpad=PANEL_YLABEL_PAD)
 style_axes(ax_rt_led)
 ax_rt_led.tick_params(axis="y", width=0, length=0)
 
@@ -569,7 +579,8 @@ ax_rt_fix.plot(rt_fix_payload["theory_x_ms"], rt_fix_payload["rtd_theory_off_wrt
 ax_rt_fix.set_xlim(rt_fix_payload["xlim_ms"])
 ax_rt_fix.set_xticks(rt_fix_payload["xticks_ms"])
 ax_rt_fix.set_yticks([])
-ax_rt_fix.set_xlabel(rt_fix_payload.get("xlabel", "RT wrt fixation (ms)"), fontsize=LABEL_FS)
+ax_rt_fix.set_xlabel(rt_fix_payload.get("xlabel", "RT wrt fixation (ms)"), fontsize=LABEL_FS, labelpad=PANEL_XLABEL_PAD)
+ax_rt_fix.set_ylabel("Density", fontsize=LABEL_FS, labelpad=PANEL_YLABEL_PAD)
 style_axes(ax_rt_fix)
 ax_rt_fix.tick_params(axis="y", width=0, length=0)
 
@@ -585,7 +596,7 @@ ax_rt_led_zoom.axvline(0, color="0.2", ls="--", lw=1.1, alpha=0.7)
 ax_rt_led_zoom.set_xlim(rt_led_zoom_payload["xlim_ms"])
 ax_rt_led_zoom.set_xticks([-100, 0, 100])
 ax_rt_led_zoom.set_yticks([])
-ax_rt_led_zoom.set_xlabel(rt_led_zoom_payload.get("xlabel", "RT wrt LED onset (ms)"), fontsize=LABEL_FS)
+ax_rt_led_zoom.set_xlabel(rt_led_zoom_payload.get("xlabel", "RT wrt LED onset (ms)"), fontsize=LABEL_FS, labelpad=PANEL_XLABEL_PAD)
 style_axes(ax_rt_led_zoom)
 ax_rt_led_zoom.tick_params(axis="y", width=0, length=0)
 
@@ -604,6 +615,7 @@ ax_corner.axis("off")
 # Bottom row: ABL-wise delay fit + delay bar plot
 # =============================================================================
 plot_abl_delay_overlay(ax_abl_delay, abl_delay_overlay_payload)
+ax_abl_delay.set_ylabel("Density", fontsize=BOTTOM_LABEL_FS, labelpad=BOTTOM_YLABEL_PAD)
 plot_delay_bar(ax_delay_bar, delay_bar_payload)
 
 
