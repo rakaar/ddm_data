@@ -25,7 +25,13 @@ FILE_TAG = "all_animals"
 SHOW_PLOT = True
 SAVE_DPI = 500
 
-FIGSIZE = (21, 11.2)
+# Match the left 2x2 panel sizing used in figure_4_with_corner_using_template.py.
+FIGSIZE = (22, 10)
+LEFT_GRID_BOUNDS = dict(left=0.05, right=0.35, top=0.95, bottom=0.08)
+LEFT_GRID_WSPACE = 0.90
+LEFT_GRID_HSPACE = 0.15
+CORNER_BOUNDS = dict(left=0.43, right=0.95, top=0.95, bottom=0.08)
+
 LABEL_FS = 14
 TICK_FS = 11
 INSET_LABEL_FS = 9
@@ -155,19 +161,19 @@ file_tag = rt_led_payload.get("file_tag", FILE_TAG)
 # =============================================================================
 plt.close("all")
 fig = plt.figure(figsize=FIGSIZE)
-outer = fig.add_gridspec(1, 2, width_ratios=[1.50, 1.00], wspace=0.02)
+left = fig.add_gridspec(2, 2, wspace=LEFT_GRID_WSPACE, hspace=LEFT_GRID_HSPACE, **LEFT_GRID_BOUNDS)
+corner_grid = fig.add_gridspec(1, 1, **CORNER_BOUNDS)
 
-left = outer[0, 0].subgridspec(2, 2, wspace=0.08, hspace=0.16)
 ax_schematic = fig.add_subplot(left[0, 0])
-ax_rt_led = fig.add_subplot(left[0, 1])
-ax_rt_fix = fig.add_subplot(left[1, 0])
+ax_rt_fix = fig.add_subplot(left[0, 1])
+ax_rt_led = fig.add_subplot(left[1, 0])
 ax_rt_led_zoom = fig.add_subplot(left[1, 1])
 
 # Keep all four left panels square and same size.
 for ax in [ax_schematic, ax_rt_led, ax_rt_fix, ax_rt_led_zoom]:
     ax.set_box_aspect(1)
 
-ax_corner = fig.add_subplot(outer[0, 1])
+ax_corner = fig.add_subplot(corner_grid[0, 0])
 
 
 # =============================================================================
@@ -267,8 +273,8 @@ ax_schematic.tick_params(axis="y", width=0, length=0)
 # =============================================================================
 # Panel 2: RT wrt LED (main) + inset t_stim/t_LED
 # =============================================================================
-ax_rt_led.plot(rt_led_payload["data_x_ms"], rt_led_payload["data_hist_on_scaled"], color="r", alpha=0.4, lw=2.0)
-ax_rt_led.plot(rt_led_payload["data_x_ms"], rt_led_payload["data_hist_off_scaled"], color="b", alpha=0.4, lw=2.0)
+ax_rt_led.step(rt_led_payload["data_x_ms"], rt_led_payload["data_hist_on_scaled"], where="mid", color="r", alpha=0.4, lw=2.0)
+ax_rt_led.step(rt_led_payload["data_x_ms"], rt_led_payload["data_hist_off_scaled"], where="mid", color="b", alpha=0.4, lw=2.0)
 ax_rt_led.plot(rt_led_payload["theory_x_ms"], rt_led_payload["rtd_theory_on_wrt_led"], color="r", alpha=1.0, lw=2.4)
 ax_rt_led.plot(rt_led_payload["theory_x_ms"], rt_led_payload["rtd_theory_off_wrt_led"], color="b", alpha=1.0, lw=2.4)
 ax_rt_led.axvline(0, color="0.2", ls="--", lw=1.1, alpha=0.7)
@@ -303,8 +309,8 @@ ax_inset.patch.set_alpha(0.95)
 # =============================================================================
 # Panel 3: RT wrt fixation
 # =============================================================================
-ax_rt_fix.plot(rt_fix_payload["data_x_ms"], rt_fix_payload["data_hist_on_scaled"], color="r", alpha=0.4, lw=2.0)
-ax_rt_fix.plot(rt_fix_payload["data_x_ms"], rt_fix_payload["data_hist_off_scaled"], color="b", alpha=0.4, lw=2.0)
+ax_rt_fix.step(rt_fix_payload["data_x_ms"], rt_fix_payload["data_hist_on_scaled"], where="mid", color="r", alpha=0.4, lw=2.0)
+ax_rt_fix.step(rt_fix_payload["data_x_ms"], rt_fix_payload["data_hist_off_scaled"], where="mid", color="b", alpha=0.4, lw=2.0)
 ax_rt_fix.plot(rt_fix_payload["theory_x_ms"], rt_fix_payload["rtd_theory_on_wrt_fix"], color="r", alpha=1.0, lw=2.4)
 ax_rt_fix.plot(rt_fix_payload["theory_x_ms"], rt_fix_payload["rtd_theory_off_wrt_fix"], color="b", alpha=1.0, lw=2.4)
 ax_rt_fix.set_xlim(rt_fix_payload["xlim_ms"])
@@ -318,8 +324,8 @@ ax_rt_fix.tick_params(axis="y", width=0, length=0)
 # =============================================================================
 # Panel 4: RT wrt LED zoomed
 # =============================================================================
-ax_rt_led_zoom.plot(rt_led_zoom_payload["data_x_ms"], rt_led_zoom_payload["data_hist_on_scaled"], color="r", alpha=0.4, lw=2.0)
-ax_rt_led_zoom.plot(rt_led_zoom_payload["data_x_ms"], rt_led_zoom_payload["data_hist_off_scaled"], color="b", alpha=0.4, lw=2.0)
+ax_rt_led_zoom.step(rt_led_zoom_payload["data_x_ms"], rt_led_zoom_payload["data_hist_on_scaled"], where="mid", color="r", alpha=0.4, lw=2.0)
+ax_rt_led_zoom.step(rt_led_zoom_payload["data_x_ms"], rt_led_zoom_payload["data_hist_off_scaled"], where="mid", color="b", alpha=0.4, lw=2.0)
 ax_rt_led_zoom.plot(rt_led_zoom_payload["theory_x_ms"], rt_led_zoom_payload["rtd_theory_on_wrt_led"], color="r", alpha=1.0, lw=2.4)
 ax_rt_led_zoom.plot(rt_led_zoom_payload["theory_x_ms"], rt_led_zoom_payload["rtd_theory_off_wrt_led"], color="b", alpha=1.0, lw=2.4)
 ax_rt_led_zoom.axvline(0, color="0.2", ls="--", lw=1.1, alpha=0.7)
