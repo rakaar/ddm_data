@@ -36,6 +36,7 @@ FIG_BOUNDS = dict(left=0.05, right=0.95, top=0.95, bottom=0.08)
 # Choose width ratios so the bottom-right corner slot is close to square
 # after accounting for the top timing-header row height.
 OUTER_WIDTH_RATIOS = (0.70, 1.0)
+LOWER_OUTER_WIDTH_RATIOS = (0.62, 1.0)
 OUTER_WSPACE = 0.0
 OUTER_HSPACE = 0.22
 TIMING_HEADER_HEIGHT_FRAC = 0.34
@@ -45,9 +46,7 @@ TIMING_HEADER_WSPACE = 0.12
 TIMING_DISTS_HSPACE = 0.42
 LEFT_GRID_WSPACE = 0.08
 LEFT_GRID_HSPACE = 0.32
-BOTTOM_ROW_LAYOUT_RATIOS = (0.13, 0.62, 0.18, 0.72, 0.69)
 MAIN_HSPACE = 0.34
-BOTTOM_ROW_WSPACE = 0.08
 
 LABEL_FS = 25
 TICK_FS = 24
@@ -70,6 +69,8 @@ PANEL_XLABEL_PAD = 3
 PANEL_YLABEL_PAD = 2
 BOTTOM_XLABEL_PAD = 3
 BOTTOM_YLABEL_PAD = 2
+DELAY_BAR_YLABEL_PAD = 0
+DELAY_BAR_YLABEL_X = -0.03
 TIMING_DIST_XLABEL_PAD = 2
 TIMING_DIST_YLABEL_PAD = 2
 
@@ -346,7 +347,8 @@ def plot_delay_bar(ax, payload):
     ax.spines["bottom"].set_position(("data", 0.0))
     ax.spines["left"].set_linewidth(BOTTOM_AXIS_LW)
     ax.spines["bottom"].set_linewidth(BOTTOM_AXIS_LW)
-    ax.set_ylabel("Delay (ms)", fontsize=BOTTOM_LABEL_FS, labelpad=BOTTOM_YLABEL_PAD)
+    ax.set_ylabel("Delay (ms)", fontsize=BOTTOM_LABEL_FS, labelpad=DELAY_BAR_YLABEL_PAD)
+    ax.yaxis.set_label_coords(DELAY_BAR_YLABEL_X, 0.5)
     ax.set_xticks(x)
     ax.set_xticklabels(["", *labels[1:]], fontsize=BOTTOM_TICK_FS, rotation=0)
     ax.tick_params(axis="y", labelsize=BOTTOM_TICK_FS, direction="out", length=BOTTOM_TICK_LEN, width=BOTTOM_TICK_LW)
@@ -407,20 +409,20 @@ main = fig.add_gridspec(
 if show_top_strip:
     outer = main[0, 0].subgridspec(
         2,
-        2,
-        width_ratios=OUTER_WIDTH_RATIOS,
+        1,
         height_ratios=[TIMING_HEADER_HEIGHT_FRAC, 1.0],
-        wspace=OUTER_WSPACE,
         hspace=OUTER_HSPACE,
     )
-    header = outer[0, 0].subgridspec(1, 2, width_ratios=TIMING_HEADER_WIDTH_RATIOS, wspace=TIMING_HEADER_WSPACE)
+    header_outer = outer[0, 0].subgridspec(1, 2, width_ratios=OUTER_WIDTH_RATIOS, wspace=OUTER_WSPACE)
+    header = header_outer[0, 0].subgridspec(1, 2, width_ratios=TIMING_HEADER_WIDTH_RATIOS, wspace=TIMING_HEADER_WSPACE)
     header_dists = header[0, 1].subgridspec(2, 1, hspace=TIMING_DISTS_HSPACE)
-    left = outer[1, 0].subgridspec(2, 2, wspace=LEFT_GRID_WSPACE, hspace=LEFT_GRID_HSPACE)
+    lower = outer[1, 0].subgridspec(1, 2, width_ratios=LOWER_OUTER_WIDTH_RATIOS, wspace=OUTER_WSPACE)
+    left = lower[0, 0].subgridspec(2, 2, wspace=LEFT_GRID_WSPACE, hspace=LEFT_GRID_HSPACE)
 
     ax_timing_header = fig.add_subplot(header[0, 0])
     ax_timing_dist_led = fig.add_subplot(header_dists[0, 0])
     ax_timing_dist_stim = fig.add_subplot(header_dists[1, 0])
-    ax_corner = fig.add_subplot(outer[1, 1])
+    ax_corner = fig.add_subplot(lower[0, 1])
 else:
     outer = main[0, 0].subgridspec(1, 2, width_ratios=OUTER_WIDTH_RATIOS, wspace=OUTER_WSPACE)
     left = outer[0, 0].subgridspec(2, 2, wspace=LEFT_GRID_WSPACE, hspace=LEFT_GRID_HSPACE)
@@ -429,9 +431,10 @@ else:
     ax_timing_dist_led = None
     ax_timing_dist_stim = None
 
-bottom = main[1, 0].subgridspec(1, 5, width_ratios=BOTTOM_ROW_LAYOUT_RATIOS, wspace=BOTTOM_ROW_WSPACE)
-ax_abl_delay = fig.add_subplot(bottom[0, 1])
-ax_delay_bar = fig.add_subplot(bottom[0, 3])
+bottom = main[1, 0].subgridspec(1, 2, width_ratios=LOWER_OUTER_WIDTH_RATIOS, wspace=OUTER_WSPACE)
+bottom_left = bottom[0, 0].subgridspec(1, 2, wspace=LEFT_GRID_WSPACE)
+ax_abl_delay = fig.add_subplot(bottom_left[0, 0])
+ax_delay_bar = fig.add_subplot(bottom_left[0, 1])
 
 ax_schematic = fig.add_subplot(left[0, 0])
 ax_rt_fix = fig.add_subplot(left[0, 1])
@@ -439,6 +442,9 @@ ax_rt_led = fig.add_subplot(left[1, 0])
 ax_rt_led_zoom = fig.add_subplot(left[1, 1])
 
 for ax in [ax_schematic, ax_rt_led, ax_rt_fix, ax_rt_led_zoom]:
+    ax.set_box_aspect(1)
+
+for ax in [ax_abl_delay, ax_delay_bar]:
     ax.set_box_aspect(1)
 
 

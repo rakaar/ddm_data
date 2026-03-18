@@ -18,3 +18,4 @@ fit_each_condn/each_cond_data/*
 *.gz
 *.svg
 *.jpg
+*.sh
