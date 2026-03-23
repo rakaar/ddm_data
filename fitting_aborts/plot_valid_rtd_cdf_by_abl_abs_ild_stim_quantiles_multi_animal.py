@@ -10,22 +10,28 @@ import pandas as pd
 # %%
 SHOW_PLOT = True
 
-DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+# DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+DESIRED_BATCHES = ["LED7"]
+
 EXCLUDED_BATCH_ANIMAL_PAIRS = []
-num_intended_fix_quantile_bins = 3
+num_intended_fix_quantile_bins = 2
 
 supported_abl_values = (20, 40, 60)
 supported_abs_ild_values = (1, 2, 4, 8, 16)
 
-rt_min_s = 0.0
+rt_min_s = -0.2
 rt_max_s = 1.0
 intended_fix_max_s = 1.5
 bin_size_s = 5e-3
-xlim_ms = (0, 100)
+tachometric_bin_size_s = 5e-3
+xlim_ms = (-100, 200)
 ylabel_rtd = "Density"
 ylabel_cdf = "CDF"
-rtd_ylim = (0, 6)
-cdf_ylim = (0, 0.1)
+ylabel_tacho = "P(success = 1)"
+rtd_ylim = (0, 10)
+cdf_ylim = (0, 1)
+tacho_ylim = (0, 1)
+tachometric_random_choice_seed = 12345
 
 panel_width = 5.0
 panel_height = 3.2
@@ -41,6 +47,8 @@ rtd_plot_base = "multi_animal_valid_rtd_by_abl_abs_ild_quantile_segments"
 cdf_plot_base = "multi_animal_valid_cdf_by_abl_abs_ild_quantile_segments"
 rtd_plot_base_all_ild = "multi_animal_valid_rtd_by_abl_all_ild_quantile_segments"
 cdf_plot_base_all_ild = "multi_animal_valid_cdf_by_abl_all_ild_quantile_segments"
+tacho_plot_base_all_ild = "multi_animal_valid_tachometric_by_abl_all_ild_quantile_segments"
+tacho_plot_base_abs_ild = "multi_animal_valid_tachometric_by_abl_abs_ild_quantile_segments"
 
 
 # %%
@@ -98,6 +106,19 @@ def compute_binned_cdf(values: np.ndarray, bins: np.ndarray) -> np.ndarray:
         return np.zeros(len(bins) - 1, dtype=float)
     counts, _ = np.histogram(values, bins=bins, density=False)
     return np.cumsum(counts) / len(values)
+
+
+def compute_binned_accuracy(rt_values: np.ndarray, correct_values: np.ndarray, bins: np.ndarray) -> np.ndarray:
+    if len(rt_values) == 0:
+        return np.full(len(bins) - 1, np.nan, dtype=float)
+
+    trial_counts, _ = np.histogram(rt_values, bins=bins, density=False)
+    correct_counts, _ = np.histogram(rt_values[correct_values == 1], bins=bins, density=False)
+
+    accuracy = np.full(len(bins) - 1, np.nan, dtype=float)
+    nonzero_mask = trial_counts > 0
+    accuracy[nonzero_mask] = correct_counts[nonzero_mask] / trial_counts[nonzero_mask]
+    return accuracy
 
 
 def save_figure(fig: plt.Figure, output_base: Path) -> None:
@@ -223,6 +244,73 @@ def load_merged_valid_trials() -> pd.DataFrame:
     return merged_valid
 
 
+def load_merged_tachometric_trials() -> pd.DataFrame:
+    batch_files = []
+    missing_batch_files = []
+
+    for batch_name in DESIRED_BATCHES:
+        batch_file_with_4 = batch_csv_dir / f"batch_{batch_name}_valid_and_aborts_and_4.csv"
+        batch_file = batch_csv_dir / f"batch_{batch_name}_valid_and_aborts.csv"
+        if batch_file_with_4.exists():
+            batch_files.append(batch_file_with_4)
+        elif batch_file.exists():
+            batch_files.append(batch_file)
+        else:
+            missing_batch_files.append(batch_file_with_4.name)
+
+    if not batch_files:
+        raise FileNotFoundError(
+            f"Could not find any batch CSVs in {batch_csv_dir} for DESIRED_BATCHES={DESIRED_BATCHES}"
+        )
+
+    merged_data = pd.concat([pd.read_csv(batch_file) for batch_file in batch_files], ignore_index=True)
+    validate_required_columns(
+        merged_data,
+        ["batch_name", "animal", "success", "abort_event", "choice", "RTwrtStim", "ABL", "ILD", "intended_fix"],
+    )
+
+    for column_name in ["success", "abort_event", "choice", "RTwrtStim", "ABL", "ILD", "intended_fix"]:
+        merged_data[column_name] = pd.to_numeric(merged_data[column_name], errors="coerce")
+
+    merged_tachometric = merged_data[
+        merged_data["success"].isin([1, -1])
+        | np.isclose(merged_data["abort_event"], 4)
+        | np.isclose(merged_data["abort_event"], 3)
+    ].copy()
+
+    abort_event_3_mask = np.isclose(merged_tachometric["abort_event"], 3)
+    if abort_event_3_mask.any():
+        rng = np.random.default_rng(tachometric_random_choice_seed)
+        merged_tachometric.loc[abort_event_3_mask, "choice"] = rng.choice(
+            [-1, 1],
+            size=int(abort_event_3_mask.sum()),
+        )
+
+    merged_tachometric["abs_ILD"] = merged_tachometric["ILD"].abs()
+
+    correct_mask = (
+        ((merged_tachometric["ILD"] > 0) & np.isclose(merged_tachometric["choice"], 1))
+        | ((merged_tachometric["ILD"] < 0) & np.isclose(merged_tachometric["choice"], -1))
+    )
+    merged_tachometric["derived_success"] = correct_mask.astype(int)
+
+    if missing_batch_files:
+        print(f"Skipped missing tachometric batch files: {missing_batch_files}")
+
+    discovered_pairs = get_batch_animal_pairs(merged_tachometric)
+    print_batch_animal_table(discovered_pairs)
+
+    if EXCLUDED_BATCH_ANIMAL_PAIRS:
+        excluded_pairs = {(str(batch), str(animal)) for batch, animal in EXCLUDED_BATCH_ANIMAL_PAIRS}
+        batch_animal_keys = list(
+            zip(merged_tachometric["batch_name"].astype(str), merged_tachometric["animal"].astype(str))
+        )
+        merged_tachometric = merged_tachometric[[key not in excluded_pairs for key in batch_animal_keys]].copy()
+        print(f"Excluded batch-animal pairs from tachometric data: {sorted(excluded_pairs)}")
+
+    return merged_tachometric
+
+
 def prepare_plot_df(valid_df: pd.DataFrame) -> tuple[pd.DataFrame, np.ndarray]:
     mask_rt = (valid_df["RTwrtStim"] >= rt_min_s) & (valid_df["RTwrtStim"] < rt_max_s)
     mask_abl = valid_df["ABL"].isin(supported_abl_values)
@@ -242,6 +330,44 @@ def prepare_plot_df(valid_df: pd.DataFrame) -> tuple[pd.DataFrame, np.ndarray]:
         num_intended_fix_quantile_bins,
     )
     return plot_df, intended_fix_segment_edges
+
+
+def prepare_tachometric_df(tachometric_df: pd.DataFrame, segment_edges: np.ndarray) -> pd.DataFrame:
+    mask_rt = (tachometric_df["RTwrtStim"] >= rt_min_s) & (tachometric_df["RTwrtStim"] < rt_max_s)
+    mask_abl = tachometric_df["ABL"].isin(supported_abl_values)
+    mask_abs_ild = tachometric_df["abs_ILD"].isin(supported_abs_ild_values)
+    mask_intended_fix = tachometric_df["intended_fix"].notna()
+    mask_choice = tachometric_df["choice"].isin([-1, 1])
+
+    prepared_df = tachometric_df[mask_rt & mask_abl & mask_abs_ild & mask_intended_fix & mask_choice].copy()
+    prepared_df = apply_intended_fix_upper_bound(prepared_df, intended_fix_max_s)
+
+    if len(prepared_df) == 0:
+        raise ValueError("No tachometric trials found after filtering.")
+
+    validate_supported_values(prepared_df, "ABL", supported_abl_values)
+    validate_supported_values(prepared_df, "abs_ILD", supported_abs_ild_values)
+
+    segment_cut_edges = np.asarray(segment_edges, dtype=float).copy()
+    segment_cut_edges[0] = np.nextafter(segment_cut_edges[0], -np.inf)
+    segment_cut_edges[-1] = np.nextafter(segment_cut_edges[-1], np.inf)
+    clipped_intended_fix = prepared_df["intended_fix"].clip(
+        lower=float(segment_edges[0]),
+        upper=float(segment_edges[-1]),
+    )
+
+    segment_ids = pd.cut(
+        clipped_intended_fix,
+        bins=segment_cut_edges,
+        include_lowest=True,
+        labels=False,
+        duplicates="raise",
+    )
+    if segment_ids.isna().any():
+        raise ValueError("Failed to assign intended_fix quantile segments to some tachometric trials.")
+
+    prepared_df["intended_fix_segment"] = segment_ids.astype(int)
+    return prepared_df
 
 
 def make_condition_plot(
@@ -393,11 +519,143 @@ def make_abl_collapsed_plot(
     return fig
 
 
+def make_tachometric_plot(
+    df: pd.DataFrame,
+    bins_s: np.ndarray,
+    colors_by_abl: dict[int, str],
+    segment_edges: np.ndarray,
+) -> plt.Figure:
+    n_segments = len(segment_edges) - 1
+    fig, axes = plt.subplots(
+        n_segments,
+        1,
+        figsize=(panel_width, panel_height * n_segments),
+        sharex=True,
+        sharey=True,
+        squeeze=False,
+    )
+    bin_centers_ms = (bins_s[:-1] + 0.5 * np.diff(bins_s)) * 1e3
+
+    for segment_idx in range(n_segments):
+        ax = axes[segment_idx, 0]
+        segment_df = df[df["intended_fix_segment"] == segment_idx].copy()
+        segment_label = format_segment_label(segment_idx, segment_edges, n_segments)
+        segment_counts_by_abl = {
+            abl_value: int(np.isclose(segment_df["ABL"], abl_value).sum())
+            for abl_value in supported_abl_values
+        }
+        segment_total = int(len(segment_df))
+
+        for abl_value in supported_abl_values:
+            abl_df = segment_df[np.isclose(segment_df["ABL"], abl_value)].copy()
+            rt_values = abl_df["RTwrtStim"].to_numpy()
+            correct_values = abl_df["derived_success"].to_numpy()
+            accuracy = compute_binned_accuracy(rt_values, correct_values, bins_s)
+
+            ax.plot(
+                bin_centers_ms,
+                accuracy,
+                label=f"ABL = {abl_value}",
+                color=colors_by_abl[abl_value],
+                linewidth=1.8,
+                marker="o",
+                markersize=3,
+            )
+
+        ax.set_xlim(*xlim_ms)
+        ax.grid(alpha=0.2, linewidth=0.6)
+        ax.set_title(
+            f"{segment_label}\n"
+            f"n20={segment_counts_by_abl[20]}, "
+            f"n40={segment_counts_by_abl[40]}, "
+            f"n60={segment_counts_by_abl[60]}, "
+            f"total={segment_total}"
+        )
+
+        if segment_idx == n_segments - 1:
+            ax.set_xlabel("RT wrt stim (ms)")
+
+        ax.set_ylabel(ylabel_tacho)
+
+        if tacho_ylim is not None:
+            ax.set_ylim(*tacho_ylim)
+
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=len(supported_abl_values), frameon=False)
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
+    return fig
+
+
+def make_tachometric_plot_by_abs_ild(
+    df: pd.DataFrame,
+    bins_s: np.ndarray,
+    colors_by_abs_ild: dict[int, str],
+    segment_edges: np.ndarray,
+) -> plt.Figure:
+    n_segments = len(segment_edges) - 1
+    figure_size = (panel_width * len(supported_abl_values), panel_height * n_segments)
+    fig, axes = plt.subplots(
+        n_segments,
+        len(supported_abl_values),
+        figsize=figure_size,
+        sharex=True,
+        sharey=True,
+        squeeze=False,
+    )
+    bin_centers_ms = (bins_s[:-1] + 0.5 * np.diff(bins_s)) * 1e3
+
+    for segment_idx in range(n_segments):
+        segment_df = df[df["intended_fix_segment"] == segment_idx].copy()
+        segment_label = format_segment_label(segment_idx, segment_edges, n_segments)
+        segment_total = int(len(segment_df))
+
+        for col_idx, abl_value in enumerate(supported_abl_values):
+            ax = axes[segment_idx, col_idx]
+            abl_df = segment_df[np.isclose(segment_df["ABL"], abl_value)].copy()
+            abl_total = int(len(abl_df))
+
+            for abs_ild_value in supported_abs_ild_values:
+                condition_df = abl_df[np.isclose(abl_df["abs_ILD"], abs_ild_value)].copy()
+                rt_values = condition_df["RTwrtStim"].to_numpy()
+                correct_values = condition_df["derived_success"].to_numpy()
+                accuracy = compute_binned_accuracy(rt_values, correct_values, bins_s)
+
+                ax.plot(
+                    bin_centers_ms,
+                    accuracy,
+                    label=f"|ILD| = {abs_ild_value}",
+                    color=colors_by_abs_ild[abs_ild_value],
+                    linewidth=1.8,
+                    marker="o",
+                    markersize=3,
+                )
+
+            ax.set_title(f"ABL = {abl_value}\nn={abl_total}")
+            ax.set_xlim(*xlim_ms)
+            ax.grid(alpha=0.2, linewidth=0.6)
+
+            if segment_idx == n_segments - 1:
+                ax.set_xlabel("RT wrt stim (ms)")
+
+            if col_idx == 0:
+                ax.set_ylabel(f"{ylabel_tacho}\n{segment_label}\nsegment n={segment_total}")
+
+            if tacho_ylim is not None:
+                ax.set_ylim(*tacho_ylim)
+
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=len(supported_abs_ild_values), frameon=False)
+    fig.tight_layout(rect=(0, 0, 1, 0.9))
+    return fig
+
+
 # %%
 output_dir.mkdir(parents=True, exist_ok=True)
 
 merged_valid = load_merged_valid_trials()
 plot_df, intended_fix_segment_edges = prepare_plot_df(merged_valid)
+merged_tachometric = load_merged_tachometric_trials()
+tacho_df = prepare_tachometric_df(merged_tachometric, intended_fix_segment_edges)
 
 filtered_batch_animal_pairs = get_batch_animal_pairs(plot_df)
 batch_counts = plot_df["batch_name"].astype(str).value_counts().sort_index().to_dict()
@@ -441,6 +699,7 @@ print(segment_condition_counts.to_string())
 
 # %%
 rt_bins_s = np.arange(rt_min_s, rt_max_s + bin_size_s, bin_size_s)
+tacho_bins_s = np.arange(rt_min_s, rt_max_s + tachometric_bin_size_s, tachometric_bin_size_s)
 abs_ild_colors = {
     1: "tab:blue",
     2: "tab:orange",
@@ -482,16 +741,32 @@ cdf_all_ild_fig = make_abl_collapsed_plot(
     colors_by_abl=abl_colors,
     segment_edges=intended_fix_segment_edges,
 )
+tacho_all_ild_fig = make_tachometric_plot(
+    tacho_df,
+    bins_s=tacho_bins_s,
+    colors_by_abl=abl_colors,
+    segment_edges=intended_fix_segment_edges,
+)
+tacho_abs_ild_fig = make_tachometric_plot_by_abs_ild(
+    tacho_df,
+    bins_s=tacho_bins_s,
+    colors_by_abs_ild=abs_ild_colors,
+    segment_edges=intended_fix_segment_edges,
+)
 
 rtd_output_base = output_dir / rtd_plot_base
 cdf_output_base = output_dir / cdf_plot_base
 rtd_output_base_all_ild = output_dir / rtd_plot_base_all_ild
 cdf_output_base_all_ild = output_dir / cdf_plot_base_all_ild
+tacho_output_base_all_ild = output_dir / tacho_plot_base_all_ild
+tacho_output_base_abs_ild = output_dir / tacho_plot_base_abs_ild
 
 save_figure(rtd_fig, rtd_output_base)
 save_figure(cdf_fig, cdf_output_base)
 save_figure(rtd_all_ild_fig, rtd_output_base_all_ild)
 save_figure(cdf_all_ild_fig, cdf_output_base_all_ild)
+save_figure(tacho_all_ild_fig, tacho_output_base_all_ild)
+save_figure(tacho_abs_ild_fig, tacho_output_base_abs_ild)
 
 print("Saved RTD figure:")
 print(f"  {rtd_output_base.with_suffix('.pdf')}")
@@ -505,6 +780,12 @@ print(f"  {rtd_output_base_all_ild.with_suffix('.png')}")
 print("Saved CDF figure collapsed across ILD:")
 print(f"  {cdf_output_base_all_ild.with_suffix('.pdf')}")
 print(f"  {cdf_output_base_all_ild.with_suffix('.png')}")
+print("Saved tachometric figure collapsed across ILD:")
+print(f"  {tacho_output_base_all_ild.with_suffix('.pdf')}")
+print(f"  {tacho_output_base_all_ild.with_suffix('.png')}")
+print("Saved tachometric figure by abs ILD:")
+print(f"  {tacho_output_base_abs_ild.with_suffix('.pdf')}")
+print(f"  {tacho_output_base_abs_ild.with_suffix('.png')}")
 
 if show_plot:
     plt.show()
@@ -513,5 +794,7 @@ else:
     plt.close(cdf_fig)
     plt.close(rtd_all_ild_fig)
     plt.close(cdf_all_ild_fig)
+    plt.close(tacho_all_ild_fig)
+    plt.close(tacho_abs_ild_fig)
 
 # %%
