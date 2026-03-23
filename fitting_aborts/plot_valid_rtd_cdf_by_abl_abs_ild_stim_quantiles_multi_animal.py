@@ -3,6 +3,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
 
@@ -10,8 +11,8 @@ import pandas as pd
 # %%
 SHOW_PLOT = True
 
-# DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
-DESIRED_BATCHES = ["LED7"]
+DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+# DESIRED_BATCHES = ["LED7"]
 
 EXCLUDED_BATCH_ANIMAL_PAIRS = []
 num_intended_fix_quantile_bins = 2
@@ -46,7 +47,10 @@ output_dir = SCRIPT_DIR / "multi_animal_valid_rtd_cdf_stim_quantiles"
 rtd_plot_base = "multi_animal_valid_rtd_by_abl_abs_ild_quantile_segments"
 cdf_plot_base = "multi_animal_valid_cdf_by_abl_abs_ild_quantile_segments"
 rtd_plot_base_all_ild = "multi_animal_valid_rtd_by_abl_all_ild_quantile_segments"
+rtd_plot_base_all_ild_segment_overlay = "multi_animal_valid_rtd_by_abl_all_ild_segment_overlay_quantile_segments"
+rtd_plot_base_condition_grid_segment_overlay = "multi_animal_valid_rtd_by_abl_abs_ild_condition_grid_segment_overlay_quantile_segments"
 cdf_plot_base_all_ild = "multi_animal_valid_cdf_by_abl_all_ild_quantile_segments"
+cdf_plot_base_segment_overlay = "multi_animal_valid_cdf_by_abl_abs_ild_segment_overlay_quantile_segments"
 tacho_plot_base_all_ild = "multi_animal_valid_tachometric_by_abl_all_ild_quantile_segments"
 tacho_plot_base_abs_ild = "multi_animal_valid_tachometric_by_abl_abs_ild_quantile_segments"
 
@@ -519,6 +523,275 @@ def make_abl_collapsed_plot(
     return fig
 
 
+def make_abl_segment_overlay_rtd_plot(
+    df: pd.DataFrame,
+    bins_s: np.ndarray,
+    colors_by_abl: dict[int, str],
+    segment_edges: np.ndarray,
+) -> plt.Figure:
+    n_segments = len(segment_edges) - 1
+    fig, axes = plt.subplots(
+        1,
+        len(supported_abl_values),
+        figsize=(panel_width * len(supported_abl_values), panel_height),
+        sharex=True,
+        sharey=True,
+        squeeze=False,
+    )
+    x_edges_ms = bins_s * 1e3
+    segment_linestyles = [":", "-", "--", "-."]
+
+    for col_idx, abl_value in enumerate(supported_abl_values):
+        ax = axes[0, col_idx]
+        abl_df = df[np.isclose(df["ABL"], abl_value)].copy()
+        segment_count_labels = []
+
+        for segment_idx in range(n_segments):
+            segment_df = abl_df[abl_df["intended_fix_segment"] == segment_idx].copy()
+            values = segment_df["RTwrtStim"].to_numpy()
+            y_values = compute_density_histogram(values, bins_s)
+            line_alpha = 1.0 if segment_idx == 0 else 0.5
+
+            if n_segments == 2:
+                segment_name = "Early stim" if segment_idx == 0 else "Late stim"
+                segment_count_name = "early" if segment_idx == 0 else "late"
+            else:
+                segment_name = f"Stim seg {segment_idx + 1}/{n_segments}"
+                segment_count_name = f"seg{segment_idx + 1}"
+
+            segment_count_labels.append(f"{segment_count_name}={len(segment_df)}")
+
+            ax.stairs(
+                y_values,
+                x_edges_ms,
+                label=(
+                    f"{segment_name} "
+                    f"[{segment_edges[segment_idx]:.3f}, {segment_edges[segment_idx + 1]:.3f}] s"
+                ),
+                color=colors_by_abl[abl_value],
+                linewidth=1.8,
+                linestyle=segment_linestyles[segment_idx % len(segment_linestyles)],
+                alpha=line_alpha,
+            )
+
+        ax.set_title(f"ABL = {abl_value}\n{', '.join(segment_count_labels)}, total={len(abl_df)}")
+        ax.set_xlim(*xlim_ms)
+        ax.grid(alpha=0.2, linewidth=0.6)
+        ax.set_xlabel("RT wrt stim (ms)")
+
+        if col_idx == 0:
+            ax.set_ylabel(ylabel_rtd)
+
+        if rtd_ylim is not None:
+            ax.set_ylim(*rtd_ylim)
+
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=min(n_segments, 4), frameon=False)
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
+    return fig
+
+
+def make_condition_segment_overlay_plot(
+    df: pd.DataFrame,
+    bins_s: np.ndarray,
+    y_mode: str,
+    colors_by_abs_ild: dict[int, str],
+    segment_edges: np.ndarray,
+) -> plt.Figure:
+    if y_mode not in {"rtd", "cdf"}:
+        raise ValueError(f"Unsupported y_mode: {y_mode}")
+
+    n_segments = len(segment_edges) - 1
+    fig, axes = plt.subplots(
+        1,
+        len(supported_abl_values),
+        figsize=(panel_width * len(supported_abl_values), panel_height),
+        sharex=True,
+        sharey=True,
+        squeeze=False,
+    )
+    x_edges_ms = bins_s * 1e3
+    segment_linestyles = [":", "-", "--", "-."]
+
+    for col_idx, abl_value in enumerate(supported_abl_values):
+        ax = axes[0, col_idx]
+        abl_df = df[np.isclose(df["ABL"], abl_value)].copy()
+        segment_count_labels = []
+
+        for segment_idx in range(n_segments):
+            segment_df = abl_df[abl_df["intended_fix_segment"] == segment_idx].copy()
+            line_alpha = 1.0 if segment_idx == 0 else 0.5
+
+            if n_segments == 2:
+                segment_count_name = "early" if segment_idx == 0 else "late"
+            else:
+                segment_count_name = f"seg{segment_idx + 1}"
+            segment_count_labels.append(f"{segment_count_name}={len(segment_df)}")
+
+            for abs_ild_value in supported_abs_ild_values:
+                condition_df = segment_df[np.isclose(segment_df["abs_ILD"], abs_ild_value)].copy()
+                values = condition_df["RTwrtStim"].to_numpy()
+
+                if y_mode == "rtd":
+                    y_values = compute_density_histogram(values, bins_s)
+                else:
+                    y_values = compute_binned_cdf(values, bins_s)
+
+                ax.stairs(
+                    y_values,
+                    x_edges_ms,
+                    color=colors_by_abs_ild[abs_ild_value],
+                    linewidth=1.8,
+                    linestyle=segment_linestyles[segment_idx % len(segment_linestyles)],
+                    alpha=line_alpha,
+                )
+
+        ax.set_title(f"ABL = {abl_value}\n{', '.join(segment_count_labels)}")
+        ax.set_xlim(*xlim_ms)
+        ax.grid(alpha=0.2, linewidth=0.6)
+        ax.set_xlabel("RT wrt stim (ms)")
+
+        if col_idx == 0:
+            if y_mode == "rtd":
+                ax.set_ylabel(ylabel_rtd)
+            else:
+                ax.set_ylabel(ylabel_cdf)
+
+        if y_mode == "rtd" and rtd_ylim is not None:
+            ax.set_ylim(*rtd_ylim)
+        if y_mode == "cdf" and cdf_ylim is not None:
+            ax.set_ylim(*cdf_ylim)
+
+    abs_ild_handles = [
+        Line2D([0], [0], color=colors_by_abs_ild[abs_ild_value], linewidth=1.8, linestyle="-")
+        for abs_ild_value in supported_abs_ild_values
+    ]
+    abs_ild_labels = [f"|ILD| = {abs_ild_value}" for abs_ild_value in supported_abs_ild_values]
+    segment_handles = [
+        Line2D([0], [0], color="black", linewidth=1.8, linestyle=segment_linestyles[segment_idx])
+        for segment_idx in range(min(n_segments, len(segment_linestyles)))
+    ]
+    if n_segments == 2:
+        segment_labels = ["Early stim", "Late stim"]
+    else:
+        segment_labels = [f"Stim seg {segment_idx + 1}/{n_segments}" for segment_idx in range(min(n_segments, len(segment_linestyles)))]
+
+    color_legend = fig.legend(
+        abs_ild_handles,
+        abs_ild_labels,
+        loc="upper center",
+        ncol=len(supported_abs_ild_values),
+        frameon=False,
+        bbox_to_anchor=(0.5, 1.02),
+    )
+    fig.add_artist(color_legend)
+    fig.legend(
+        segment_handles,
+        segment_labels,
+        loc="upper center",
+        ncol=len(segment_labels),
+        frameon=False,
+        bbox_to_anchor=(0.5, 0.96),
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.88))
+    return fig
+
+
+def make_condition_grid_segment_overlay_plot(
+    df: pd.DataFrame,
+    bins_s: np.ndarray,
+    y_mode: str,
+    segment_edges: np.ndarray,
+) -> plt.Figure:
+    if y_mode not in {"rtd", "cdf"}:
+        raise ValueError(f"Unsupported y_mode: {y_mode}")
+
+    n_segments = len(segment_edges) - 1
+    fig, axes = plt.subplots(
+        len(supported_abs_ild_values),
+        len(supported_abl_values),
+        figsize=(panel_width * len(supported_abl_values), panel_height * len(supported_abs_ild_values)),
+        sharex=True,
+        sharey=True,
+        squeeze=False,
+    )
+    x_edges_ms = bins_s * 1e3
+    segment_colors = ["tab:blue", "tab:red", "tab:green", "tab:purple"]
+
+    for row_idx, abs_ild_value in enumerate(supported_abs_ild_values):
+        for col_idx, abl_value in enumerate(supported_abl_values):
+            ax = axes[row_idx, col_idx]
+            condition_df = df[
+                np.isclose(df["abs_ILD"], abs_ild_value) & np.isclose(df["ABL"], abl_value)
+            ].copy()
+            segment_count_labels = []
+
+            for segment_idx in range(n_segments):
+                segment_df = condition_df[condition_df["intended_fix_segment"] == segment_idx].copy()
+                values = segment_df["RTwrtStim"].to_numpy()
+
+                if n_segments == 2:
+                    segment_name = "Early stim" if segment_idx == 0 else "Late stim"
+                    segment_count_name = "early" if segment_idx == 0 else "late"
+                else:
+                    segment_name = f"Stim seg {segment_idx + 1}/{n_segments}"
+                    segment_count_name = f"seg{segment_idx + 1}"
+
+                segment_count_labels.append(f"{segment_count_name}={len(segment_df)}")
+
+                if y_mode == "rtd":
+                    y_values = compute_density_histogram(values, bins_s)
+                else:
+                    y_values = compute_binned_cdf(values, bins_s)
+
+                ax.stairs(
+                    y_values,
+                    x_edges_ms,
+                    color=segment_colors[segment_idx % len(segment_colors)],
+                    linewidth=1.8,
+                    linestyle="-",
+                    label=segment_name,
+                )
+
+            ax.set_title(f"ABL = {abl_value}\n{', '.join(segment_count_labels)}")
+            ax.set_xlim(*xlim_ms)
+            ax.grid(alpha=0.2, linewidth=0.6)
+
+            if row_idx == len(supported_abs_ild_values) - 1:
+                ax.set_xlabel("RT wrt stim (ms)")
+
+            if col_idx == 0:
+                if y_mode == "rtd":
+                    ax.set_ylabel(f"{ylabel_rtd}\n|ILD| = {abs_ild_value}")
+                else:
+                    ax.set_ylabel(f"{ylabel_cdf}\n|ILD| = {abs_ild_value}")
+
+            if y_mode == "rtd" and rtd_ylim is not None:
+                ax.set_ylim(*rtd_ylim)
+            if y_mode == "cdf" and cdf_ylim is not None:
+                ax.set_ylim(*cdf_ylim)
+
+    segment_handles = [
+        Line2D([0], [0], color=segment_colors[segment_idx], linewidth=1.8, linestyle="-")
+        for segment_idx in range(min(n_segments, len(segment_colors)))
+    ]
+    if n_segments == 2:
+        segment_labels = ["Early stim", "Late stim"]
+    else:
+        segment_labels = [f"Stim seg {segment_idx + 1}/{n_segments}" for segment_idx in range(min(n_segments, len(segment_colors)))]
+
+    fig.legend(
+        segment_handles,
+        segment_labels,
+        loc="upper center",
+        ncol=len(segment_labels),
+        frameon=False,
+        bbox_to_anchor=(0.5, 0.99),
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    return fig
+
+
 def make_tachometric_plot(
     df: pd.DataFrame,
     bins_s: np.ndarray,
@@ -734,11 +1007,30 @@ rtd_all_ild_fig = make_abl_collapsed_plot(
     colors_by_abl=abl_colors,
     segment_edges=intended_fix_segment_edges,
 )
+rtd_all_ild_segment_overlay_fig = make_abl_segment_overlay_rtd_plot(
+    plot_df,
+    bins_s=rt_bins_s,
+    colors_by_abl=abl_colors,
+    segment_edges=intended_fix_segment_edges,
+)
 cdf_all_ild_fig = make_abl_collapsed_plot(
     plot_df,
     bins_s=rt_bins_s,
     y_mode="cdf",
     colors_by_abl=abl_colors,
+    segment_edges=intended_fix_segment_edges,
+)
+cdf_segment_overlay_fig = make_condition_segment_overlay_plot(
+    plot_df,
+    bins_s=rt_bins_s,
+    y_mode="cdf",
+    colors_by_abs_ild=abs_ild_colors,
+    segment_edges=intended_fix_segment_edges,
+)
+rtd_condition_grid_segment_overlay_fig = make_condition_grid_segment_overlay_plot(
+    plot_df,
+    bins_s=rt_bins_s,
+    y_mode="rtd",
     segment_edges=intended_fix_segment_edges,
 )
 tacho_all_ild_fig = make_tachometric_plot(
@@ -757,14 +1049,20 @@ tacho_abs_ild_fig = make_tachometric_plot_by_abs_ild(
 rtd_output_base = output_dir / rtd_plot_base
 cdf_output_base = output_dir / cdf_plot_base
 rtd_output_base_all_ild = output_dir / rtd_plot_base_all_ild
+rtd_output_base_all_ild_segment_overlay = output_dir / rtd_plot_base_all_ild_segment_overlay
+rtd_output_base_condition_grid_segment_overlay = output_dir / rtd_plot_base_condition_grid_segment_overlay
 cdf_output_base_all_ild = output_dir / cdf_plot_base_all_ild
+cdf_output_base_segment_overlay = output_dir / cdf_plot_base_segment_overlay
 tacho_output_base_all_ild = output_dir / tacho_plot_base_all_ild
 tacho_output_base_abs_ild = output_dir / tacho_plot_base_abs_ild
 
 save_figure(rtd_fig, rtd_output_base)
 save_figure(cdf_fig, cdf_output_base)
 save_figure(rtd_all_ild_fig, rtd_output_base_all_ild)
+save_figure(rtd_all_ild_segment_overlay_fig, rtd_output_base_all_ild_segment_overlay)
+save_figure(rtd_condition_grid_segment_overlay_fig, rtd_output_base_condition_grid_segment_overlay)
 save_figure(cdf_all_ild_fig, cdf_output_base_all_ild)
+save_figure(cdf_segment_overlay_fig, cdf_output_base_segment_overlay)
 save_figure(tacho_all_ild_fig, tacho_output_base_all_ild)
 save_figure(tacho_abs_ild_fig, tacho_output_base_abs_ild)
 
@@ -777,9 +1075,18 @@ print(f"  {cdf_output_base.with_suffix('.png')}")
 print("Saved RTD figure collapsed across ILD:")
 print(f"  {rtd_output_base_all_ild.with_suffix('.pdf')}")
 print(f"  {rtd_output_base_all_ild.with_suffix('.png')}")
+print("Saved RTD figure with intended_fix segments overlaid within each ABL:")
+print(f"  {rtd_output_base_all_ild_segment_overlay.with_suffix('.pdf')}")
+print(f"  {rtd_output_base_all_ild_segment_overlay.with_suffix('.png')}")
+print("Saved RTD figure with abs ILD rows, ABL columns, and intended_fix segment overlays:")
+print(f"  {rtd_output_base_condition_grid_segment_overlay.with_suffix('.pdf')}")
+print(f"  {rtd_output_base_condition_grid_segment_overlay.with_suffix('.png')}")
 print("Saved CDF figure collapsed across ILD:")
 print(f"  {cdf_output_base_all_ild.with_suffix('.pdf')}")
 print(f"  {cdf_output_base_all_ild.with_suffix('.png')}")
+print("Saved CDF figure with intended_fix segments overlaid within each ABL:")
+print(f"  {cdf_output_base_segment_overlay.with_suffix('.pdf')}")
+print(f"  {cdf_output_base_segment_overlay.with_suffix('.png')}")
 print("Saved tachometric figure collapsed across ILD:")
 print(f"  {tacho_output_base_all_ild.with_suffix('.pdf')}")
 print(f"  {tacho_output_base_all_ild.with_suffix('.png')}")
@@ -793,7 +1100,10 @@ else:
     plt.close(rtd_fig)
     plt.close(cdf_fig)
     plt.close(rtd_all_ild_fig)
+    plt.close(rtd_all_ild_segment_overlay_fig)
+    plt.close(rtd_condition_grid_segment_overlay_fig)
     plt.close(cdf_all_ild_fig)
+    plt.close(cdf_segment_overlay_fig)
     plt.close(tacho_all_ild_fig)
     plt.close(tacho_abs_ild_fig)
 
