@@ -11,11 +11,15 @@ import pandas as pd
 # %%
 SHOW_PLOT = True
 
-# DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
-DESIRED_BATCHES = ["LED7"]
+DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+# DESIRED_BATCHES = ["LED7"]
 
 EXCLUDED_BATCH_ANIMAL_PAIRS = []
 num_intended_fix_quantile_bins = 2
+TRIAL_POOL_MODE = "valid"  # "valid" or "valid_plus_abort3"
+
+if TRIAL_POOL_MODE not in {"valid", "valid_plus_abort3"}:
+    raise ValueError(f"Unsupported TRIAL_POOL_MODE: {TRIAL_POOL_MODE}")
 
 supported_abl_values = (20, 40, 60)
 supported_abs_ild_values = (1, 2, 4, 8, 16)
@@ -25,7 +29,7 @@ rt_max_s = 1.0
 intended_fix_max_s = 1.5
 bin_size_s = 5e-3
 tachometric_bin_size_s = 5e-3
-xlim_ms = (0, 150)
+xlim_ms = (0, 1000)
 ylabel_rtd = "Density"
 ylabel_cdf = "CDF"
 ylabel_tacho = "P(success = 1)"
@@ -44,15 +48,16 @@ REPO_ROOT = SCRIPT_DIR.parent
 batch_csv_dir = REPO_ROOT / "fit_animal_by_animal" / "batch_csvs"
 output_dir = SCRIPT_DIR / "multi_animal_valid_rtd_cdf_stim_quantiles"
 
-rtd_plot_base = "multi_animal_valid_rtd_by_abl_abs_ild_quantile_segments"
-cdf_plot_base = "multi_animal_valid_cdf_by_abl_abs_ild_quantile_segments"
-rtd_plot_base_all_ild = "multi_animal_valid_rtd_by_abl_all_ild_quantile_segments"
-rtd_plot_base_all_ild_segment_overlay = "multi_animal_valid_rtd_by_abl_all_ild_segment_overlay_quantile_segments"
-rtd_plot_base_condition_grid_segment_overlay = "multi_animal_valid_rtd_by_abl_abs_ild_condition_grid_segment_overlay_quantile_segments"
-cdf_plot_base_all_ild = "multi_animal_valid_cdf_by_abl_all_ild_quantile_segments"
-cdf_plot_base_segment_overlay = "multi_animal_valid_cdf_by_abl_abs_ild_segment_overlay_quantile_segments"
-tacho_plot_base_all_ild = "multi_animal_valid_tachometric_by_abl_all_ild_quantile_segments"
-tacho_plot_base_abs_ild = "multi_animal_valid_tachometric_by_abl_abs_ild_quantile_segments"
+output_suffix = "_plus_abort3" if TRIAL_POOL_MODE == "valid_plus_abort3" else ""
+rtd_plot_base = f"multi_animal_valid_rtd_by_abl_abs_ild_quantile_segments{output_suffix}"
+cdf_plot_base = f"multi_animal_valid_cdf_by_abl_abs_ild_quantile_segments{output_suffix}"
+rtd_plot_base_all_ild = f"multi_animal_valid_rtd_by_abl_all_ild_quantile_segments{output_suffix}"
+rtd_plot_base_all_ild_segment_overlay = f"multi_animal_valid_rtd_by_abl_all_ild_segment_overlay_quantile_segments{output_suffix}"
+rtd_plot_base_condition_grid_segment_overlay = f"multi_animal_valid_rtd_by_abl_abs_ild_condition_grid_segment_overlay_quantile_segments{output_suffix}"
+cdf_plot_base_all_ild = f"multi_animal_valid_cdf_by_abl_all_ild_quantile_segments{output_suffix}"
+cdf_plot_base_segment_overlay = f"multi_animal_valid_cdf_by_abl_abs_ild_segment_overlay_quantile_segments{output_suffix}"
+tacho_plot_base_all_ild = f"multi_animal_valid_tachometric_by_abl_all_ild_quantile_segments{output_suffix}"
+tacho_plot_base_abs_ild = f"multi_animal_valid_tachometric_by_abl_abs_ild_quantile_segments{output_suffix}"
 
 
 # %%
@@ -222,15 +227,23 @@ def load_merged_valid_trials() -> pd.DataFrame:
         )
 
     merged_data = pd.concat([pd.read_csv(batch_file) for batch_file in batch_files], ignore_index=True)
-    validate_required_columns(
-        merged_data,
-        ["batch_name", "animal", "success", "RTwrtStim", "ABL", "ILD", "intended_fix"],
-    )
+    required_columns = ["batch_name", "animal", "success", "RTwrtStim", "ABL", "ILD", "intended_fix"]
+    if TRIAL_POOL_MODE == "valid_plus_abort3":
+        required_columns.append("abort_event")
+    validate_required_columns(merged_data, required_columns)
 
-    for column_name in ["RTwrtStim", "ABL", "ILD", "intended_fix"]:
+    numeric_columns = ["RTwrtStim", "ABL", "ILD", "intended_fix"]
+    if TRIAL_POOL_MODE == "valid_plus_abort3":
+        numeric_columns.append("abort_event")
+    for column_name in numeric_columns:
         merged_data[column_name] = pd.to_numeric(merged_data[column_name], errors="coerce")
 
-    merged_valid = merged_data[merged_data["success"].isin([1, -1])].copy()
+    if TRIAL_POOL_MODE == "valid_plus_abort3":
+        merged_valid = merged_data[
+            merged_data["success"].isin([1, -1]) | np.isclose(merged_data["abort_event"], 3)
+        ].copy()
+    else:
+        merged_valid = merged_data[merged_data["success"].isin([1, -1])].copy()
     merged_valid["abs_ILD"] = merged_valid["ILD"].abs()
 
     if missing_batch_files:
@@ -325,7 +338,7 @@ def prepare_plot_df(valid_df: pd.DataFrame) -> tuple[pd.DataFrame, np.ndarray]:
     plot_df = apply_intended_fix_upper_bound(plot_df, intended_fix_max_s)
 
     if len(plot_df) == 0:
-        raise ValueError("No valid trials found after filtering.")
+        raise ValueError("No RTD/CDF plot trials found after filtering.")
 
     validate_supported_values(plot_df, "ABL", supported_abl_values)
     validate_supported_values(plot_df, "abs_ILD", supported_abs_ild_values)
@@ -948,14 +961,17 @@ batch_animal_counts = (
     .rename("n_trials")
 )
 
-print("Rebuilt multi-animal valid-trial dataset for quantile-segment RTD/CDF plots:")
+plot_trial_label = "valid+abort3" if TRIAL_POOL_MODE == "valid_plus_abort3" else "valid-only"
+
+print(f"Rebuilt multi-animal {plot_trial_label} dataset for quantile-segment RTD/CDF plots:")
 print(f"  Batch CSV dir: {batch_csv_dir}")
 print(f"  Loaded batches: {sorted(plot_df['batch_name'].astype(str).unique().tolist())}")
-print(f"  Total filtered valid trials: {len(plot_df)}")
+print(f"  Total filtered RTD/CDF plot trials: {len(plot_df)}")
 print(f"  Filtered batch-animal pairs: {len(filtered_batch_animal_pairs)}")
 print(f"  Counts by batch: {batch_counts}")
 print(f"  Counts by ABL: {abl_counts}")
 print(f"  Counts by abs_ILD: {abs_ild_counts}")
+print(f"  TRIAL_POOL_MODE: {TRIAL_POOL_MODE}")
 print(
     "  intended_fix upper bound (s): "
     f"{float(plot_df['intended_fix'].max()) if intended_fix_max_s is None else intended_fix_max_s}"
