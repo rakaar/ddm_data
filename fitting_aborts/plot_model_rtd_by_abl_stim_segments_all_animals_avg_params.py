@@ -1,10 +1,12 @@
 # %%
 SHOW_PLOT = True
 
-DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+# DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+DESIRED_BATCHES = ["LED7"]
 
 MODEL_KEY = "vbmc_norm_tied_results"
 ABORT_KEY = "vbmc_aborts_results"
+PARAM_REDUCER = "median"
 
 ABL_VALUES = (20, 40, 60)
 ILD_VALUES = (-16, -8, -4, -2, -1, 1, 2, 4, 8, 16)
@@ -20,7 +22,7 @@ rt_min_s = -1.0
 rt_max_s = 1.0
 bin_size_s = 1e-3
 intended_fix_max_s = 1.5
-xlim_s = (0, 0.1)
+xlim_s = (0, 0.150)
 figure_size = (5.0, 6.6)
 png_dpi = 300
 
@@ -66,6 +68,15 @@ abl_colors = {
     40: "tab:orange",
     60: "tab:green",
 }
+
+
+def reduce_param_values(values):
+    values = np.asarray(values, dtype=float)
+    if PARAM_REDUCER == "mean":
+        return float(np.mean(values))
+    if PARAM_REDUCER == "median":
+        return float(np.median(values))
+    raise ValueError(f"Unknown PARAM_REDUCER: {PARAM_REDUCER}. Use 'mean' or 'median'.")
 
 
 def get_candidate_animals():
@@ -154,18 +165,18 @@ def load_animal_params(batch_name, animal_id):
     model_blob = results[MODEL_KEY]
 
     abort_params = {
-        "V_A": float(np.mean(abort_blob["V_A_samples"])),
-        "theta_A": float(np.mean(abort_blob["theta_A_samples"])),
-        "t_A_aff": float(np.mean(abort_blob["t_A_aff_samp"])),
+        "V_A": reduce_param_values(abort_blob["V_A_samples"]),
+        "theta_A": reduce_param_values(abort_blob["theta_A_samples"]),
+        "t_A_aff": reduce_param_values(abort_blob["t_A_aff_samp"]),
     }
     tied_params = {
-        "rate_lambda": float(np.mean(model_blob["rate_lambda_samples"])),
-        "T_0": float(np.mean(model_blob["T_0_samples"])),
-        "theta_E": float(np.mean(model_blob["theta_E_samples"])),
-        "w": float(np.mean(model_blob["w_samples"])),
-        "t_E_aff": float(np.mean(model_blob["t_E_aff_samples"])),
-        "del_go": float(np.mean(model_blob["del_go_samples"])),
-        "rate_norm_l": float(np.mean(model_blob["rate_norm_l_samples"])),
+        "rate_lambda": reduce_param_values(model_blob["rate_lambda_samples"]),
+        "T_0": reduce_param_values(model_blob["T_0_samples"]),
+        "theta_E": reduce_param_values(model_blob["theta_E_samples"]),
+        "w": reduce_param_values(model_blob["w_samples"]),
+        "t_E_aff": reduce_param_values(model_blob["t_E_aff_samples"]),
+        "del_go": reduce_param_values(model_blob["del_go_samples"]),
+        "rate_norm_l": reduce_param_values(model_blob["rate_norm_l_samples"]),
     }
     return abort_params, tied_params, pkl_path
 
@@ -183,11 +194,11 @@ def compute_aggregate_params(included_pairs):
         pkl_paths.append(pkl_path)
 
     abort_params = {
-        key: float(np.mean([record[key] for record in abort_records]))
+        key: reduce_param_values([record[key] for record in abort_records])
         for key in abort_records[0]
     }
     tied_params = {
-        key: float(np.mean([record[key] for record in tied_records]))
+        key: reduce_param_values([record[key] for record in tied_records])
         for key in tied_records[0]
     }
     return abort_params, tied_params, pkl_paths
@@ -468,6 +479,51 @@ def plot_data(data):
     tagged_output_base = output_dir / f"{output_base.name}_{len(data['included_pairs'])}animals"
     save_figure(fig, tagged_output_base)
 
+    fig_by_abl, axes_by_abl = plt.subplots(1, len(ABL_VALUES), figsize=(12.0, 3.8), sharex=True, sharey=True, squeeze=False)
+    early_segment_result = data["segment_results"][0]
+    late_segment_result = data["segment_results"][-1]
+
+    global_max_by_abl = 0.0
+    for abl_value in ABL_VALUES:
+        early_density = early_segment_result["densities_by_abl"][int(abl_value)]
+        late_density = late_segment_result["densities_by_abl"][int(abl_value)]
+        if np.any(np.isfinite(early_density)):
+            global_max_by_abl = max(global_max_by_abl, float(np.nanmax(early_density[visible_mask])))
+        if np.any(np.isfinite(late_density)):
+            global_max_by_abl = max(global_max_by_abl, float(np.nanmax(late_density[visible_mask])))
+    y_max_by_abl = 1.05 * global_max_by_abl if global_max_by_abl > 0 else 1.0
+
+    for col_idx, abl_value in enumerate(ABL_VALUES):
+        ax = axes_by_abl[0, col_idx]
+        ax.stairs(
+            early_segment_result["densities_by_abl"][int(abl_value)],
+            x_edges_s,
+            label=early_segment_result["segment_spec"]["name"],
+            color="tab:blue",
+            linewidth=1.8,
+        )
+        ax.stairs(
+            late_segment_result["densities_by_abl"][int(abl_value)],
+            x_edges_s,
+            label=late_segment_result["segment_spec"]["name"],
+            color="tab:red",
+            linewidth=1.8,
+        )
+        ax.set_xlim(*xlim_s)
+        ax.set_ylim(0, y_max_by_abl)
+        ax.grid(alpha=0.2, linewidth=0.6)
+        ax.set_title(f"ABL = {abl_value}")
+        ax.set_xlabel("RT wrt stim (s)")
+        if col_idx == 0:
+            ax.set_ylabel("Density")
+
+    handles_by_abl, labels_by_abl = axes_by_abl[0, 0].get_legend_handles_labels()
+    fig_by_abl.legend(handles_by_abl, labels_by_abl, loc="upper center", ncol=2, frameon=False)
+    fig_by_abl.tight_layout(rect=(0, 0, 1, 0.90))
+
+    tagged_output_base_by_abl = output_dir / f"{output_base.name}_{len(data['included_pairs'])}animals_by_abl"
+    save_figure(fig_by_abl, tagged_output_base_by_abl)
+
     print(f"Included animals ({len(data['included_pairs'])}):")
     for batch_name, animal_id in data["included_pairs"]:
         print(f"  {batch_name}-{animal_id}")
@@ -491,12 +547,18 @@ def plot_data(data):
     print(f"Saved: {tagged_output_base.with_suffix('.pdf')}")
     print(f"Saved: {tagged_output_base.with_suffix('.png')}")
 
-    return fig
+    print(f"Saved: {tagged_output_base_by_abl.with_suffix('.pdf')}")
+    print(f"Saved: {tagged_output_base_by_abl.with_suffix('.png')}")
+
+    return fig, fig_by_abl
 
 
-fig = plot_data(data)
+fig, fig_by_abl = plot_data(data)
 
 if SHOW_PLOT:
     plt.show()
 else:
     plt.close(fig)
+    plt.close(fig_by_abl)
+
+#%%

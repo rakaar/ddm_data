@@ -11,8 +11,8 @@ import pandas as pd
 # %%
 SHOW_PLOT = True
 
-DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
-# DESIRED_BATCHES = ["LED7"]
+# DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+DESIRED_BATCHES = ["LED7"]
 
 EXCLUDED_BATCH_ANIMAL_PAIRS = []
 num_intended_fix_quantile_bins = 2
@@ -20,12 +20,12 @@ num_intended_fix_quantile_bins = 2
 supported_abl_values = (20, 40, 60)
 supported_abs_ild_values = (1, 2, 4, 8, 16)
 
-rt_min_s = -0.2
+rt_min_s = -1
 rt_max_s = 1.0
 intended_fix_max_s = 1.5
 bin_size_s = 5e-3
 tachometric_bin_size_s = 5e-3
-xlim_ms = (-100, 200)
+xlim_ms = (0, 150)
 ylabel_rtd = "Density"
 ylabel_cdf = "CDF"
 ylabel_tacho = "P(success = 1)"
@@ -539,7 +539,7 @@ def make_abl_segment_overlay_rtd_plot(
         squeeze=False,
     )
     x_edges_ms = bins_s * 1e3
-    segment_linestyles = [":", "-", "--", "-."]
+    segment_colors = ["tab:blue", "tab:red", "tab:green", "tab:purple"]
 
     for col_idx, abl_value in enumerate(supported_abl_values):
         ax = axes[0, col_idx]
@@ -568,9 +568,9 @@ def make_abl_segment_overlay_rtd_plot(
                     f"{segment_name} "
                     f"[{segment_edges[segment_idx]:.3f}, {segment_edges[segment_idx + 1]:.3f}] s"
                 ),
-                color=colors_by_abl[abl_value],
+                color=segment_colors[segment_idx % len(segment_colors)],
                 linewidth=1.8,
-                linestyle=segment_linestyles[segment_idx % len(segment_linestyles)],
+                linestyle="-",
                 alpha=line_alpha,
             )
 
@@ -612,6 +612,7 @@ def make_condition_segment_overlay_plot(
     )
     x_edges_ms = bins_s * 1e3
     segment_linestyles = [":", "-", "--", "-."]
+    segment_colors = ["tab:blue", "tab:red", "tab:green", "tab:purple"]
 
     for col_idx, abl_value in enumerate(supported_abl_values):
         ax = axes[0, col_idx]
@@ -668,13 +669,13 @@ def make_condition_segment_overlay_plot(
     ]
     abs_ild_labels = [f"|ILD| = {abs_ild_value}" for abs_ild_value in supported_abs_ild_values]
     segment_handles = [
-        Line2D([0], [0], color="black", linewidth=1.8, linestyle=segment_linestyles[segment_idx])
-        for segment_idx in range(min(n_segments, len(segment_linestyles)))
+        Line2D([0], [0], color=segment_colors[segment_idx], linewidth=1.8, linestyle="-")
+        for segment_idx in range(min(n_segments, len(segment_colors)))
     ]
     if n_segments == 2:
         segment_labels = ["Early stim", "Late stim"]
     else:
-        segment_labels = [f"Stim seg {segment_idx + 1}/{n_segments}" for segment_idx in range(min(n_segments, len(segment_linestyles)))]
+        segment_labels = [f"Stim seg {segment_idx + 1}/{n_segments}" for segment_idx in range(min(n_segments, len(segment_colors)))]
 
     color_legend = fig.legend(
         abs_ild_handles,
