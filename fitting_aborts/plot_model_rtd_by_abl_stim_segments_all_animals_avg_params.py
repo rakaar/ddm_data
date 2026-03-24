@@ -596,7 +596,7 @@ def plot_data(data):
                 x_edges_s,
                 label=f"ABL = {abl_value}",
                 color=abl_colors[int(abl_value)],
-                linewidth=1.8,
+                linewidth=1,
             )
         ax.set_xlim(*xlim_s)
         ax.set_ylim(0, y_max)
@@ -637,14 +637,14 @@ def plot_data(data):
             x_edges_s,
             label=early_segment_result["segment_spec"]["name"],
             color="tab:blue",
-            linewidth=1.8,
+            linewidth=1,
         )
         ax.stairs(
             late_segment_result["densities_by_abl"][int(abl_value)],
             x_edges_s,
             label=late_segment_result["segment_spec"]["name"],
             color="tab:red",
-            linewidth=1.8,
+            linewidth=1,
         )
         ax.set_xlim(*xlim_s)
         ax.set_ylim(0, y_max_by_abl)
