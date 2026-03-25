@@ -6,6 +6,10 @@
 - `fct_march_5_panel_v2.py`: Panel plotting script for FCT analysis created on March 5th, version 2.
 - `fct_panel_march_26.py`: Panel plotting script for FCT analysis created on March 26th.
 
+## Root Level Docs
+
+- `CODEX_GIT_WRAPUP.md`: Reusable shorthand request for Codex. Referring to this file means: check `git status`, document new or undocumented files in the relevant `README.md` files, commit the intended changes, and push to `origin/main`.
+
 ## `fit_animal_by_animal/` Scripts
 
 ## `fitting_aborts/` Scripts

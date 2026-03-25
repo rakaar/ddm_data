@@ -32,7 +32,7 @@ rt_min_s = -1.0
 rt_max_s = 1.0
 bin_size_s = 1e-3
 intended_fix_max_s = 1.5
-xlim_s = (0, 1)
+xlim_s = (0, 0.6)
 figure_size = (5.0, 6.6)
 png_dpi = 300
 

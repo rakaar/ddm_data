@@ -12,6 +12,9 @@ SEGMENT_MODE = "quantile"  # "quantile" or "fixed"
 NUM_INTENDED_FIX_QUANTILE_BINS = 2
 FIXED_SEGMENT_EDGES_S = (0.2, 0.4, 1.5)
 MODEL_DENSITY_MODE = "valid_conditioned"  # "raw" or "valid_conditioned"
+PROACTIVE_ABORT_TRUNC_FIX_TIME_S = 0.3
+N_JOBS = -1
+JOBLIB_VERBOSE = 10
 
 if TRIAL_POOL_MODE not in {"valid", "valid_plus_abort3"}:
     raise ValueError(f"Unsupported TRIAL_POOL_MODE: {TRIAL_POOL_MODE}")
@@ -34,21 +37,18 @@ xlim_s = (0, 0.6)
 figure_size = (5.0, 6.6)
 png_dpi = 300
 
+
 # %%
 from pathlib import Path
 import pickle
 import sys
 import time
 
+from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.integrate import cumulative_trapezoid
-
-try:
-    from tqdm.auto import tqdm
-except Exception:
-    tqdm = None
 
 try:
     SCRIPT_DIR = Path(__file__).resolve().parent
@@ -65,18 +65,22 @@ from time_vary_norm_utils import (
     up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn_vec,
 )
 
+
 # %%
 batch_csv_dir = FIT_DIR / "batch_csvs"
 results_dir = FIT_DIR
-output_dir = SCRIPT_DIR / "model_rtd_stim_segments_all_animals_avg_params"
+output_dir = SCRIPT_DIR / "model_rtd_stim_segments_all_animals_avg_animal_rtds_truncated_proactive"
 output_suffix_parts = []
 if TRIAL_POOL_MODE == "valid_plus_abort3":
     output_suffix_parts.append("plus_abort3_pool")
 output_suffix_parts.append(f"{SEGMENT_MODE}_segments")
 if MODEL_DENSITY_MODE == "valid_conditioned":
     output_suffix_parts.append("valid_conditioned")
+trunc_fix_time_tag = f"{PROACTIVE_ABORT_TRUNC_FIX_TIME_S:.1f}".replace(".", "p")
+output_suffix_parts.append(f"truncated_proactive_fix_lt_{trunc_fix_time_tag}s")
+output_suffix_parts.append("avg_animal_rtds")
 output_suffix = "".join(f"_{part}" for part in output_suffix_parts)
-output_base = output_dir / f"model_rtd_by_abl_stim_segments_all_animals_avg_params{output_suffix}"
+output_base = output_dir / f"model_rtd_by_abl_stim_segments_all_animals{output_suffix}"
 
 abl_colors = {
     20: "tab:blue",
@@ -119,8 +123,8 @@ def get_candidate_animals():
             except Exception:
                 continue
             if ABORT_KEY in results and MODEL_KEY in results:
-                candidates.append((batch_name, animal_id))
-    return candidates
+                candidates.append((str(batch_name), animal_id))
+    return sorted(candidates)
 
 
 def load_pooled_valid_df(candidate_pairs):
@@ -204,38 +208,6 @@ def load_animal_params(batch_name, animal_id):
     return abort_params, tied_params, pkl_path
 
 
-def compute_aggregate_params(included_pairs):
-    unique_included_pairs = sorted(set((str(batch_name), int(animal_id)) for batch_name, animal_id in included_pairs))
-    abort_records = []
-    tied_records = []
-    pkl_paths = []
-
-    for batch_name, animal_id in unique_included_pairs:
-        abort_params, tied_params, pkl_path = load_animal_params(batch_name, animal_id)
-        abort_records.append(abort_params)
-        tied_records.append(tied_params)
-        pkl_paths.append(pkl_path)
-
-    abort_params = {
-        key: reduce_param_values([record[key] for record in abort_records])
-        for key in abort_records[0]
-    }
-    tied_params = {
-        key: reduce_param_values([record[key] for record in tied_records])
-        for key in tied_records[0]
-    }
-    return abort_params, tied_params, pkl_paths
-
-
-def compute_segment_proactive_curves(t_stim_samples, abort_params):
-    t_pts = np.arange(-1.0, 1.001, 0.001)
-    shifted_t = t_pts[None, :] + np.asarray(t_stim_samples, dtype=float)[:, None] - abort_params["t_A_aff"]
-    p_a_samples = rho_A_t_VEC_fn(shifted_t, abort_params["V_A"], abort_params["theta_A"])
-    p_a_mean = np.mean(p_a_samples, axis=0)
-    c_a_mean = cumulative_trapezoid(p_a_mean, t_pts, initial=0)
-    return t_pts, p_a_mean, c_a_mean
-
-
 def add_intended_fix_segments(df):
     if SEGMENT_MODE == "quantile":
         if NUM_INTENDED_FIX_QUANTILE_BINS <= 0:
@@ -301,12 +273,48 @@ def build_segment_specs(segment_edges):
     return segment_specs
 
 
+def compute_segment_proactive_curves(t_stim_samples, abort_params):
+    t_pts = np.arange(-1.0, 1.001, 0.001)
+    shifted_t = t_pts[None, :] + np.asarray(t_stim_samples, dtype=float)[:, None] - abort_params["t_A_aff"]
+    p_a_samples = rho_A_t_VEC_fn(shifted_t, abort_params["V_A"], abort_params["theta_A"])
+    p_a_samples, _ = truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples)
+    p_a_mean = np.mean(p_a_samples, axis=0)
+    c_a_mean = cumulative_trapezoid(p_a_mean, t_pts, initial=0)
+    return t_pts, p_a_mean, c_a_mean
+
+
 def compute_segment_proactive_matrices(t_stim_samples, abort_params):
     t_pts = np.arange(-1.0, 1.001, 0.001)
     shifted_t = t_pts[None, :] + np.asarray(t_stim_samples, dtype=float)[:, None] - abort_params["t_A_aff"]
     p_a_samples = rho_A_t_VEC_fn(shifted_t, abort_params["V_A"], abort_params["theta_A"])
+    p_a_samples, truncation_summary = truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples)
     c_a_samples = cumulative_trapezoid(p_a_samples, t_pts, axis=1, initial=0)
-    return t_pts, p_a_samples, c_a_samples
+    return t_pts, p_a_samples, c_a_samples, truncation_summary
+
+
+def truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples):
+    t_pts = np.asarray(t_pts, dtype=float)
+    t_stim_samples = np.asarray(t_stim_samples, dtype=float)
+    p_a_samples = np.asarray(p_a_samples, dtype=float)
+
+    fixation_time = t_pts[None, :] + t_stim_samples[:, None]
+    proactive_abort_mask = (t_pts[None, :] < 0.0) & (fixation_time >= 0.0) & (
+        fixation_time < PROACTIVE_ABORT_TRUNC_FIX_TIME_S
+    )
+
+    removed_density = np.where(proactive_abort_mask, p_a_samples, 0.0)
+    removed_mass_per_sample = np.trapz(removed_density, t_pts, axis=1)
+    truncated_samples = np.where(proactive_abort_mask, 0.0, p_a_samples)
+    remaining_mass_per_sample = np.trapz(truncated_samples, t_pts, axis=1)
+    remaining_mass_per_sample = np.clip(remaining_mass_per_sample, 1e-12, None)
+    truncated_samples = truncated_samples / remaining_mass_per_sample[:, None]
+
+    truncation_summary = {
+        "mean_removed_mass": float(np.mean(removed_mass_per_sample)),
+        "max_removed_mass": float(np.max(removed_mass_per_sample)),
+        "mean_remaining_mass_before_norm": float(np.mean(remaining_mass_per_sample)),
+    }
+    return truncated_samples, truncation_summary
 
 
 def compute_raw_rtd_from_pa_ca(t_pts, p_a, c_a, abl_value, ild_value, tied_params):
@@ -374,30 +382,34 @@ def curve_to_binned_density(t_pts, density, bins_s):
     return probs / widths
 
 
-def build_segment_mixture(segment_df, t_pts, p_a_mean, c_a_mean, abl_value, tied_params, bins_s, progress_bar=None):
+def build_animal_segment_mixture(segment_df, t_pts, p_a_obj, c_a_obj, abl_value, tied_params, bins_s):
     abl_df = segment_df[np.isclose(segment_df["ABL"], abl_value)].copy()
     counts = abl_df["ILD"].round().astype(int).value_counts().to_dict() if len(abl_df) else {}
     total = int(len(abl_df))
+
     if total == 0:
-        if progress_bar is not None:
-            progress_bar.update(len(ILD_VALUES))
-        return np.zeros(len(bins_s) - 1, dtype=float), {}
+        return (
+            np.full(len(bins_s) - 1, np.nan, dtype=float),
+            np.full(len(ILD_VALUES), np.nan, dtype=float),
+            0,
+        )
 
     mixture = np.zeros(len(bins_s) - 1, dtype=float)
-    weight_map = {}
+    weight_vector = np.zeros(len(ILD_VALUES), dtype=float)
     valid_mask = t_pts >= 0.0
-    for ild_value in ILD_VALUES:
+
+    for ild_idx, ild_value in enumerate(ILD_VALUES):
         count = int(counts.get(int(ild_value), 0))
-        if count == 0:
-            if progress_bar is not None:
-                progress_bar.update(1)
-            continue
         weight = count / total
+        weight_vector[ild_idx] = weight
+        if count == 0:
+            continue
+
         if MODEL_DENSITY_MODE == "valid_conditioned":
             raw_matrix = compute_raw_rtd_from_pa_ca(
                 t_pts[None, :],
-                p_a_mean,
-                c_a_mean,
+                p_a_obj,
+                c_a_obj,
                 abl_value,
                 float(ild_value),
                 tied_params,
@@ -413,17 +425,198 @@ def build_segment_mixture(segment_df, t_pts, p_a_mean, c_a_mean, abl_value, tied
         else:
             rt_axis, density = compute_segment_averaged_rtd(
                 t_pts,
-                p_a_mean,
-                c_a_mean,
+                p_a_obj,
+                c_a_obj,
                 abl_value,
                 float(ild_value),
                 tied_params,
             )
             mixture += weight * curve_to_binned_density(rt_axis, density, bins_s)
-        weight_map[int(ild_value)] = weight
-        if progress_bar is not None:
-            progress_bar.update(1)
-    return mixture, weight_map
+
+    return mixture, weight_vector, total
+
+
+def compute_one_animal_rtd(batch_name, animal_id, animal_df, segment_specs, bins_s, seed):
+    abort_params, tied_params, pkl_path = load_animal_params(batch_name, animal_id)
+    rng = np.random.default_rng(seed)
+    animal_segment_results = []
+
+    for segment_spec in segment_specs:
+        segment_df = animal_df[animal_df["intended_fix_segment"] == segment_spec["index"]].copy()
+        segment_trial_count = int(len(segment_df))
+        t_stim_summary = None
+        truncation_summary = None
+
+        if segment_trial_count == 0:
+            densities_by_abl = {
+                int(abl_value): np.full(len(bins_s) - 1, np.nan, dtype=float)
+                for abl_value in ABL_VALUES
+            }
+            weights_by_abl = {
+                int(abl_value): np.full(len(ILD_VALUES), np.nan, dtype=float)
+                for abl_value in ABL_VALUES
+            }
+            trial_counts_by_abl = {int(abl_value): 0 for abl_value in ABL_VALUES}
+        else:
+            t_stim_samples = rng.choice(segment_df["intended_fix"].to_numpy(), size=N_MC_T_STIM_SAMPLES, replace=True)
+            t_stim_summary = {
+                "mean": float(np.mean(t_stim_samples)),
+                "min": float(np.min(t_stim_samples)),
+                "max": float(np.max(t_stim_samples)),
+                "n_mc": int(len(t_stim_samples)),
+            }
+
+            if MODEL_DENSITY_MODE == "valid_conditioned":
+                t_pts, p_a_obj, c_a_obj, truncation_summary = compute_segment_proactive_matrices(
+                    t_stim_samples,
+                    abort_params,
+                )
+            else:
+                t_pts, p_a_obj, c_a_obj = compute_segment_proactive_curves(t_stim_samples, abort_params)
+
+            densities_by_abl = {}
+            weights_by_abl = {}
+            trial_counts_by_abl = {}
+            for abl_value in ABL_VALUES:
+                density, weight_vector, trial_count = build_animal_segment_mixture(
+                    segment_df,
+                    t_pts,
+                    p_a_obj,
+                    c_a_obj,
+                    float(abl_value),
+                    tied_params,
+                    bins_s,
+                )
+                densities_by_abl[int(abl_value)] = density
+                weights_by_abl[int(abl_value)] = weight_vector
+                trial_counts_by_abl[int(abl_value)] = int(trial_count)
+
+        animal_segment_results.append(
+            {
+                "segment_spec": segment_spec,
+                "total": segment_trial_count,
+                "densities_by_abl": densities_by_abl,
+                "weights_by_abl": weights_by_abl,
+                "trial_counts_by_abl": trial_counts_by_abl,
+                "t_stim_summary": t_stim_summary,
+                "truncation_summary": truncation_summary,
+            }
+        )
+
+    return {
+        "pair": (str(batch_name), int(animal_id)),
+        "pkl_path": pkl_path,
+        "segment_results": animal_segment_results,
+    }
+
+
+def aggregate_animal_results(per_animal_results, segment_specs, bins_s):
+    aggregated_segment_results = []
+    ild_values_array = np.asarray(ILD_VALUES, dtype=int)
+
+    for segment_idx, segment_spec in enumerate(segment_specs):
+        segment_totals = np.asarray(
+            [animal_result["segment_results"][segment_idx]["total"] for animal_result in per_animal_results],
+            dtype=int,
+        )
+
+        densities_by_abl = {}
+        contributing_animals_by_abl = {}
+        trial_counts_by_abl = {}
+        mean_weights_by_abl = {}
+        mean_t_stim_summary = {
+            "n_mc": N_MC_T_STIM_SAMPLES,
+            "mean": np.nan,
+            "min": np.nan,
+            "max": np.nan,
+        }
+        mean_truncation_summary = {
+            "mean_removed_mass": np.nan,
+            "max_removed_mass": np.nan,
+            "mean_remaining_mass_before_norm": np.nan,
+        }
+
+        t_stim_means = []
+        t_stim_mins = []
+        t_stim_maxs = []
+        removed_mass_means = []
+        removed_mass_maxes = []
+        remaining_mass_means = []
+
+        for animal_result in per_animal_results:
+            summary = animal_result["segment_results"][segment_idx]["t_stim_summary"]
+            if summary is None:
+                continue
+            t_stim_means.append(summary["mean"])
+            t_stim_mins.append(summary["min"])
+            t_stim_maxs.append(summary["max"])
+            truncation_summary = animal_result["segment_results"][segment_idx]["truncation_summary"]
+            if truncation_summary is None:
+                continue
+            removed_mass_means.append(truncation_summary["mean_removed_mass"])
+            removed_mass_maxes.append(truncation_summary["max_removed_mass"])
+            remaining_mass_means.append(truncation_summary["mean_remaining_mass_before_norm"])
+
+        if t_stim_means:
+            mean_t_stim_summary = {
+                "n_mc": N_MC_T_STIM_SAMPLES,
+                "mean": float(np.mean(t_stim_means)),
+                "min": float(np.min(t_stim_mins)),
+                "max": float(np.max(t_stim_maxs)),
+            }
+        if removed_mass_means:
+            mean_truncation_summary = {
+                "mean_removed_mass": float(np.mean(removed_mass_means)),
+                "max_removed_mass": float(np.max(removed_mass_maxes)),
+                "mean_remaining_mass_before_norm": float(np.mean(remaining_mass_means)),
+            }
+
+        for abl_value in ABL_VALUES:
+            density_list = []
+            weight_list = []
+            abl_trial_counts = []
+
+            for animal_result in per_animal_results:
+                animal_segment_result = animal_result["segment_results"][segment_idx]
+                density_list.append(animal_segment_result["densities_by_abl"][int(abl_value)])
+                weight_list.append(animal_segment_result["weights_by_abl"][int(abl_value)])
+                abl_trial_counts.append(animal_segment_result["trial_counts_by_abl"][int(abl_value)])
+
+            density_stack = np.stack(density_list, axis=0)
+            weight_stack = np.stack(weight_list, axis=0)
+            abl_trial_counts = np.asarray(abl_trial_counts, dtype=int)
+            contributing_mask = abl_trial_counts > 0
+
+            if np.any(contributing_mask):
+                densities_by_abl[int(abl_value)] = np.nanmean(density_stack[contributing_mask], axis=0)
+                mean_weight_vector = np.nanmean(weight_stack[contributing_mask], axis=0)
+            else:
+                densities_by_abl[int(abl_value)] = np.full(len(bins_s) - 1, np.nan, dtype=float)
+                mean_weight_vector = np.full(len(ILD_VALUES), np.nan, dtype=float)
+
+            contributing_animals_by_abl[int(abl_value)] = int(np.sum(contributing_mask))
+            trial_counts_by_abl[int(abl_value)] = int(np.sum(abl_trial_counts))
+            mean_weights_by_abl[int(abl_value)] = {
+                int(ild_value): float(mean_weight_vector[ild_idx])
+                for ild_idx, ild_value in enumerate(ild_values_array)
+                if np.isfinite(mean_weight_vector[ild_idx])
+            }
+
+        aggregated_segment_results.append(
+            {
+                "segment_spec": segment_spec,
+                "total": int(np.sum(segment_totals)),
+                "contributing_animals_total": int(np.sum(segment_totals > 0)),
+                "densities_by_abl": densities_by_abl,
+                "contributing_animals_by_abl": contributing_animals_by_abl,
+                "trial_counts_by_abl": trial_counts_by_abl,
+                "mean_weights_by_abl": mean_weights_by_abl,
+                "mean_t_stim_summary": mean_t_stim_summary,
+                "mean_truncation_summary": mean_truncation_summary,
+            }
+        )
+
+    return aggregated_segment_results
 
 
 def load_data():
@@ -463,101 +656,66 @@ def load_data():
         flush=True,
     )
 
+    pair_to_animal_df = {}
+    for batch_name, animal_id in included_pairs:
+        animal_df = pooled_valid_df[
+            (pooled_valid_df["batch_name"].astype(str) == str(batch_name))
+            & np.isclose(pooled_valid_df["animal"], int(animal_id))
+        ].copy()
+        if len(animal_df) == 0:
+            continue
+        pair_to_animal_df[(str(batch_name), int(animal_id))] = animal_df
+
+    if not pair_to_animal_df:
+        raise ValueError("No per-animal dataframes found after filtering.")
+
+    bins_s = np.arange(rt_min_s, rt_max_s + bin_size_s, bin_size_s)
+
     stage_start = time.perf_counter()
-    abort_params, tied_params, pkl_paths = compute_aggregate_params(included_pairs)
     print(
-        f"[progress] Computed aggregate params from {len(pkl_paths)} PKLs in {time.perf_counter() - stage_start:.2f}s",
+        f"[progress] Starting per-animal RTD computation for {len(included_pairs)} animals with N_JOBS={N_JOBS}",
+        flush=True,
+    )
+    per_animal_results = Parallel(n_jobs=N_JOBS, backend="loky", verbose=JOBLIB_VERBOSE)(
+        delayed(compute_one_animal_rtd)(
+            batch_name,
+            animal_id,
+            pair_to_animal_df[(str(batch_name), int(animal_id))],
+            segment_specs,
+            bins_s,
+            RNG_SEED + pair_idx,
+        )
+        for pair_idx, (batch_name, animal_id) in enumerate(included_pairs)
+    )
+    print(
+        f"[progress] Computed per-animal RTDs in {time.perf_counter() - stage_start:.2f}s",
         flush=True,
     )
 
-    bins_s = np.arange(rt_min_s, rt_max_s + bin_size_s, bin_size_s)
-    rng = np.random.default_rng(RNG_SEED)
-    segment_results = []
-    total_steps = len(segment_specs) * (1 + len(ABL_VALUES) * len(ILD_VALUES))
+    stage_start = time.perf_counter()
+    segment_results = aggregate_animal_results(per_animal_results, segment_specs, bins_s)
+    print(
+        f"[progress] Aggregated per-animal RTDs in {time.perf_counter() - stage_start:.2f}s",
+        flush=True,
+    )
 
-    if tqdm is not None:
-        progress_bar = tqdm(total=total_steps, desc="Building aggregate RTDs", unit="step")
-    else:
-        progress_bar = None
-
-    try:
-        for segment_spec in segment_specs:
-            segment_df = pooled_valid_df[pooled_valid_df["intended_fix_segment"] == segment_spec["index"]].copy()
-            if len(segment_df) == 0:
-                raise ValueError(
-                    f"No pooled valid trials found in segment [{segment_spec['left']}, {segment_spec['right']}] s."
-                )
-
-            print(
-                f"[progress] Starting segment {segment_spec['name']} [{segment_spec['left']:.3f}, {segment_spec['right']:.3f}] s with {N_MC_T_STIM_SAMPLES} MC intended_fix samples",
-                flush=True,
-            )
-            segment_start = time.perf_counter()
-            t_stim_samples = rng.choice(segment_df["intended_fix"].to_numpy(), size=N_MC_T_STIM_SAMPLES, replace=True)
-            if MODEL_DENSITY_MODE == "valid_conditioned":
-                t_pts, p_a_mean, c_a_mean = compute_segment_proactive_matrices(t_stim_samples, abort_params)
-            else:
-                t_pts, p_a_mean, c_a_mean = compute_segment_proactive_curves(t_stim_samples, abort_params)
-            if progress_bar is not None:
-                progress_bar.update(1)
-
-            counts_by_abl = {
-                int(abl_value): int(np.isclose(segment_df["ABL"], abl_value).sum())
-                for abl_value in ABL_VALUES
-            }
-            densities_by_abl = {}
-            weights_by_abl = {}
-            for abl_value in ABL_VALUES:
-                density, weight_map = build_segment_mixture(
-                    segment_df,
-                    t_pts,
-                    p_a_mean,
-                    c_a_mean,
-                    abl_value,
-                    tied_params,
-                    bins_s,
-                    progress_bar=progress_bar,
-                )
-                densities_by_abl[int(abl_value)] = density
-                weights_by_abl[int(abl_value)] = weight_map
-                print(
-                    f"[progress] Finished segment {segment_spec['name']} ABL={abl_value} with {N_MC_T_STIM_SAMPLES} MC intended_fix samples",
-                    flush=True,
-                )
-
-            segment_results.append(
-                {
-                    "segment_spec": segment_spec,
-                    "counts_by_abl": counts_by_abl,
-                    "total": int(len(segment_df)),
-                    "densities_by_abl": densities_by_abl,
-                    "weights_by_abl": weights_by_abl,
-                    "t_stim_samples": t_stim_samples,
-                }
-            )
-            print(
-                f"[progress] Finished segment {segment_spec['name']} total in {time.perf_counter() - segment_start:.2f}s",
-                flush=True,
-            )
-    finally:
-        if progress_bar is not None:
-            progress_bar.close()
+    pkl_paths = [result["pkl_path"] for result in per_animal_results]
 
     print(f"[progress] load_data() finished in {time.perf_counter() - total_start:.2f}s", flush=True)
 
     return {
         "included_pairs": included_pairs,
         "valid_df": pooled_valid_df,
-        "abort_params": abort_params,
-        "tied_params": tied_params,
         "pkl_paths": pkl_paths,
         "bins_s": bins_s,
         "segment_edges": segment_edges,
         "segment_results": segment_results,
+        "per_animal_results": per_animal_results,
     }
 
 
 data = load_data()
+
 
 # %%
 def save_figure(fig, output_base_path):
@@ -583,7 +741,8 @@ def plot_data(data):
     for segment_result in data["segment_results"]:
         for abl_value in ABL_VALUES:
             density = segment_result["densities_by_abl"][int(abl_value)]
-            if np.any(np.isfinite(density)):
+            finite_density = density[np.isfinite(density)]
+            if len(finite_density):
                 global_max = max(global_max, float(np.nanmax(density[visible_mask])))
     y_max = 1.05 * global_max if global_max > 0 else 1.0
 
@@ -596,15 +755,15 @@ def plot_data(data):
                 x_edges_s,
                 label=f"ABL = {abl_value}",
                 color=abl_colors[int(abl_value)],
-                linewidth=1,
+                linewidth=1.8,
             )
         ax.set_xlim(*xlim_s)
         ax.set_ylim(0, y_max)
         ax.grid(alpha=0.2, linewidth=0.6)
         ax.set_ylabel("Density")
         ax.set_title(
-            f"aggregate model {segment_spec['name']} [{segment_spec['left']:.3f}, {segment_spec['right']:.3f}] s\n"
-            f"MC intended_fix n={len(segment_result['t_stim_samples'])}"
+            f"avg per-animal model {segment_spec['name']} [{segment_spec['left']:.3f}, {segment_spec['right']:.3f}] s\n"
+            f"animals={segment_result['contributing_animals_total']}, per-animal MC intended_fix n={N_MC_T_STIM_SAMPLES}"
         )
         if row_idx == len(data["segment_results"]) - 1:
             ax.set_xlabel("RT wrt stim (s)")
@@ -637,14 +796,14 @@ def plot_data(data):
             x_edges_s,
             label=early_segment_result["segment_spec"]["name"],
             color="tab:blue",
-            linewidth=1,
+            linewidth=1.8,
         )
         ax.stairs(
             late_segment_result["densities_by_abl"][int(abl_value)],
             x_edges_s,
             label=late_segment_result["segment_spec"]["name"],
             color="tab:red",
-            linewidth=1,
+            linewidth=1.8,
         )
         ax.set_xlim(*xlim_s)
         ax.set_ylim(0, y_max_by_abl)
@@ -667,27 +826,34 @@ def plot_data(data):
     print(f"TRIAL_POOL_MODE: {TRIAL_POOL_MODE}")
     print(f"SEGMENT_MODE: {SEGMENT_MODE}")
     print(f"MODEL_DENSITY_MODE: {MODEL_DENSITY_MODE}")
+    print(f"PROACTIVE_ABORT_TRUNC_FIX_TIME_S: {PROACTIVE_ABORT_TRUNC_FIX_TIME_S}")
+    print(f"N_JOBS: {N_JOBS}")
     print(f"Filtered pooled segment-pool trials: {len(data['valid_df'])}")
     print(f"Segment edges (s): {[float(edge) for edge in data['segment_edges']]}")
     print(f"PKLs used: {len(data['pkl_paths'])}")
-    print("Aggregate norm-tied parameter means:")
-    for key, value in data["tied_params"].items():
-        print(f"  {key}: {value}")
-    print("Aggregate abort parameter means:")
-    for key, value in data["abort_params"].items():
-        print(f"  {key}: {value}")
     for segment_result in data["segment_results"]:
         segment_spec = segment_result["segment_spec"]
-        samples = segment_result["t_stim_samples"]
+        summary = segment_result["mean_t_stim_summary"]
+        truncation_summary = segment_result["mean_truncation_summary"]
         print(
             f"Segment {segment_spec['name']} [{segment_spec['left']:.3f}, {segment_spec['right']:.3f}] s, "
-            f"MC intended_fix n={len(samples)}, mean={np.mean(samples):.3f}, min={np.min(samples):.3f}, max={np.max(samples):.3f}"
+            f"animals={segment_result['contributing_animals_total']}, total_trials={segment_result['total']}, "
+            f"per-animal MC intended_fix n={summary['n_mc']}, mean={summary['mean']:.3f}, min={summary['min']:.3f}, max={summary['max']:.3f}"
+        )
+        print(
+            "  proactive truncation: "
+            f"mean_removed_mass={truncation_summary['mean_removed_mass']:.5f}, "
+            f"max_removed_mass={truncation_summary['max_removed_mass']:.5f}, "
+            f"mean_remaining_mass_before_norm={truncation_summary['mean_remaining_mass_before_norm']:.5f}"
         )
         for abl_value in ABL_VALUES:
-            print(f"  ABL={abl_value}, ILD weights={segment_result['weights_by_abl'][int(abl_value)]}")
+            print(
+                f"  ABL={abl_value}, animals={segment_result['contributing_animals_by_abl'][int(abl_value)]}, "
+                f"trials={segment_result['trial_counts_by_abl'][int(abl_value)]}, "
+                f"mean ILD weights={segment_result['mean_weights_by_abl'][int(abl_value)]}"
+            )
     print(f"Saved: {tagged_output_base.with_suffix('.pdf')}")
     print(f"Saved: {tagged_output_base.with_suffix('.png')}")
-
     print(f"Saved: {tagged_output_base_by_abl.with_suffix('.pdf')}")
     print(f"Saved: {tagged_output_base_by_abl.with_suffix('.png')}")
 
@@ -702,4 +868,4 @@ else:
     plt.close(fig)
     plt.close(fig_by_abl)
 
-#%%
+# %%

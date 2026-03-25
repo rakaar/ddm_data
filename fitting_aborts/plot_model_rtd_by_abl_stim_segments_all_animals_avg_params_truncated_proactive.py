@@ -12,6 +12,7 @@ SEGMENT_MODE = "quantile"  # "quantile" or "fixed"
 NUM_INTENDED_FIX_QUANTILE_BINS = 2
 FIXED_SEGMENT_EDGES_S = (0.2, 0.4, 1.5)
 MODEL_DENSITY_MODE = "valid_conditioned"  # "raw" or "valid_conditioned"
+PROACTIVE_ABORT_TRUNC_FIX_TIME_S = 0.3
 
 if TRIAL_POOL_MODE not in {"valid", "valid_plus_abort3"}:
     raise ValueError(f"Unsupported TRIAL_POOL_MODE: {TRIAL_POOL_MODE}")
@@ -30,7 +31,7 @@ rt_min_s = -1.0
 rt_max_s = 1.0
 bin_size_s = 1e-3
 intended_fix_max_s = 1.5
-xlim_s = (0, 0.6)
+xlim_s = (0, 1)
 figure_size = (5.0, 6.6)
 png_dpi = 300
 
@@ -68,13 +69,15 @@ from time_vary_norm_utils import (
 # %%
 batch_csv_dir = FIT_DIR / "batch_csvs"
 results_dir = FIT_DIR
-output_dir = SCRIPT_DIR / "model_rtd_stim_segments_all_animals_avg_params"
+output_dir = SCRIPT_DIR / "model_rtd_stim_segments_all_animals_avg_params_truncated_proactive"
 output_suffix_parts = []
 if TRIAL_POOL_MODE == "valid_plus_abort3":
     output_suffix_parts.append("plus_abort3_pool")
 output_suffix_parts.append(f"{SEGMENT_MODE}_segments")
 if MODEL_DENSITY_MODE == "valid_conditioned":
     output_suffix_parts.append("valid_conditioned")
+trunc_fix_time_tag = f"{PROACTIVE_ABORT_TRUNC_FIX_TIME_S:.1f}".replace(".", "p")
+output_suffix_parts.append(f"truncated_proactive_fix_lt_{trunc_fix_time_tag}s")
 output_suffix = "".join(f"_{part}" for part in output_suffix_parts)
 output_base = output_dir / f"model_rtd_by_abl_stim_segments_all_animals_avg_params{output_suffix}"
 
@@ -231,6 +234,7 @@ def compute_segment_proactive_curves(t_stim_samples, abort_params):
     t_pts = np.arange(-1.0, 1.001, 0.001)
     shifted_t = t_pts[None, :] + np.asarray(t_stim_samples, dtype=float)[:, None] - abort_params["t_A_aff"]
     p_a_samples = rho_A_t_VEC_fn(shifted_t, abort_params["V_A"], abort_params["theta_A"])
+    p_a_samples, _ = truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples)
     p_a_mean = np.mean(p_a_samples, axis=0)
     c_a_mean = cumulative_trapezoid(p_a_mean, t_pts, initial=0)
     return t_pts, p_a_mean, c_a_mean
@@ -305,8 +309,35 @@ def compute_segment_proactive_matrices(t_stim_samples, abort_params):
     t_pts = np.arange(-1.0, 1.001, 0.001)
     shifted_t = t_pts[None, :] + np.asarray(t_stim_samples, dtype=float)[:, None] - abort_params["t_A_aff"]
     p_a_samples = rho_A_t_VEC_fn(shifted_t, abort_params["V_A"], abort_params["theta_A"])
+    p_a_samples, truncation_summary = truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples)
     c_a_samples = cumulative_trapezoid(p_a_samples, t_pts, axis=1, initial=0)
-    return t_pts, p_a_samples, c_a_samples
+    return t_pts, p_a_samples, c_a_samples, truncation_summary
+
+
+def truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples):
+    t_pts = np.asarray(t_pts, dtype=float)
+    t_stim_samples = np.asarray(t_stim_samples, dtype=float)
+    p_a_samples = np.asarray(p_a_samples, dtype=float)
+
+    fixation_time = t_pts[None, :] + t_stim_samples[:, None]
+    proactive_abort_mask = (t_pts[None, :] < 0.0) & (fixation_time >= 0.0) & (
+        fixation_time < PROACTIVE_ABORT_TRUNC_FIX_TIME_S
+    )
+
+    removed_density = np.where(proactive_abort_mask, p_a_samples, 0.0)
+    removed_mass_per_sample = np.trapz(removed_density, t_pts, axis=1)
+    truncated_samples = np.where(proactive_abort_mask, 0.0, p_a_samples)
+    remaining_mass_per_sample = np.trapz(truncated_samples, t_pts, axis=1)
+    remaining_mass_for_summary = remaining_mass_per_sample.copy()
+    remaining_mass_per_sample = np.clip(remaining_mass_per_sample, 1e-12, None)
+    truncated_samples = truncated_samples / remaining_mass_per_sample[:, None]
+
+    truncation_summary = {
+        "mean_removed_mass": float(np.mean(removed_mass_per_sample)),
+        "max_removed_mass": float(np.max(removed_mass_per_sample)),
+        "mean_remaining_mass_before_norm": float(np.mean(remaining_mass_for_summary)),
+    }
+    return truncated_samples, truncation_summary
 
 
 def compute_raw_rtd_from_pa_ca(t_pts, p_a, c_a, abl_value, ild_value, tied_params):
@@ -494,8 +525,12 @@ def load_data():
             )
             segment_start = time.perf_counter()
             t_stim_samples = rng.choice(segment_df["intended_fix"].to_numpy(), size=N_MC_T_STIM_SAMPLES, replace=True)
+            truncation_summary = None
             if MODEL_DENSITY_MODE == "valid_conditioned":
-                t_pts, p_a_mean, c_a_mean = compute_segment_proactive_matrices(t_stim_samples, abort_params)
+                t_pts, p_a_mean, c_a_mean, truncation_summary = compute_segment_proactive_matrices(
+                    t_stim_samples,
+                    abort_params,
+                )
             else:
                 t_pts, p_a_mean, c_a_mean = compute_segment_proactive_curves(t_stim_samples, abort_params)
             if progress_bar is not None:
@@ -533,6 +568,7 @@ def load_data():
                     "densities_by_abl": densities_by_abl,
                     "weights_by_abl": weights_by_abl,
                     "t_stim_samples": t_stim_samples,
+                    "truncation_summary": truncation_summary,
                 }
             )
             print(
@@ -667,6 +703,7 @@ def plot_data(data):
     print(f"TRIAL_POOL_MODE: {TRIAL_POOL_MODE}")
     print(f"SEGMENT_MODE: {SEGMENT_MODE}")
     print(f"MODEL_DENSITY_MODE: {MODEL_DENSITY_MODE}")
+    print(f"PROACTIVE_ABORT_TRUNC_FIX_TIME_S: {PROACTIVE_ABORT_TRUNC_FIX_TIME_S}")
     print(f"Filtered pooled segment-pool trials: {len(data['valid_df'])}")
     print(f"Segment edges (s): {[float(edge) for edge in data['segment_edges']]}")
     print(f"PKLs used: {len(data['pkl_paths'])}")
@@ -679,10 +716,18 @@ def plot_data(data):
     for segment_result in data["segment_results"]:
         segment_spec = segment_result["segment_spec"]
         samples = segment_result["t_stim_samples"]
+        truncation_summary = segment_result["truncation_summary"]
         print(
             f"Segment {segment_spec['name']} [{segment_spec['left']:.3f}, {segment_spec['right']:.3f}] s, "
             f"MC intended_fix n={len(samples)}, mean={np.mean(samples):.3f}, min={np.min(samples):.3f}, max={np.max(samples):.3f}"
         )
+        if truncation_summary is not None:
+            print(
+                "  proactive truncation: "
+                f"mean_removed_mass={truncation_summary['mean_removed_mass']:.5f}, "
+                f"max_removed_mass={truncation_summary['max_removed_mass']:.5f}, "
+                f"mean_remaining_mass_before_norm={truncation_summary['mean_remaining_mass_before_norm']:.5f}"
+            )
         for abl_value in ABL_VALUES:
             print(f"  ABL={abl_value}, ILD weights={segment_result['weights_by_abl'][int(abl_value)]}")
     print(f"Saved: {tagged_output_base.with_suffix('.pdf')}")

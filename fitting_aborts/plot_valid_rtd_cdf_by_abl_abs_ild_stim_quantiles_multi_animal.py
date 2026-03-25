@@ -11,8 +11,8 @@ import pandas as pd
 # %%
 SHOW_PLOT = True
 
-# DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
-DESIRED_BATCHES = ["LED7"]
+DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+# DESIRED_BATCHES = ["LED7"]
 
 EXCLUDED_BATCH_ANIMAL_PAIRS = []
 num_intended_fix_quantile_bins = 2
@@ -29,7 +29,7 @@ rt_max_s = 1.0
 intended_fix_max_s = 1.5
 bin_size_s = 5e-3
 tachometric_bin_size_s = 5e-3
-xlim_ms = (0, 1000)
+xlim_ms = (0, 600)
 ylabel_rtd = "Density"
 ylabel_cdf = "CDF"
 ylabel_tacho = "P(success = 1)"
