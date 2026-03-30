@@ -24,6 +24,7 @@ import pickle
 import warnings
 from types import SimpleNamespace
 from animal_wise_plotting_utils import calculate_theoretical_curves
+from scipy.integrate import cumulative_trapezoid
 from time_vary_norm_utils import (
     up_or_down_RTs_fit_PA_C_A_given_wrt_t_stim_fn, 
     cum_pro_and_reactive_time_vary_fn, 
@@ -59,7 +60,9 @@ def get_simulation_RTD_KDE(
 
 # %%
 # Define desired batches
-DESIRED_BATCHES = ['SD', 'LED2', 'LED1', 'LED34', 'LED6', 'LED8', 'LED7']
+# DESIRED_BATCHES = ['SD', 'LED2', 'LED1', 'LED34', 'LED6', 'LED8', 'LED7']
+# DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+DESIRED_BATCHES = ["LED7"]
 
 # Base directory paths
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -67,23 +70,17 @@ csv_dir = os.path.join(base_dir, 'batch_csvs')
 results_dir = base_dir  # Directory containing the pickle files
 
 def find_batch_animal_pairs():
+    """Discover (batch, animal) pairs from batch CSVs."""
     pairs = []
-    pattern = os.path.join(results_dir, 'results_*_animal_*.pkl')
-    pickle_files = glob.glob(pattern)
-    for pickle_file in pickle_files:
-        filename = os.path.basename(pickle_file)
-        parts = filename.split('_')
-        if len(parts) >= 4:
-            batch_index = parts.index('animal') - 1 if 'animal' in parts else 1
-            animal_index = parts.index('animal') + 1 if 'animal' in parts else 2
-            batch_name = parts[batch_index]
-            animal_id = parts[animal_index].split('.')[0]
-            if batch_name in DESIRED_BATCHES:
-                # Exclude animals 40, 41, 43 from LED2 batch
-                if not (batch_name == 'LED2' and animal_id in ['40', '41', '43']):
-                    pairs.append((batch_name, animal_id))
-        else:
-            print(f"Warning: Invalid filename format: {filename}")
+    for batch_name in DESIRED_BATCHES:
+        csv_path = os.path.join(csv_dir, f'batch_{batch_name}_valid_and_aborts.csv')
+        if not os.path.exists(csv_path):
+            print(f"Warning: CSV not found: {csv_path}")
+            continue
+        df = pd.read_csv(csv_path)
+        valid = df[df['success'].isin([1, -1])]
+        for animal_id in sorted(valid['animal'].unique(), key=str):
+            pairs.append((batch_name, str(animal_id)))
     return pairs
 
 batch_animal_pairs = find_batch_animal_pairs()
@@ -461,4 +458,65 @@ plt.show()
 # plt.show()
 
 # print batch 
+# %%
+
+# %%
+# CDF plot corresponding to the folded RTD plot above
+abs_ILD_arr = [abs(ild) for ild in ILD_arr]
+abs_ILD_arr = sorted(list(set(abs_ILD_arr)))
+max_xlim_RT = 1.0
+fig, axes = plt.subplots(len(ABL_arr), len(abs_ILD_arr), figsize=(10, 6), sharex=True, sharey=True)
+for ax_row in axes:
+    for ax in ax_row:
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+for i, abl in enumerate(ABL_arr):
+    for j, abs_ild in enumerate(abs_ILD_arr):
+        empirical_rtds = []
+        theoretical_rtds = []
+        bin_centers = None
+        t_pts = None
+        for ild in [abs_ild, -abs_ild]:
+            stim_key = (abl, ild)
+            for batch_animal_pair, animal_data in rtd_data.items():
+                if stim_key in animal_data:
+                    emp_data = animal_data[stim_key]['empirical']
+                    if not np.all(np.isnan(emp_data['rtd_hist'])):
+                        empirical_rtds.append(emp_data['rtd_hist'])
+                        bin_centers = emp_data['bin_centers']
+                    theo_data = animal_data[stim_key]['theoretical']
+                    if not np.all(np.isnan(theo_data['rtd'])):
+                        theoretical_rtds.append(theo_data['rtd'])
+                        t_pts = theo_data['t_pts']
+        ax = axes[i, j]
+        if empirical_rtds and bin_centers is not None:
+            avg_empirical_rtd = np.nanmean(empirical_rtds, axis=0)
+            emp_cdf = np.cumsum(avg_empirical_rtd) * np.mean(np.diff(bin_centers))
+            ax.plot(bin_centers, emp_cdf, 'b-', linewidth=1.5, label='Data')
+        if theoretical_rtds and t_pts is not None:
+            avg_theoretical_rtd = np.nanmean(theoretical_rtds, axis=0)
+            theo_cdf = cumulative_trapezoid(avg_theoretical_rtd, t_pts, initial=0)
+            ax.plot(t_pts, theo_cdf, 'r-', linewidth=1.5, label='Theory')
+        if i == len(ABL_arr) - 1:
+            ax.set_xlabel('RT (s)', fontsize=12)
+            ax.set_xticks([-0.1, max_xlim_RT])
+            ax.set_xticklabels(['-0.1', str(max_xlim_RT)], fontsize=12)
+        ax.set_xlim(-0.1, max_xlim_RT)
+        ax.set_ylim(0, 1.05)
+        ax.set_yticks([0, 0.5, 1.0])
+        ax.axvline(x=0, color='k', linestyle='--', linewidth=1)
+        ax.axhline(y=1.0,color='k', alpha=0.3)
+        if j == 0:
+            ax.set_ylabel(f'ABL={abl}', fontsize=12, rotation=0, ha='right', va='center')
+        if i == 0:
+            ax.set_title(f'|ILD|={abs_ild}', fontsize=12)
+for ax_row in axes:
+    for ax in ax_row:
+        ax.tick_params(axis='x', labelsize=12)
+        ax.tick_params(axis='y', labelsize=12)
+plt.tight_layout()
+plt.subplots_adjust(bottom=0.15)
+plt.savefig(f'cdf_average_by_abs_ILD_FOLDED_{MODEL_TYPE}.png', dpi=300, bbox_inches='tight')
+plt.show()
+
 # %%

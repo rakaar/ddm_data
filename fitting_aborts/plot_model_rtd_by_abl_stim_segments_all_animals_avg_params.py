@@ -1,8 +1,8 @@
 # %%
 SHOW_PLOT = True
 
-DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
-# DESIRED_BATCHES = ["LED7"]
+# DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+DESIRED_BATCHES = ["LED7"]
 
 MODEL_KEY = "vbmc_norm_tied_results"
 ABORT_KEY = "vbmc_aborts_results"
