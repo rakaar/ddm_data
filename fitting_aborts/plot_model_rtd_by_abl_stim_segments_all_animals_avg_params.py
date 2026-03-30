@@ -26,11 +26,11 @@ N_MC_T_STIM_SAMPLES = 1000
 RNG_SEED = 12345
 
 intended_fix_min_s = 0.2
-rt_min_s = -1.0
-rt_max_s = 1.0
+rt_min_s = -2.0
+rt_max_s = 2.0
 bin_size_s = 1e-3
 intended_fix_max_s = 1.5
-xlim_s = (0, 0.6)
+xlim_s = (0, 1)
 figure_size = (5.0, 6.6)
 png_dpi = 300
 
@@ -646,10 +646,24 @@ def plot_data(data):
             color="tab:red",
             linewidth=1,
         )
+
+        # calculate area of red and blue
+        print(f'ABL = {abl_value}')
+        blue_area = np.trapz(early_segment_result["densities_by_abl"][int(abl_value)], x_edges_s[:-1])
+        red_area = np.trapz(late_segment_result["densities_by_abl"][int(abl_value)], x_edges_s[:-1])
+        print(f'blue area = {blue_area}')
+        print(f'red area = {red_area}')
         ax.set_xlim(*xlim_s)
         ax.set_ylim(0, y_max_by_abl)
         ax.grid(alpha=0.2, linewidth=0.6)
-        ax.set_title(f"ABL = {abl_value}")
+        early_spec = early_segment_result["segment_spec"]
+        late_spec = late_segment_result["segment_spec"]
+        ax.set_title(
+            f"ABL = {abl_value}, blue={blue_area:.2f}, red={red_area :.2f}\n"
+            f"{early_spec['name']}=[{early_spec['left']:.3f}, {early_spec['right']:.3f}]s, "
+            f"{late_spec['name']}=[{late_spec['left']:.3f}, {late_spec['right']:.3f}]s"
+        )
+        
         ax.set_xlabel("RT wrt stim (s)")
         if col_idx == 0:
             ax.set_ylabel("Density")
@@ -691,15 +705,57 @@ def plot_data(data):
     print(f"Saved: {tagged_output_base_by_abl.with_suffix('.pdf')}")
     print(f"Saved: {tagged_output_base_by_abl.with_suffix('.png')}")
 
-    return fig, fig_by_abl
+    # --- CDF plot (cumulative trapz of density) for early vs late, by ABL ---
+    bin_centers = x_edges_s[:-1]
+    dx = np.diff(x_edges_s)
+
+    fig_cdf, axes_cdf = plt.subplots(1, len(ABL_VALUES), figsize=(12.0, 3.8), sharex=True, sharey=True, squeeze=False)
+
+    for col_idx, abl_value in enumerate(ABL_VALUES):
+        ax = axes_cdf[0, col_idx]
+
+        early_density = early_segment_result["densities_by_abl"][int(abl_value)]
+        late_density = late_segment_result["densities_by_abl"][int(abl_value)]
+
+        early_cdf = np.cumsum(early_density * dx)
+        late_cdf = np.cumsum(late_density * dx)
+
+        ax.plot(bin_centers, early_cdf, label=early_segment_result["segment_spec"]["name"], color="tab:blue", linewidth=1)
+        ax.plot(bin_centers, late_cdf, label=late_segment_result["segment_spec"]["name"], color="tab:red", linewidth=1)
+
+        ax.set_xlim(*xlim_s)
+        ax.set_ylim(0, 1.05)
+        ax.grid(alpha=0.2, linewidth=0.6)
+        early_spec = early_segment_result["segment_spec"]
+        late_spec = late_segment_result["segment_spec"]
+        ax.set_title(
+            f"ABL = {abl_value}\n"
+            f"{early_spec['name']}=[{early_spec['left']:.3f}, {early_spec['right']:.3f}]s, "
+            f"{late_spec['name']}=[{late_spec['left']:.3f}, {late_spec['right']:.3f}]s"
+        )
+        ax.set_xlabel("RT wrt stim (s)")
+        if col_idx == 0:
+            ax.set_ylabel("CDF")
+
+    handles_cdf, labels_cdf = axes_cdf[0, 0].get_legend_handles_labels()
+    fig_cdf.legend(handles_cdf, labels_cdf, loc="upper center", ncol=2, frameon=False)
+    fig_cdf.tight_layout(rect=(0, 0, 1, 0.90))
+
+    tagged_output_base_cdf = output_dir / f"{output_base.name}_{len(data['included_pairs'])}animals_by_abl_cdf"
+    save_figure(fig_cdf, tagged_output_base_cdf)
+    print(f"Saved: {tagged_output_base_cdf.with_suffix('.pdf')}")
+    print(f"Saved: {tagged_output_base_cdf.with_suffix('.png')}")
+
+    return fig, fig_by_abl, fig_cdf
 
 
-fig, fig_by_abl = plot_data(data)
+fig, fig_by_abl, fig_cdf = plot_data(data)
 
 if SHOW_PLOT:
     plt.show()
 else:
     plt.close(fig)
     plt.close(fig_by_abl)
+    plt.close(fig_cdf)
 
 #%%

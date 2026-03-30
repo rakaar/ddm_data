@@ -24,12 +24,12 @@ if TRIAL_POOL_MODE not in {"valid", "valid_plus_abort3"}:
 supported_abl_values = (20, 40, 60)
 supported_abs_ild_values = (1, 2, 4, 8, 16)
 
-rt_min_s = -1
-rt_max_s = 1.0
+rt_min_s = -3
+rt_max_s = 3.0
 intended_fix_max_s = 1.5
 bin_size_s = 5e-3
 tachometric_bin_size_s = 5e-3
-xlim_ms = (0, 600)
+xlim_ms = (0, 1000)
 ylabel_rtd = "Density"
 ylabel_cdf = "CDF"
 ylabel_tacho = "P(success = 1)"
@@ -56,6 +56,7 @@ rtd_plot_base_all_ild_segment_overlay = f"multi_animal_valid_rtd_by_abl_all_ild_
 rtd_plot_base_condition_grid_segment_overlay = f"multi_animal_valid_rtd_by_abl_abs_ild_condition_grid_segment_overlay_quantile_segments{output_suffix}"
 cdf_plot_base_all_ild = f"multi_animal_valid_cdf_by_abl_all_ild_quantile_segments{output_suffix}"
 cdf_plot_base_segment_overlay = f"multi_animal_valid_cdf_by_abl_abs_ild_segment_overlay_quantile_segments{output_suffix}"
+cdf_plot_base_abl_segment_overlay = f"multi_animal_valid_cdf_by_abl_segment_overlay_quantile_segments{output_suffix}"
 tacho_plot_base_all_ild = f"multi_animal_valid_tachometric_by_abl_all_ild_quantile_segments{output_suffix}"
 tacho_plot_base_abs_ild = f"multi_animal_valid_tachometric_by_abl_abs_ild_quantile_segments{output_suffix}"
 
@@ -604,6 +605,71 @@ def make_abl_segment_overlay_rtd_plot(
     return fig
 
 
+def make_abl_segment_overlay_cdf_plot(
+    df: pd.DataFrame,
+    bins_s: np.ndarray,
+    segment_edges: np.ndarray,
+) -> plt.Figure:
+    n_segments = len(segment_edges) - 1
+    fig, axes = plt.subplots(
+        1,
+        len(supported_abl_values),
+        figsize=(panel_width * len(supported_abl_values), panel_height),
+        sharex=True,
+        sharey=True,
+        squeeze=False,
+    )
+    x_edges_ms = bins_s * 1e3
+    segment_colors = ["tab:blue", "tab:red", "tab:green", "tab:purple"]
+
+    for col_idx, abl_value in enumerate(supported_abl_values):
+        ax = axes[0, col_idx]
+        abl_df = df[np.isclose(df["ABL"], abl_value)].copy()
+        segment_count_labels = []
+
+        for segment_idx in range(n_segments):
+            segment_df = abl_df[abl_df["intended_fix_segment"] == segment_idx].copy()
+            values = segment_df["RTwrtStim"].to_numpy()
+            y_values = compute_binned_cdf(values, bins_s)
+
+            if n_segments == 2:
+                segment_name = "Early stim" if segment_idx == 0 else "Late stim"
+                segment_count_name = "early" if segment_idx == 0 else "late"
+            else:
+                segment_name = f"Stim seg {segment_idx + 1}/{n_segments}"
+                segment_count_name = f"seg{segment_idx + 1}"
+
+            segment_count_labels.append(f"{segment_count_name}={len(segment_df)}")
+
+            ax.stairs(
+                y_values,
+                x_edges_ms,
+                label=(
+                    f"{segment_name} "
+                    f"[{segment_edges[segment_idx]:.3f}, {segment_edges[segment_idx + 1]:.3f}] s"
+                ),
+                color=segment_colors[segment_idx % len(segment_colors)],
+                linewidth=1.8,
+                linestyle="-",
+            )
+
+        ax.set_title(f"ABL = {abl_value}\n{', '.join(segment_count_labels)}, total={len(abl_df)}")
+        ax.set_xlim(*xlim_ms)
+        ax.grid(alpha=0.2, linewidth=0.6)
+        ax.set_xlabel("RT wrt stim (ms)")
+
+        if col_idx == 0:
+            ax.set_ylabel(ylabel_cdf)
+
+        if cdf_ylim is not None:
+            ax.set_ylim(*cdf_ylim)
+
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=min(n_segments, 4), frameon=False)
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
+    return fig
+
+
 def make_condition_segment_overlay_plot(
     df: pd.DataFrame,
     bins_s: np.ndarray,
@@ -1044,6 +1110,11 @@ cdf_segment_overlay_fig = make_condition_segment_overlay_plot(
     colors_by_abs_ild=abs_ild_colors,
     segment_edges=intended_fix_segment_edges,
 )
+cdf_abl_segment_overlay_fig = make_abl_segment_overlay_cdf_plot(
+    plot_df,
+    bins_s=rt_bins_s,
+    segment_edges=intended_fix_segment_edges,
+)
 rtd_condition_grid_segment_overlay_fig = make_condition_grid_segment_overlay_plot(
     plot_df,
     bins_s=rt_bins_s,
@@ -1070,6 +1141,7 @@ rtd_output_base_all_ild_segment_overlay = output_dir / rtd_plot_base_all_ild_seg
 rtd_output_base_condition_grid_segment_overlay = output_dir / rtd_plot_base_condition_grid_segment_overlay
 cdf_output_base_all_ild = output_dir / cdf_plot_base_all_ild
 cdf_output_base_segment_overlay = output_dir / cdf_plot_base_segment_overlay
+cdf_output_base_abl_segment_overlay = output_dir / cdf_plot_base_abl_segment_overlay
 tacho_output_base_all_ild = output_dir / tacho_plot_base_all_ild
 tacho_output_base_abs_ild = output_dir / tacho_plot_base_abs_ild
 
@@ -1080,6 +1152,7 @@ save_figure(rtd_all_ild_segment_overlay_fig, rtd_output_base_all_ild_segment_ove
 save_figure(rtd_condition_grid_segment_overlay_fig, rtd_output_base_condition_grid_segment_overlay)
 save_figure(cdf_all_ild_fig, cdf_output_base_all_ild)
 save_figure(cdf_segment_overlay_fig, cdf_output_base_segment_overlay)
+save_figure(cdf_abl_segment_overlay_fig, cdf_output_base_abl_segment_overlay)
 save_figure(tacho_all_ild_fig, tacho_output_base_all_ild)
 save_figure(tacho_abs_ild_fig, tacho_output_base_abs_ild)
 
@@ -1104,6 +1177,9 @@ print(f"  {cdf_output_base_all_ild.with_suffix('.png')}")
 print("Saved CDF figure with intended_fix segments overlaid within each ABL:")
 print(f"  {cdf_output_base_segment_overlay.with_suffix('.pdf')}")
 print(f"  {cdf_output_base_segment_overlay.with_suffix('.png')}")
+print("Saved CDF figure by ABL with early/late segment overlay:")
+print(f"  {cdf_output_base_abl_segment_overlay.with_suffix('.pdf')}")
+print(f"  {cdf_output_base_abl_segment_overlay.with_suffix('.png')}")
 print("Saved tachometric figure collapsed across ILD:")
 print(f"  {tacho_output_base_all_ild.with_suffix('.pdf')}")
 print(f"  {tacho_output_base_all_ild.with_suffix('.png')}")
@@ -1121,6 +1197,7 @@ else:
     plt.close(rtd_condition_grid_segment_overlay_fig)
     plt.close(cdf_all_ild_fig)
     plt.close(cdf_segment_overlay_fig)
+    plt.close(cdf_abl_segment_overlay_fig)
     plt.close(tacho_all_ild_fig)
     plt.close(tacho_abs_ild_fig)
 
