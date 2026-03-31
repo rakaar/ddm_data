@@ -1,17 +1,29 @@
 # %%
 SHOW_PLOT = True
 
-# DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
-DESIRED_BATCHES = ["LED7"]
+DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+# DESIRED_BATCHES = ["LED7"]
 
 MODEL_KEY = "vbmc_norm_tied_results"
 ABORT_KEY = "vbmc_aborts_results"
 PARAM_REDUCER = "mean"
-TRIAL_POOL_MODE = "valid"  # "valid" or "valid_plus_abort3"
+TRIAL_POOL_MODE = "valid_plus_abort3"  # "valid" or "valid_plus_abort3"
 SEGMENT_MODE = "quantile"  # "quantile" or "fixed"
 NUM_INTENDED_FIX_QUANTILE_BINS = 2
 FIXED_SEGMENT_EDGES_S = (0.2, 0.4, 1.5)
-MODEL_DENSITY_MODE = "valid_conditioned"  # "raw" or "valid_conditioned"
+MODEL_DENSITY_MODE = "raw"  # "raw" or "valid_conditioned"
+PROACTIVE_TRUNC_FIX_TIME_S = {"default": 0.3, "LED34_even": 0.15}
+# Set to None to disable truncation entirely
+
+
+def get_trunc_time(batch_name):
+    if PROACTIVE_TRUNC_FIX_TIME_S is None:
+        return None
+    return PROACTIVE_TRUNC_FIX_TIME_S.get(
+        str(batch_name), PROACTIVE_TRUNC_FIX_TIME_S["default"]
+    )
+
+
 N_JOBS = -1
 JOBLIB_VERBOSE = 10
 
@@ -32,7 +44,7 @@ rt_min_s = -1.0
 rt_max_s = 1.0
 bin_size_s = 1e-3
 intended_fix_max_s = 1.5
-xlim_s = (0, 0.6)
+xlim_s = (-0.5, 1)
 figure_size = (5.0, 6.6)
 png_dpi = 300
 
@@ -270,19 +282,42 @@ def build_segment_specs(segment_edges):
     return segment_specs
 
 
-def compute_segment_proactive_curves(t_stim_samples, abort_params):
+def truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples, trunc_time):
+    t_pts = np.asarray(t_pts, dtype=float)
+    t_stim_samples = np.asarray(t_stim_samples, dtype=float)
+    p_a_samples = np.asarray(p_a_samples, dtype=float)
+
+    fixation_time = t_pts[None, :] + t_stim_samples[:, None]
+    proactive_abort_mask = (
+        (t_pts[None, :] < 0.0)
+        & (fixation_time >= 0.0)
+        & (fixation_time < trunc_time)
+    )
+
+    truncated_samples = np.where(proactive_abort_mask, 0.0, p_a_samples)
+    remaining_mass = np.trapz(truncated_samples, t_pts, axis=1)
+    remaining_mass = np.clip(remaining_mass, 1e-12, None)
+    truncated_samples = truncated_samples / remaining_mass[:, None]
+    return truncated_samples
+
+
+def compute_segment_proactive_curves(t_stim_samples, abort_params, trunc_time=None):
     t_pts = np.arange(-1.0, 1.001, 0.001)
     shifted_t = t_pts[None, :] + np.asarray(t_stim_samples, dtype=float)[:, None] - abort_params["t_A_aff"]
     p_a_samples = rho_A_t_VEC_fn(shifted_t, abort_params["V_A"], abort_params["theta_A"])
+    if trunc_time is not None:
+        p_a_samples = truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples, trunc_time)
     p_a_mean = np.mean(p_a_samples, axis=0)
     c_a_mean = cumulative_trapezoid(p_a_mean, t_pts, initial=0)
     return t_pts, p_a_mean, c_a_mean
 
 
-def compute_segment_proactive_matrices(t_stim_samples, abort_params):
+def compute_segment_proactive_matrices(t_stim_samples, abort_params, trunc_time=None):
     t_pts = np.arange(-1.0, 1.001, 0.001)
     shifted_t = t_pts[None, :] + np.asarray(t_stim_samples, dtype=float)[:, None] - abort_params["t_A_aff"]
     p_a_samples = rho_A_t_VEC_fn(shifted_t, abort_params["V_A"], abort_params["theta_A"])
+    if trunc_time is not None:
+        p_a_samples = truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples, trunc_time)
     c_a_samples = cumulative_trapezoid(p_a_samples, t_pts, axis=1, initial=0)
     return t_pts, p_a_samples, c_a_samples
 
@@ -435,10 +470,11 @@ def compute_one_animal_rtd(batch_name, animal_id, animal_df, segment_specs, bins
                 "n_mc": int(len(t_stim_samples)),
             }
 
+            trunc_time_i = get_trunc_time(batch_name)
             if MODEL_DENSITY_MODE == "valid_conditioned":
-                t_pts, p_a_obj, c_a_obj = compute_segment_proactive_matrices(t_stim_samples, abort_params)
+                t_pts, p_a_obj, c_a_obj = compute_segment_proactive_matrices(t_stim_samples, abort_params, trunc_time=trunc_time_i)
             else:
-                t_pts, p_a_obj, c_a_obj = compute_segment_proactive_curves(t_stim_samples, abort_params)
+                t_pts, p_a_obj, c_a_obj = compute_segment_proactive_curves(t_stim_samples, abort_params, trunc_time=trunc_time_i)
 
             densities_by_abl = {}
             weights_by_abl = {}

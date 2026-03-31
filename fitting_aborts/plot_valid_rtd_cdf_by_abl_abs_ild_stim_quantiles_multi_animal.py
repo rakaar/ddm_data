@@ -11,15 +11,29 @@ import pandas as pd
 # %%
 SHOW_PLOT = True
 
-# DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
-DESIRED_BATCHES = ["LED8", "LED7"]
+DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
+# DESIRED_BATCHES = ["LED8", "LED7"]
 
 EXCLUDED_BATCH_ANIMAL_PAIRS = []
 num_intended_fix_quantile_bins = 2
-TRIAL_POOL_MODE = "valid_plus_abort3"  # "valid" or "valid_plus_abort3"
+TRIAL_POOL_MODE = "valid_plus_abort3_and_4"  # "valid" or "valid_plus_abort3" or "valid_plus_abort3_and_4"
+DATA_DENSITY_MODE = "raw"  # "raw" or "valid_conditioned"
+PROACTIVE_TRUNC_FIX_TIME_S = {"default": 0.3, "LED34_even": 0.15}
+# Set to None to disable truncation entirely
 
-if TRIAL_POOL_MODE not in {"valid", "valid_plus_abort3"}:
+
+def get_trunc_time(batch_name):
+    if PROACTIVE_TRUNC_FIX_TIME_S is None:
+        return None
+    return PROACTIVE_TRUNC_FIX_TIME_S.get(
+        str(batch_name), PROACTIVE_TRUNC_FIX_TIME_S["default"]
+    )
+
+
+if TRIAL_POOL_MODE not in {"valid", "valid_plus_abort3", "valid_plus_abort3_and_4"}:
     raise ValueError(f"Unsupported TRIAL_POOL_MODE: {TRIAL_POOL_MODE}")
+if DATA_DENSITY_MODE not in {"raw", "valid_conditioned"}:
+    raise ValueError(f"Unsupported DATA_DENSITY_MODE: {DATA_DENSITY_MODE}")
 
 supported_abl_values = (20, 40, 60)
 supported_abs_ild_values = (1, 2, 4, 8, 16)
@@ -29,9 +43,9 @@ supported_abs_ild_values = (1, 2, 4, 8, 16)
 rt_min_s = -3
 rt_max_s = 3.0
 intended_fix_max_s = 1.5
-bin_size_s = 5e-3
+bin_size_s = 2.5e-3
 tachometric_bin_size_s = 5e-3
-xlim_ms = (-500, 500)
+xlim_ms = (-500, 1000)
 ylabel_rtd = "Density"
 ylabel_cdf = "CDF"
 ylabel_tacho = "P(success = 1)"
@@ -50,7 +64,13 @@ REPO_ROOT = SCRIPT_DIR.parent
 batch_csv_dir = REPO_ROOT / "fit_animal_by_animal" / "batch_csvs"
 output_dir = SCRIPT_DIR / "multi_animal_valid_rtd_cdf_stim_quantiles"
 
-output_suffix = "_plus_abort3" if TRIAL_POOL_MODE == "valid_plus_abort3" else ""
+output_suffix = (
+    "_plus_abort3_and_4" if TRIAL_POOL_MODE == "valid_plus_abort3_and_4"
+    else "_plus_abort3" if TRIAL_POOL_MODE == "valid_plus_abort3"
+    else ""
+)
+if DATA_DENSITY_MODE == "valid_conditioned":
+    output_suffix += "_valid_conditioned"
 rtd_plot_base = f"multi_animal_valid_rtd_by_abl_abs_ild_quantile_segments{output_suffix}"
 cdf_plot_base = f"multi_animal_valid_cdf_by_abl_abs_ild_quantile_segments{output_suffix}"
 rtd_plot_base_all_ild = f"multi_animal_valid_rtd_by_abl_all_ild_quantile_segments{output_suffix}"
@@ -108,6 +128,8 @@ def build_segment_condition_counts(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def compute_density_histogram(values: np.ndarray, bins: np.ndarray) -> np.ndarray:
+    if DATA_DENSITY_MODE == "valid_conditioned":
+        values = values[values >= 0.0]
     if len(values) == 0:
         return np.zeros(len(bins) - 1, dtype=float)
     hist, _ = np.histogram(values, bins=bins, density=True)
@@ -115,6 +137,8 @@ def compute_density_histogram(values: np.ndarray, bins: np.ndarray) -> np.ndarra
 
 
 def compute_binned_cdf(values: np.ndarray, bins: np.ndarray) -> np.ndarray:
+    if DATA_DENSITY_MODE == "valid_conditioned":
+        values = values[values >= 0.0]
     if len(values) == 0:
         return np.zeros(len(bins) - 1, dtype=float)
     counts, _ = np.histogram(values, bins=bins, density=False)
@@ -219,8 +243,11 @@ def load_merged_valid_trials() -> pd.DataFrame:
     missing_batch_files = []
 
     for batch_name in DESIRED_BATCHES:
+        batch_file_with_4 = batch_csv_dir / f"batch_{batch_name}_valid_and_aborts_and_4.csv"
         batch_file = batch_csv_dir / f"batch_{batch_name}_valid_and_aborts.csv"
-        if batch_file.exists():
+        if TRIAL_POOL_MODE == "valid_plus_abort3_and_4" and batch_file_with_4.exists():
+            batch_files.append(batch_file_with_4)
+        elif batch_file.exists():
             batch_files.append(batch_file)
         else:
             missing_batch_files.append(batch_file.name)
@@ -232,20 +259,35 @@ def load_merged_valid_trials() -> pd.DataFrame:
 
     merged_data = pd.concat([pd.read_csv(batch_file) for batch_file in batch_files], ignore_index=True)
     required_columns = ["batch_name", "animal", "success", "RTwrtStim", "ABL", "ILD", "intended_fix"]
-    if TRIAL_POOL_MODE == "valid_plus_abort3":
+    if TRIAL_POOL_MODE in {"valid_plus_abort3", "valid_plus_abort3_and_4"}:
         required_columns.append("abort_event")
     validate_required_columns(merged_data, required_columns)
 
     numeric_columns = ["RTwrtStim", "ABL", "ILD", "intended_fix"]
-    if TRIAL_POOL_MODE == "valid_plus_abort3":
+    if TRIAL_POOL_MODE in {"valid_plus_abort3", "valid_plus_abort3_and_4"}:
         numeric_columns.append("abort_event")
     for column_name in numeric_columns:
         merged_data[column_name] = pd.to_numeric(merged_data[column_name], errors="coerce")
 
-    if TRIAL_POOL_MODE == "valid_plus_abort3":
+    if TRIAL_POOL_MODE in {"valid_plus_abort3", "valid_plus_abort3_and_4"}:
+        abort_events = [3, 4] if TRIAL_POOL_MODE == "valid_plus_abort3_and_4" else [3]
+        abort_mask = np.column_stack([np.isclose(merged_data["abort_event"], ae) for ae in abort_events]).any(axis=1)
         merged_valid = merged_data[
-            merged_data["success"].isin([1, -1]) | np.isclose(merged_data["abort_event"], 3)
+            merged_data["success"].isin([1, -1]) | abort_mask
         ].copy()
+        if PROACTIVE_TRUNC_FIX_TIME_S is not None:
+            merged_valid["TotalFixTime"] = pd.to_numeric(merged_valid["TotalFixTime"], errors="coerce")
+            early_abort_mask = pd.Series(False, index=merged_valid.index)
+            for bn in merged_valid["batch_name"].astype(str).unique():
+                tt = get_trunc_time(bn)
+                if tt is not None:
+                    batch_mask = merged_valid["batch_name"].astype(str) == bn
+                    early_abort_mask |= (
+                        batch_mask
+                        & np.isclose(merged_valid["abort_event"], 3)
+                        & (merged_valid["TotalFixTime"] < tt)
+                    )
+            merged_valid = merged_valid[~early_abort_mask].copy()
     else:
         merged_valid = merged_data[merged_data["success"].isin([1, -1])].copy()
     merged_valid["abs_ILD"] = merged_valid["ILD"].abs()
@@ -298,6 +340,22 @@ def load_merged_tachometric_trials() -> pd.DataFrame:
         | np.isclose(merged_data["abort_event"], 4)
         | np.isclose(merged_data["abort_event"], 3)
     ].copy()
+
+    if PROACTIVE_TRUNC_FIX_TIME_S is not None:
+        merged_tachometric["TotalFixTime"] = pd.to_numeric(
+            merged_tachometric["TotalFixTime"], errors="coerce"
+        )
+        early_abort_mask = pd.Series(False, index=merged_tachometric.index)
+        for bn in merged_tachometric["batch_name"].astype(str).unique():
+            tt = get_trunc_time(bn)
+            if tt is not None:
+                batch_mask = merged_tachometric["batch_name"].astype(str) == bn
+                early_abort_mask |= (
+                    batch_mask
+                    & np.isclose(merged_tachometric["abort_event"], 3)
+                    & (merged_tachometric["TotalFixTime"] < tt)
+                )
+        merged_tachometric = merged_tachometric[~early_abort_mask].copy()
 
     abort_event_3_mask = np.isclose(merged_tachometric["abort_event"], 3)
     if abort_event_3_mask.any():
@@ -550,7 +608,9 @@ def make_abl_segment_overlay_rtd_plot(
     fig, axes = plt.subplots(
         1,
         len(supported_abl_values),
-        figsize=(panel_width * len(supported_abl_values), panel_height),
+        # figsize=(panel_width * len(supported_abl_values), panel_height),
+        figsize=(12.0, 3.8),
+
         sharex=True,
         sharey=True,
         squeeze=False,
@@ -1088,7 +1148,11 @@ batch_animal_counts = (
     .rename("n_trials")
 )
 
-plot_trial_label = "valid+abort3" if TRIAL_POOL_MODE == "valid_plus_abort3" else "valid-only"
+plot_trial_label = (
+    "valid+abort3+abort4" if TRIAL_POOL_MODE == "valid_plus_abort3_and_4"
+    else "valid+abort3" if TRIAL_POOL_MODE == "valid_plus_abort3"
+    else "valid-only"
+)
 
 print(f"Rebuilt multi-animal {plot_trial_label} dataset for quantile-segment RTD/CDF plots:")
 print(f"  Batch CSV dir: {batch_csv_dir}")

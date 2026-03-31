@@ -12,6 +12,17 @@ TRIAL_POOL_MODE = "valid"  # "valid" or "valid_plus_abort3"
 NUM_INTENDED_FIX_QUANTILE_BINS = 2
 MODEL_DENSITY_MODE = "valid_conditioned"  # "raw" or "valid_conditioned"
 THEORY_DATA_MODE = "avg_of_rtds"  # "avg_of_rtds" or "avg_of_params"
+PROACTIVE_TRUNC_FIX_TIME_S = {"default": 0.3, "LED34_even": 0.15}
+# Set to None to disable truncation entirely
+
+
+def get_trunc_time(batch_name):
+    if PROACTIVE_TRUNC_FIX_TIME_S is None:
+        return None
+    return PROACTIVE_TRUNC_FIX_TIME_S.get(
+        str(batch_name), PROACTIVE_TRUNC_FIX_TIME_S["default"]
+    )
+
 
 if TRIAL_POOL_MODE not in {"valid", "valid_plus_abort3"}:
     raise ValueError(f"Unsupported TRIAL_POOL_MODE: {TRIAL_POOL_MODE}")
@@ -154,6 +165,11 @@ def load_pooled_valid_df(candidate_pairs):
                 )
             df["abort_event"] = pd.to_numeric(df["abort_event"], errors="coerce")
             df = df[df["success"].isin([1, -1]) | np.isclose(df["abort_event"], 3)].copy()
+            trunc_t = get_trunc_time(batch_name)
+            if trunc_t is not None:
+                df["TotalFixTime"] = pd.to_numeric(df["TotalFixTime"], errors="coerce")
+                early_abort = np.isclose(df["abort_event"], 3) & (df["TotalFixTime"] < trunc_t)
+                df = df[~early_abort].copy()
         else:
             df = df[df["success"].isin([1, -1])].copy()
         df["animal"] = pd.to_numeric(df["animal"], errors="coerce")
@@ -279,19 +295,42 @@ def build_segment_specs(segment_edges):
 # ---------------------------------------------------------------------------
 # Proactive / RTD computation (from model script)
 # ---------------------------------------------------------------------------
-def compute_segment_proactive_curves(t_stim_samples, abort_params):
+def truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples, trunc_time):
+    t_pts = np.asarray(t_pts, dtype=float)
+    t_stim_samples = np.asarray(t_stim_samples, dtype=float)
+    p_a_samples = np.asarray(p_a_samples, dtype=float)
+
+    fixation_time = t_pts[None, :] + t_stim_samples[:, None]
+    proactive_abort_mask = (
+        (t_pts[None, :] < 0.0)
+        & (fixation_time >= 0.0)
+        & (fixation_time < trunc_time)
+    )
+
+    truncated_samples = np.where(proactive_abort_mask, 0.0, p_a_samples)
+    remaining_mass = np.trapz(truncated_samples, t_pts, axis=1)
+    remaining_mass = np.clip(remaining_mass, 1e-12, None)
+    truncated_samples = truncated_samples / remaining_mass[:, None]
+    return truncated_samples
+
+
+def compute_segment_proactive_curves(t_stim_samples, abort_params, trunc_time=None):
     t_pts = np.arange(-1.0, 1.001, 0.001)
     shifted_t = t_pts[None, :] + np.asarray(t_stim_samples, dtype=float)[:, None] - abort_params["t_A_aff"]
     p_a_samples = rho_A_t_VEC_fn(shifted_t, abort_params["V_A"], abort_params["theta_A"])
+    if trunc_time is not None:
+        p_a_samples = truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples, trunc_time)
     p_a_mean = np.mean(p_a_samples, axis=0)
     c_a_mean = cumulative_trapezoid(p_a_mean, t_pts, initial=0)
     return t_pts, p_a_mean, c_a_mean
 
 
-def compute_segment_proactive_matrices(t_stim_samples, abort_params):
+def compute_segment_proactive_matrices(t_stim_samples, abort_params, trunc_time=None):
     t_pts = np.arange(-1.0, 1.001, 0.001)
     shifted_t = t_pts[None, :] + np.asarray(t_stim_samples, dtype=float)[:, None] - abort_params["t_A_aff"]
     p_a_samples = rho_A_t_VEC_fn(shifted_t, abort_params["V_A"], abort_params["theta_A"])
+    if trunc_time is not None:
+        p_a_samples = truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples, trunc_time)
     c_a_samples = cumulative_trapezoid(p_a_samples, t_pts, axis=1, initial=0)
     return t_pts, p_a_samples, c_a_samples
 
@@ -409,6 +448,12 @@ def load_all_trials_df(candidate_pairs):
         df["intended_fix"] = pd.to_numeric(df["intended_fix"], errors="coerce")
         df["ABL"] = pd.to_numeric(df["ABL"], errors="coerce")
         df["ILD"] = pd.to_numeric(df["ILD"], errors="coerce")
+        df["abort_event"] = pd.to_numeric(df["abort_event"], errors="coerce")
+        df["TotalFixTime"] = pd.to_numeric(df["TotalFixTime"], errors="coerce")
+        trunc_t = get_trunc_time(batch_name)
+        if trunc_t is not None:
+            early_abort = np.isclose(df["abort_event"], 3) & (df["TotalFixTime"] < trunc_t)
+            df = df[~early_abort].copy()
         df = df[
             (df["intended_fix"] >= intended_fix_min_s)
             & (df["intended_fix"] <= intended_fix_max_s)
@@ -536,8 +581,16 @@ def load_data():
             adf = pd.read_csv(batch_file)
             adf["animal"] = pd.to_numeric(adf["animal"], errors="coerce")
             adf = adf[adf["animal"] == int(animal_id)].copy()
-            for col in ("ABL", "ILD", "RTwrtStim", "intended_fix"):
+            for col in ("ABL", "ILD", "RTwrtStim", "intended_fix", "TotalFixTime", "abort_event"):
                 adf[col] = pd.to_numeric(adf[col], errors="coerce")
+
+            trunc_time_i = get_trunc_time(batch_name)
+            if trunc_time_i is not None:
+                early_abort_mask = (
+                    np.isclose(adf["abort_event"], 3)
+                    & (adf["TotalFixTime"] < trunc_time_i)
+                )
+                adf = adf[~early_abort_mask].copy()
 
             rng_a = np.random.default_rng(RNG_SEED + int(animal_id))
 
@@ -549,6 +602,8 @@ def load_data():
                 t_stim_samp = rng_a.choice(if_vals, size=n_theory_samples, replace=True)
                 shifted = ref_t_pts[None, :] + t_stim_samp[:, None] - abort_params_i["t_A_aff"]
                 pa_s = rho_A_t_VEC_fn(shifted, abort_params_i["V_A"], abort_params_i["theta_A"])
+                if trunc_time_i is not None:
+                    pa_s = truncate_proactive_abort_density(ref_t_pts, t_stim_samp, pa_s, trunc_time_i)
                 pa_m = np.mean(pa_s, axis=0)
                 ca_m = cumulative_trapezoid(pa_m, ref_t_pts, initial=0)
 
@@ -780,13 +835,14 @@ def load_data():
                     size=N_MC_T_STIM_SAMPLES, replace=True,
                 )
 
+                agg_trunc = get_trunc_time("default")
                 if MODEL_DENSITY_MODE == "valid_conditioned":
                     t_pts, p_a_mean, c_a_mean = compute_segment_proactive_matrices(
-                        t_stim_samples, abort_params
+                        t_stim_samples, abort_params, trunc_time=agg_trunc
                     )
                 else:
                     t_pts, p_a_mean, c_a_mean = compute_segment_proactive_curves(
-                        t_stim_samples, abort_params
+                        t_stim_samples, abort_params, trunc_time=agg_trunc
                     )
                 if progress_bar is not None:
                     progress_bar.update(1)
@@ -856,13 +912,14 @@ def load_data():
             pooled_valid_df["intended_fix"].to_numpy(),
             size=N_MC_T_STIM_SAMPLES, replace=True,
         )
+        agg_trunc = get_trunc_time("default")
         if MODEL_DENSITY_MODE == "valid_conditioned":
             ovr_t_pts, ovr_pa, ovr_ca = compute_segment_proactive_matrices(
-                overall_t_stim, abort_params
+                overall_t_stim, abort_params, trunc_time=agg_trunc
             )
         else:
             ovr_t_pts, ovr_pa, ovr_ca = compute_segment_proactive_curves(
-                overall_t_stim, abort_params
+                overall_t_stim, abort_params, trunc_time=agg_trunc
             )
 
         ovr_theory_abl, ovr_data_abl, ovr_counts = {}, {}, {}
