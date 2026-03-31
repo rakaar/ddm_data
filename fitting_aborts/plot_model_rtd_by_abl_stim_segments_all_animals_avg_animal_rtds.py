@@ -90,6 +90,7 @@ if MODEL_DENSITY_MODE == "valid_conditioned":
 output_suffix_parts.append("avg_animal_rtds")
 output_suffix = "".join(f"_{part}" for part in output_suffix_parts)
 output_base = output_dir / f"model_rtd_by_abl_stim_segments_all_animals{output_suffix}"
+overlay_payload_path = output_dir / f"{output_base.name}_by_abl_overlay_payload.pkl"
 
 abl_colors = {
     20: "tab:blue",
@@ -280,6 +281,12 @@ def build_segment_specs(segment_edges):
             }
         )
     return segment_specs
+
+
+def format_overlay_segment_name(segment_idx, n_segments):
+    if n_segments == 2:
+        return "Early stim" if segment_idx == 0 else "Late stim"
+    return f"Stim seg {segment_idx + 1}/{n_segments}"
 
 
 def truncate_proactive_abort_density(t_pts, t_stim_samples, p_a_samples, trunc_time):
@@ -703,8 +710,67 @@ def save_figure(fig, output_base_path):
     fig.savefig(output_base_path.with_suffix(".png"), dpi=png_dpi, bbox_inches="tight")
 
 
+def save_payload(payload, output_path):
+    with open(output_path, "wb") as handle:
+        pickle.dump(payload, handle)
+
+
+def build_abl_overlay_payload(data):
+    n_segments = len(data["segment_results"])
+    segment_specs = []
+    curves_by_abl = {
+        int(abl_value): {
+            "total": int(np.isclose(data["valid_df"]["ABL"], abl_value).sum()),
+            "segments": {},
+        }
+        for abl_value in ABL_VALUES
+    }
+
+    for segment_result in data["segment_results"]:
+        segment_spec = segment_result["segment_spec"]
+        segment_idx = int(segment_spec["index"])
+        segment_specs.append(
+            {
+                "index": segment_idx,
+                "name": format_overlay_segment_name(segment_idx, n_segments),
+                "label": (
+                    f"{format_overlay_segment_name(segment_idx, n_segments)} "
+                    f"[{segment_spec['left']:.3f}, {segment_spec['right']:.3f}] s"
+                ),
+                "left": float(segment_spec["left"]),
+                "right": float(segment_spec["right"]),
+            }
+        )
+
+        for abl_value in ABL_VALUES:
+            curves_by_abl[int(abl_value)]["segments"][segment_idx] = {
+                "density": np.asarray(segment_result["densities_by_abl"][int(abl_value)], dtype=float),
+                "count": int(segment_result["trial_counts_by_abl"][int(abl_value)]),
+                "contributing_animals": int(segment_result["contributing_animals_by_abl"][int(abl_value)]),
+            }
+
+    return {
+        "payload_kind": "abl_segment_overlay_rtd",
+        "source": "model",
+        "created_by": Path(__file__).name,
+        "trial_pool_mode": TRIAL_POOL_MODE,
+        "segment_mode": SEGMENT_MODE,
+        "density_mode": MODEL_DENSITY_MODE,
+        "n_mc_t_stim_samples": int(N_MC_T_STIM_SAMPLES),
+        "included_pairs": list(data["included_pairs"]),
+        "pkl_paths": [str(path) for path in data["pkl_paths"]],
+        "x_edges_s": np.asarray(data["bins_s"], dtype=float),
+        "xlim_s": tuple(float(value) for value in xlim_s),
+        "abl_values": [int(value) for value in ABL_VALUES],
+        "segment_edges_s": np.asarray(data["segment_edges"], dtype=float),
+        "segment_specs": segment_specs,
+        "curves_by_abl": curves_by_abl,
+    }
+
+
 def plot_data(data):
     output_dir.mkdir(parents=True, exist_ok=True)
+    save_payload(build_abl_overlay_payload(data), overlay_payload_path)
 
     fig, axes = plt.subplots(
         len(data["segment_results"]),
@@ -828,6 +894,7 @@ def plot_data(data):
     print(f"Saved: {tagged_output_base.with_suffix('.png')}")
     print(f"Saved: {tagged_output_base_by_abl.with_suffix('.pdf')}")
     print(f"Saved: {tagged_output_base_by_abl.with_suffix('.png')}")
+    print(f"Saved: {overlay_payload_path}")
 
     return fig, fig_by_abl
 

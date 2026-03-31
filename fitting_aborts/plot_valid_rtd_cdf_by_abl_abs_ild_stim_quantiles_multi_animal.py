@@ -1,6 +1,7 @@
 # %%
 from collections import defaultdict
 from pathlib import Path
+import pickle
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -75,6 +76,9 @@ rtd_plot_base = f"multi_animal_valid_rtd_by_abl_abs_ild_quantile_segments{output
 cdf_plot_base = f"multi_animal_valid_cdf_by_abl_abs_ild_quantile_segments{output_suffix}"
 rtd_plot_base_all_ild = f"multi_animal_valid_rtd_by_abl_all_ild_quantile_segments{output_suffix}"
 rtd_plot_base_all_ild_segment_overlay = f"multi_animal_valid_rtd_by_abl_all_ild_segment_overlay_quantile_segments{output_suffix}"
+rtd_plot_payload_base_all_ild_segment_overlay = (
+    f"multi_animal_valid_rtd_by_abl_all_ild_segment_overlay_quantile_segments{output_suffix}_payload"
+)
 rtd_plot_base_condition_grid_segment_overlay = f"multi_animal_valid_rtd_by_abl_abs_ild_condition_grid_segment_overlay_quantile_segments{output_suffix}"
 cdf_plot_base_all_ild = f"multi_animal_valid_cdf_by_abl_all_ild_quantile_segments{output_suffix}"
 cdf_plot_base_segment_overlay = f"multi_animal_valid_cdf_by_abl_abs_ild_segment_overlay_quantile_segments{output_suffix}"
@@ -163,6 +167,11 @@ def save_figure(fig: plt.Figure, output_base: Path) -> None:
     fig.savefig(output_base.with_suffix(".png"), dpi=png_dpi, bbox_inches="tight")
 
 
+def save_payload(payload: dict, output_path: Path) -> None:
+    with open(output_path, "wb") as handle:
+        pickle.dump(payload, handle)
+
+
 def add_intended_fix_quantile_segments(df: pd.DataFrame, n_quantile_bins: int) -> tuple[pd.DataFrame, np.ndarray]:
     if n_quantile_bins <= 0:
         raise ValueError("num_intended_fix_quantile_bins must be positive.")
@@ -204,6 +213,12 @@ def format_segment_label(segment_idx: int, segment_edges: np.ndarray, n_segments
     left_edge = segment_edges[segment_idx]
     right_edge = segment_edges[segment_idx + 1]
     return f"intended_fix Q{segment_idx + 1}/{n_segments} [{left_edge:.3f}, {right_edge:.3f}] s"
+
+
+def format_overlay_segment_name(segment_idx: int, n_segments: int) -> str:
+    if n_segments == 2:
+        return "Early stim" if segment_idx == 0 else "Late stim"
+    return f"Stim seg {segment_idx + 1}/{n_segments}"
 
 
 def get_batch_animal_pairs(df: pd.DataFrame) -> list[tuple[str, str]]:
@@ -629,11 +644,10 @@ def make_abl_segment_overlay_rtd_plot(
             y_values = compute_density_histogram(values, bins_s)
             line_alpha = 1.0 if segment_idx == 0 else 0.5
 
+            segment_name = format_overlay_segment_name(segment_idx, n_segments)
             if n_segments == 2:
-                segment_name = "Early stim" if segment_idx == 0 else "Late stim"
                 segment_count_name = "early" if segment_idx == 0 else "late"
             else:
-                segment_name = f"Stim seg {segment_idx + 1}/{n_segments}"
                 segment_count_name = f"seg{segment_idx + 1}"
 
             segment_count_labels.append(f"{segment_count_name}={len(segment_df)}")
@@ -666,6 +680,55 @@ def make_abl_segment_overlay_rtd_plot(
     fig.legend(handles, labels, loc="upper center", ncol=min(n_segments, 4), frameon=False)
     fig.tight_layout(rect=(0, 0, 1, 0.92))
     return fig
+
+
+def build_abl_segment_overlay_rtd_payload(
+    df: pd.DataFrame,
+    bins_s: np.ndarray,
+    segment_edges: np.ndarray,
+) -> dict:
+    n_segments = len(segment_edges) - 1
+    segment_specs = []
+    curves_by_abl = {}
+
+    for segment_idx in range(n_segments):
+        segment_specs.append(
+            {
+                "index": int(segment_idx),
+                "name": format_overlay_segment_name(segment_idx, n_segments),
+                "label": format_segment_label(segment_idx, segment_edges, n_segments),
+                "left": float(segment_edges[segment_idx]),
+                "right": float(segment_edges[segment_idx + 1]),
+            }
+        )
+
+    for abl_value in supported_abl_values:
+        abl_df = df[np.isclose(df["ABL"], abl_value)].copy()
+        curves_by_abl[int(abl_value)] = {
+            "total": int(len(abl_df)),
+            "segments": {},
+        }
+        for segment_idx in range(n_segments):
+            segment_df = abl_df[abl_df["intended_fix_segment"] == segment_idx].copy()
+            curves_by_abl[int(abl_value)]["segments"][int(segment_idx)] = {
+                "density": compute_density_histogram(segment_df["RTwrtStim"].to_numpy(), bins_s),
+                "count": int(len(segment_df)),
+            }
+
+    return {
+        "payload_kind": "abl_segment_overlay_rtd",
+        "source": "data",
+        "created_by": Path(__file__).name,
+        "trial_pool_mode": TRIAL_POOL_MODE,
+        "density_mode": DATA_DENSITY_MODE,
+        "batch_names": sorted(df["batch_name"].astype(str).unique().tolist()),
+        "x_edges_s": np.asarray(bins_s, dtype=float),
+        "xlim_ms": tuple(float(value) for value in xlim_ms),
+        "abl_values": [int(value) for value in supported_abl_values],
+        "segment_edges_s": np.asarray(segment_edges, dtype=float),
+        "segment_specs": segment_specs,
+        "curves_by_abl": curves_by_abl,
+    }
 
 
 def make_abl_segment_overlay_cdf_plot(
@@ -1268,6 +1331,7 @@ rtd_output_base = output_dir / rtd_plot_base
 cdf_output_base = output_dir / cdf_plot_base
 rtd_output_base_all_ild = output_dir / rtd_plot_base_all_ild
 rtd_output_base_all_ild_segment_overlay = output_dir / rtd_plot_base_all_ild_segment_overlay
+rtd_payload_output_path_all_ild_segment_overlay = output_dir / f"{rtd_plot_payload_base_all_ild_segment_overlay}.pkl"
 rtd_output_base_condition_grid_segment_overlay = output_dir / rtd_plot_base_condition_grid_segment_overlay
 cdf_output_base_all_ild = output_dir / cdf_plot_base_all_ild
 cdf_output_base_segment_overlay = output_dir / cdf_plot_base_segment_overlay
@@ -1280,6 +1344,14 @@ save_figure(rtd_fig, rtd_output_base)
 save_figure(cdf_fig, cdf_output_base)
 save_figure(rtd_all_ild_fig, rtd_output_base_all_ild)
 save_figure(rtd_all_ild_segment_overlay_fig, rtd_output_base_all_ild_segment_overlay)
+save_payload(
+    build_abl_segment_overlay_rtd_payload(
+        plot_df,
+        bins_s=rt_bins_s,
+        segment_edges=intended_fix_segment_edges,
+    ),
+    rtd_payload_output_path_all_ild_segment_overlay,
+)
 save_figure(rtd_condition_grid_segment_overlay_fig, rtd_output_base_condition_grid_segment_overlay)
 save_figure(cdf_all_ild_fig, cdf_output_base_all_ild)
 save_figure(cdf_segment_overlay_fig, cdf_output_base_segment_overlay)
@@ -1300,6 +1372,7 @@ print(f"  {rtd_output_base_all_ild.with_suffix('.png')}")
 print("Saved RTD figure with intended_fix segments overlaid within each ABL:")
 print(f"  {rtd_output_base_all_ild_segment_overlay.with_suffix('.pdf')}")
 print(f"  {rtd_output_base_all_ild_segment_overlay.with_suffix('.png')}")
+print(f"  {rtd_payload_output_path_all_ild_segment_overlay}")
 print("Saved RTD figure with abs ILD rows, ABL columns, and intended_fix segment overlays:")
 print(f"  {rtd_output_base_condition_grid_segment_overlay.with_suffix('.pdf')}")
 print(f"  {rtd_output_base_condition_grid_segment_overlay.with_suffix('.png')}")
