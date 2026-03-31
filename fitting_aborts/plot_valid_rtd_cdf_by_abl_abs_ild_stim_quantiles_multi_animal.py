@@ -12,24 +12,26 @@ import pandas as pd
 SHOW_PLOT = True
 
 # DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
-DESIRED_BATCHES = ["LED8"]
+DESIRED_BATCHES = ["LED8", "LED7"]
 
 EXCLUDED_BATCH_ANIMAL_PAIRS = []
 num_intended_fix_quantile_bins = 2
-TRIAL_POOL_MODE = "valid"  # "valid" or "valid_plus_abort3"
+TRIAL_POOL_MODE = "valid_plus_abort3"  # "valid" or "valid_plus_abort3"
 
 if TRIAL_POOL_MODE not in {"valid", "valid_plus_abort3"}:
     raise ValueError(f"Unsupported TRIAL_POOL_MODE: {TRIAL_POOL_MODE}")
 
 supported_abl_values = (20, 40, 60)
 supported_abs_ild_values = (1, 2, 4, 8, 16)
+# supported_abs_ild_values = (8,16)
+
 
 rt_min_s = -3
 rt_max_s = 3.0
 intended_fix_max_s = 1.5
 bin_size_s = 5e-3
 tachometric_bin_size_s = 5e-3
-xlim_ms = (0, 1000)
+xlim_ms = (-500, 500)
 ylabel_rtd = "Density"
 ylabel_cdf = "CDF"
 ylabel_tacho = "P(success = 1)"
@@ -59,6 +61,7 @@ cdf_plot_base_segment_overlay = f"multi_animal_valid_cdf_by_abl_abs_ild_segment_
 cdf_plot_base_abl_segment_overlay = f"multi_animal_valid_cdf_by_abl_segment_overlay_quantile_segments{output_suffix}"
 tacho_plot_base_all_ild = f"multi_animal_valid_tachometric_by_abl_all_ild_quantile_segments{output_suffix}"
 tacho_plot_base_abs_ild = f"multi_animal_valid_tachometric_by_abl_abs_ild_quantile_segments{output_suffix}"
+tacho_plot_base_abl_segment_overlay = f"multi_animal_valid_tachometric_by_abl_segment_overlay_quantile_segments{output_suffix}"
 
 
 # %%
@@ -690,7 +693,7 @@ def make_condition_segment_overlay_plot(
         squeeze=False,
     )
     x_edges_ms = bins_s * 1e3
-    segment_linestyles = [":", "-", "--", "-."]
+    segment_linestyles = ["-", "-", "-", "-"]
     segment_colors = ["tab:blue", "tab:red", "tab:green", "tab:purple"]
 
     for col_idx, abl_value in enumerate(supported_abl_values):
@@ -700,7 +703,7 @@ def make_condition_segment_overlay_plot(
 
         for segment_idx in range(n_segments):
             segment_df = abl_df[abl_df["intended_fix_segment"] == segment_idx].copy()
-            line_alpha = 1.0 if segment_idx == 0 else 0.5
+            line_alpha = 1.0 if segment_idx == 0 else 0.2
 
             if n_segments == 2:
                 segment_count_name = "early" if segment_idx == 0 else "late"
@@ -1002,6 +1005,64 @@ def make_tachometric_plot_by_abs_ild(
     return fig
 
 
+def make_tachometric_plot_by_abl_segment_overlay(
+    df: pd.DataFrame,
+    bins_s: np.ndarray,
+    segment_edges: np.ndarray,
+) -> plt.Figure:
+    n_segments = len(segment_edges) - 1
+    segment_colors = {0: "tab:blue", n_segments - 1: "tab:red"}
+    fig, axes = plt.subplots(
+        1,
+        len(supported_abl_values),
+        figsize=(panel_width * len(supported_abl_values), panel_height),
+        sharex=True,
+        sharey=True,
+        squeeze=False,
+    )
+    bin_centers_ms = (bins_s[:-1] + 0.5 * np.diff(bins_s)) * 1e3
+
+    for col_idx, abl_value in enumerate(supported_abl_values):
+        ax = axes[0, col_idx]
+        abl_df = df[np.isclose(df["ABL"], abl_value)].copy()
+
+        for segment_idx in [0, n_segments - 1]:
+            segment_df = abl_df[abl_df["intended_fix_segment"] == segment_idx].copy()
+            segment_label = format_segment_label(segment_idx, segment_edges, n_segments)
+            n_seg = int(len(segment_df))
+
+            rt_values = segment_df["RTwrtStim"].to_numpy()
+            correct_values = segment_df["derived_success"].to_numpy()
+            accuracy = compute_binned_accuracy(rt_values, correct_values, bins_s)
+
+            color = segment_colors[segment_idx]
+            ax.plot(
+                bin_centers_ms,
+                accuracy,
+                label=f"{segment_label} (n={n_seg})",
+                color=color,
+                linewidth=1.8,
+                marker="o",
+                markersize=3,
+            )
+
+        ax.set_title(f"ABL = {abl_value}")
+        ax.set_xlim(*xlim_ms)
+        ax.grid(alpha=0.2, linewidth=0.6)
+        ax.set_xlabel("RT wrt stim (ms)")
+
+        if col_idx == 0:
+            ax.set_ylabel(ylabel_tacho)
+
+        if tacho_ylim is not None:
+            ax.set_ylim(*tacho_ylim)
+
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=n_segments, frameon=False)
+    fig.tight_layout(rect=(0, 0, 1, 0.90))
+    return fig
+
+
 # %%
 output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1133,6 +1194,11 @@ tacho_abs_ild_fig = make_tachometric_plot_by_abs_ild(
     colors_by_abs_ild=abs_ild_colors,
     segment_edges=intended_fix_segment_edges,
 )
+tacho_abl_segment_overlay_fig = make_tachometric_plot_by_abl_segment_overlay(
+    tacho_df,
+    bins_s=tacho_bins_s,
+    segment_edges=intended_fix_segment_edges,
+)
 
 rtd_output_base = output_dir / rtd_plot_base
 cdf_output_base = output_dir / cdf_plot_base
@@ -1144,6 +1210,7 @@ cdf_output_base_segment_overlay = output_dir / cdf_plot_base_segment_overlay
 cdf_output_base_abl_segment_overlay = output_dir / cdf_plot_base_abl_segment_overlay
 tacho_output_base_all_ild = output_dir / tacho_plot_base_all_ild
 tacho_output_base_abs_ild = output_dir / tacho_plot_base_abs_ild
+tacho_output_base_abl_segment_overlay = output_dir / tacho_plot_base_abl_segment_overlay
 
 save_figure(rtd_fig, rtd_output_base)
 save_figure(cdf_fig, cdf_output_base)
@@ -1155,6 +1222,7 @@ save_figure(cdf_segment_overlay_fig, cdf_output_base_segment_overlay)
 save_figure(cdf_abl_segment_overlay_fig, cdf_output_base_abl_segment_overlay)
 save_figure(tacho_all_ild_fig, tacho_output_base_all_ild)
 save_figure(tacho_abs_ild_fig, tacho_output_base_abs_ild)
+save_figure(tacho_abl_segment_overlay_fig, tacho_output_base_abl_segment_overlay)
 
 print("Saved RTD figure:")
 print(f"  {rtd_output_base.with_suffix('.pdf')}")
@@ -1186,6 +1254,9 @@ print(f"  {tacho_output_base_all_ild.with_suffix('.png')}")
 print("Saved tachometric figure by abs ILD:")
 print(f"  {tacho_output_base_abs_ild.with_suffix('.pdf')}")
 print(f"  {tacho_output_base_abs_ild.with_suffix('.png')}")
+print("Saved tachometric figure by ABL with early/late segment overlay:")
+print(f"  {tacho_output_base_abl_segment_overlay.with_suffix('.pdf')}")
+print(f"  {tacho_output_base_abl_segment_overlay.with_suffix('.png')}")
 
 if show_plot:
     plt.show()
@@ -1200,5 +1271,6 @@ else:
     plt.close(cdf_abl_segment_overlay_fig)
     plt.close(tacho_all_ild_fig)
     plt.close(tacho_abs_ild_fig)
+    plt.close(tacho_abl_segment_overlay_fig)
 
 # %%

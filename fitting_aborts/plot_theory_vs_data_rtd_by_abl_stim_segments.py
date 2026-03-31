@@ -1,7 +1,7 @@
 # %%
 SHOW_PLOT = True
 
-# DESIRED_BATCHES = ["LED7"]
+# DESIRED_BATCHES = ["LED7", "LED8"]
 DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
 
 
@@ -11,7 +11,7 @@ PARAM_REDUCER = "mean"
 TRIAL_POOL_MODE = "valid"  # "valid" or "valid_plus_abort3"
 NUM_INTENDED_FIX_QUANTILE_BINS = 2
 MODEL_DENSITY_MODE = "valid_conditioned"  # "raw" or "valid_conditioned"
-THEORY_DATA_MODE = "avg_of_params"  # "avg_of_rtds" or "avg_of_params"
+THEORY_DATA_MODE = "avg_of_rtds"  # "avg_of_rtds" or "avg_of_params"
 
 if TRIAL_POOL_MODE not in {"valid", "valid_plus_abort3"}:
     raise ValueError(f"Unsupported TRIAL_POOL_MODE: {TRIAL_POOL_MODE}")
@@ -30,6 +30,7 @@ model_bin_size_s = 1e-3
 data_bin_size_s = 5e-3
 intended_fix_max_s = 1.5
 xlim_s = (0, 1)
+QUANTILE_PERCENTS = (10, 30, 50, 70, 90)
 panel_width = 4.5
 panel_height = 3.5
 png_dpi = 300
@@ -516,6 +517,9 @@ def load_data():
         seg_raw_areas = [{int(a): [] for a in ABL_VALUES} for _ in segment_specs]
         ovr_theory = {int(a): [] for a in ABL_VALUES}
         ovr_data = {int(a): [] for a in ABL_VALUES}
+        ovr_raw_areas = {int(a): [] for a in ABL_VALUES}
+        ovr_data_quantiles = {int(a): [] for a in ABL_VALUES}
+        ovr_theory_quantiles = {int(a): [] for a in ABL_VALUES}
 
         for pair_idx, (batch_name, animal_id) in enumerate(included_pairs):
             animal_start = time.perf_counter()
@@ -541,7 +545,7 @@ def load_data():
                 """Compute per-(ABL, ILD) theory+data RTDs for one animal sub-dataframe."""
                 if_vals = sub_df["intended_fix"].dropna().values
                 if len(if_vals) < 10:
-                    return
+                    return None
                 t_stim_samp = rng_a.choice(if_vals, size=n_theory_samples, replace=True)
                 shifted = ref_t_pts[None, :] + t_stim_samp[:, None] - abort_params_i["t_A_aff"]
                 pa_s = rho_A_t_VEC_fn(shifted, abort_params_i["V_A"], abort_params_i["theta_A"])
@@ -577,6 +581,8 @@ def load_data():
                             )
                             accum_data[int(abl_value)].append(h)
 
+                return pa_m, ca_m
+
             # --- Segments ---
             for seg_idx, seg_spec in enumerate(segment_specs):
                 seg_adf = adf[
@@ -588,7 +594,63 @@ def load_data():
                 )
 
             # --- Overall ---
-            _compute_rtds_for_df(adf, ovr_theory, ovr_data)
+            ovr_proactive = _compute_rtds_for_df(adf, ovr_theory, ovr_data, ovr_raw_areas)
+
+            # --- Per-animal quantiles (overall) ---
+            if ovr_proactive is not None:
+                pa_m_ovr, ca_m_ovr = ovr_proactive
+                valid_adf = adf[
+                    adf["success"].isin([1, -1])
+                    & (adf["RTwrtStim"] >= rt_min_s)
+                    & (adf["RTwrtStim"] <= rt_max_s)
+                    & (adf["intended_fix"] >= intended_fix_min_s)
+                    & (adf["intended_fix"] <= intended_fix_max_s)
+                    & (adf["ABL"].isin(ABL_VALUES))
+                    & (adf["ILD"].isin(ILD_VALUES))
+                ]
+                for abl_value in ABL_VALUES:
+                    a = int(abl_value)
+                    rt_abl = valid_adf.loc[
+                        np.isclose(valid_adf["ABL"], abl_value), "RTwrtStim"
+                    ].dropna().values
+                    rt_abl = rt_abl[(rt_abl >= 0) & (rt_abl <= 1.0)]
+                    if len(rt_abl) >= 5:
+                        ovr_data_quantiles[a].append(
+                            np.percentile(rt_abl, QUANTILE_PERCENTS)
+                        )
+                    # Theory quantiles: ILD-weighted mixed RTD
+                    ild_rtds, ild_counts = [], []
+                    for ild_value in ILD_VALUES:
+                        n_ild = int(np.sum(
+                            np.isclose(valid_adf["ABL"], abl_value)
+                            & np.isclose(valid_adf["ILD"], float(ild_value))
+                        ))
+                        if n_ild == 0:
+                            continue
+                        raw_rtd = compute_raw_rtd_from_pa_ca(
+                            ref_t_pts, pa_m_ovr, ca_m_ovr,
+                            abl_value, float(ild_value), tied_params_i,
+                        )
+                        ild_rtds.append(raw_rtd)
+                        ild_counts.append(n_ild)
+                    if ild_rtds:
+                        wts = np.array(ild_counts, dtype=float)
+                        wts /= wts.sum()
+                        mixed_rtd = sum(ww * r for ww, r in zip(wts, ild_rtds))
+                        area = float(np.trapz(mixed_rtd[ref_norm_mask], ref_t_pts[ref_norm_mask]))
+                        if area > 1e-12:
+                            mixed_rtd = mixed_rtd / area
+                        cdf = cumulative_trapezoid(
+                            mixed_rtd[ref_norm_mask], ref_t_pts[ref_norm_mask], initial=0
+                        )
+                        if cdf[-1] > 0:
+                            cdf = cdf / cdf[-1]
+                        ovr_theory_quantiles[a].append(
+                            np.interp(
+                                np.array(QUANTILE_PERCENTS) / 100.0,
+                                cdf, ref_t_pts[ref_norm_mask],
+                            )
+                        )
 
             print(
                 f"[progress]   done in {time.perf_counter() - animal_start:.2f}s",
@@ -663,10 +725,23 @@ def load_data():
             "data_densities_by_abl": ovr_data_abl,
             "data_counts_by_abl": ovr_counts,
             "weights_by_abl": {},
-            "theory_valid_frac_by_abl": {int(a): 0.0 for a in ABL_VALUES},
+            "theory_valid_frac_by_abl": {
+                int(a): float(np.mean(ovr_raw_areas[int(a)])) if ovr_raw_areas[int(a)] else 0.0
+                for a in ABL_VALUES
+            },
             "data_valid_frac_by_abl": ovr_data_vf,
             "total": int(len(pooled_valid_df)),
             "t_stim_samples": np.array([]),
+            "data_quantiles_by_abl": {
+                int(a): np.array(ovr_data_quantiles[int(a)])
+                if ovr_data_quantiles[int(a)] else np.empty((0, len(QUANTILE_PERCENTS)))
+                for a in ABL_VALUES
+            },
+            "theory_quantiles_by_abl": {
+                int(a): np.array(ovr_theory_quantiles[int(a)])
+                if ovr_theory_quantiles[int(a)] else np.empty((0, len(QUANTILE_PERCENTS)))
+                for a in ABL_VALUES
+            },
         }
 
     else:
@@ -811,6 +886,38 @@ def load_data():
             n_all, n_valid = int(len(all_abl)), int(all_abl["is_valid"].sum())
             ovr_data_vf[int(abl_value)] = n_valid / n_all if n_all > 0 else 0.0
 
+        # --- Per-animal data quantiles (overall, avg_of_params) ---
+        ovr_data_quantiles = {int(a): [] for a in ABL_VALUES}
+        for batch_name_q, animal_id_q in included_pairs:
+            animal_df = pooled_valid_df[
+                (pooled_valid_df["batch_name"].astype(str) == str(batch_name_q))
+                & (np.isclose(pooled_valid_df["animal"], int(animal_id_q)))
+            ]
+            for abl_value in ABL_VALUES:
+                a = int(abl_value)
+                rt_abl = animal_df.loc[
+                    np.isclose(animal_df["ABL"], abl_value), "RTwrtStim"
+                ].dropna().values
+                rt_abl = rt_abl[(rt_abl >= 0) & (rt_abl <= 1.0)]
+                if len(rt_abl) >= 5:
+                    ovr_data_quantiles[a].append(
+                        np.percentile(rt_abl, QUANTILE_PERCENTS)
+                    )
+
+        # Theory quantiles from aggregate binned density
+        ovr_theory_quantiles = {int(a): [] for a in ABL_VALUES}
+        for abl_value in ABL_VALUES:
+            a = int(abl_value)
+            td = ovr_theory_abl[a]
+            bin_widths = np.diff(model_bins_s)
+            bin_centers = 0.5 * (model_bins_s[:-1] + model_bins_s[1:])
+            cdf_th = np.cumsum(td * bin_widths)
+            if cdf_th[-1] > 0:
+                cdf_th = cdf_th / cdf_th[-1]
+            ovr_theory_quantiles[a].append(
+                np.interp(np.array(QUANTILE_PERCENTS) / 100.0, cdf_th, bin_centers)
+            )
+
         overall_result = {
             "theory_densities_by_abl": ovr_theory_abl,
             "data_densities_by_abl": ovr_data_abl,
@@ -820,6 +927,16 @@ def load_data():
             "data_valid_frac_by_abl": ovr_data_vf,
             "total": int(len(pooled_valid_df)),
             "t_stim_samples": overall_t_stim,
+            "data_quantiles_by_abl": {
+                int(a): np.array(ovr_data_quantiles[int(a)])
+                if ovr_data_quantiles[int(a)] else np.empty((0, len(QUANTILE_PERCENTS)))
+                for a in ABL_VALUES
+            },
+            "theory_quantiles_by_abl": {
+                int(a): np.array(ovr_theory_quantiles[int(a)])
+                if ovr_theory_quantiles[int(a)] else np.empty((0, len(QUANTILE_PERCENTS)))
+                for a in ABL_VALUES
+            },
         }
         print(
             f"[progress] Overall (aggregate) done in "
@@ -855,13 +972,11 @@ def plot_data(data):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     n_segments = len(data["segment_results"])
-    n_rows = n_segments + 1  # extra row for overall
+    n_rows = n_segments + 2  # +1 overall, +1 quantiles
     fig, axes = plt.subplots(
         n_rows,
         len(ABL_VALUES),
         figsize=(panel_width * len(ABL_VALUES), panel_height * n_rows),
-        sharex=True,
-        sharey=True,
         squeeze=False,
     )
 
@@ -922,7 +1037,7 @@ def plot_data(data):
             ax.set_title(
                 f"ABL = {abl_value}, {seg_name}\n"
                 f"[{segment_spec['left']:.3f}, {segment_spec['right']:.3f}]s, n={n_data}\n"
-                f"data valid frac={data_vf:.2f}, theory valid frac={theory_vf:.2f}"
+                f"data valid frac={data_vf:.3f}, theory valid frac={theory_vf:.3f}"
             )
 
             if col_idx == 0:
@@ -944,10 +1059,47 @@ def plot_data(data):
         ax.grid(alpha=0.2, linewidth=0.6)
 
         n_data = overall["data_counts_by_abl"][int(abl_value)]
-        ax.set_title(f"ABL = {abl_value}, All stim\nn={n_data}")
-        ax.set_xlabel("RT wrt stim (s)")
+        data_vf = overall["data_valid_frac_by_abl"][int(abl_value)]
+        theory_vf = overall["theory_valid_frac_by_abl"][int(abl_value)]
+        ax.set_title(
+            f"ABL = {abl_value}, All stim\nn={n_data}\n"
+            f"data valid frac={data_vf:.3f}, theory valid frac={theory_vf:.3f}"
+        )
         if col_idx == 0:
             ax.set_ylabel("Density")
+
+    # --- 4th row: RT quantiles (mean ± std across animals) ---
+    for col_idx, abl_value in enumerate(ABL_VALUES):
+        ax = axes[n_segments + 1, col_idx]
+        a = int(abl_value)
+        data_q = overall["data_quantiles_by_abl"][a]
+        theory_q = overall["theory_quantiles_by_abl"][a]
+
+        if len(data_q) > 0:
+            data_mean = np.mean(data_q, axis=0)
+            data_std = np.std(data_q, axis=0)
+            ax.errorbar(
+                QUANTILE_PERCENTS, data_mean, yerr=data_std,
+                color="tab:blue", marker="o", markersize=5,
+                capsize=0, linewidth=1.2, label="Data",
+            )
+        if len(theory_q) > 0:
+            theory_mean = np.mean(theory_q, axis=0)
+            theory_std = (
+                np.std(theory_q, axis=0) if len(theory_q) > 1
+                else np.zeros_like(theory_mean)
+            )
+            ax.errorbar(
+                QUANTILE_PERCENTS, theory_mean, yerr=theory_std,
+                color="tab:red", marker="s", markersize=5,
+                capsize=0, linewidth=1.5, label="Theory",
+            )
+
+        ax.set_title(f"ABL = {abl_value}, RT Quantiles")
+        ax.set_xlabel("Percentile")
+        ax.grid(alpha=0.2, linewidth=0.6)
+        if col_idx == 0:
+            ax.set_ylabel("RT wrt stim (s)")
 
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
