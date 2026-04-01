@@ -54,6 +54,7 @@ rtd_ylim = (0, 10)
 cdf_ylim = (0, 1)
 tacho_ylim = (0, 1)
 tachometric_random_choice_seed = 12345
+area_window_s = (0.0, 1.0)
 
 panel_width = 5.0
 panel_height = 3.2
@@ -170,6 +171,15 @@ def save_figure(fig: plt.Figure, output_base: Path) -> None:
 def save_payload(payload: dict, output_path: Path) -> None:
     with open(output_path, "wb") as handle:
         pickle.dump(payload, handle)
+
+
+def compute_fraction_in_window(values: np.ndarray, window_s: tuple[float, float]) -> float:
+    values = np.asarray(values, dtype=float)
+    if len(values) == 0:
+        return float("nan")
+    left_s, right_s = window_s
+    in_window = (values >= left_s) & (values <= right_s)
+    return float(np.mean(in_window))
 
 
 def add_intended_fix_quantile_segments(df: pd.DataFrame, n_quantile_bins: int) -> tuple[pd.DataFrame, np.ndarray]:
@@ -710,9 +720,11 @@ def build_abl_segment_overlay_rtd_payload(
         }
         for segment_idx in range(n_segments):
             segment_df = abl_df[abl_df["intended_fix_segment"] == segment_idx].copy()
+            values = segment_df["RTwrtStim"].to_numpy()
             curves_by_abl[int(abl_value)]["segments"][int(segment_idx)] = {
-                "density": compute_density_histogram(segment_df["RTwrtStim"].to_numpy(), bins_s),
+                "density": compute_density_histogram(values, bins_s),
                 "count": int(len(segment_df)),
+                "area_0_to_1": compute_fraction_in_window(values, area_window_s),
             }
 
     return {
@@ -721,6 +733,7 @@ def build_abl_segment_overlay_rtd_payload(
         "created_by": Path(__file__).name,
         "trial_pool_mode": TRIAL_POOL_MODE,
         "density_mode": DATA_DENSITY_MODE,
+        "area_window_s": tuple(float(value) for value in area_window_s),
         "batch_names": sorted(df["batch_name"].astype(str).unique().tolist()),
         "x_edges_s": np.asarray(bins_s, dtype=float),
         "xlim_ms": tuple(float(value) for value in xlim_ms),

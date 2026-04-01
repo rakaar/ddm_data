@@ -7,7 +7,7 @@ DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
 MODEL_KEY = "vbmc_norm_tied_results"
 ABORT_KEY = "vbmc_aborts_results"
 PARAM_REDUCER = "mean"
-TRIAL_POOL_MODE = "valid_plus_abort3"  # "valid" or "valid_plus_abort3"
+TRIAL_POOL_MODE = "valid_plus_abort3_and_4"  # "valid" or "valid_plus_abort3" or "valid_plus_abort3_and_4"
 SEGMENT_MODE = "quantile"  # "quantile" or "fixed"
 NUM_INTENDED_FIX_QUANTILE_BINS = 2
 FIXED_SEGMENT_EDGES_S = (0.2, 0.4, 1.5)
@@ -27,7 +27,7 @@ def get_trunc_time(batch_name):
 N_JOBS = -1
 JOBLIB_VERBOSE = 10
 
-if TRIAL_POOL_MODE not in {"valid", "valid_plus_abort3"}:
+if TRIAL_POOL_MODE not in {"valid", "valid_plus_abort3", "valid_plus_abort3_and_4"}:
     raise ValueError(f"Unsupported TRIAL_POOL_MODE: {TRIAL_POOL_MODE}")
 if SEGMENT_MODE not in {"quantile", "fixed"}:
     raise ValueError(f"Unsupported SEGMENT_MODE: {SEGMENT_MODE}")
@@ -40,6 +40,8 @@ N_MC_T_STIM_SAMPLES = 1000
 RNG_SEED = 12345
 
 intended_fix_min_s = 0.2
+segment_pool_rt_min_s = -3.0
+segment_pool_rt_max_s = 3.0
 rt_min_s = -1.0
 rt_max_s = 1.0
 bin_size_s = 1e-3
@@ -47,6 +49,7 @@ intended_fix_max_s = 1.5
 xlim_s = (-0.5, 1)
 figure_size = (5.0, 6.6)
 png_dpi = 300
+area_window_s = (0.0, 1.0)
 
 
 # %%
@@ -84,6 +87,8 @@ output_dir = SCRIPT_DIR / "model_rtd_stim_segments_all_animals_avg_animal_rtds"
 output_suffix_parts = []
 if TRIAL_POOL_MODE == "valid_plus_abort3":
     output_suffix_parts.append("plus_abort3_pool")
+elif TRIAL_POOL_MODE == "valid_plus_abort3_and_4":
+    output_suffix_parts.append("plus_abort3_and_4_pool")
 output_suffix_parts.append(f"{SEGMENT_MODE}_segments")
 if MODEL_DENSITY_MODE == "valid_conditioned":
     output_suffix_parts.append("valid_conditioned")
@@ -108,10 +113,46 @@ def reduce_param_values(values):
     raise ValueError(f"Unknown PARAM_REDUCER: {PARAM_REDUCER}. Use 'mean' or 'median'.")
 
 
+def get_batch_csv_path(batch_name):
+    batch_file_with_4 = batch_csv_dir / f"batch_{batch_name}_valid_and_aborts_and_4.csv"
+    batch_file = batch_csv_dir / f"batch_{batch_name}_valid_and_aborts.csv"
+    if TRIAL_POOL_MODE == "valid_plus_abort3_and_4" and batch_file_with_4.exists():
+        return batch_file_with_4
+    return batch_file
+
+
+def get_trial_pool_abort_events():
+    if TRIAL_POOL_MODE == "valid_plus_abort3":
+        return (3,)
+    if TRIAL_POOL_MODE == "valid_plus_abort3_and_4":
+        return (3, 4)
+    return tuple()
+
+
+def apply_trial_pool_filter(df, batch_name):
+    df["success"] = pd.to_numeric(df["success"], errors="coerce")
+    abort_events = get_trial_pool_abort_events()
+    if abort_events:
+        if "abort_event" not in df.columns:
+            raise ValueError(
+                f"abort_event column is required when TRIAL_POOL_MODE='{TRIAL_POOL_MODE}': {batch_name}"
+            )
+        df["abort_event"] = pd.to_numeric(df["abort_event"], errors="coerce")
+        abort_mask = np.column_stack([np.isclose(df["abort_event"], event) for event in abort_events]).any(axis=1)
+        df = df[df["success"].isin([1, -1]) | abort_mask].copy()
+        trunc_t = get_trunc_time(batch_name)
+        if trunc_t is not None:
+            df["TotalFixTime"] = pd.to_numeric(df["TotalFixTime"], errors="coerce")
+            early_abort_mask = np.isclose(df["abort_event"], 3) & (df["TotalFixTime"] < trunc_t)
+            df = df[~early_abort_mask].copy()
+        return df
+    return df[df["success"].isin([1, -1])].copy()
+
+
 def get_candidate_animals():
     candidates = []
     for batch_name in DESIRED_BATCHES:
-        batch_file = batch_csv_dir / f"batch_{batch_name}_valid_and_aborts.csv"
+        batch_file = get_batch_csv_path(batch_name)
         if not batch_file.exists():
             continue
         df = pd.read_csv(batch_file)
@@ -147,7 +188,7 @@ def load_pooled_valid_df(candidate_pairs):
         animal_ids = animals_by_batch.get(str(batch_name), set())
         if not animal_ids:
             continue
-        batch_file = batch_csv_dir / f"batch_{batch_name}_valid_and_aborts.csv"
+        batch_file = get_batch_csv_path(batch_name)
         if not batch_file.exists():
             continue
         df = pd.read_csv(batch_file)
@@ -155,23 +196,15 @@ def load_pooled_valid_df(candidate_pairs):
             df["batch_name"] = str(batch_name)
         animal_numeric = pd.to_numeric(df["animal"], errors="coerce")
         df = df[animal_numeric.isin(animal_ids)].copy()
-        if TRIAL_POOL_MODE == "valid_plus_abort3":
-            if "abort_event" not in df.columns:
-                raise ValueError(
-                    f"abort_event column is required when TRIAL_POOL_MODE='valid_plus_abort3': {batch_file}"
-                )
-            df["abort_event"] = pd.to_numeric(df["abort_event"], errors="coerce")
-            df = df[df["success"].isin([1, -1]) | np.isclose(df["abort_event"], 3)].copy()
-        else:
-            df = df[df["success"].isin([1, -1])].copy()
+        df = apply_trial_pool_filter(df, batch_name)
         df["animal"] = pd.to_numeric(df["animal"], errors="coerce")
         df["RTwrtStim"] = pd.to_numeric(df["RTwrtStim"], errors="coerce")
         df["intended_fix"] = pd.to_numeric(df["intended_fix"], errors="coerce")
         df["ABL"] = pd.to_numeric(df["ABL"], errors="coerce")
         df["ILD"] = pd.to_numeric(df["ILD"], errors="coerce")
         df = df[
-            (df["RTwrtStim"] >= rt_min_s)
-            & (df["RTwrtStim"] <= rt_max_s)
+            (df["RTwrtStim"] >= segment_pool_rt_min_s)
+            & (df["RTwrtStim"] <= segment_pool_rt_max_s)
             & (df["intended_fix"] >= intended_fix_min_s)
             & (df["intended_fix"] <= intended_fix_max_s)
             & (df["ABL"].isin(ABL_VALUES))
@@ -392,6 +425,18 @@ def curve_to_binned_density(t_pts, density, bins_s):
     probs = np.diff(edge_cdf)
     widths = np.diff(bins_s)
     return probs / widths
+
+
+def compute_density_area_in_window(density, bins_s, window_s):
+    density = np.asarray(density, dtype=float)
+    bins_s = np.asarray(bins_s, dtype=float)
+    left_s, right_s = window_s
+    overlap = np.clip(
+        np.minimum(bins_s[1:], right_s) - np.maximum(bins_s[:-1], left_s),
+        0.0,
+        None,
+    )
+    return float(np.nansum(density * overlap))
 
 
 def build_animal_segment_mixture(segment_df, t_pts, p_a_obj, c_a_obj, abl_value, tied_params, bins_s):
@@ -747,6 +792,11 @@ def build_abl_overlay_payload(data):
                 "density": np.asarray(segment_result["densities_by_abl"][int(abl_value)], dtype=float),
                 "count": int(segment_result["trial_counts_by_abl"][int(abl_value)]),
                 "contributing_animals": int(segment_result["contributing_animals_by_abl"][int(abl_value)]),
+                "area_0_to_1": compute_density_area_in_window(
+                    segment_result["densities_by_abl"][int(abl_value)],
+                    data["bins_s"],
+                    area_window_s,
+                ),
             }
 
     return {
@@ -756,6 +806,7 @@ def build_abl_overlay_payload(data):
         "trial_pool_mode": TRIAL_POOL_MODE,
         "segment_mode": SEGMENT_MODE,
         "density_mode": MODEL_DENSITY_MODE,
+        "area_window_s": tuple(float(value) for value in area_window_s),
         "n_mc_t_stim_samples": int(N_MC_T_STIM_SAMPLES),
         "included_pairs": list(data["included_pairs"]),
         "pkl_paths": [str(path) for path in data["pkl_paths"]],
