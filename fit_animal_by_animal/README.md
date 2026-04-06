@@ -6,6 +6,7 @@
 - `animal_wise_fit_3_models_script_refactor.py`: Specify batch name and conditions, fit animal data - aborts, TIED + 3 variants
 - `animal_wise_plotting_utils.py`:  Diagnostics Plotting utils for animal wise fit
 - `time_vary_norm_utils.py`  - Likelihood funcs for animal wise fitting
+- `proactive_plus_lapse_plus_reactive_uitls.py` - Shared likelihood helpers for proactive + lapse + reactive fitting, including right-truncated valid-trial logpdfs and the newer choice-collapsed RT-density helper used by the LED-OFF no-choice ABL-delay fits.
 
 ##  Animal wise exploration of TIED
 

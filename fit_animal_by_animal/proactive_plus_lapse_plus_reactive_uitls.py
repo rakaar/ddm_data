@@ -261,6 +261,88 @@ def up_or_down_RTs_fit_proactive_lapse_only_fn(
     return float(pdf)
 
 
+def rt_pdf_proactive_lapse_only_no_choice_fn(
+    t,
+    V_A,
+    theta_A,
+    t_A_aff,
+    t_stim,
+    ABL,
+    ILD,
+    rate_lambda,
+    T0,
+    theta_E,
+    Z_E,
+    t_E_aff,
+    del_go,
+    phi_params,
+    rate_norm_l,
+    is_norm,
+    is_time_vary,
+    K_max,
+    lapse_prob,
+    beta_lapse,
+    lapse_choice_prob=0.5,
+    eps=1e-50,
+):
+    """Choice-collapsed RT PDF obtained by summing the up and down choice PDFs."""
+    pdf_up = up_or_down_RTs_fit_proactive_lapse_only_fn(
+        t=t,
+        bound=1,
+        V_A=V_A,
+        theta_A=theta_A,
+        t_A_aff=t_A_aff,
+        t_stim=t_stim,
+        ABL=ABL,
+        ILD=ILD,
+        rate_lambda=rate_lambda,
+        T0=T0,
+        theta_E=theta_E,
+        Z_E=Z_E,
+        t_E_aff=t_E_aff,
+        del_go=del_go,
+        phi_params=phi_params,
+        rate_norm_l=rate_norm_l,
+        is_norm=is_norm,
+        is_time_vary=is_time_vary,
+        K_max=K_max,
+        lapse_prob=lapse_prob,
+        beta_lapse=beta_lapse,
+        lapse_choice_prob=lapse_choice_prob,
+        eps=eps,
+    )
+    pdf_down = up_or_down_RTs_fit_proactive_lapse_only_fn(
+        t=t,
+        bound=-1,
+        V_A=V_A,
+        theta_A=theta_A,
+        t_A_aff=t_A_aff,
+        t_stim=t_stim,
+        ABL=ABL,
+        ILD=ILD,
+        rate_lambda=rate_lambda,
+        T0=T0,
+        theta_E=theta_E,
+        Z_E=Z_E,
+        t_E_aff=t_E_aff,
+        del_go=del_go,
+        phi_params=phi_params,
+        rate_norm_l=rate_norm_l,
+        is_norm=is_norm,
+        is_time_vary=is_time_vary,
+        K_max=K_max,
+        lapse_prob=lapse_prob,
+        beta_lapse=beta_lapse,
+        lapse_choice_prob=lapse_choice_prob,
+        eps=eps,
+    )
+
+    pdf = pdf_up + pdf_down
+    if (not np.isfinite(pdf)) or pdf <= 0:
+        pdf = eps
+    return float(pdf)
+
+
 def cdf_proactive_with_lapse_plus_reactive_no_trunc_fn(
     t,
     V_A,
@@ -462,6 +544,117 @@ def trial_logpdf_proactive_lapse_only_no_trunc_right_truncated(
     pdf = up_or_down_RTs_fit_proactive_lapse_only_fn(
         t=rt,
         bound=choice,
+        V_A=V_A,
+        theta_A=theta_A,
+        t_A_aff=t_A_aff,
+        t_stim=t_stim,
+        ABL=ABL,
+        ILD=ILD,
+        rate_lambda=rate_lambda,
+        T0=T0,
+        theta_E=theta_E,
+        Z_E=Z_E,
+        t_E_aff=t_E_aff,
+        del_go=del_go,
+        phi_params=phi_params,
+        rate_norm_l=rate_norm_l,
+        is_norm=is_norm,
+        is_time_vary=is_time_vary,
+        K_max=K_max,
+        lapse_prob=lapse_prob,
+        beta_lapse=beta_lapse,
+        lapse_choice_prob=lapse_choice_prob,
+        eps=eps,
+    )
+
+    cdf_lower = cdf_proactive_with_lapse_plus_reactive_no_trunc_fn(
+        t=t_stim,
+        V_A=V_A,
+        theta_A=theta_A,
+        t_A_aff=t_A_aff,
+        t_stim=t_stim,
+        ABL=ABL,
+        ILD=ILD,
+        rate_lambda=rate_lambda,
+        T0=T0,
+        theta_E=theta_E,
+        Z_E=Z_E,
+        t_E_aff=t_E_aff,
+        phi_params=phi_params,
+        rate_norm_l=rate_norm_l,
+        is_norm=is_norm,
+        is_time_vary=is_time_vary,
+        K_max=K_max,
+        lapse_prob=lapse_prob,
+        beta_lapse=beta_lapse,
+    )
+    cdf_upper = cdf_proactive_with_lapse_plus_reactive_no_trunc_fn(
+        t=t_stim + truncate_rt_wrt_stim,
+        V_A=V_A,
+        theta_A=theta_A,
+        t_A_aff=t_A_aff,
+        t_stim=t_stim,
+        ABL=ABL,
+        ILD=ILD,
+        rate_lambda=rate_lambda,
+        T0=T0,
+        theta_E=theta_E,
+        Z_E=Z_E,
+        t_E_aff=t_E_aff,
+        phi_params=phi_params,
+        rate_norm_l=rate_norm_l,
+        is_norm=is_norm,
+        is_time_vary=is_time_vary,
+        K_max=K_max,
+        lapse_prob=lapse_prob,
+        beta_lapse=beta_lapse,
+    )
+
+    truncation_mass = cdf_upper - cdf_lower
+    if (not np.isfinite(truncation_mass)) or truncation_mass <= 0:
+        truncation_mass = eps
+
+    return float(np.log(max(pdf, eps)) - np.log(truncation_mass))
+
+
+def trial_logpdf_proactive_lapse_only_no_trunc_right_truncated_no_choice(
+    row,
+    V_A,
+    theta_A,
+    t_A_aff,
+    rate_lambda,
+    T0,
+    theta_E,
+    Z_E,
+    t_E_aff,
+    del_go,
+    phi_params,
+    rate_norm_l,
+    is_norm,
+    is_time_vary,
+    K_max,
+    lapse_prob,
+    beta_lapse,
+    lapse_choice_prob=0.5,
+    truncate_rt_wrt_stim=0.13,
+    eps=1e-50,
+):
+    """Row-level log-likelihood with right-truncation and RT density collapsed over choice."""
+    rt = float(row["TotalFixTime"])
+    t_stim = float(row["intended_fix"])
+    ILD = float(row["ILD"])
+    ABL = float(row["ABL"])
+
+    if truncate_rt_wrt_stim is None:
+        truncate_rt_wrt_stim = np.inf
+    else:
+        truncate_rt_wrt_stim = float(truncate_rt_wrt_stim)
+
+    if (rt - t_stim) > truncate_rt_wrt_stim:
+        return -np.inf
+
+    pdf = rt_pdf_proactive_lapse_only_no_choice_fn(
+        t=rt,
         V_A=V_A,
         theta_A=theta_A,
         t_A_aff=t_A_aff,
