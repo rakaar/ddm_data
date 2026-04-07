@@ -33,8 +33,10 @@ ANIMAL_WISE_DIR = REPO_ROOT / "fit_animal_by_animal"
 if str(ANIMAL_WISE_DIR) not in sys.path:
     sys.path.insert(0, str(ANIMAL_WISE_DIR))
 
-from proactive_plus_lapse_plus_reactive_uitls import (
-    rt_pdf_proactive_lapse_only_no_choice_fn,
+from time_vary_norm_utils import (
+    CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec,
+    rho_A_t_VEC_fn,
+    rho_E_minus_small_t_NORM_rate_norm_time_varying_fn_vec,
 )
 
 
@@ -71,8 +73,8 @@ phi_params_obj = np.nan
 K_max = 10
 
 # ###### RUN TAG / FIXED-TRIAL CONFIG ######
-truncate_rt_wrt_stim_s = 0.130
-fix_trial_count_by_abl = True
+truncate_rt_wrt_stim_s = 0.145
+fix_trial_count_by_abl = False
 fixed_trial_counts_by_abl = {20: 1300, 40: 2300, 60: 3400}
 truncate_rt_wrt_stim_s_override = None  # None -> use fit truncation saved in the results pickle
 normalize_per_abl = False  # If True, area-normalize each ABL's RTD independently
@@ -416,6 +418,36 @@ sampled_positions = rng.integers(0, len(fit_df), size=N_mc)
 sampled_rows = fit_df.iloc[sampled_positions].copy()
 
 
+def _lapse_pdf_vec(t_arr, beta_lapse, eps=1e-50):
+    t_arr = np.asarray(t_arr, dtype=np.float64)
+    result = np.full_like(t_arr, eps)
+    valid = t_arr >= 0
+    vals = beta_lapse * np.exp(-beta_lapse * t_arr[valid])
+    vals = np.where(np.isfinite(vals) & (vals > 0), vals, eps)
+    result[valid] = vals
+    return result
+
+
+def _lapse_cdf_vec(t_arr, beta_lapse):
+    t_arr = np.asarray(t_arr, dtype=np.float64)
+    result = np.zeros_like(t_arr)
+    valid = t_arr > 0
+    result[valid] = np.clip(1.0 - np.exp(-beta_lapse * t_arr[valid]), 0.0, 1.0)
+    return result
+
+
+def _cum_A_t_vec(t_arr, V_A, theta_A):
+    from scipy.special import erf as _erf
+    t_arr = np.asarray(t_arr, dtype=np.float64)
+    result = np.zeros_like(t_arr)
+    valid = t_arr > 0
+    tv = t_arr[valid]
+    term1 = 0.5 * (1 + _erf(V_A * (tv - theta_A / V_A) / np.sqrt(2 * tv)))
+    term2 = np.exp(2 * V_A * theta_A) * 0.5 * (1 + _erf(-V_A * (tv + theta_A / V_A) / np.sqrt(2 * tv)))
+    result[valid] = term1 + term2
+    return result
+
+
 def build_theory_curve_for_trial(t_stim, abl, ild):
     t_E_aff = get_t_E_aff_from_abl(
         abl,
@@ -426,37 +458,84 @@ def build_theory_curve_for_trial(t_stim, abl, ild):
     t_abs = t_pts + t_stim
     curve = np.zeros_like(t_pts, dtype=np.float64)
 
-    for j, t_abs_j in enumerate(t_abs):
-        if t_abs_j <= 0:
-            continue
+    valid = t_abs > 0
+    if not np.any(valid):
+        return curve
 
-        pdf = rt_pdf_proactive_lapse_only_no_choice_fn(
-            t=t_abs_j,
-            V_A=V_A,
-            theta_A=theta_A,
-            t_A_aff=t_A_aff,
-            t_stim=t_stim,
-            ABL=abl,
-            ILD=ild,
-            rate_lambda=rate_lambda,
-            T0=T_0,
-            theta_E=theta_E,
-            Z_E=Z_E,
-            t_E_aff=t_E_aff,
-            del_go=del_go,
-            phi_params=phi_params_obj,
-            rate_norm_l=rate_norm_l,
-            is_norm=is_norm,
-            is_time_vary=is_time_vary,
-            K_max=K_max,
-            lapse_prob=lapse_prob,
-            beta_lapse=beta_lapse,
-            lapse_choice_prob=0.5,
-            eps=1e-50,
-        )
+    t_v = t_abs[valid]
+    n = len(t_v)
 
-        if np.isfinite(pdf) and pdf > 0:
-            curve[j] = pdf
+    P_A = rho_A_t_VEC_fn(t_v - t_A_aff, V_A, theta_A)
+    C_A = _cum_A_t_vec(t_v - t_A_aff, V_A, theta_A)
+
+    t1 = np.maximum(t_v - t_stim - t_E_aff, 1e-6)
+    t2 = np.maximum(t_v - t_stim - t_E_aff + del_go, 1e-6)
+
+    ABL_arr = np.full(n, float(abl))
+    ILD_arr = np.full(n, float(ild))
+    rl_arr = np.full(n, rate_lambda)
+    T0_arr = np.full(n, T_0)
+    thE_arr = np.full(n, theta_E)
+    ZE_arr = np.full(n, Z_E)
+    rnl_arr = np.full(n, rate_norm_l)
+
+    int_phi_t_E_g = t_v - t_stim - t_E_aff + del_go
+    int_phi_t2 = t2
+    int_phi_t1 = t1
+    int_phi_t_e = t1.copy()
+    phi_t_e = np.ones(n)
+
+    t_cdf_arg = t_v - t_stim - t_E_aff + del_go
+    CDF_up = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec(
+        t_cdf_arg, 1, ABL_arr, ILD_arr, rl_arr, T0_arr, thE_arr, ZE_arr,
+        int_phi_t_E_g, rnl_arr, is_norm, is_time_vary, K_max,
+    )
+    CDF_down = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec(
+        t_cdf_arg, -1, ABL_arr, ILD_arr, rl_arr, T0_arr, thE_arr, ZE_arr,
+        int_phi_t_E_g, rnl_arr, is_norm, is_time_vary, K_max,
+    )
+    random_readout_if_EA_survives = 0.5 * (1.0 - (CDF_up + CDF_down))
+
+    CDF_t2_up = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec(
+        t2, 1, ABL_arr, ILD_arr, rl_arr, T0_arr, thE_arr, ZE_arr,
+        int_phi_t2, rnl_arr, is_norm, is_time_vary, K_max,
+    )
+    CDF_t1_up = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec(
+        t1, 1, ABL_arr, ILD_arr, rl_arr, T0_arr, thE_arr, ZE_arr,
+        int_phi_t1, rnl_arr, is_norm, is_time_vary, K_max,
+    )
+    CDF_t2_down = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec(
+        t2, -1, ABL_arr, ILD_arr, rl_arr, T0_arr, thE_arr, ZE_arr,
+        int_phi_t2, rnl_arr, is_norm, is_time_vary, K_max,
+    )
+    CDF_t1_down = CDF_E_minus_small_t_NORM_rate_norm_l_time_varying_fn_vec(
+        t1, -1, ABL_arr, ILD_arr, rl_arr, T0_arr, thE_arr, ZE_arr,
+        int_phi_t1, rnl_arr, is_norm, is_time_vary, K_max,
+    )
+    P_E_plus_cum_up = CDF_t2_up - CDF_t1_up
+    P_E_plus_cum_down = CDF_t2_down - CDF_t1_down
+
+    t_rho_arg = t_v - t_stim - t_E_aff
+    P_E_plus_up = rho_E_minus_small_t_NORM_rate_norm_time_varying_fn_vec(
+        t_rho_arg, 1, ABL_arr, ILD_arr, rl_arr, T0_arr, thE_arr, ZE_arr,
+        phi_t_e, int_phi_t_e, rnl_arr, is_norm, is_time_vary, K_max,
+    )
+    P_E_plus_down = rho_E_minus_small_t_NORM_rate_norm_time_varying_fn_vec(
+        t_rho_arg, -1, ABL_arr, ILD_arr, rl_arr, T0_arr, thE_arr, ZE_arr,
+        phi_t_e, int_phi_t_e, rnl_arr, is_norm, is_time_vary, K_max,
+    )
+
+    lp = float(np.clip(lapse_prob, 0.0, 1.0))
+    P_A_mix = (1.0 - lp) * P_A + lp * 0.5 * _lapse_pdf_vec(t_v, beta_lapse)
+    C_A_mix = np.clip((1.0 - lp) * C_A + lp * _lapse_cdf_vec(t_v, beta_lapse), 0.0, 1.0)
+
+    pdf_up = P_A_mix * (random_readout_if_EA_survives + P_E_plus_cum_up) + P_E_plus_up * (1.0 - C_A_mix)
+    pdf_down = P_A_mix * (random_readout_if_EA_survives + P_E_plus_cum_down) + P_E_plus_down * (1.0 - C_A_mix)
+
+    pdf_total = pdf_up + pdf_down
+    eps = 1e-50
+    pdf_total = np.where(np.isfinite(pdf_total) & (pdf_total > 0), pdf_total, eps)
+    curve[valid] = np.where(pdf_total > eps, pdf_total, 0.0)
 
     return curve
 
@@ -672,16 +751,16 @@ for abl in supported_abl_values:
     if len(data_rtwrtstim_abl_truncated) == 0:
         raise ValueError(f"No truncated data points remain for ABL={abl}.")
 
-    data_density_abl_truncated, _ = np.histogram(
+    data_counts_abl_truncated, _ = np.histogram(
         data_rtwrtstim_abl_truncated,
         bins=hist_edges_truncated,
-        density=True,
+        density=False,
     )
+    n_total_abl = len(df_abl)
+    data_density_abl_truncated = data_counts_abl_truncated / (n_total_abl * data_bin_widths_truncated)
     data_area_abl_raw = float(
         np.sum(data_density_abl_truncated * data_bin_widths_truncated)
     )
-    if normalize_per_abl and data_area_abl_raw > 0:
-        data_density_abl_truncated /= data_area_abl_raw
     data_area_abl_norm = float(
         np.sum(data_density_abl_truncated * data_bin_widths_truncated)
     )
@@ -742,7 +821,7 @@ for ax, abl in zip(axes_abl[:3], supported_abl_values):
         linewidth=1.4,
         label=truncate_label_ms,
     )
-    ax.set_title(f"ABL {abl_int}")
+    ax.set_title(f"ABL {abl_int}  (n={payload_abl['n_rows']}, trunc={payload_abl['n_truncated_points']})")
     ax.set_xlim(0.0, truncate_rt_wrt_stim_s)
     ax.set_xlabel("RT - t_stim (s)")
     if ax is axes_abl[0]:
@@ -786,9 +865,14 @@ ax_combined.legend(fontsize=8, ncol=2)
 if combined_ax_max > 0:
     axes_abl[0].set_ylim(0.0, combined_ax_max * 1.1)
 
+abl_counts_str = ", ".join(
+    f"ABL{int(abl)}={abl_panel_payload[int(abl)]['n_rows']}"
+    for abl in supported_abl_values
+)
 fig_abl.suptitle(
-    f"LED-OFF Aggregate RTD truncated {truncate_label_ms} by ABL no-choice ({batch_name})",
-    y=1.02,
+    f"LED-OFF Aggregate RTD truncated {truncate_label_ms} by ABL no-choice ({batch_name})\n"
+    f"Trials: {abl_counts_str}  |  fixN={'ON' if fix_trial_count_by_abl else 'OFF'}",
+    y=1.04,
 )
 fig_abl.tight_layout(rect=[0, 0, 1, 0.97])
 fig_abl.savefig(abl_split_plot_pdf_path, bbox_inches="tight")
@@ -1022,7 +1106,7 @@ ax_pub.set_ylabel(publication_ylabel)
 ax_pub.margins(x=0.0)
 ax_pub.tick_params(direction="out", length=4, width=1)
 ax_pub.set_xticks([0, 100])
-ax_pub.set_yticks([0, 40])
+ax_pub.set_yticks([0, 6])
 
 if publication_peak_density > 0:
     ax_pub.set_ylim(0.0, publication_peak_density * 1.05)
@@ -1030,7 +1114,7 @@ else:
     ax_pub.set_ylim(0.0, 1.0)
 
 if ax_pub.get_ylim()[1] < 40:
-    ax_pub.set_ylim(0.0, 40.0)
+    ax_pub.set_ylim(0.0, 6.0)
 
 fig_pub.tight_layout()
 fig_pub.savefig(publication_plot_pdf_path, bbox_inches="tight")

@@ -13,12 +13,15 @@ import numpy as np
 SCRIPT_DIR = Path(__file__).resolve().parent
 RESULTS_DIR = SCRIPT_DIR / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_ABL_delay_no_choice"
 
-allvalid_results_pkl_path = (
+fit_a_label = "115 ms fixed"
+fit_a_results_pkl_path = (
     RESULTS_DIR
     / "results_norm_tied_batch_LED7_aggregate_ledoff_1_"
-    "proactive_loaded_truncate_NOT_censor_ABL_delay_no_choice_trunc130ms_allvalid.pkl"
+    "proactive_loaded_truncate_NOT_censor_ABL_delay_no_choice_"
+    "trunc115ms_fixN_20-1300_40-2300_60-3400.pkl"
 )
-fixedn_results_pkl_path = (
+fit_b_label = "130 ms fixed"
+fit_b_results_pkl_path = (
     RESULTS_DIR
     / "results_norm_tied_batch_LED7_aggregate_ledoff_1_"
     "proactive_loaded_truncate_NOT_censor_ABL_delay_no_choice_"
@@ -31,8 +34,8 @@ output_dir.mkdir(parents=True, exist_ok=True)
 n_bins = 60
 hist_density = True
 histtype = "step"
-allvalid_color = "tab:blue"
-fixedn_color = "tab:red"
+fit_a_color = "tab:blue"
+fit_b_color = "tab:red"
 hist_linewidth = 1.8
 quantile_linewidth = 1.2
 quantile_linestyle = "--"
@@ -109,37 +112,37 @@ def fmt_value(value, fmt):
 # =============================================================================
 # Load results
 # =============================================================================
-allvalid_payload, allvalid_results, allvalid_fit_config, allvalid_trial_counts = load_fit_payload(
-    allvalid_results_pkl_path
+fit_a_payload, fit_a_results, fit_a_fit_config, fit_a_trial_counts = load_fit_payload(
+    fit_a_results_pkl_path
 )
-fixedn_payload, fixedn_results, fixedn_fit_config, fixedn_trial_counts = load_fit_payload(
-    fixedn_results_pkl_path
+fit_b_payload, fit_b_results, fit_b_fit_config, fit_b_trial_counts = load_fit_payload(
+    fit_b_results_pkl_path
 )
 
-allvalid_run_tag = allvalid_fit_config.get("run_tag", "unknown_run_tag")
-fixedn_run_tag = fixedn_fit_config.get("run_tag", "unknown_run_tag")
-allvalid_n_trials = int(allvalid_trial_counts.get("valid_trials_used_for_fit", -1))
-fixedn_n_trials = int(fixedn_trial_counts.get("valid_trials_used_for_fit", -1))
+fit_a_run_tag = fit_a_fit_config.get("run_tag", "unknown_run_tag")
+fit_b_run_tag = fit_b_fit_config.get("run_tag", "unknown_run_tag")
+fit_a_n_trials = int(fit_a_trial_counts.get("valid_trials_used_for_fit", -1))
+fit_b_n_trials = int(fit_b_trial_counts.get("valid_trials_used_for_fit", -1))
 
 missing_param_keys = [
     spec["key"]
     for spec in param_specs
-    if spec["key"] not in allvalid_results or spec["key"] not in fixedn_results
+    if spec["key"] not in fit_a_results or spec["key"] not in fit_b_results
 ]
 if missing_param_keys:
     raise KeyError(f"Missing posterior sample keys across the two fits: {missing_param_keys}")
 
 output_base = (
-    "posterior_compare_trunc130ms_no_choice_"
-    f"{allvalid_run_tag}_vs_{fixedn_run_tag}"
+    "posterior_compare_no_choice_"
+    f"{fit_a_run_tag}_vs_{fit_b_run_tag}"
 )
 output_pdf_path = output_dir / f"{output_base}.pdf"
 output_png_path = output_dir / f"{output_base}.png"
 
-print(f"All-valid run tag: {allvalid_run_tag}")
-print(f"Fixed-N run tag: {fixedn_run_tag}")
-print(f"All-valid fitted trials: {allvalid_n_trials}")
-print(f"Fixed-N fitted trials: {fixedn_n_trials}")
+print(f"{fit_a_label} run tag: {fit_a_run_tag}")
+print(f"{fit_b_label} run tag: {fit_b_run_tag}")
+print(f"{fit_a_label} fitted trials: {fit_a_n_trials}")
+print(f"{fit_b_label} fitted trials: {fit_b_n_trials}")
 
 
 # %%
@@ -157,47 +160,47 @@ for ax, spec in zip(axes, param_specs):
     width_fmt = spec["width_fmt"]
     x_label = format_param_label(spec["label"], unit)
 
-    allvalid_samples = get_scaled_samples(allvalid_results, param_key, scale)
-    fixedn_samples = get_scaled_samples(fixedn_results, param_key, scale)
-    bins = compute_plot_bins(allvalid_samples, fixedn_samples, n_bins)
+    fit_a_samples = get_scaled_samples(fit_a_results, param_key, scale)
+    fit_b_samples = get_scaled_samples(fit_b_results, param_key, scale)
+    bins = compute_plot_bins(fit_a_samples, fit_b_samples, n_bins)
 
-    allvalid_q025, allvalid_q975, allvalid_width = compute_interval(allvalid_samples)
-    fixedn_q025, fixedn_q975, fixedn_width = compute_interval(fixedn_samples)
-    allvalid_mean = float(np.mean(allvalid_samples))
-    fixedn_mean = float(np.mean(fixedn_samples))
-    width_ratio = fixedn_width / allvalid_width if allvalid_width > 0 else np.nan
+    fit_a_q025, fit_a_q975, fit_a_width = compute_interval(fit_a_samples)
+    fit_b_q025, fit_b_q975, fit_b_width = compute_interval(fit_b_samples)
+    fit_a_mean = float(np.mean(fit_a_samples))
+    fit_b_mean = float(np.mean(fit_b_samples))
+    width_ratio = fit_b_width / fit_a_width if fit_a_width > 0 else np.nan
 
     ax.hist(
-        allvalid_samples,
+        fit_a_samples,
         bins=bins,
         density=hist_density,
         histtype=histtype,
         linewidth=hist_linewidth,
-        color=allvalid_color,
-        label=f"All trials (n={allvalid_n_trials})",
+        color=fit_a_color,
+        label=f"{fit_a_label} (n={fit_a_n_trials})",
     )
     ax.hist(
-        fixedn_samples,
+        fit_b_samples,
         bins=bins,
         density=hist_density,
         histtype=histtype,
         linewidth=hist_linewidth,
-        color=fixedn_color,
-        label=f"Fixed trials (n={fixedn_n_trials})",
+        color=fit_b_color,
+        label=f"{fit_b_label} (n={fit_b_n_trials})",
     )
 
-    for x in (allvalid_q025, allvalid_q975):
+    for x in (fit_a_q025, fit_a_q975):
         ax.axvline(
             x=x,
-            color=allvalid_color,
+            color=fit_a_color,
             linestyle=quantile_linestyle,
             linewidth=quantile_linewidth,
             alpha=0.9,
         )
-    for x in (fixedn_q025, fixedn_q975):
+    for x in (fit_b_q025, fit_b_q975):
         ax.axvline(
             x=x,
-            color=fixedn_color,
+            color=fit_b_color,
             linestyle=quantile_linestyle,
             linewidth=quantile_linewidth,
             alpha=0.9,
@@ -208,15 +211,15 @@ for ax, spec in zip(axes, param_specs):
     ax.grid(axis="y", alpha=0.2)
     ax.set_title(
         f"{x_label}\n"
-        f"mean all={allvalid_mean:.2f}, fixed={fixedn_mean:.2f}\n"
-        f"width all={fmt_value(allvalid_width, width_fmt)}, fixed={fmt_value(fixedn_width, width_fmt)}"
+        f"mean {fit_a_label}={fit_a_mean:.2f}, {fit_b_label}={fit_b_mean:.2f}\n"
+        f"width {fit_a_label}={fmt_value(fit_a_width, width_fmt)}, {fit_b_label}={fmt_value(fit_b_width, width_fmt)}"
     )
 
     summary_rows.append(
         {
             "label": x_label,
-            "allvalid_width": allvalid_width,
-            "fixedn_width": fixedn_width,
+            "fit_a_width": fit_a_width,
+            "fit_b_width": fit_b_width,
             "width_ratio": width_ratio,
             "width_fmt": width_fmt,
         }
@@ -228,9 +231,9 @@ for ax in axes[len(param_specs):]:
 handles, labels = axes[0].get_legend_handles_labels()
 fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False, bbox_to_anchor=(0.5, 0.965))
 fig.suptitle(
-    "Posterior comparison, 130 ms no-choice fit\n"
-    f"blue={allvalid_run_tag} (n={allvalid_n_trials}) | "
-    f"red={fixedn_run_tag} (n={fixedn_n_trials})",
+    "Posterior comparison, no-choice fit\n"
+    f"blue={fit_a_run_tag} ({fit_a_label}, n={fit_a_n_trials}) | "
+    f"red={fit_b_run_tag} ({fit_b_label}, n={fit_b_n_trials})",
     y=0.995,
 )
 fig.tight_layout(rect=[0, 0, 1, 0.93])
@@ -250,19 +253,19 @@ plt.close(fig)
 # =============================================================================
 print()
 print(
-    f"{'Parameter':<20} {'All width':>14} {'Fixed width':>14} "
-    f"{'Fixed-All':>14} {'Fixed/All':>14}"
+    f"{'Parameter':<20} {fit_a_label:>14} {fit_b_label:>14} "
+    f"{'B-A':>14} {'B/A':>14}"
 )
 print("-" * 80)
 for row in summary_rows:
     width_fmt = row["width_fmt"]
-    width_diff = row["fixedn_width"] - row["allvalid_width"]
+    width_diff = row["fit_b_width"] - row["fit_a_width"]
     width_ratio = row["width_ratio"]
     ratio_text = "nan" if not np.isfinite(width_ratio) else f"{width_ratio:.4f}"
     print(
         f"{row['label']:<20} "
-        f"{fmt_value(row['allvalid_width'], width_fmt):>14} "
-        f"{fmt_value(row['fixedn_width'], width_fmt):>14} "
+        f"{fmt_value(row['fit_a_width'], width_fmt):>14} "
+        f"{fmt_value(row['fit_b_width'], width_fmt):>14} "
         f"{fmt_value(width_diff, width_fmt):>14} "
         f"{ratio_text:>14}"
     )
