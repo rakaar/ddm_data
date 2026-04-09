@@ -68,7 +68,7 @@ K_max = 10
 is_norm = True
 is_time_vary = False
 phi_params_obj = np.nan
-truncate_rt_wrt_stim_s = 0.145
+truncate_rt_wrt_stim_s = 0.100
 supported_abl_values = (20, 40, 60)
 
 fix_trial_count_by_abl = False

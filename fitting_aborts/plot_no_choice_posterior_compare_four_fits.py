@@ -18,8 +18,14 @@ PKL_BASE = (
     "proactive_loaded_truncate_NOT_censor_ABL_delay_no_choice_"
 )
 
-# Define the 4 fits: (truncation_ms, fix_trial_ON, run_tag_suffix, label)
+# Define the fits to compare: (truncation_ms, fix_trial_ON, run_tag_suffix, label)
 fit_specs = [
+    {
+        "trunc_ms": 100,
+        "fixN": False,
+        "suffix": "trunc100ms_allvalid",
+        "label": "100 ms, allvalid",
+    },
     {
         "trunc_ms": 115,
         "fixN": False,
@@ -53,10 +59,10 @@ fit_specs = [
 ]
 
 # Style mapping:
-#   115 ms -> blue,  130 ms -> red
-#   fixN OFF (allvalid) -> dashed,  fixN ON -> solid
-COLOR_MAP = {115: "tab:blue", 130: "tab:red", 145: "tab:green"}
-ALPHA_MAP = {False: 0.4, True: 1.0}  # fixN OFF (allvalid) -> faint, fixN ON -> solid
+#   truncation -> color
+#   fixN OFF (allvalid) -> faint, fixN ON -> opaque
+COLOR_MAP = {100: "black", 115: "tab:blue", 130: "tab:red", 145: "tab:green"}
+ALPHA_MAP = {False: 0.4, True: 1.0}
 
 output_dir = RESULTS_DIR / "posterior_comparisons"
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -131,9 +137,35 @@ def fmt_value(value, fmt):
     return format(float(value), fmt)
 
 
+def build_mean_summary_lines(fits, row_info, items_per_line=2):
+    summary_chunks = []
+    ordered_truncations = list(dict.fromkeys(fit["spec"]["trunc_ms"] for fit in fits))
+    for trunc_ms in ordered_truncations:
+        case_parts = []
+        for idx, fit in enumerate(fits):
+            if fit["spec"]["trunc_ms"] != trunc_ms:
+                continue
+            case_label = "fix" if fit["spec"]["fixN"] else "all"
+            case_parts.append(f"{case_label}:{row_info[f'mean_{idx}']:.2f}")
+        summary_chunks.append(f"{trunc_ms}ms — " + ", ".join(case_parts))
+
+    title_lines = []
+    for idx in range(0, len(summary_chunks), items_per_line):
+        title_lines.append(" | ".join(summary_chunks[idx:idx + items_per_line]))
+    return title_lines
+
+
+def build_color_summary(fits):
+    ordered_truncations = list(dict.fromkeys(fit["spec"]["trunc_ms"] for fit in fits))
+    return ", ".join(
+        f"{trunc_ms} ms={COLOR_MAP[trunc_ms].replace('tab:', '')}"
+        for trunc_ms in ordered_truncations
+    )
+
+
 # %%
 # =============================================================================
-# Load all 4 results
+# Load all requested results
 # =============================================================================
 fits = []
 for fspec in fit_specs:
@@ -158,14 +190,14 @@ for fit in fits:
     if missing:
         raise KeyError(f"Missing keys in {fit['label']}: {missing}")
 
-output_base = "posterior_compare_no_choice_four_fits"
+output_base = "posterior_compare_no_choice_multi_fit"
 output_pdf_path = output_dir / f"{output_base}.pdf"
 output_png_path = output_dir / f"{output_base}.png"
 
 
 # %%
 # =============================================================================
-# Plot posterior comparison — all 4 fits
+# Plot posterior comparison — all selected fits
 # =============================================================================
 fig, axes = plt.subplots(3, 3, figsize=(18, 12))
 axes = axes.ravel()
@@ -178,7 +210,7 @@ for ax, pspec in zip(axes, param_specs):
     width_fmt = pspec["width_fmt"]
     x_label = format_param_label(pspec["label"], unit)
 
-    # Collect samples for all 4 fits
+    # Collect samples for all selected fits
     all_samples = []
     for fit in fits:
         samples = get_scaled_samples(fit["vbmc_results"], param_key, scale)
@@ -217,14 +249,8 @@ for ax, pspec in zip(axes, param_specs):
     ax.set_xlabel(x_label)
     ax.set_ylabel("Density")
     ax.grid(axis="y", alpha=0.2)
-    # means: indices 0=115 all, 1=115 fix, 2=130 all, 3=130 fix, 4=145 all
-    ax.set_title(
-        f"{x_label}\n"
-        f"115ms — all:{row_info['mean_0']:.2f}, fix:{row_info['mean_1']:.2f}\n"
-        f"130ms — all:{row_info['mean_2']:.2f}, fix:{row_info['mean_3']:.2f} | "
-        f"145ms — all:{row_info['mean_4']:.2f}",
-        fontsize=9,
-    )
+    title_lines = [x_label, *build_mean_summary_lines(fits, row_info)]
+    ax.set_title("\n".join(title_lines), fontsize=9)
     summary_rows.append(row_info)
 
 for ax in axes[len(param_specs):]:
@@ -232,12 +258,13 @@ for ax in axes[len(param_specs):]:
 
 # Build legend from one axis — deduplicate
 handles, labels = axes[0].get_legend_handles_labels()
-fig.legend(handles, labels, loc="upper center", ncol=5, frameon=False,
+legend_ncol = min(len(fits), 4)
+fig.legend(handles, labels, loc="upper center", ncol=legend_ncol, frameon=False,
            bbox_to_anchor=(0.5, 0.965), fontsize=9)
 
 fig.suptitle(
-    "Posterior comparison — no-choice fit (5 conditions)\n"
-    "blue = 115 ms, red = 130 ms, green = 145 ms | opaque = fixN ON, faint = allvalid",
+    f"Posterior comparison — no-choice fit ({len(fits)} conditions)\n"
+    f"{build_color_summary(fits)} | opaque = fixN ON, faint = allvalid",
     y=0.995, fontsize=11,
 )
 fig.tight_layout(rect=[0, 0, 1, 0.93])
