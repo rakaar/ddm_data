@@ -41,6 +41,7 @@ from proactive_plus_lapse_plus_reactive_uitls import (
 # %%
 ############ Parameters (edit here) ############
 batch_name = "LED7"
+fit_results_variant = "match_ref_stim"  # "standard" or "match_ref_stim"
 session_type = 7
 training_level = 16
 allowed_repeat_trials = [0, 2]
@@ -74,18 +75,32 @@ K_max = 10
 truncate_rt_wrt_stim_s = 0.130
 fix_trial_count_by_abl = True
 fixed_trial_counts_by_abl = {20: 1300, 40: 2300, 60: 3400}
+reference_truncate_rt_wrt_stim_s = 0.115
+match_stim_distribution = True
+stim_match_group_cols = ("ABL", "ILD")
+stim_match_quantile_bins = 10
 truncate_rt_wrt_stim_s_override = None  # None -> use fit truncation saved in the results pickle
 normalize_per_abl = False  # If True, area-normalize each ABL's RTD independently
 
 if N_mc_per_abl_panel <= 0:
     raise ValueError("N_mc_per_abl_panel must be positive.")
+if fit_results_variant not in {"standard", "match_ref_stim"}:
+    raise ValueError(
+        "fit_results_variant must be either 'standard' or 'match_ref_stim'. "
+        f"Got {fit_results_variant!r}."
+    )
 
 led_data_csv_path = REPO_ROOT / "out_LED.csv"
-output_dir = (
-    SCRIPT_DIR
-    / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_ABL_delay_no_choice"
-    / "diagnostics"
-)
+if fit_results_variant == "standard":
+    fit_results_dir = (
+        SCRIPT_DIR / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_ABL_delay_no_choice"
+    )
+else:
+    fit_results_dir = (
+        SCRIPT_DIR
+        / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_ABL_delay_no_choice_match_ref_stim"
+    )
+output_dir = fit_results_dir / "diagnostics"
 output_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -162,7 +177,7 @@ def normalize_fixed_trial_counts_by_abl(requested_counts):
     return {int(abl): normalized_counts[int(abl)] for abl in supported_abl_values}
 
 
-def build_run_tag(truncate_rt_wrt_stim_s, fix_trial_count_by_abl, fixed_trial_counts_by_abl):
+def build_standard_run_tag(truncate_rt_wrt_stim_s, fix_trial_count_by_abl, fixed_trial_counts_by_abl):
     truncate_ms = int(round(float(truncate_rt_wrt_stim_s) * 1e3))
     truncate_tag = f"trunc{truncate_ms}ms"
     if not fix_trial_count_by_abl:
@@ -174,25 +189,59 @@ def build_run_tag(truncate_rt_wrt_stim_s, fix_trial_count_by_abl, fixed_trial_co
     return f"{truncate_tag}_fixN_{count_tag}"
 
 
+def build_match_ref_stim_run_tag(
+    truncate_rt_wrt_stim_s,
+    reference_truncate_rt_wrt_stim_s,
+    match_stim_distribution,
+    stim_match_group_cols,
+    stim_match_quantile_bins,
+):
+    truncate_ms = int(round(float(truncate_rt_wrt_stim_s) * 1e3))
+    reference_ms = int(round(float(reference_truncate_rt_wrt_stim_s) * 1e3))
+    if not match_stim_distribution:
+        return f"trunc{truncate_ms}ms_ref{reference_ms}ms_nomatch"
+
+    group_tag = "_".join(str(column) for column in stim_match_group_cols)
+    return (
+        f"trunc{truncate_ms}ms_ref{reference_ms}ms_matchStim_"
+        f"{group_tag}_q{int(stim_match_quantile_bins)}"
+    )
+
+
 normalized_fixed_trial_counts_by_abl = normalize_fixed_trial_counts_by_abl(
     fixed_trial_counts_by_abl
 )
-requested_run_tag = build_run_tag(
-    truncate_rt_wrt_stim_s,
-    fix_trial_count_by_abl,
-    normalized_fixed_trial_counts_by_abl,
-)
+if fit_results_variant == "standard":
+    requested_run_tag = build_standard_run_tag(
+        truncate_rt_wrt_stim_s,
+        fix_trial_count_by_abl,
+        normalized_fixed_trial_counts_by_abl,
+    )
+    diagnostics_variant_tag = "standard"
+    fit_source_title_label = "Trunc-Fit"
+    fit_source_compare_label = "trunc_fit"
+else:
+    requested_run_tag = build_match_ref_stim_run_tag(
+        truncate_rt_wrt_stim_s,
+        reference_truncate_rt_wrt_stim_s,
+        match_stim_distribution,
+        stim_match_group_cols,
+        stim_match_quantile_bins,
+    )
+    diagnostics_variant_tag = "match_ref_stim"
+    fit_source_title_label = "Match-Ref-Stim Fit"
+    fit_source_compare_label = "match_ref_stim_fit"
 
 
 # %%
 ############ Load fitted parameters ############
 results_pkl_path = (
-    SCRIPT_DIR
-    / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_ABL_delay_no_choice"
+    fit_results_dir
     / (
         "results_norm_tied_"
         f"batch_{batch_name}_aggregate_ledoff_1_"
-        "proactive_loaded_truncate_NOT_censor_ABL_delay_no_choice_"
+        "proactive_loaded_truncate_NOT_censor_ABL_delay_no_choice"
+        f"{'_match_ref_stim_' if fit_results_variant == 'match_ref_stim' else '_'}"
         f"{requested_run_tag}.pkl"
     )
 )
@@ -213,24 +262,62 @@ vbmc_results = fit_payload["vbmc_norm_tied_results"]
 loaded_pro = fit_payload["loaded_proactive_params"]
 
 truncate_rt_wrt_stim_s_from_fit = fit_config.get("truncate_rt_wrt_stim_s")
-fix_trial_count_by_abl_from_fit = bool(fit_config.get("fix_trial_count_by_abl", False))
-fixed_trial_counts_by_abl_from_fit_raw = fit_config.get("fixed_trial_counts_by_abl")
-if fix_trial_count_by_abl_from_fit:
-    if fixed_trial_counts_by_abl_from_fit_raw is None:
-        raise KeyError(
-            "Missing 'fit_config.fixed_trial_counts_by_abl' in aggregate results pickle."
+if fit_results_variant == "standard":
+    fix_trial_count_by_abl_from_fit = bool(fit_config.get("fix_trial_count_by_abl", False))
+    fixed_trial_counts_by_abl_from_fit_raw = fit_config.get("fixed_trial_counts_by_abl")
+    if fix_trial_count_by_abl_from_fit:
+        if fixed_trial_counts_by_abl_from_fit_raw is None:
+            raise KeyError(
+                "Missing 'fit_config.fixed_trial_counts_by_abl' in aggregate results pickle."
+            )
+        fixed_trial_counts_by_abl_from_fit = normalize_fixed_trial_counts_by_abl(
+            fixed_trial_counts_by_abl_from_fit_raw
         )
-    fixed_trial_counts_by_abl_from_fit = normalize_fixed_trial_counts_by_abl(
-        fixed_trial_counts_by_abl_from_fit_raw
+    else:
+        fixed_trial_counts_by_abl_from_fit = normalized_fixed_trial_counts_by_abl
+
+    fit_run_tag = build_standard_run_tag(
+        (
+            truncate_rt_wrt_stim_s_from_fit
+            if truncate_rt_wrt_stim_s_from_fit is not None
+            else truncate_rt_wrt_stim_s
+        ),
+        fix_trial_count_by_abl_from_fit,
+        fixed_trial_counts_by_abl_from_fit,
     )
 else:
-    fixed_trial_counts_by_abl_from_fit = normalized_fixed_trial_counts_by_abl
+    reference_truncate_rt_wrt_stim_s_from_fit = fit_config.get("reference_truncate_rt_wrt_stim_s")
+    if reference_truncate_rt_wrt_stim_s_from_fit is None:
+        raise KeyError(
+            "Missing 'fit_config.reference_truncate_rt_wrt_stim_s' in matched-fit results pickle."
+        )
 
-fit_run_tag = build_run_tag(
-    truncate_rt_wrt_stim_s_from_fit if truncate_rt_wrt_stim_s_from_fit is not None else truncate_rt_wrt_stim_s,
-    fix_trial_count_by_abl_from_fit,
-    fixed_trial_counts_by_abl_from_fit,
-)
+    match_stim_distribution_from_fit = bool(fit_config.get("match_stim_distribution", False))
+    stim_match_group_cols_from_fit = tuple(fit_config.get("stim_match_group_cols", []))
+    stim_match_quantile_bins_from_fit = fit_config.get("stim_match_quantile_bins")
+    if not stim_match_group_cols_from_fit:
+        raise KeyError(
+            "Missing or empty 'fit_config.stim_match_group_cols' in matched-fit results pickle."
+        )
+    if stim_match_quantile_bins_from_fit is None:
+        raise KeyError(
+            "Missing 'fit_config.stim_match_quantile_bins' in matched-fit results pickle."
+        )
+
+    fix_trial_count_by_abl_from_fit = False
+    fixed_trial_counts_by_abl_from_fit = None
+    fit_run_tag = build_match_ref_stim_run_tag(
+        (
+            truncate_rt_wrt_stim_s_from_fit
+            if truncate_rt_wrt_stim_s_from_fit is not None
+            else truncate_rt_wrt_stim_s
+        ),
+        reference_truncate_rt_wrt_stim_s_from_fit,
+        match_stim_distribution_from_fit,
+        stim_match_group_cols_from_fit,
+        stim_match_quantile_bins_from_fit,
+    )
+
 if fit_run_tag != requested_run_tag:
     raise ValueError(
         "Diagnostics run-tag mismatch. "
@@ -255,7 +342,7 @@ if truncate_rt_wrt_stim_s > max_rtwrtstim_for_fit:
 
 plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_raw_rtwrtstim_"
-    f"truncate_not_censor_ABL_delay_no_choice_{fit_run_tag}"
+    f"truncate_not_censor_ABL_delay_no_choice_{diagnostics_variant_tag}_{fit_run_tag}"
 )
 plot_pdf_path = output_dir / f"{plot_base}.pdf"
 plot_png_path = output_dir / f"{plot_base}.png"
@@ -266,20 +353,20 @@ truncate_rt_wrt_stim_ms, truncate_label_ms, truncate_label_tag = format_truncati
 )
 truncated_plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_truncated_{truncate_label_tag}_rtwrtstim_"
-    f"truncate_not_censor_ABL_delay_no_choice_{fit_run_tag}"
+    f"truncate_not_censor_ABL_delay_no_choice_{diagnostics_variant_tag}_{fit_run_tag}"
 )
 truncated_plot_pdf_path = output_dir / f"{truncated_plot_base}.pdf"
 truncated_plot_png_path = output_dir / f"{truncated_plot_base}.png"
 
 abl_split_plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_truncated_{truncate_label_tag}_rtwrtstim_"
-    f"by_ABL_truncate_not_censor_ABL_delay_no_choice_{fit_run_tag}"
+    f"by_ABL_truncate_not_censor_ABL_delay_no_choice_{diagnostics_variant_tag}_{fit_run_tag}"
 )
 abl_split_plot_pdf_path = output_dir / f"{abl_split_plot_base}.pdf"
 abl_split_plot_png_path = output_dir / f"{abl_split_plot_base}.png"
 publication_plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_truncated_{truncate_label_tag}_rtwrtstim_"
-    f"by_ABL_publication_truncate_not_censor_ABL_delay_no_choice_{fit_run_tag}"
+    f"by_ABL_publication_truncate_not_censor_ABL_delay_no_choice_{diagnostics_variant_tag}_{fit_run_tag}"
 )
 publication_plot_pdf_path = output_dir / f"{publication_plot_base}.pdf"
 publication_plot_png_path = output_dir / f"{publication_plot_base}.png"
@@ -287,6 +374,7 @@ publication_plot_pkl_path = output_dir / f"{publication_plot_base}.pkl"
 
 print(f"Requested diagnostics run tag: {requested_run_tag}")
 print(f"Resolved fit run tag: {fit_run_tag}")
+print(f"Fit results variant: {fit_results_variant}")
 
 if truncate_rt_wrt_stim_s_from_fit is None:
     print(f"Using diagnostics truncation threshold: {truncate_rt_wrt_stim_s:.3f} s ({truncate_label_ms})")
@@ -343,7 +431,7 @@ lapse_prob = float(loaded_pro["lapse_prob"])
 beta_lapse = float(loaded_pro["beta_lapse"])
 t_A_aff = del_a_minus_del_LED + del_m_plus_del_LED
 
-print("Loaded aggregate truncation-fit ABL-delay no-choice parameters:")
+print(f"Loaded aggregate {fit_source_title_label.lower()} ABL-delay no-choice parameters:")
 print(
     f"  rate_lambda={rate_lambda:.6f}, T_0={T_0:.6f}, theta_E={theta_E:.6f}, "
     f"w={w:.6f}, Z_E={Z_E:.6f}, t_E_aff_20={t_E_aff_20:.6f}, "
@@ -527,7 +615,7 @@ ax.axvline(
 )
 ax.set_xlabel("RT - t_stim (s)")
 ax.set_ylabel("Density")
-ax.set_title(f"LED-OFF Aggregate RTD from Trunc-Fit ABL-delay no-choice ({batch_name})")
+ax.set_title(f"LED-OFF Aggregate RTD from {fit_source_title_label} ABL-delay no-choice ({batch_name})")
 ax.set_xlim(-0.1, 0.4)
 ax.legend()
 
@@ -616,7 +704,7 @@ ax_trunc.axvline(
 ax_trunc.set_xlabel("RT - t_stim (s)")
 ax_trunc.set_ylabel("Density")
 ax_trunc.set_title(
-    f"LED-OFF Aggregate RTD truncated {truncate_label_ms} ABL-delay no-choice ({batch_name})"
+    f"LED-OFF Aggregate RTD truncated {truncate_label_ms} from {fit_source_title_label} ({batch_name})"
 )
 ax_trunc.set_xlim(0.0, truncate_rt_wrt_stim_s)
 ax_trunc.legend()
@@ -787,7 +875,7 @@ if combined_ax_max > 0:
     axes_abl[0].set_ylim(0.0, combined_ax_max * 1.1)
 
 fig_abl.suptitle(
-    f"LED-OFF Aggregate RTD truncated {truncate_label_ms} by ABL no-choice ({batch_name})",
+    f"LED-OFF Aggregate RTD truncated {truncate_label_ms} by ABL from {fit_source_title_label} ({batch_name})",
     y=1.02,
 )
 fig_abl.tight_layout(rect=[0, 0, 1, 0.97])
@@ -823,15 +911,21 @@ diagnostics_payload = {
         "is_norm": is_norm,
         "is_time_vary": is_time_vary,
         "K_max": K_max,
+        "fit_results_variant": fit_results_variant,
         "requested_run_tag": requested_run_tag,
         "fit_run_tag": fit_run_tag,
         "fix_trial_count_by_abl": fix_trial_count_by_abl_from_fit,
         "fixed_trial_counts_by_abl": (
             fixed_trial_counts_by_abl_from_fit if fix_trial_count_by_abl_from_fit else None
         ),
+        "reference_truncate_rt_wrt_stim_s": (
+            float(reference_truncate_rt_wrt_stim_s_from_fit)
+            if fit_results_variant == "match_ref_stim"
+            else None
+        ),
         "results_pkl_path": str(results_pkl_path),
         "led_data_csv_path": str(led_data_csv_path),
-        "compare_mode": "raw_full_rtd_from_trunc_fit_no_choice",
+        "compare_mode": f"raw_full_rtd_from_{fit_source_compare_label}_no_choice",
         "compare_mode_truncated": f"clipped_to_{truncate_label_tag}_and_area_normalized",
         "choice_mode": "fit_ignores_observed_choice_use_collapsed_rt_pdf",
         "theory_curve_is_untruncated": True,
@@ -1059,7 +1153,7 @@ delay_bar_rotation = 0
 
 delay_bar_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_delay_bars_"
-    f"truncate_not_censor_ABL_delay_no_choice_{fit_run_tag}"
+    f"truncate_not_censor_ABL_delay_no_choice_{diagnostics_variant_tag}_{fit_run_tag}"
 )
 delay_bar_pdf_path = output_dir / f"{delay_bar_base}.pdf"
 delay_bar_png_path = output_dir / f"{delay_bar_base}.png"
