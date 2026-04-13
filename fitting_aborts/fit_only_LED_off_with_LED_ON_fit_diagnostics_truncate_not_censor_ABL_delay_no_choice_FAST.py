@@ -74,11 +74,11 @@ phi_params_obj = np.nan
 K_max = 10
 
 # ###### RUN TAG / FIXED-TRIAL CONFIG ######
-truncate_rt_wrt_stim_s = 0.130
+truncate_rt_wrt_stim_s = 0.115
 fix_trial_count_by_abl = False
 fixed_trial_counts_by_abl = {20: 1300, 40: 2300, 60: 3400}
 reference_truncate_rt_wrt_stim_s = 0.115
-match_stim_distribution = True
+match_stim_distribution = False
 stim_match_group_cols = ("ABL", "ILD")
 stim_match_quantile_bins = 10
 truncate_rt_wrt_stim_s_override = None  # None -> use fit truncation saved in the results pickle
@@ -93,17 +93,12 @@ if fit_results_variant not in {"standard", "match_ref_stim"}:
     )
 
 led_data_csv_path = REPO_ROOT / "out_LED.csv"
-if fit_results_variant == "standard":
-    fit_results_dir = (
-        SCRIPT_DIR / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_ABL_delay_no_choice"
-    )
-else:
-    fit_results_dir = (
-        SCRIPT_DIR
-        / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_ABL_delay_no_choice_match_ref_stim"
-    )
-output_dir = fit_results_dir / "diagnostics"
-output_dir.mkdir(parents=True, exist_ok=True)
+standard_fit_results_dir = (
+    SCRIPT_DIR / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_ABL_delay_no_choice"
+)
+match_ref_stim_fit_results_dir = (
+    SCRIPT_DIR / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_ABL_delay_no_choice_match_ref_stim"
+)
 
 
 # %%
@@ -213,15 +208,26 @@ def build_match_ref_stim_run_tag(
 normalized_fixed_trial_counts_by_abl = normalize_fixed_trial_counts_by_abl(
     fixed_trial_counts_by_abl
 )
-if fit_results_variant == "standard":
+requested_match_ref_stim_variant = fit_results_variant == "match_ref_stim"
+use_match_ref_stim_fit_source = requested_match_ref_stim_variant and match_stim_distribution
+
+if requested_match_ref_stim_variant and not match_stim_distribution:
+    print(
+        "match_stim_distribution=False with fit_results_variant='match_ref_stim': "
+        "falling back to the standard no-choice truncation-fit pickle."
+    )
+
+if not use_match_ref_stim_fit_source:
     requested_run_tag = build_standard_run_tag(
         truncate_rt_wrt_stim_s,
         fix_trial_count_by_abl,
         normalized_fixed_trial_counts_by_abl,
     )
+    resolved_fit_results_variant = "standard"
     diagnostics_variant_tag = "standard"
     fit_source_title_label = "Trunc-Fit"
     fit_source_compare_label = "trunc_fit"
+    fit_results_dir = standard_fit_results_dir
 else:
     requested_run_tag = build_match_ref_stim_run_tag(
         truncate_rt_wrt_stim_s,
@@ -230,9 +236,14 @@ else:
         stim_match_group_cols,
         stim_match_quantile_bins,
     )
+    resolved_fit_results_variant = "match_ref_stim"
     diagnostics_variant_tag = "match_ref_stim"
     fit_source_title_label = "Match-Ref-Stim Fit"
     fit_source_compare_label = "match_ref_stim_fit"
+    fit_results_dir = match_ref_stim_fit_results_dir
+
+output_dir = fit_results_dir / "diagnostics"
+output_dir.mkdir(parents=True, exist_ok=True)
 
 
 # %%
@@ -243,7 +254,7 @@ results_pkl_path = (
         "results_norm_tied_"
         f"batch_{batch_name}_aggregate_ledoff_1_"
         "proactive_loaded_truncate_NOT_censor_ABL_delay_no_choice"
-        f"{'_match_ref_stim_' if fit_results_variant == 'match_ref_stim' else '_'}"
+        f"{'_match_ref_stim_' if resolved_fit_results_variant == 'match_ref_stim' else '_'}"
         f"{requested_run_tag}.pkl"
     )
 )
@@ -264,7 +275,7 @@ vbmc_results = fit_payload["vbmc_norm_tied_results"]
 loaded_pro = fit_payload["loaded_proactive_params"]
 
 truncate_rt_wrt_stim_s_from_fit = fit_config.get("truncate_rt_wrt_stim_s")
-if fit_results_variant == "standard":
+if resolved_fit_results_variant == "standard":
     fix_trial_count_by_abl_from_fit = bool(fit_config.get("fix_trial_count_by_abl", False))
     fixed_trial_counts_by_abl_from_fit_raw = fit_config.get("fixed_trial_counts_by_abl")
     if fix_trial_count_by_abl_from_fit:
@@ -376,7 +387,8 @@ publication_plot_pkl_path = output_dir / f"{publication_plot_base}.pkl"
 
 print(f"Requested diagnostics run tag: {requested_run_tag}")
 print(f"Resolved fit run tag: {fit_run_tag}")
-print(f"Fit results variant: {fit_results_variant}")
+print(f"Requested fit results variant: {fit_results_variant}")
+print(f"Resolved fit results variant: {resolved_fit_results_variant}")
 
 if truncate_rt_wrt_stim_s_from_fit is None:
     print(f"Using diagnostics truncation threshold: {truncate_rt_wrt_stim_s:.3f} s ({truncate_label_ms})")
@@ -995,7 +1007,8 @@ diagnostics_payload = {
         "is_norm": is_norm,
         "is_time_vary": is_time_vary,
         "K_max": K_max,
-        "fit_results_variant": fit_results_variant,
+        "fit_results_variant": resolved_fit_results_variant,
+        "requested_fit_results_variant": fit_results_variant,
         "requested_run_tag": requested_run_tag,
         "fit_run_tag": fit_run_tag,
         "fix_trial_count_by_abl": fix_trial_count_by_abl_from_fit,
@@ -1004,7 +1017,7 @@ diagnostics_payload = {
         ),
         "reference_truncate_rt_wrt_stim_s": (
             float(reference_truncate_rt_wrt_stim_s_from_fit)
-            if fit_results_variant == "match_ref_stim"
+            if resolved_fit_results_variant == "match_ref_stim"
             else None
         ),
         "results_pkl_path": str(results_pkl_path),
