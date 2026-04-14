@@ -12,5 +12,8 @@
 Do not over-abstract.
 - Avoid creating single-use functions just to make the code look cleaner; keep logic inline when it is only used once and is still easy to follow.
 - Write a function when the same logic is used in multiple places, when a block is getting hard to read, or when you want to isolate a stable step that you may reuse or test later.
+- Avoid thin wrapper functions. If a helper only forwards arguments to another helper, renames a value, or applies a trivial unit conversion, collapse it into one function unless both forms are genuinely reused.
+- For unit conversions, prefer doing the conversion at the use site unless both unit systems are used in multiple places.
+- If choosing between two small helpers and one slightly longer helper, prefer the single helper.
 - Use only necessary checks: include checks for realistic failure modes in research workflows, but do not add defensive branches for unlikely edge cases that do not matter here.
 - Optimize for easy modification and visibility of logic in one place.

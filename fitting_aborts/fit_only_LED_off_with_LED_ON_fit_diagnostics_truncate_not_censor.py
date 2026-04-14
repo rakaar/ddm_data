@@ -48,7 +48,7 @@ n_jobs = int(os.getenv("FIT_DIAG_N_JOBS", "30"))
 show_plot = SHOW_PLOT
 
 t_pts = np.arange(-2.0, 2.001, 0.001)
-truncate_rt_wrt_stim_s = 0.130
+truncate_rt_wrt_stim_s = 1.0
 
 is_norm = True
 is_time_vary = False
