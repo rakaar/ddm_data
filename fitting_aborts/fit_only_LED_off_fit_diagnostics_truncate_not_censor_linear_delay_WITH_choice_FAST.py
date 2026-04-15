@@ -1,11 +1,11 @@
 # %%
 """
-Diagnostics for aggregate LED-OFF normalized-tied no-choice fit with proactive+lapse parameters
-loaded.
+Diagnostics for aggregate LED-OFF normalized-tied with choice fit with proactive+lapse
+parameters loaded.
 
-This truncation + linear-delay + no-choice variant:
+This truncation + linear-delay + with choice variant:
 1) Rebuilds the same LED-OFF aggregate diagnostics dataset used by the old FAST diagnostics flow.
-2) Loads fitted parameters from the aggregate linear-delay no-choice results pickle.
+2) Loads fitted parameters from the aggregate linear-delay with choice results pickle.
 3) Computes Monte Carlo-averaged theoretical RTwrtStim density on t_pts in [-2, 2] (1 ms).
 4) Compares the raw untruncated theory vs empirical data and marks the fit-aligned post-stim
    truncation threshold.
@@ -118,7 +118,7 @@ if combined_condition_xlim_s <= 0:
 
 led_data_csv_path = REPO_ROOT / "out_LED.csv"
 fit_results_dir = (
-    SCRIPT_DIR / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_linear_delay_no_choice"
+    SCRIPT_DIR / "norm_only_led_off_from_loaded_proactive_truncate_NOT_censor_linear_delay_with_choice"
 )
 output_dir = fit_results_dir / "diagnostics"
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -132,7 +132,7 @@ results_pkl_path = (
     / (
         "results_norm_tied_"
         f"batch_{batch_name}_aggregate_ledoff_1_"
-        "proactive_loaded_truncate_NOT_censor_linear_delay_no_choice_"
+        "proactive_loaded_truncate_NOT_censor_linear_delay_with_choice_"
         f"{fit_run_tag_requested}.pkl"
     )
 )
@@ -189,35 +189,35 @@ truncate_rt_wrt_stim_ms, truncate_label_ms, truncate_label_tag = format_truncati
 )
 raw_plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_raw_rtwrtstim_"
-    f"truncate_not_censor_linear_delay_no_choice_{fit_run_tag}"
+    f"truncate_not_censor_linear_delay_with_choice_{fit_run_tag}"
 )
 raw_plot_pdf_path = output_dir / f"{raw_plot_base}.pdf"
 raw_plot_png_path = output_dir / f"{raw_plot_base}.png"
 
 truncated_plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_truncated_{truncate_label_tag}_rtwrtstim_"
-    f"truncate_not_censor_linear_delay_no_choice_{fit_run_tag}"
+    f"truncate_not_censor_linear_delay_with_choice_{fit_run_tag}"
 )
 truncated_plot_pdf_path = output_dir / f"{truncated_plot_base}.pdf"
 truncated_plot_png_path = output_dir / f"{truncated_plot_base}.png"
 
 abl_split_plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_truncated_{truncate_label_tag}_rtwrtstim_"
-    f"by_ABL_truncate_not_censor_linear_delay_no_choice_{fit_run_tag}"
+    f"by_ABL_truncate_not_censor_linear_delay_with_choice_{fit_run_tag}"
 )
 abl_split_plot_pdf_path = output_dir / f"{abl_split_plot_base}.pdf"
 abl_split_plot_png_path = output_dir / f"{abl_split_plot_base}.png"
 
 condition_split_plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_truncated_{truncate_label_tag}_rtwrtstim_"
-    f"by_ABL_abs_ILD_truncate_not_censor_linear_delay_no_choice_{fit_run_tag}"
+    f"by_ABL_abs_ILD_truncate_not_censor_linear_delay_with_choice_{fit_run_tag}"
 )
 condition_split_plot_pdf_path = output_dir / f"{condition_split_plot_base}.pdf"
 condition_split_plot_png_path = output_dir / f"{condition_split_plot_base}.png"
 
 publication_plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_truncated_{truncate_label_tag}_rtwrtstim_"
-    f"by_ABL_publication_truncate_not_censor_linear_delay_no_choice_{fit_run_tag}"
+    f"by_ABL_publication_truncate_not_censor_linear_delay_with_choice_{fit_run_tag}"
 )
 publication_plot_pdf_path = output_dir / f"{publication_plot_base}.pdf"
 publication_plot_png_path = output_dir / f"{publication_plot_base}.png"
@@ -225,7 +225,7 @@ publication_plot_pkl_path = output_dir / f"{publication_plot_base}.pkl"
 
 delay_surface_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_delay_surface_"
-    f"truncate_not_censor_linear_delay_no_choice_{fit_run_tag}"
+    f"truncate_not_censor_linear_delay_with_choice_{fit_run_tag}"
 )
 delay_surface_pdf_path = output_dir / f"{delay_surface_base}.pdf"
 delay_surface_png_path = output_dir / f"{delay_surface_base}.png"
@@ -233,20 +233,20 @@ delay_surface_pkl_path = output_dir / f"{delay_surface_base}.pkl"
 
 quantile_plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_truncated_{truncate_label_tag}_quantiles_"
-    f"by_ABL_abs_ILD_truncate_not_censor_linear_delay_no_choice_{fit_run_tag}"
+    f"by_ABL_abs_ILD_truncate_not_censor_linear_delay_with_choice_{fit_run_tag}"
 )
 quantile_plot_png_path = output_dir / f"{quantile_plot_base}.png"
 
 combined_abs_ild_plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_truncated_{truncate_label_tag}_rtwrtstim_"
-    f"by_abs_ILD_overlay_ABL_truncate_not_censor_linear_delay_no_choice_{fit_run_tag}"
+    f"by_abs_ILD_overlay_ABL_truncate_not_censor_linear_delay_with_choice_{fit_run_tag}"
 )
 combined_abs_ild_plot_pdf_path = output_dir / f"{combined_abs_ild_plot_base}.pdf"
 combined_abs_ild_plot_png_path = output_dir / f"{combined_abs_ild_plot_base}.png"
 
 combined_abl_plot_base = (
     f"diag_norm_tied_batch_{batch_name}_aggregate_ledoff_truncated_{truncate_label_tag}_rtwrtstim_"
-    f"by_ABL_overlay_abs_ILD_truncate_not_censor_linear_delay_no_choice_{fit_run_tag}"
+    f"by_ABL_overlay_abs_ILD_truncate_not_censor_linear_delay_with_choice_{fit_run_tag}"
 )
 combined_abl_plot_pdf_path = output_dir / f"{combined_abl_plot_base}.pdf"
 combined_abl_plot_png_path = output_dir / f"{combined_abl_plot_base}.png"
@@ -328,7 +328,7 @@ delay_surface_ms = pd.DataFrame(
 delay_surface_ms.index.name = "ABL"
 delay_surface_ms.columns.name = "abs_ILD"
 
-print("Loaded aggregate linear-delay no-choice parameters:")
+print("Loaded aggregate linear-delay with choice parameters:")
 print(
     f"  rate_lambda={rate_lambda:.6f}, T_0={T_0:.6f}, theta_E={theta_E:.6f}, "
     f"w={w:.6f}, Z_E={Z_E:.6f}, bias_ms={bias_ms:.6f}, "
@@ -415,7 +415,7 @@ condition_counts_truncated = build_condition_counts(
     plot_abs_ild_values,
 )
 
-print("Rebuilt LED-OFF aggregate diagnostics dataset for linear-delay no-choice fit:")
+print("Rebuilt LED-OFF aggregate diagnostics dataset for linear-delay with choice fit:")
 print(f"  Total LED-OFF filtered trials (valid+aborts): {len(df_valid_and_aborts)}")
 print(f"  LED-OFF trials used for diagnostics (valid+aborts): {len(fit_df)}")
 print(f"  Supported ABL values in diagnostics dataset: {observed_abl_values.tolist()}")
@@ -489,7 +489,7 @@ ax.axvline(
 )
 ax.set_xlabel("RT - t_stim (s)")
 ax.set_ylabel("Density")
-ax.set_title(f"LED-OFF Aggregate RTD from linear-delay no-choice fit ({batch_name})")
+ax.set_title(f"LED-OFF Aggregate RTD from linear-delay with choice fit ({batch_name})")
 ax.set_xlim(-0.1, max(0.4, truncate_rt_wrt_stim_s + 0.05))
 ax.legend()
 
@@ -1084,7 +1084,7 @@ for ax, abl in zip(axes_quant, supported_abl_values):
 axes_quant[0].set_ylabel("RT quantile (ms)")
 
 fig_quant.suptitle(
-    f"Aggregate LED off: [0, {truncate_label_ms}] delay linear, no choice\n",
+    f"Aggregate LED off: [0, {truncate_label_ms}] delay linear, with choice\n",
     y=1.04,
 )
 fig_quant.tight_layout(rect=[0, 0, 1, 0.95])
@@ -1152,14 +1152,14 @@ for ax, abs_ild in zip(axes_abs_ild, plot_abs_ild_values):
             data_bin_centers_truncated,
             payload_condition["data_density_truncated_plot"],
             where="mid",
-            lw=1.5,
+            lw=1.3,
             color=color,
+            alpha=0.55,
         )
         ax.plot(
             t_pts_truncated,
             payload_condition["theory_density_truncated_plot"],
             lw=2.0,
-            alpha=0.65,
             color=color,
             label=f"ABL {int(abl)}" if int(abs_ild) == int(plot_abs_ild_values[0]) else None,
         )
@@ -1172,10 +1172,11 @@ for ax, abs_ild in zip(axes_abs_ild, plot_abs_ild_values):
 axes_abs_ild[0].set_ylabel("Density")
 if combined_abs_ild_ax_max > 0:
     axes_abs_ild[0].set_ylim(0.0, combined_abs_ild_ax_max * 1.08)
-# axes_abs_ild[0].legend(loc="upper right", fontsize=9, frameon=False)
+axes_abs_ild[0].legend(loc="upper right", fontsize=9, frameon=False)
 
 fig_abs_ild.suptitle(
-    f"LED-OFF Aggregate RTD up to {int(round(1e3 * combined_condition_xlim_s_effective))} ms by |ILD| ",
+    f"LED-OFF Aggregate RTD up to {int(round(1e3 * combined_condition_xlim_s_effective))} ms by |ILD| "
+    f"(step=data, line=model; {batch_name})",
     y=1.04,
 )
 fig_abs_ild.tight_layout(rect=[0, 0, 1, 0.95])
@@ -1233,14 +1234,14 @@ for ax, abl in zip(axes_combined_abl, supported_abl_values):
             data_bin_centers_truncated,
             payload_condition["data_density_truncated_plot"],
             where="mid",
-            lw=1.5,
+            lw=1.3,
             color=color,
+            alpha=0.55,
         )
         ax.plot(
             t_pts_truncated,
             payload_condition["theory_density_truncated_plot"],
             lw=2.0,
-            alpha=0.65,
             color=color,
             label=(
                 f"|ILD| {int(abs_ild)}"
@@ -1257,10 +1258,11 @@ for ax, abl in zip(axes_combined_abl, supported_abl_values):
 axes_combined_abl[0].set_ylabel("Density")
 if combined_abl_ax_max > 0:
     axes_combined_abl[0].set_ylim(0.0, combined_abl_ax_max * 1.08)
-axes_combined_abl[0].legend(loc="upper left", fontsize=9, frameon=False)
+axes_combined_abl[0].legend(loc="upper right", fontsize=9, frameon=False)
 
 fig_combined_abl.suptitle(
-    f"LED-OFF Aggregate RTD up to {int(round(1e3 * combined_condition_xlim_s_effective))} ms by ABL ",
+    f"LED-OFF Aggregate RTD up to {int(round(1e3 * combined_condition_xlim_s_effective))} ms by ABL "
+    f"(step=data, line=model; {batch_name})",
     y=1.04,
 )
 fig_combined_abl.tight_layout(rect=[0, 0, 1, 0.95])
