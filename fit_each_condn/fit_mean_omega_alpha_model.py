@@ -23,9 +23,9 @@ BATCH_DIR = os.path.join(REPO_DIR, "fit_animal_by_animal", "batch_csvs")
 COND_FIT_PKL_DIR = os.path.join(SCRIPT_DIR, "each_animal_cond_fit_gama_omega_pkl_files")
 
 ABLS = [20, 40, 60]
-# ILDS = np.sort([-16, -8, -4, -2, -1, 1, 2, 4, 8, 16])
+ILDS = np.sort([-16, -8, -4, -2, -1, 1, 2, 4, 8, 16])
 # ILDS = np.sort([ -8, -4, -2, -1, 1, 2, 4, 8])
-ILDS = np.sort([ -4, -2, -1, 1, 2, 4])
+# ILDS = np.sort([ -4, -2, -1, 1, 2, 4])
 
 P_0 = 20e-6
 N_POSTERIOR_SAMPLES = int(1e5)
@@ -240,6 +240,161 @@ fig.suptitle(
 fig.tight_layout()
 fig.savefig(ELL_SWEEP_FIG_PATH, dpi=300, bbox_inches="tight")
 print(f"Saved figure: {ELL_SWEEP_FIG_PATH}")
+
+plt.show()
+
+# %%
+
+# %% Compare analytical Gamma/Omega formulas with firing-rate implementation
+COMPARE_RATE_LAMBDA = 2.75641
+COMPARE_ELL = 0.943883
+COMPARE_ALPHA = 0.498281
+COMPARE_THETA = 2.55864
+COMPARE_T_0 = 0.0986694
+
+ANALYTICAL_COMPARE_FIG_PATH = os.path.join(SCRIPT_DIR, "analytical_vs_firing_rate_gamma_omega.png")
+
+chi = 40 / np.log(10)
+# ild_smooth = np.linspace(np.min(ILDS), np.max(ILDS), 100)
+ild_smooth = np.arange(-40, 40, 0.2)
+fig, ax = plt.subplots(1, 2, figsize=(11, 5))
+
+print("Analytical vs firing-rate Gamma/Omega max absolute differences:")
+for abl_idx, ABL in enumerate(ABLS):
+    color = COLORS[abl_idx]
+
+    firing_gamma_smooth, firing_omega_smooth = gamma_omega_alpha_model(
+        ABL,
+        ild_smooth,
+        COMPARE_RATE_LAMBDA,
+        COMPARE_ELL,
+        COMPARE_ALPHA,
+        COMPARE_THETA,
+        COMPARE_T_0,
+        P_0,
+    )
+
+    LD = ild_smooth
+    lambda_ld_over_chi = COMPARE_RATE_LAMBDA * LD / chi
+    lambda_ell_ld_over_chi = COMPARE_RATE_LAMBDA * COMPARE_ELL * LD / chi
+    lambda_ell_plus_one_ld_over_chi = COMPARE_RATE_LAMBDA * (COMPARE_ELL + 1) * LD / chi
+    alpha_minus_one_half = (COMPARE_ALPHA - 1) / 2
+
+    analytical_gamma_smooth = COMPARE_THETA * (
+        np.sinh(lambda_ld_over_chi)
+        + alpha_minus_one_half
+        * (np.sinh(lambda_ell_plus_one_ld_over_chi) / np.cosh(lambda_ell_ld_over_chi))
+    ) / (
+        np.cosh(lambda_ld_over_chi)
+        + alpha_minus_one_half
+        * (np.cosh(lambda_ell_plus_one_ld_over_chi) / np.cosh(lambda_ell_ld_over_chi))
+    )
+
+    f_omega_smooth = (
+        np.cosh(lambda_ld_over_chi) * np.cosh(lambda_ell_ld_over_chi)
+        + alpha_minus_one_half * np.cosh(lambda_ell_plus_one_ld_over_chi)
+    ) / (
+        COMPARE_ALPHA * (np.cosh(lambda_ell_ld_over_chi) ** 2)
+        + (alpha_minus_one_half**2)
+    )
+    analytical_omega_smooth = (
+        (1 / (COMPARE_T_0 * COMPARE_THETA**2))
+        * (10 ** (COMPARE_RATE_LAMBDA * (1 - COMPARE_ELL) * ABL / 20))
+        * f_omega_smooth
+    )
+
+    firing_gamma_ild, firing_omega_ild = gamma_omega_alpha_model(
+        ABL,
+        ILDS,
+        COMPARE_RATE_LAMBDA,
+        COMPARE_ELL,
+        COMPARE_ALPHA,
+        COMPARE_THETA,
+        COMPARE_T_0,
+        P_0,
+    )
+
+    LD = ILDS
+    lambda_ld_over_chi = COMPARE_RATE_LAMBDA * LD / chi
+    lambda_ell_ld_over_chi = COMPARE_RATE_LAMBDA * COMPARE_ELL * LD / chi
+    lambda_ell_plus_one_ld_over_chi = COMPARE_RATE_LAMBDA * (COMPARE_ELL + 1) * LD / chi
+
+    analytical_gamma_ild = COMPARE_THETA * (
+        np.sinh(lambda_ld_over_chi)
+        + alpha_minus_one_half
+        * (np.sinh(lambda_ell_plus_one_ld_over_chi) / np.cosh(lambda_ell_ld_over_chi))
+    ) / (
+        np.cosh(lambda_ld_over_chi)
+        + alpha_minus_one_half
+        * (np.cosh(lambda_ell_plus_one_ld_over_chi) / np.cosh(lambda_ell_ld_over_chi))
+    )
+
+    f_omega_ild = (
+        np.cosh(lambda_ld_over_chi) * np.cosh(lambda_ell_ld_over_chi)
+        + alpha_minus_one_half * np.cosh(lambda_ell_plus_one_ld_over_chi)
+    ) / (
+        COMPARE_ALPHA * (np.cosh(lambda_ell_ld_over_chi) ** 2)
+        + (alpha_minus_one_half**2)
+    )
+    analytical_omega_ild = (
+        (1 / (COMPARE_T_0 * COMPARE_THETA**2))
+        * (10 ** (COMPARE_RATE_LAMBDA * (1 - COMPARE_ELL) * ABL / 20))
+        * f_omega_ild
+    )
+
+    max_gamma_diff = np.max(np.abs(firing_gamma_ild - analytical_gamma_ild))
+    max_omega_diff = np.max(np.abs(firing_omega_ild - analytical_omega_ild))
+    print(f"  ABL={ABL}: gamma={max_gamma_diff:.12g}, omega={max_omega_diff:.12g}")
+
+    ax[0].scatter(
+        ild_smooth,
+        firing_gamma_smooth,
+        linestyle="--",
+        color='red',
+        alpha = 0.2
+    )
+    ax[0].plot(
+        ild_smooth,
+        analytical_gamma_smooth,
+        color='black',
+        lw=2
+    )
+    ax[1].scatter(
+        ild_smooth,
+        firing_omega_smooth,
+        linestyle="--",
+        color='red',
+        alpha = 0.2
+
+    )
+    ax[1].plot(
+        ild_smooth,
+        analytical_omega_smooth,
+        color='black',
+        lw=2
+    )
+
+ax[0].axhline(0, color="black", linestyle="--", linewidth=1, alpha=0.4)
+ax[0].set_title("Gamma: firing rates vs analytical")
+ax[1].set_title("Omega: firing rates vs analytical")
+
+for curr_ax in ax:
+    curr_ax.set_xlabel("ILD")
+    curr_ax.grid(True, alpha=0.25)
+
+ax[0].set_ylabel("Gamma")
+ax[1].set_ylabel("Omega")
+ax[0].legend(fontsize=8)
+ax[1].legend(fontsize=8)
+
+fig.suptitle(
+    f"lambda'={COMPARE_RATE_LAMBDA:.6g}, ell={COMPARE_ELL:.6g}, "
+    f"alpha={COMPARE_ALPHA:.6g}, theta={COMPARE_THETA:.6g}, "
+    f"T_0={COMPARE_T_0*1e3:.6g} ms"
+)
+fig.tight_layout()
+fig.savefig(ANALYTICAL_COMPARE_FIG_PATH, dpi=300, bbox_inches="tight")
+print(f"Saved figure: {ANALYTICAL_COMPARE_FIG_PATH}")
 
 plt.show()
 
