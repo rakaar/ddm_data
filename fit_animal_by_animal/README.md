@@ -11,6 +11,7 @@
 - `plot_intended_fix_distributions.py`: Plots LED7 and LED8 `intended_fix` histograms from `batch_csvs` with shifted-exponential fits and saves one PNG per batch.
 - `print_LED8_session_types_and_LED_trial_values.py`: Prints LED8 `session_type` groups and their unique `LED_trial` values from `outLED8.csv`.
 - `save_LED8_filtered_valid_and_aborts_rtwrtstim_le_1.py`: Scratch/export helper for filtering LED8 rows by session/training/repeat/LED/trial outcome and checking `RTwrtStim <= 1` criteria.
+- `plot_gamma_omega_alpha_sweep.py`: Exploratory plot of Gamma/Omega curves over ILD and ABL while sweeping the alpha interaction parameter in the binaural firing-rate expression.
 
 ##  Animal wise exploration of TIED
 
