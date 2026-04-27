@@ -197,6 +197,7 @@ print(f"Saved figure: {FIG_PATH}")
 plt.show()
 
 # %%
+
 # %% Plot ABL 60 Omega while sweeping ell
 ABL_TO_SWEEP = 60
 ELL_SWEEP = [0.9, 0.92, 0.99]
@@ -395,6 +396,85 @@ fig.suptitle(
 fig.tight_layout()
 fig.savefig(ANALYTICAL_COMPARE_FIG_PATH, dpi=300, bbox_inches="tight")
 print(f"Saved figure: {ANALYTICAL_COMPARE_FIG_PATH}")
+
+plt.show()
+
+# %%
+
+# %% Sweep alpha at ILD=+16 to inspect omega numerator/denominator saturation
+ALPHA_SWEEP_ABL = 40
+ALPHA_SWEEP_ILD = 16
+ALPHA_SWEEP_VALUES = np.arange(0.1, 3.0 + 0.1, 0.1)
+ALPHA_SWEEP_FIG_PATH = os.path.join(SCRIPT_DIR, "omega_alpha_sweep_ild_16.png")
+
+LD = ALPHA_SWEEP_ILD
+lambda_ld_over_chi = COMPARE_RATE_LAMBDA * LD / chi
+lambda_ell_ld_over_chi = COMPARE_RATE_LAMBDA * COMPARE_ELL * LD / chi
+lambda_ell_plus_one_ld_over_chi = COMPARE_RATE_LAMBDA * (COMPARE_ELL + 1) * LD / chi
+alpha_minus_one_half = (ALPHA_SWEEP_VALUES - 1) / 2
+
+omega_numerator = (
+    np.cosh(lambda_ld_over_chi) * np.cosh(lambda_ell_ld_over_chi)
+    + alpha_minus_one_half * np.cosh(lambda_ell_plus_one_ld_over_chi)
+)
+omega_denominator = (
+    ALPHA_SWEEP_VALUES * (np.cosh(lambda_ell_ld_over_chi) ** 2)
+    + (alpha_minus_one_half**2)
+)
+omega_ratio = omega_numerator / omega_denominator
+
+fig, ax = plt.subplots(1, 3, figsize=(14, 4.5))
+
+ax[0].plot(ALPHA_SWEEP_VALUES, omega_numerator, marker="o", color="tab:blue")
+ax[0].set_title("Omega numerator")
+ax[0].set_xlabel("alpha")
+ax[0].set_ylabel("Numerator")
+
+ax[1].plot(ALPHA_SWEEP_VALUES, omega_denominator, marker="o", color="tab:orange")
+ax[1].set_title("Omega denominator")
+ax[1].set_xlabel("alpha")
+ax[1].set_ylabel("Denominator")
+
+omega_scale_for_abl = (
+    (1 / (COMPARE_T_0 * COMPARE_THETA**2))
+    * (10 ** (COMPARE_RATE_LAMBDA * (1 - COMPARE_ELL) * ALPHA_SWEEP_ABL / 20))
+)
+ax[2].plot(
+    ALPHA_SWEEP_VALUES,
+    omega_scale_for_abl * omega_ratio,
+    marker="o",
+    color="tab:green",
+)
+
+ax[2].set_title(f"Omega at ABL={ALPHA_SWEEP_ABL}, ILD={ALPHA_SWEEP_ILD}")
+ax[2].set_xlabel("alpha")
+ax[2].set_ylabel("Omega")
+
+for curr_ax in ax:
+    curr_ax.grid(True, alpha=0.25)
+
+fig.suptitle(
+    f"Fixed: ABL={ALPHA_SWEEP_ABL}, ILD={ALPHA_SWEEP_ILD}, lambda'={COMPARE_RATE_LAMBDA:.6g}, "
+    f"ell={COMPARE_ELL:.6g}, theta={COMPARE_THETA:.6g}, "
+    f"T_0={COMPARE_T_0*1e3:.6g} ms"
+)
+fig.tight_layout()
+fig.savefig(ALPHA_SWEEP_FIG_PATH, dpi=300, bbox_inches="tight")
+print(f"Saved figure: {ALPHA_SWEEP_FIG_PATH}")
+
+print(f"Alpha sweep at ABL={ALPHA_SWEEP_ABL}, ILD={ALPHA_SWEEP_ILD}:")
+for alpha_value, numerator_value, denominator_value, ratio_value in zip(
+    ALPHA_SWEEP_VALUES,
+    omega_numerator,
+    omega_denominator,
+    omega_ratio,
+):
+    omega_value = omega_scale_for_abl * ratio_value
+    print(
+        f"  alpha={alpha_value:.1f}: numerator={numerator_value:.6g}, "
+        f"denominator={denominator_value:.6g}, numerator/denominator={ratio_value:.6g}, "
+        f"omega={omega_value:.6g}"
+    )
 
 plt.show()
 

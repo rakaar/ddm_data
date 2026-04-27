@@ -6,7 +6,7 @@ This folder contains scripts for fitting condition-by-condition gamma and omega 
 
 ### Fitting Scripts
 - `fit_single_rat_condn_by_condn_fix_t_E_w_del_go_all_animals_loop_for_paper.py` - Fit condition-by-condition gamma/omega for each animal with t_E_aff, w, del_go fixed
-- `fit_mean_omega_alpha_model.py` - Loads animal condition-fit gamma/omega posteriors, averages across animals, fits the shared alpha interaction model to mean Gamma/Omega, saves fit diagnostic figures, and includes an analytical-vs-firing-rate Gamma/Omega formula check.
+- `fit_mean_omega_alpha_model.py` - Loads animal condition-fit gamma/omega posteriors, averages across animals, fits the shared alpha interaction model to mean Gamma/Omega, saves fit diagnostic figures, includes an analytical-vs-firing-rate Gamma/Omega formula check, and plots the ABL 40 / ILD +16 omega numerator, denominator, and omega values over an alpha sweep.
 - `diagnostics_cond_by_cond_fit_fix_t_E_aff_w_del_go_all_animals_for_paper.py` - Diagnostics for condition-by-condition fits
 
 ### Quantile Slope vs Omega Ratio
