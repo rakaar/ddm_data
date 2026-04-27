@@ -7,6 +7,10 @@
 - `animal_wise_plotting_utils.py`:  Diagnostics Plotting utils for animal wise fit
 - `time_vary_norm_utils.py`  - Likelihood funcs for animal wise fitting
 - `proactive_plus_lapse_plus_reactive_uitls.py` - Shared likelihood helpers for proactive + lapse + reactive fitting, including right-truncated valid-trial logpdfs and the newer choice-collapsed RT-density helper used by the LED-OFF no-choice ABL-delay fits.
+- `check_fig_8G.py`: Exploratory firing-rate/gain calculation for a Figure 8G-style binaural interaction panel across ABL and ILD grids.
+- `plot_intended_fix_distributions.py`: Plots LED7 and LED8 `intended_fix` histograms from `batch_csvs` with shifted-exponential fits and saves one PNG per batch.
+- `print_LED8_session_types_and_LED_trial_values.py`: Prints LED8 `session_type` groups and their unique `LED_trial` values from `outLED8.csv`.
+- `save_LED8_filtered_valid_and_aborts_rtwrtstim_le_1.py`: Scratch/export helper for filtering LED8 rows by session/training/repeat/LED/trial outcome and checking `RTwrtStim <= 1` criteria.
 
 ##  Animal wise exploration of TIED
 
