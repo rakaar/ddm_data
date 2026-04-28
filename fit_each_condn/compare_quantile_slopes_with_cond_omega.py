@@ -26,7 +26,31 @@ REPO_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 
 DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
 BATCH_DIR = os.path.join(REPO_DIR, "fit_animal_by_animal", "batch_csvs")
-COND_FIT_PKL_DIR = os.path.join(SCRIPT_DIR, "each_animal_cond_fit_gama_omega_pkl_files")
+
+# COND_FIT_SOURCE = "gamma_omega_only"
+COND_FIT_SOURCE = "gamma_omega_t_E_aff_w_del_go"
+COND_FIT_SOURCES = {
+    "gamma_omega_only": {
+        "pkl_dir": os.path.join(SCRIPT_DIR, "each_animal_cond_fit_gama_omega_pkl_files"),
+        "filename_suffix": "_FIX_t_E_w_del_go_same_as_parametric",
+        "expected_n_params": 2,
+        "label": "Gamma/Omega only",
+        "output_tag": "gamma_omega_only",
+    },
+    "gamma_omega_t_E_aff_w_del_go": {
+        "pkl_dir": os.path.join(SCRIPT_DIR, "each_animal_cond_fit_5_params_pkl_files"),
+        "filename_suffix": "_5_params",
+        "expected_n_params": 5,
+        "label": "Gamma/Omega + t_E_aff/w/del_go",
+        "output_tag": "gamma_omega_5_params",
+    },
+}
+COND_FIT_CONFIG = COND_FIT_SOURCES[COND_FIT_SOURCE]
+COND_FIT_PKL_DIR = COND_FIT_CONFIG["pkl_dir"]
+COND_FIT_FILENAME_SUFFIX = COND_FIT_CONFIG["filename_suffix"]
+COND_FIT_EXPECTED_N_PARAMS = COND_FIT_CONFIG["expected_n_params"]
+COND_FIT_LABEL = COND_FIT_CONFIG["label"]
+OUTPUT_TAG = COND_FIT_CONFIG["output_tag"]
 
 ABLS = [20, 40, 60]
 ABLS_TO_COMPARE = [20, 40]
@@ -42,13 +66,24 @@ MIN_TRIALS = 5
 N_POSTERIOR_SAMPLES = int(1e5)
 
 COLORS = {20: "tab:blue", 40: "tab:orange"}
-FIG_PATH = os.path.join(SCRIPT_DIR, "quantile_slope_vs_cond_omega_ratio.png")
-ANIMALWISE_FIG_PATH = os.path.join(SCRIPT_DIR, "animalwise_quantile_slope_vs_cond_omega_ratio.png")
-ANIMALWISE_CSV_PATH = os.path.join(SCRIPT_DIR, "animalwise_quantile_slope_vs_cond_omega_ratio.csv")
-PKL_PATH = os.path.join(SCRIPT_DIR, "quantile_slope_vs_cond_omega_ratio.pkl")
+FIG_PATH = os.path.join(SCRIPT_DIR, f"quantile_slope_vs_cond_omega_ratio_{OUTPUT_TAG}.png")
+ANIMALWISE_FIG_PATH = os.path.join(
+    SCRIPT_DIR,
+    f"animalwise_quantile_slope_vs_cond_omega_ratio_{OUTPUT_TAG}.png",
+)
+ANIMALWISE_CSV_PATH = os.path.join(
+    SCRIPT_DIR,
+    f"animalwise_quantile_slope_vs_cond_omega_ratio_{OUTPUT_TAG}.csv",
+)
+PKL_PATH = os.path.join(SCRIPT_DIR, f"quantile_slope_vs_cond_omega_ratio_{OUTPUT_TAG}.pkl")
 
 
 # %% Load animal list and recompute quantile slopes
+print(f"Using condition-fit source: {COND_FIT_SOURCE} ({COND_FIT_LABEL})")
+print(f"Pickle directory: {COND_FIT_PKL_DIR}")
+print(f"Filename suffix: {COND_FIT_FILENAME_SUFFIX}")
+print(f"Expected sampled params per pickle: {COND_FIT_EXPECTED_N_PARAMS}")
+
 batch_animal_pairs = load_batch_animal_pairs(BATCH_DIR, DESIRED_BATCHES)
 print_batch_animal_table(batch_animal_pairs)
 
@@ -73,6 +108,8 @@ _, omega_cond_by_cond_fit_all_animals, missing_files = build_cond_fit_arrays(
     SIGNED_ILDS,
     COND_FIT_PKL_DIR,
     n_samples=N_POSTERIOR_SAMPLES,
+    filename_suffix=COND_FIT_FILENAME_SUFFIX,
+    expected_n_params=COND_FIT_EXPECTED_N_PARAMS,
 )
 
 if len(missing_files) > 0:
@@ -162,7 +199,7 @@ for panel_idx, ABL in enumerate(ABLS_TO_COMPARE):
     curr_ax.set_ylabel(r"Condition-fit $\omega_{60} / \omega_{\mathrm{ABL}}$")
     curr_ax.grid(True, alpha=0.25)
 
-fig.suptitle("Quantile scaling compared with condition-fit omega ratio")
+fig.suptitle(f"Quantile scaling compared with condition-fit omega ratio ({COND_FIT_LABEL})")
 fig.tight_layout()
 fig.savefig(FIG_PATH, dpi=300, bbox_inches="tight")
 print(f"\nSaved figure: {FIG_PATH}")
@@ -258,7 +295,7 @@ for row_idx, ABL in enumerate(ABLS_TO_COMPARE):
         )
         curr_ax.grid(True, alpha=0.25)
 
-fig_animal.suptitle("Animal-wise quantile scaling vs condition-fit omega ratio")
+fig_animal.suptitle(f"Animal-wise quantile scaling vs condition-fit omega ratio ({COND_FIT_LABEL})")
 fig_animal.tight_layout()
 fig_animal.savefig(ANIMALWISE_FIG_PATH, dpi=300, bbox_inches="tight")
 print(f"Saved animal-wise figure: {ANIMALWISE_FIG_PATH}")
@@ -275,6 +312,11 @@ plot_data = {
     "MIN_RT_CUT_BY_ILD": MIN_RT_CUT_BY_ILD,
     "MAX_RT_CUT": MAX_RT_CUT,
     "N_POSTERIOR_SAMPLES": N_POSTERIOR_SAMPLES,
+    "COND_FIT_SOURCE": COND_FIT_SOURCE,
+    "COND_FIT_LABEL": COND_FIT_LABEL,
+    "COND_FIT_PKL_DIR": COND_FIT_PKL_DIR,
+    "COND_FIT_FILENAME_SUFFIX": COND_FIT_FILENAME_SUFFIX,
+    "COND_FIT_EXPECTED_N_PARAMS": COND_FIT_EXPECTED_N_PARAMS,
     "batch_animal_pairs": batch_animal_pairs,
     "missing_files": missing_files,
     "slope_summary": slope_summary,

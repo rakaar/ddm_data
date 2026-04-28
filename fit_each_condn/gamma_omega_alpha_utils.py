@@ -53,6 +53,8 @@ def get_param_means_by_ABL_ILD(
     pkl_folder,
     n_samples=int(1e5),
     param_names=None,
+    filename_suffix="_FIX_t_E_w_del_go_same_as_parametric",
+    expected_n_params=None,
 ):
     if param_names is None:
         param_names = ["gamma", "omega"]
@@ -63,7 +65,7 @@ def get_param_means_by_ABL_ILD(
         for ILD in ILDs_to_fit:
             pkl_file = os.path.join(
                 pkl_folder,
-                f"vbmc_cond_by_cond_{batch_name}_{animal_id}_{ABL}_ILD_{ILD}_FIX_t_E_w_del_go_same_as_parametric.pkl",
+                f"vbmc_cond_by_cond_{batch_name}_{animal_id}_{ABL}_ILD_{ILD}{filename_suffix}.pkl",
             )
             if not os.path.exists(pkl_file):
                 missing_files.append(pkl_file)
@@ -72,6 +74,16 @@ def get_param_means_by_ABL_ILD(
             with open(pkl_file, "rb") as f:
                 vp = pickle.load(f)
             vp_samples = vp.vp.sample(n_samples)[0]
+            if expected_n_params is not None and vp_samples.shape[1] < expected_n_params:
+                raise ValueError(
+                    f"{pkl_file} has {vp_samples.shape[1]} sampled params, "
+                    f"expected at least {expected_n_params}"
+                )
+            if vp_samples.shape[1] < len(param_names):
+                raise ValueError(
+                    f"{pkl_file} has {vp_samples.shape[1]} sampled params, "
+                    f"but {len(param_names)} param names were requested"
+                )
             param_dict[(ABL, ILD)] = {
                 name: float(np.mean(vp_samples[:, i])) for i, name in enumerate(param_names)
             }
@@ -79,7 +91,15 @@ def get_param_means_by_ABL_ILD(
     return param_dict, missing_files
 
 
-def build_cond_fit_arrays(batch_animal_pairs, ABLs, ILDs, pkl_folder, n_samples=int(1e5)):
+def build_cond_fit_arrays(
+    batch_animal_pairs,
+    ABLs,
+    ILDs,
+    pkl_folder,
+    n_samples=int(1e5),
+    filename_suffix="_FIX_t_E_w_del_go_same_as_parametric",
+    expected_n_params=None,
+):
     gamma_all_animals = {str(ABL): np.full((len(batch_animal_pairs), len(ILDs)), np.nan) for ABL in ABLs}
     omega_all_animals = {str(ABL): np.full((len(batch_animal_pairs), len(ILDs)), np.nan) for ABL in ABLs}
     missing_files = []
@@ -96,6 +116,8 @@ def build_cond_fit_arrays(batch_animal_pairs, ABLs, ILDs, pkl_folder, n_samples=
             ILDs,
             pkl_folder,
             n_samples=n_samples,
+            filename_suffix=filename_suffix,
+            expected_n_params=expected_n_params,
         )
         missing_files.extend(missing_for_animal)
 

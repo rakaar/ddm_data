@@ -3,11 +3,13 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from scipy.optimize import least_squares
 
 from gamma_omega_alpha_utils import (
     build_cond_fit_arrays,
     gamma_omega_alpha_model,
+    get_param_means_by_ABL_ILD,
     load_batch_animal_pairs,
     mean_and_sem_by_abl,
     print_batch_animal_table,
@@ -20,7 +22,38 @@ REPO_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 
 DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
 BATCH_DIR = os.path.join(REPO_DIR, "fit_animal_by_animal", "batch_csvs")
-COND_FIT_PKL_DIR = os.path.join(SCRIPT_DIR, "each_animal_cond_fit_gama_omega_pkl_files")
+
+# COND_FIT_SOURCE = "gamma_omega_only"
+COND_FIT_SOURCE = "gamma_omega_t_E_aff_fix_w_del_go"
+COND_FIT_SOURCES = {
+    "gamma_omega_only": {
+        "pkl_dir": os.path.join(SCRIPT_DIR, "each_animal_cond_fit_gama_omega_pkl_files"),
+        "filename_suffix": "_FIX_t_E_w_del_go_same_as_parametric",
+        "expected_n_params": 2,
+        "label": "Gamma/Omega only",
+        "output_tag": "gamma_omega_only",
+    },
+    "gamma_omega_t_E_aff_w_del_go": {
+        "pkl_dir": os.path.join(SCRIPT_DIR, "each_animal_cond_fit_5_params_pkl_files"),
+        "filename_suffix": "_5_params",
+        "expected_n_params": 5,
+        "label": "Gamma/Omega + t_E_aff/w/del_go",
+        "output_tag": "gamma_omega_5_params",
+    },
+    "gamma_omega_t_E_aff_fix_w_del_go": {
+        "pkl_dir": SCRIPT_DIR,
+        "filename_suffix": "_FIX_w_pt_5_del_go",
+        "expected_n_params": 3,
+        "label": "Gamma/Omega + t_E_aff; fixed w/del_go",
+        "output_tag": "gamma_omega_t_E_aff_fix_w_del_go",
+    },
+}
+COND_FIT_CONFIG = COND_FIT_SOURCES[COND_FIT_SOURCE]
+COND_FIT_PKL_DIR = COND_FIT_CONFIG["pkl_dir"]
+COND_FIT_FILENAME_SUFFIX = COND_FIT_CONFIG["filename_suffix"]
+COND_FIT_EXPECTED_N_PARAMS = COND_FIT_CONFIG["expected_n_params"]
+COND_FIT_LABEL = COND_FIT_CONFIG["label"]
+OUTPUT_TAG = COND_FIT_CONFIG["output_tag"]
 
 ABLS = [20, 40, 60]
 ILDS = np.sort([-16, -8, -4, -2, -1, 1, 2, 4, 8, 16])
@@ -36,13 +69,66 @@ LOWER_BOUNDS = np.array([0.1, 0.0, 0.0, 0.5, 1e-3])
 UPPER_BOUNDS = np.array([6.0, 2.0, 5.0, 15.0, 2.0])
 
 COLORS = ["tab:blue", "tab:orange", "tab:green"]
-FIG_PATH = os.path.join(SCRIPT_DIR, "mean_gamma_omega_alpha_joint_fit.png")
-ELL_SWEEP_FIG_PATH = os.path.join(SCRIPT_DIR, "abl60_omega_ell_sweep.png")
+FIG_PATH = os.path.join(SCRIPT_DIR, f"mean_gamma_omega_alpha_joint_fit_{OUTPUT_TAG}.png")
+ABS_OMEGA_FIG_PATH = os.path.join(SCRIPT_DIR, f"mean_omega_abs_ild_alpha_fit_{OUTPUT_TAG}.png")
+ELL_SWEEP_FIG_PATH = os.path.join(SCRIPT_DIR, f"abl60_omega_ell_sweep_{OUTPUT_TAG}.png")
+W_SUMMARY_CSV_PATH = os.path.join(SCRIPT_DIR, "five_param_w_mean_median_by_animal.csv")
 
 
 # %% Load condition-fit Gamma/Omega for each animal
+print(f"Using condition-fit source: {COND_FIT_SOURCE} ({COND_FIT_LABEL})")
+print(f"Pickle directory: {COND_FIT_PKL_DIR}")
+print(f"Filename suffix: {COND_FIT_FILENAME_SUFFIX}")
+print(f"Expected sampled params per pickle: {COND_FIT_EXPECTED_N_PARAMS}")
+
 batch_animal_pairs = load_batch_animal_pairs(BATCH_DIR, DESIRED_BATCHES)
 print_batch_animal_table(batch_animal_pairs)
+
+
+# %% Summarize condition-wise w from 5-param fits for each animal
+w_fit_config = COND_FIT_SOURCES["gamma_omega_t_E_aff_w_del_go"]
+w_summary_rows = []
+w_missing_files = []
+for batch_name, animal_id in batch_animal_pairs:
+    param_dict, missing_for_animal = get_param_means_by_ABL_ILD(
+        batch_name,
+        animal_id,
+        ABLS,
+        ILDS,
+        w_fit_config["pkl_dir"],
+        n_samples=N_POSTERIOR_SAMPLES,
+        param_names=["gamma", "omega", "t_E_aff", "w", "del_go"],
+        filename_suffix=w_fit_config["filename_suffix"],
+        expected_n_params=w_fit_config["expected_n_params"],
+    )
+    w_missing_files.extend(missing_for_animal)
+
+    w_values = []
+    for ABL in ABLS:
+        for ILD in ILDS:
+            if (ABL, ILD) in param_dict:
+                w_values.append(param_dict[(ABL, ILD)]["w"])
+    w_values = np.asarray(w_values, dtype=float)
+
+    w_summary_rows.append(
+        {
+            "batch_name": batch_name,
+            "animal": animal_id,
+            "n_conditions_with_w": int(np.sum(np.isfinite(w_values))),
+            "n_conditions_expected": len(ABLS) * len(ILDS),
+            "mean_w": float(np.nanmean(w_values)) if len(w_values) > 0 else np.nan,
+            "median_w": float(np.nanmedian(w_values)) if len(w_values) > 0 else np.nan,
+        }
+    )
+
+w_summary_df = pd.DataFrame(w_summary_rows)
+w_summary_df.to_csv(W_SUMMARY_CSV_PATH, index=False)
+print("\n5-param condition-wise w summary by animal")
+print(w_summary_df.to_string(index=False))
+if len(w_missing_files) > 0:
+    print(f"Missing 5-param w-summary pickle files: {len(w_missing_files)}")
+print(f"Saved w summary: {W_SUMMARY_CSV_PATH}")
+
 
 gamma_cond_by_cond_fit_all_animals, omega_cond_by_cond_fit_all_animals, missing_files = build_cond_fit_arrays(
     batch_animal_pairs,
@@ -50,6 +136,8 @@ gamma_cond_by_cond_fit_all_animals, omega_cond_by_cond_fit_all_animals, missing_
     ILDS,
     COND_FIT_PKL_DIR,
     n_samples=N_POSTERIOR_SAMPLES,
+    filename_suffix=COND_FIT_FILENAME_SUFFIX,
+    expected_n_params=COND_FIT_EXPECTED_N_PARAMS,
 )
 
 if len(missing_files) > 0:
@@ -140,11 +228,13 @@ fig, ax = plt.subplots(1, 2, figsize=(11, 5))
 
 for abl_idx, ABL in enumerate(ABLS):
     color = COLORS[abl_idx]
-    ax[0].plot(
+    ax[0].errorbar(
         ILDS,
         mean_gamma_by_abl[str(ABL)],
-        marker="o",
+        yerr=sem_gamma_by_abl[str(ABL)],
+        fmt="o",
         linestyle="none",
+        capsize=3,
         color=color,
         label=f"ABL={ABL} mean",
     )
@@ -155,11 +245,13 @@ for abl_idx, ABL in enumerate(ABLS):
         color=color,
         label=f"ABL={ABL} fit",
     )
-    ax[1].plot(
+    ax[1].errorbar(
         ILDS,
         mean_omega_by_abl[str(ABL)],
-        marker="o",
+        yerr=sem_omega_by_abl[str(ABL)],
+        fmt="o",
         linestyle="none",
+        capsize=3,
         color=color,
         label=f"ABL={ABL} mean",
     )
@@ -185,6 +277,7 @@ ax[0].legend(fontsize=8)
 # ax[1].legend(fontsize=8)
 
 fig.suptitle(
+    f"{COND_FIT_LABEL}; "
     f"lambda'={best_fit_params['rate_lambda']:.3g}, ell={best_fit_params['ell']:.3g}, "
     f"alpha={best_fit_params['alpha']:.3g}, theta={best_fit_params['theta']:.3g}, "
     f"T_0={best_fit_params['T_0']*1e3:.3g} ms"
@@ -196,7 +289,73 @@ print(f"Saved figure: {FIG_PATH}")
 
 plt.show()
 
-# %%
+# %% Plot Omega folded across positive/negative ILD
+abs_ilds = np.sort(np.unique(np.abs(ILDS)))
+
+fig, ax = plt.subplots(1, 1, figsize=(6, 5))
+for abl_idx, ABL in enumerate(ABLS):
+    color = COLORS[abl_idx]
+    folded_mean_omega = []
+    folded_sem_omega = []
+    folded_fitted_omega = []
+
+    for abs_ild in abs_ilds:
+        neg_idx = np.where(ILDS == -abs_ild)[0][0]
+        pos_idx = np.where(ILDS == abs_ild)[0][0]
+        animal_omega_pair = omega_cond_by_cond_fit_all_animals[str(ABL)][:, [neg_idx, pos_idx]]
+        animal_pair_count = np.sum(np.isfinite(animal_omega_pair), axis=1)
+        folded_animal_omega = np.full(len(batch_animal_pairs), np.nan)
+        has_pair_value = animal_pair_count > 0
+        folded_animal_omega[has_pair_value] = (
+            np.nansum(animal_omega_pair[has_pair_value], axis=1)
+            / animal_pair_count[has_pair_value]
+        )
+        folded_n = np.sum(np.isfinite(folded_animal_omega))
+        folded_mean_omega.append(
+            np.nanmean(mean_omega_by_abl[str(ABL)][[neg_idx, pos_idx]])
+        )
+        folded_sem_omega.append(
+            np.nanstd(folded_animal_omega) / np.sqrt(folded_n) if folded_n > 0 else np.nan
+        )
+        folded_fitted_omega.append(
+            np.nanmean(fitted_omega_by_abl[str(ABL)][[neg_idx, pos_idx]])
+        )
+
+    folded_mean_omega = np.asarray(folded_mean_omega)
+    folded_sem_omega = np.asarray(folded_sem_omega)
+    folded_fitted_omega = np.asarray(folded_fitted_omega)
+
+    ax.errorbar(
+        abs_ilds,
+        folded_mean_omega,
+        yerr=folded_sem_omega,
+        fmt="o",
+        linestyle="none",
+        capsize=3,
+        color=color,
+        label=f"ABL={ABL} mean",
+    )
+    ax.plot(
+        abs_ilds,
+        folded_fitted_omega,
+        linestyle="-",
+        color=color,
+        label=f"ABL={ABL} fit",
+    )
+
+# ax.set_title("Mean Omega with alpha-model fit, folded by |ILD|")
+ax.set_xlabel("|ILD|")
+ax.set_ylabel("Omega")
+ax.grid(True, alpha=0.25)
+ax.legend(fontsize=8)
+
+fig.suptitle(f"{COND_FIT_LABEL}; average of +ILD and -ILD omega")
+fig.tight_layout()
+fig.savefig(ABS_OMEGA_FIG_PATH, dpi=300, bbox_inches="tight")
+print(f"Saved figure: {ABS_OMEGA_FIG_PATH}")
+
+plt.show()
+
 
 # %% Plot ABL 60 Omega while sweeping ell
 ABL_TO_SWEEP = 60
