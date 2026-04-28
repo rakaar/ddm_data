@@ -6,6 +6,7 @@ This folder contains scripts for fitting condition-by-condition gamma and omega 
 
 ### Fitting Scripts
 - `fit_single_rat_condn_by_condn_fix_t_E_w_del_go_all_animals_loop_for_paper.py` - Fit condition-by-condition gamma/omega for each animal with t_E_aff, w, del_go fixed
+- `fit_single_rat_condn_by_condn_4_params_fix_w_mean_all_animals_loop.py` - Fit condition-by-condition Gamma/Omega/`t_E_aff`/`del_go` for all animals while fixing each animal's `w` to the mean from `five_param_w_mean_median_by_animal.csv`; saves pickles and per-condition corner plots in separate 4-param fixed-`w` output folders.
 - `fit_mean_omega_alpha_model.py` - Loads animal condition-fit Gamma/Omega posteriors from selectable fit families, averages across animals with SEM error bars, fits the shared alpha interaction model to mean Gamma/Omega, saves fit diagnostic figures, exports 5-parameter `w` summaries, includes an analytical-vs-firing-rate Gamma/Omega formula check, and plots the ABL 40 / ILD +16 omega numerator, denominator, and omega values over an alpha sweep.
 - `diagnostics_cond_by_cond_fit_fix_t_E_aff_w_del_go_all_animals_for_paper.py` - Diagnostics for condition-by-condition fits
 
@@ -29,6 +30,8 @@ This folder contains scripts for fitting condition-by-condition gamma and omega 
 ### Data Files
 - `each_animal_cond_fit_gama_omega_pkl_files/` - VBMC fit results for each condition (ABL, ILD) per animal
 - `each_animal_cond_fit_5_params_pkl_files/` - VBMC fit results for condition-by-condition Gamma/Omega/`t_E_aff`/`w`/`del_go` fits.
+- `each_animal_cond_fit_4_params_fix_w_mean_pkl_files/` - VBMC fit results for condition-by-condition Gamma/Omega/`t_E_aff`/`del_go` fits with animal-wise mean `w` fixed.
+- `each_animal_cond_fit_4_params_fix_w_mean_corner_plots/` - Per-condition corner plots for the 4-param fixed-mean-`w` fits.
 - `each_animal_cond_fit_gama_omega_pkl_files_LAPSES/` - Condition fits with lapse parameters
 - `quantile_slope_vs_cond_omega_ratio.png/.pkl` - Outputs from `compare_quantile_slopes_with_cond_omega.py` for the averaged quantile-slope vs omega-ratio comparison.
 - `animalwise_quantile_slope_vs_cond_omega_ratio.png/.csv` - Animal-wise `2 x 5` comparison grid and table from `compare_quantile_slopes_with_cond_omega.py`.
