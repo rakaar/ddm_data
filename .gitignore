@@ -1,6 +1,7 @@
 __pycache__/*
 *.pyc
 *.csv
+*.npz
 venv/*
 *.pkl
 .venv/*

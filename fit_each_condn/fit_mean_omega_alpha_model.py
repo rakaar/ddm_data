@@ -24,7 +24,7 @@ DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
 BATCH_DIR = os.path.join(REPO_DIR, "fit_animal_by_animal", "batch_csvs")
 
 # COND_FIT_SOURCE = "gamma_omega_only"
-COND_FIT_SOURCE = "gamma_omega_t_E_aff_fix_w_del_go"
+COND_FIT_SOURCE = "gamma_omega_t_E_aff_del_go_fix_w_mean"
 COND_FIT_SOURCES = {
     "gamma_omega_only": {
         "pkl_dir": os.path.join(SCRIPT_DIR, "each_animal_cond_fit_gama_omega_pkl_files"),
@@ -46,6 +46,13 @@ COND_FIT_SOURCES = {
         "expected_n_params": 3,
         "label": "Gamma/Omega + t_E_aff; fixed w/del_go",
         "output_tag": "gamma_omega_t_E_aff_fix_w_del_go",
+    },
+    "gamma_omega_t_E_aff_del_go_fix_w_mean": {
+        "pkl_dir": os.path.join(SCRIPT_DIR, "each_animal_cond_fit_4_params_fix_w_mean_pkl_files"),
+        "filename_suffix": "_FIX_w_mean_4_params",
+        "expected_n_params": 4,
+        "label": "Gamma/Omega + t_E_aff/del_go; fixed animal mean w",
+        "output_tag": "gamma_omega_t_E_aff_del_go_fix_w_mean",
     },
 }
 COND_FIT_CONFIG = COND_FIT_SOURCES[COND_FIT_SOURCE]
@@ -72,6 +79,7 @@ COLORS = ["tab:blue", "tab:orange", "tab:green"]
 FIG_PATH = os.path.join(SCRIPT_DIR, f"mean_gamma_omega_alpha_joint_fit_{OUTPUT_TAG}.png")
 ABS_OMEGA_FIG_PATH = os.path.join(SCRIPT_DIR, f"mean_omega_abs_ild_alpha_fit_{OUTPUT_TAG}.png")
 ELL_SWEEP_FIG_PATH = os.path.join(SCRIPT_DIR, f"abl60_omega_ell_sweep_{OUTPUT_TAG}.png")
+T_E_AFF_FIG_PATH = os.path.join(SCRIPT_DIR, f"mean_t_E_aff_by_ild_{OUTPUT_TAG}.png")
 W_SUMMARY_CSV_PATH = os.path.join(SCRIPT_DIR, "five_param_w_mean_median_by_animal.csv")
 
 
@@ -638,3 +646,66 @@ for alpha_value, numerator_value, denominator_value, ratio_value in zip(
 plt.show()
 
 # %%
+# Plot fitted t_E_aff by ILD
+if COND_FIT_EXPECTED_N_PARAMS < 3:
+    print(f"Skipping t_E_aff plot: {COND_FIT_SOURCE} has no sampled t_E_aff column.")
+else:
+    t_E_aff_all_animals = {
+        str(ABL): np.full((len(batch_animal_pairs), len(ILDS)), np.nan) for ABL in ABLS
+    }
+    t_E_aff_missing_files = []
+
+    for animal_idx, (batch_name, animal_id) in enumerate(batch_animal_pairs):
+        param_dict, missing_for_animal = get_param_means_by_ABL_ILD(
+            batch_name,
+            animal_id,
+            ABLS,
+            ILDS,
+            COND_FIT_PKL_DIR,
+            n_samples=N_POSTERIOR_SAMPLES,
+            param_names=["gamma", "omega", "t_E_aff"],
+            filename_suffix=COND_FIT_FILENAME_SUFFIX,
+            expected_n_params=COND_FIT_EXPECTED_N_PARAMS,
+        )
+        t_E_aff_missing_files.extend(missing_for_animal)
+
+        for ABL in ABLS:
+            for ild_idx, ILD in enumerate(ILDS):
+                if (ABL, ILD) in param_dict:
+                    t_E_aff_all_animals[str(ABL)][animal_idx, ild_idx] = (
+                        1e3 * param_dict[(ABL, ILD)]["t_E_aff"]
+                    )
+
+    if len(t_E_aff_missing_files) > 0:
+        print(f"Missing t_E_aff condition-fit pickle files: {len(t_E_aff_missing_files)}")
+
+    fig, ax = plt.subplots(1, 1, figsize=(6, 5))
+    for abl_idx, ABL in enumerate(ABLS):
+        color = COLORS[abl_idx]
+        arr = t_E_aff_all_animals[str(ABL)]
+        n = np.sum(np.isfinite(arr), axis=0)
+        mean_t_E_aff = np.nanmean(arr, axis=0)
+        sem_t_E_aff = np.nanstd(arr, axis=0) / np.sqrt(n)
+
+        ax.errorbar(
+            ILDS,
+            mean_t_E_aff,
+            yerr=sem_t_E_aff,
+            fmt="o-",
+            capsize=3,
+            color=color,
+            label=f"ABL={ABL}",
+        )
+
+    ax.set_title("Mean fitted t_E_aff by condition")
+    ax.set_xlabel("ILD")
+    ax.set_ylabel("t_E_aff (ms)")
+    ax.grid(True, alpha=0.25)
+    ax.legend(fontsize=8)
+
+    fig.suptitle(COND_FIT_LABEL)
+    fig.tight_layout()
+    fig.savefig(T_E_AFF_FIG_PATH, dpi=300, bbox_inches="tight")
+    print(f"Saved figure: {T_E_AFF_FIG_PATH}")
+
+    plt.show()

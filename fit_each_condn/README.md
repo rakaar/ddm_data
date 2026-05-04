@@ -8,6 +8,7 @@ This folder contains scripts for fitting condition-by-condition gamma and omega 
 - `fit_single_rat_condn_by_condn_fix_t_E_w_del_go_all_animals_loop_for_paper.py` - Fit condition-by-condition gamma/omega for each animal with t_E_aff, w, del_go fixed
 - `fit_single_rat_condn_by_condn_4_params_fix_w_mean_all_animals_loop.py` - Fit condition-by-condition Gamma/Omega/`t_E_aff`/`del_go` for all animals while fixing each animal's `w` to the mean from `five_param_w_mean_median_by_animal.csv`; saves pickles and per-condition corner plots in separate 4-param fixed-`w` output folders.
 - `fit_mean_omega_alpha_model.py` - Loads animal condition-fit Gamma/Omega posteriors from selectable fit families, averages across animals with SEM error bars, fits the shared alpha interaction model to mean Gamma/Omega, saves fit diagnostic figures, exports 5-parameter `w` summaries, includes an analytical-vs-firing-rate Gamma/Omega formula check, and plots the ABL 40 / ILD +16 omega numerator, denominator, and omega values over an alpha sweep.
+- `fit_mean_omega_alpha_model_abl20_40.py` - Runs the same mean Gamma/Omega alpha-model fit using only ABL 20 and 40 condition-fit points, while also plotting ABL 60 means and extrapolated curves; saves a dedicated fit figure and MSE summary artifact.
 - `diagnostics_cond_by_cond_fit_fix_t_E_aff_w_del_go_all_animals_for_paper.py` - Diagnostics for condition-by-condition fits
 
 ### Quantile Slope vs Omega Ratio
@@ -19,6 +20,7 @@ This folder contains scripts for fitting condition-by-condition gamma and omega 
 - `plot_gamma_omega_posteriors_all_animals_by_stimulus.py` - Plots gamma and omega posterior distributions aggregated across all animals for each stimulus condition
 - `plot_5_param_delay_by_abl_ild.py` - Aggregates 5-parameter condition fits across animals and plots `t_E_aff`, `del_go`, and `w` by ILD, colored by ABL, with SEM error bars.
 - `plot_5_param_omega_delay_posteriors_abl60_ild_pm16.py` - Overlays animal-wise 5-parameter posterior histograms for omega and `t_E_aff` at ABL 60 and ILD ±16.
+- `plot_5_param_delay_distribution_abl60_ild_pm16.py` - Loads 5-parameter condition fits for all animals at ABL 60 and ILD ±16, computes VP posterior means, and plots the pooled across-animal `t_E_aff` distribution with a 72.5 ms reference line.
 - `plot_5_param_corner_omega_t_E_aff_abl60_ild16.py` - Creates per-animal mini-corner posterior panels for omega and `t_E_aff` at a selected ABL/ILD, including 2.5% and 97.5% intervals.
 - `plot_5_param_corner_ellipse_omega_t_E_aff_abl60_ild16.py` - Creates a combined corner-style summary of animal posterior means and covariance ellipses for omega, `t_E_aff`, and `w`.
 - `plot_5_param_animal_param_lines_omega_t_E_aff.py` - Plots animal-wise posterior mean parameter values for omega, `t_E_aff`, and `w`, with across-animal mean and median reference lines.
