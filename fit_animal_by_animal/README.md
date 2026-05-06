@@ -147,6 +147,7 @@ See [`lapses_figures_list.md`](lapses_figures_list.md) for full documentation of
 
 # Fitting related plots
 - `compare_animal_params_for_paper.py` - Plots parameters (mean + 95% CI) for each animal across multiple models (aborts, vanilla tied, norm tied, time-varying norm tied). Outputs PDFs like `compare_animals_all_batches_vbmc_norm_tied_results.pdf`.
+- `compare_npl_vs_npl_alpha_params.py` - Compares posterior mean parameters and 95% percentile intervals for baseline NPL versus NPL+alpha fits, one PDF page per parameter.
 - `calculate_lambda_times_ell.py` - Computes per-animal mean of `rate_lambda * (1 - rate_norm_l)` from norm tied results and prints the average across animals (with optional histogram).
 - `corner_cum_animal_params_for_paper_norm.py` - Creates corner-style scatter plots specifically for the normalized model (`vbmc_norm_tied_results`), where each point represents an animal's mean parameter values.
 
