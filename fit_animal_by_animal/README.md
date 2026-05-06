@@ -145,11 +145,19 @@ See [`lapses_figures_list.md`](lapses_figures_list.md) for full documentation of
 - animal_wise_vanila_fit.py
 - animal_wise_norm_fit.py
 
+## Alpha-normalized fit path
+- `animal_wise_norm_tied_fit_from_abort_params.py` - standalone baseline normalized TIED fit that reuses previously fitted proactive parameters from the older animal-wise result pickles.
+- `animal_wise_norm_alpha_tied_fit_from_abort_params.py` - alpha-normalized TIED fit that adds `alpha` to the normalized model and saves outputs under `NPL_alpha_animal_fits/`.
+- `time_vary_norm_alpha_utils.py` - alpha-aware likelihood, CDF, and RT-density helpers used by the alpha-normalized fit.
+- `time_vary_and_norm_alpha_simulators.py` - alpha-aware simulation wrappers for the normalized and time-varying normalized models.
+- `test_norm_alpha_likelihood_vectorized.py` - local scalar-vs-vectorized likelihood comparison for the alpha-normalized model.
+
 # Fitting related plots
 - `compare_animal_params_for_paper.py` - Plots parameters (mean + 95% CI) for each animal across multiple models (aborts, vanilla tied, norm tied, time-varying norm tied). Outputs PDFs like `compare_animals_all_batches_vbmc_norm_tied_results.pdf`.
 - `compare_npl_vs_npl_alpha_params.py` - Compares posterior mean parameters and 95% percentile intervals for baseline NPL versus NPL+alpha fits, one PDF page per parameter.
 - `calculate_lambda_times_ell.py` - Computes per-animal mean of `rate_lambda * (1 - rate_norm_l)` from norm tied results and prints the average across animals (with optional histogram).
 - `corner_cum_animal_params_for_paper_norm.py` - Creates corner-style scatter plots specifically for the normalized model (`vbmc_norm_tied_results`), where each point represents an animal's mean parameter values.
+- `animal_wise_plotting_utils.py` - shared plotting helpers for the animal-wise fit PDFs; tied-model summary tables now include `alpha` when that parameter is present.
 
 # Quantile Goodness-of-Fit: Theory vs Data at |ILD|=16
 

@@ -609,7 +609,7 @@ def create_tied_table(all_results):
     # Use user-specified order
     desired_order = [
         'rate_lambda', 'T_0', 'theta_E', 'w', 't_E_aff', 'del_go',
-        'rate_norm_l', 'bump_height', 'bump_width', 'dip_height', 'dip_width'
+        'rate_norm_l', 'alpha', 'bump_height', 'bump_width', 'dip_height', 'dip_width'
     ]
     # Only keep params that are present
     present_params = [p for p in desired_order if p in all_params]
