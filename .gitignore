@@ -20,3 +20,5 @@ fit_each_condn/each_cond_data/*
 *.svg
 *.jpg
 *.sh
+codex_*.md
+.codex*.md.swp

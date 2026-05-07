@@ -148,6 +148,7 @@ See [`lapses_figures_list.md`](lapses_figures_list.md) for full documentation of
 ## Alpha-normalized fit path
 - `animal_wise_norm_tied_fit_from_abort_params.py` - standalone baseline normalized TIED fit that reuses previously fitted proactive parameters from the older animal-wise result pickles.
 - `animal_wise_norm_alpha_tied_fit_from_abort_params.py` - alpha-normalized TIED fit that adds `alpha` to the normalized model and saves outputs under `NPL_alpha_animal_fits/`.
+- `animal_wise_norm_alpha_tied_fit_from_abort_params_ild2_delay.py` - alpha-normalized TIED fit variant that loads the same abort parameters but replaces scalar `t_E_aff` with a fitted delay surface `bias + c1*ABL + c2*|ILD| + c3*ILD^2`; saves distinct ILD2-delay outputs under `NPL_alpha_animal_fits/`.
 - `time_vary_norm_alpha_utils.py` - alpha-aware likelihood, CDF, and RT-density helpers used by the alpha-normalized fit.
 - `time_vary_and_norm_alpha_simulators.py` - alpha-aware simulation wrappers for the normalized and time-varying normalized models.
 - `test_norm_alpha_likelihood_vectorized.py` - local scalar-vs-vectorized likelihood comparison for the alpha-normalized model.
