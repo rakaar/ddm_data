@@ -156,6 +156,9 @@ See [`lapses_figures_list.md`](lapses_figures_list.md) for full documentation of
 # Fitting related plots
 - `compare_animal_params_for_paper.py` - Plots parameters (mean + 95% CI) for each animal across multiple models (aborts, vanilla tied, norm tied, time-varying norm tied). Outputs PDFs like `compare_animals_all_batches_vbmc_norm_tied_results.pdf`.
 - `compare_npl_vs_npl_alpha_params.py` - Compares posterior mean parameters and 95% percentile intervals for baseline NPL versus NPL+alpha fits, one PDF page per parameter.
+- `compare_npl_alpha_vs_ild2_delay_params.py` - Compares posterior mean parameters and 95% percentile intervals for NPL+alpha versus NPL+alpha+ILD2-delay fits, excluding delay terms because the ILD2 delay is stimulus-dependent.
+- `compare_npl_alpha_ild2_elbo_loglike.py` - Matches animals across NPL, NPL+alpha, and NPL+alpha+ILD2 fits, then saves a two-page raw loglike/ELBO comparison PDF plus a per-animal CSV summary under `NPL_alpha_ILD2_fit_results/elbo_loglike_comparison/`.
+- `plot_ild2_delay_heatmaps_from_results.py` - Reads copied ILD2 result pickles, reconstructs the fitted delay function on the observed ABL by `|ILD|` grid for each animal, and saves a multipage PDF with per-animal, mean, and median delay heatmaps plus printed coefficient summaries.
 - `calculate_lambda_times_ell.py` - Computes per-animal mean of `rate_lambda * (1 - rate_norm_l)` from norm tied results and prints the average across animals (with optional histogram).
 - `corner_cum_animal_params_for_paper_norm.py` - Creates corner-style scatter plots specifically for the normalized model (`vbmc_norm_tied_results`), where each point represents an animal's mean parameter values.
 - `animal_wise_plotting_utils.py` - shared plotting helpers for the animal-wise fit PDFs; tied-model summary tables now include `alpha` when that parameter is present.
