@@ -225,3 +225,9 @@ These scripts compare theoretical RT quantiles (from model fits) against empiric
 - `corner_cum_animal_params_for_paper_norm.py` - Corner plot of norm model parameters with per-animal posterior ellipses and ranked diagonal panels
 - `fig4_all_using_template.py` - Figure 4 standalone: 2x2 grid with psychometric, quantiles, gamma, and slopes plots
 - `figure_4_with_corner_using_template.py` - Combined Figure 4 + corner plot: 2x2 fig4 on left, 4x4 corner plot on right
+- `generate_psy_slopes_npl_alpha_ild2_delay_for_fig4.py` - Builds psychometric and slope data pickles for the NPL+alpha+ILD2-delay model using the fitted delay surface.
+- `generate_quantiles_npl_alpha_ild2_delay_for_fig4.py` - Builds RT quantile data pickles for the NPL+alpha+ILD2-delay model on discrete and continuous ILD grids.
+- `figure_4_npl_alpha_ild2_delay_using_template.py` - Recreates the Figure 4 psychometric, quantile, and slope panels for the NPL+alpha+ILD2-delay model from the generated pickles.
+- `compare_npl_vs_npl_alpha_ild2_quantiles_slopes.py` - Compares baseline NPL and NPL+alpha+ILD2-delay quantile curves and slope scatter, highlighting the LED7-93 outlier.
+- `permutation_test_ild2_minus_npl_slopes.py` - Paired label-shuffle/sign-flip test of ILD2-minus-NPL psychometric slope differences for each ABL.
+- `plot_led7_93_npl_vs_ild2_psychometric_formula.py` - LED7-93 diagnostic comparing saved model psychometric fits against the direct gamma-formula psychometric for NPL and NPL+alpha+ILD2-delay.
