@@ -96,6 +96,7 @@
 - `fig2_all_using_template_size_match_fig4.py` - figure 2 with panel sizes matching figure 4
 - `see_only_quantile_avg_vs_avg_norm_and_vanila_for_fig2.py` - animal avg quantiles, vanilla, norm
 - `see_only_quantile_avg_vs_avg_norm_and_vanila_for_fig2_cont_ILD.py` - animal avg quantiles, vanilla, norm but on continous ILD
+- `plot_fig2_quantile_sd_ild_mismatch_check.py` - Diagnostic side-by-side Figure 2 quantile comparison using all 30 animals: saved vanilla theory with SD contributing through `|ILD|=16` vs matched-grid theory with SD theory included only through `|ILD|=8`.
 - `see_only_psycho_all_ILD_tied_for_paper_for_fig2.py` - animal avg psycho, vanilla, norm
 - `compare_gamma_from_cond_fit_and_norm_model_fit_for_paper.py` - gamma: cond by cond fit vs model fit
 (but cond by cond fit is done here - `fit_single_rat_condn_by_condn_fix_t_E_w_del_go_all_animals_loop_for_paper.py`)
@@ -231,3 +232,4 @@ These scripts compare theoretical RT quantiles (from model fits) against empiric
 - `compare_npl_vs_npl_alpha_ild2_quantiles_slopes.py` - Compares baseline NPL and NPL+alpha+ILD2-delay quantile curves and slope scatter, highlighting the LED7-93 outlier.
 - `permutation_test_ild2_minus_npl_slopes.py` - Paired label-shuffle/sign-flip test of ILD2-minus-NPL psychometric slope differences for each ABL.
 - `plot_led7_93_npl_vs_ild2_psychometric_formula.py` - LED7-93 diagnostic comparing saved model psychometric fits against the direct gamma-formula psychometric for NPL and NPL+alpha+ILD2-delay.
+- `plot_fig4_quantile_sd_ild_mismatch_check.py` - Diagnostic side-by-side Figure 4 quantile comparison using all 30 animals: saved NPL theory with SD contributing through `|ILD|=16` vs matched-grid theory with SD theory included only through `|ILD|=8`.
