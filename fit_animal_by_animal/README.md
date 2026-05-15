@@ -229,7 +229,10 @@ These scripts compare theoretical RT quantiles (from model fits) against empiric
 - `generate_psy_slopes_npl_alpha_ild2_delay_for_fig4.py` - Builds psychometric and slope data pickles for the NPL+alpha+ILD2-delay model using the fitted delay surface.
 - `generate_quantiles_npl_alpha_ild2_delay_for_fig4.py` - Builds RT quantile data pickles for the NPL+alpha+ILD2-delay model on discrete and continuous ILD grids.
 - `figure_4_npl_alpha_ild2_delay_using_template.py` - Recreates the Figure 4 psychometric, quantile, and slope panels for the NPL+alpha+ILD2-delay model from the generated pickles.
-- `compare_npl_vs_npl_alpha_ild2_quantiles_slopes.py` - Compares baseline NPL and NPL+alpha+ILD2-delay quantile curves and slope scatter, highlighting the LED7-93 outlier.
+- `compare_npl_vs_npl_alpha_ild2_quantiles_slopes.py` - Compares baseline NPL, NPL+alpha+ILD2-delay, and vanilla TIED diagnostics, including quantiles, psychometric slopes, empirical-grid accuracy, slope-vs-accuracy panels, and selected animal psychometric/P(correct) checks.
 - `permutation_test_ild2_minus_npl_slopes.py` - Paired label-shuffle/sign-flip test of ILD2-minus-NPL psychometric slope differences for each ABL.
-- `plot_led7_93_npl_vs_ild2_psychometric_formula.py` - LED7-93 diagnostic comparing saved model psychometric fits against the direct gamma-formula psychometric for NPL and NPL+alpha+ILD2-delay.
+- `plot_led7_93_npl_vs_ild2_psychometric_formula.py` - LED7-93 diagnostic comparing saved model psychometric fits, direct gamma-formula psychometrics, and reactive-only area psychometrics for NPL and NPL+alpha+ILD2-delay.
+- `plot_sd_slope_ild16_inclusion_check.py` - SD-batch diagnostic measuring how model psychometric slopes change when model-only `|ILD|=16` points are excluded and slopes are refit only on empirical ILDs.
+- `plot_npl_vs_ild2_slope_accuracy_empirical_grid.py` - 2x3 IPL/NPL/NPL+alpha+ILD2 model-vs-data scatter plot for psychometric slopes and accuracy, with model values evaluated only on each animal's empirical stimulus grid.
+- `permutation_test_model_vs_data_accuracy.py` - Paired label-swap test of model-vs-data accuracy differences for IPL, NPL, and NPL+alpha+ILD2, with paired t-test and Wilcoxon checks.
 - `plot_fig4_quantile_sd_ild_mismatch_check.py` - Diagnostic side-by-side Figure 4 quantile comparison using all 30 animals: saved NPL theory with SD contributing through `|ILD|=16` vs matched-grid theory with SD theory included only through `|ILD|=8`.
