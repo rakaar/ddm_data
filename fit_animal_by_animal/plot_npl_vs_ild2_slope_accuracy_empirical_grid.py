@@ -19,9 +19,17 @@ EMPIRICAL_PSY_PKL = os.path.join(ILD2_DIAGNOSTIC_DIR, "empirical_psychometric_da
 IPL_THEORETICAL_PSY_PKL = os.path.join(SCRIPT_DIR, "theoretical_psychometric_data_vanilla.pkl")
 NPL_THEORETICAL_PSY_PKL = os.path.join(SCRIPT_DIR, "theoretical_psychometric_data_norm.pkl")
 ILD2_THEORETICAL_PSY_PKL = os.path.join(ILD2_DIAGNOSTIC_DIR, "theoretical_psychometric_data_npl_alpha_ild2.pkl")
+ILD2_WITH_NPL_DELAY_THEORETICAL_PSY_PKL = os.path.join(
+    ILD2_DIAGNOSTIC_DIR,
+    "theoretical_psychometric_data_npl_alpha_ild2_with_npl_delay.pkl",
+)
+ILD2_WITH_NPL_DELAY_DELGO_THEORETICAL_PSY_PKL = os.path.join(
+    ILD2_DIAGNOSTIC_DIR,
+    "theoretical_psychometric_data_npl_alpha_ild2_with_npl_delay_delgo.pkl",
+)
 
-OUTPUT_PNG = os.path.join(ILD2_DIAGNOSTIC_DIR, "npl_vs_ild2_slope_accuracy_empirical_grid.png")
-OUTPUT_PDF = os.path.join(ILD2_DIAGNOSTIC_DIR, "npl_vs_ild2_slope_accuracy_empirical_grid.pdf")
+OUTPUT_PNG = os.path.join(ILD2_DIAGNOSTIC_DIR, "npl_vs_ild2_slope_accuracy_empirical_grid_with_npl_delay_delgo.png")
+OUTPUT_PDF = os.path.join(ILD2_DIAGNOSTIC_DIR, "npl_vs_ild2_slope_accuracy_empirical_grid_with_npl_delay_delgo.pdf")
 
 ABL_ARR = [20, 40, 60]
 MODEL_CONFIGS = {
@@ -29,9 +37,17 @@ MODEL_CONFIGS = {
         "color": "tab:blue",
         "pkl": NPL_THEORETICAL_PSY_PKL,
     },
-    "NPL + alpha + ILD2": {
+    "NPL+alpha+ILD2": {
         "color": "tab:red",
         "pkl": ILD2_THEORETICAL_PSY_PKL,
+    },
+    "ILD2 + NPL delay": {
+        "color": "tab:purple",
+        "pkl": ILD2_WITH_NPL_DELAY_THEORETICAL_PSY_PKL,
+    },
+    "ILD2 + NPL delay/go": {
+        "color": "tab:brown",
+        "pkl": ILD2_WITH_NPL_DELAY_DELGO_THEORETICAL_PSY_PKL,
     },
     "IPL / vanilla TIED": {
         "color": "tab:green",
@@ -171,9 +187,10 @@ def setup_scatter_axis(ax, x_values, y_values, color, title, x_label, y_label, a
     ax.set_ylim(axis_limits)
     ax.set_xticks(axis_ticks)
     ax.set_yticks(axis_ticks)
-    ax.set_xlabel(x_label)
-    ax.set_ylabel(y_label)
-    ax.set_title(f"{title}\n{metric_text(x_values, y_values)}", fontsize=11)
+    ax.set_xlabel(x_label, fontsize=10)
+    ax.set_ylabel(y_label, fontsize=10)
+    ax.set_title(f"{title}\n{metric_text(x_values, y_values)}", fontsize=10)
+    ax.tick_params(axis="both", labelsize=9)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.set_box_aspect(1)
@@ -227,7 +244,7 @@ slope_axis_ticks = [
 accuracy_axis_limits = [0.7, 0.9]
 accuracy_axis_ticks = [0.7, 0.8, 0.9]
 
-fig, axes = plt.subplots(2, 3, figsize=(12.2, 8.0))
+fig, axes = plt.subplots(2, 5, figsize=(18.8, 8.6))
 
 for col_idx, (model_label, entry) in enumerate(model_data.items()):
     summary = entry["summary"]
@@ -258,10 +275,10 @@ for col_idx, (model_label, entry) in enumerate(model_data.items()):
 fig.suptitle(
     "Model vs Data on Empirical Stimulus Grids\n"
     "For SD animals, model slope and accuracy use only ILDs present in data",
-    fontsize=13,
+    fontsize=12,
     y=0.98,
 )
-fig.subplots_adjust(left=0.07, right=0.985, bottom=0.08, top=0.88, wspace=0.32, hspace=0.46)
+fig.subplots_adjust(left=0.05, right=0.995, bottom=0.08, top=0.85, wspace=0.36, hspace=0.58)
 fig.savefig(OUTPUT_PNG, dpi=300, bbox_inches="tight")
 fig.savefig(OUTPUT_PDF, dpi=300, bbox_inches="tight")
 print(f"Saved {OUTPUT_PNG}")
