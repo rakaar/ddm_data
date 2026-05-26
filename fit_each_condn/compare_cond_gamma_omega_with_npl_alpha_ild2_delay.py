@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
+from scipy.optimize import least_squares
 
 from gamma_omega_alpha_utils import (
     build_cond_fit_arrays,
@@ -94,12 +95,17 @@ PARAM_SAMPLES_TO_MEAN = {
     "theta": "theta_E_samples",
     "T_0": "T_0_samples",
 }
+PARAM_NAMES = ["rate_lambda", "ell", "alpha", "theta", "T_0"]
+P0_FIT = np.array([2.0, 0.9, 0.5, 2.4, 100e-3])
+LOWER_BOUNDS = np.array([0.1, 0.0, 0.0, 0.5, 1e-3])
+UPPER_BOUNDS = np.array([6.0, 2.0, 5.0, 15.0, 2.0])
 
 COLORS = ["tab:blue", "tab:orange", "tab:green"]
 
 FIG_PATH = os.path.join(OUTPUT_DIR, f"cond_gamma_omega_vs_npl_alpha_ild2_delay_model_{OUTPUT_TAG}.png")
 CSV_PATH = os.path.join(OUTPUT_DIR, f"cond_gamma_omega_vs_npl_alpha_ild2_delay_metrics_{OUTPUT_TAG}.csv")
 PARAM_CSV_PATH = os.path.join(OUTPUT_DIR, f"npl_alpha_ild2_delay_gamma_omega_params_by_animal_{OUTPUT_TAG}.csv")
+MSE_PARAM_CSV_PATH = os.path.join(OUTPUT_DIR, f"per_animal_mse_gamma_omega_alpha_params_{OUTPUT_TAG}.csv")
 
 
 # %%
@@ -161,18 +167,76 @@ def model_curves_for_params(params, ild_grid):
     return gamma_by_abl, omega_by_abl
 
 
-def plot_curve_with_sem(ax, x, mean_by_abl, sem_by_abl):
+def finite_fit_vectors(gamma_by_abl, omega_by_abl, animal_idx):
+    fit_abls = []
+    fit_ilds = []
+    fit_gamma = []
+    fit_omega = []
+
+    for ABL in ABLS:
+        gamma_values = gamma_by_abl[str(ABL)][animal_idx, :]
+        omega_values = omega_by_abl[str(ABL)][animal_idx, :]
+        valid = np.isfinite(gamma_values) & np.isfinite(omega_values)
+        fit_abls.extend(np.full(np.sum(valid), ABL))
+        fit_ilds.extend(ILDS[valid])
+        fit_gamma.extend(gamma_values[valid])
+        fit_omega.extend(omega_values[valid])
+
+    return (
+        np.asarray(fit_abls, dtype=float),
+        np.asarray(fit_ilds, dtype=float),
+        np.asarray(fit_gamma, dtype=float),
+        np.asarray(fit_omega, dtype=float),
+    )
+
+
+def fit_gamma_omega_alpha(fit_abls, fit_ilds, target_gamma, target_omega):
+    gamma_scale = np.nanstd(target_gamma)
+    omega_scale = np.nanstd(target_omega)
+    if gamma_scale == 0 or not np.isfinite(gamma_scale):
+        gamma_scale = 1.0
+    if omega_scale == 0 or not np.isfinite(omega_scale):
+        omega_scale = 1.0
+
+    def residuals(params):
+        rate_lambda, ell, alpha, theta, T_0 = params
+        pred_gamma, pred_omega = gamma_omega_alpha_model(
+            fit_abls,
+            fit_ilds,
+            rate_lambda,
+            ell,
+            alpha,
+            theta,
+            T_0,
+            P_0,
+        )
+        gamma_residuals = (pred_gamma - target_gamma) / gamma_scale
+        omega_residuals = (pred_omega - target_omega) / omega_scale
+        return np.concatenate([gamma_residuals, omega_residuals])
+
+    return least_squares(
+        residuals,
+        P0_FIT,
+        bounds=(LOWER_BOUNDS, UPPER_BOUNDS),
+    )
+
+
+def params_from_fit_result(fit_result):
+    return {name: float(value) for name, value in zip(PARAM_NAMES, fit_result.x)}
+
+
+def plot_curve_with_sem(ax, x, mean_by_abl, sem_by_abl, linestyle="-", alpha=0.10):
     for abl_idx, ABL in enumerate(ABLS):
         color = COLORS[abl_idx]
         mean_values = mean_by_abl[str(ABL)]
         sem_values = sem_by_abl[str(ABL)]
-        ax.plot(x, mean_values, color=color, linewidth=2)
+        ax.plot(x, mean_values, color=color, linestyle=linestyle, linewidth=2)
         ax.fill_between(
             x,
             mean_values - sem_values,
             mean_values + sem_values,
             color=color,
-            alpha=0.10,
+            alpha=alpha,
             linewidth=0,
         )
 
@@ -294,6 +358,98 @@ for param_name in ["rate_lambda", "ell", "alpha", "theta", "T_0"]:
 
 
 # %%
+# Fit the same Gamma/Omega alpha model to each animal's condition-fit Gamma/Omega,
+# then average those fitted curves across animals.
+
+mse_gamma_curves = {str(ABL): np.full((n_animals, len(SMOOTH_ILDS)), np.nan) for ABL in ABLS}
+mse_omega_curves = {str(ABL): np.full((n_animals, len(SMOOTH_ILDS)), np.nan) for ABL in ABLS}
+mse_fit_rows = []
+
+for animal_idx, (batch_name, animal_id) in enumerate(matched_pairs):
+    animal_abls, animal_ilds, animal_gamma, animal_omega = finite_fit_vectors(
+        gamma_cond_by_abl,
+        omega_cond_by_abl,
+        animal_idx=animal_idx,
+    )
+    if len(animal_gamma) < len(PARAM_NAMES):
+        mse_fit_rows.append(
+            {
+                "batch_name": batch_name,
+                "animal": animal_id,
+                "success": False,
+                "n_points": len(animal_gamma),
+                "message": "too few finite condition points",
+            }
+        )
+        continue
+
+    try:
+        fit_result = fit_gamma_omega_alpha(animal_abls, animal_ilds, animal_gamma, animal_omega)
+        fit_params = params_from_fit_result(fit_result)
+        gamma_by_abl, omega_by_abl = model_curves_for_params(fit_params, SMOOTH_ILDS)
+        for ABL in ABLS:
+            mse_gamma_curves[str(ABL)][animal_idx, :] = gamma_by_abl[str(ABL)]
+            mse_omega_curves[str(ABL)][animal_idx, :] = omega_by_abl[str(ABL)]
+        mse_fit_rows.append(
+            {
+                "batch_name": batch_name,
+                "animal": animal_id,
+                "success": bool(fit_result.success),
+                "n_points": len(animal_gamma),
+                "message": fit_result.message,
+                "cost": float(fit_result.cost),
+                **fit_params,
+            }
+        )
+    except Exception as exc:
+        mse_fit_rows.append(
+            {
+                "batch_name": batch_name,
+                "animal": animal_id,
+                "success": False,
+                "n_points": len(animal_gamma),
+                "message": str(exc),
+            }
+        )
+
+mse_fit_df = pd.DataFrame(mse_fit_rows)
+mse_fit_df.to_csv(MSE_PARAM_CSV_PATH, index=False)
+print(f"Saved per-animal MSE fit summary: {MSE_PARAM_CSV_PATH}")
+
+successful_mse_fits = [row for row in mse_fit_rows if row["success"]]
+print(f"Successful per-animal MSE fits: {len(successful_mse_fits)} / {len(mse_fit_rows)}")
+if len(successful_mse_fits) == 0:
+    raise RuntimeError("No per-animal MSE fits succeeded.")
+
+mse_mean_gamma_by_abl = {}
+mse_sem_gamma_by_abl = {}
+mse_mean_omega_by_abl = {}
+mse_sem_omega_by_abl = {}
+
+for ABL in ABLS:
+    mse_mean_gamma_by_abl[str(ABL)], mse_sem_gamma_by_abl[str(ABL)], _ = mean_sem_n(
+        mse_gamma_curves[str(ABL)], axis=0
+    )
+    mse_mean_omega_by_abl[str(ABL)], mse_sem_omega_by_abl[str(ABL)], _ = mean_sem_n(
+        mse_omega_curves[str(ABL)], axis=0
+    )
+
+print("Per-animal MSE fit parameter means across successful fits:")
+for param_name in PARAM_NAMES:
+    values = np.asarray([row[param_name] for row in successful_mse_fits], dtype=float)
+    if param_name == "T_0":
+        print(
+            f"  {param_name}: {np.nanmean(values) * 1e3:.6g} ms "
+            f"+/- {np.nanstd(values) / np.sqrt(len(values)) * 1e3:.6g} SEM"
+        )
+    else:
+        print(
+            f"  {param_name}: {np.nanmean(values):.6g} "
+            f"+/- {np.nanstd(values) / np.sqrt(len(values)):.6g} SEM"
+        )
+
+
+# %%
 # Save per-condition mean comparison metrics.
 
 metric_rows = []
@@ -357,6 +513,8 @@ for abl_idx, ABL in enumerate(ABLS):
 
 plot_curve_with_sem(ax[0], SMOOTH_ILDS, model_mean_gamma_by_abl, model_sem_gamma_by_abl)
 plot_curve_with_sem(ax[1], SMOOTH_ILDS, model_mean_omega_by_abl, model_sem_omega_by_abl)
+plot_curve_with_sem(ax[0], SMOOTH_ILDS, mse_mean_gamma_by_abl, mse_sem_gamma_by_abl, linestyle="--", alpha=0.07)
+plot_curve_with_sem(ax[1], SMOOTH_ILDS, mse_mean_omega_by_abl, mse_sem_omega_by_abl, linestyle="--", alpha=0.07)
 
 ax[0].axhline(0, color="black", linestyle="--", linewidth=1, alpha=0.4)
 ax[0].set_title("Gamma")
@@ -376,11 +534,13 @@ abl_handles = [
 source_handles = [
     Line2D([0], [0], marker="o", color="black", linestyle="none", label="condition fit mean +/- SEM"),
     Line2D([0], [0], color="black", linestyle="-", linewidth=2, label=f"{MODEL_LABEL} mean +/- SEM"),
+    Line2D([0], [0], color="black", linestyle="--", linewidth=2, label="per-animal MSE fit mean +/- SEM"),
 ]
 ax[0].legend(handles=abl_handles + source_handles, fontsize=8)
 
 fig.suptitle(
     f"{COND_FIT_LABEL}; averaged across {n_animals} matched animals\n"
+    f"solid={MODEL_LABEL}; dashed=per-animal MSE fit; "
     f"RMSE at condition grid: gamma={gamma_rmse:.3g}, omega={omega_rmse:.3g}"
 )
 fig.tight_layout(rect=[0, 0, 1, 0.88])

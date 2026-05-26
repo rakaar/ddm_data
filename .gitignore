@@ -22,3 +22,4 @@ fit_each_condn/each_cond_data/*
 *.sh
 codex_*.md
 .codex*.md.swp
+daily_notes_site/

@@ -4,17 +4,26 @@ import pickle
 import re
 from collections import defaultdict
 
+os.makedirs("/tmp/matplotlib", exist_ok=True)
+os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
+
 import matplotlib
+
 matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-import scipy.special as scipy_special
 from scipy.stats import sem
+import scipy.special as scipy_special
 
+import figure_template as ft
 from animal_wise_plotting_utils import calculate_theoretical_curves
 from time_vary_norm_alpha_utils import rho_A_t_fn
-from time_vary_norm_utils import M, phi, rho_A_t_VEC_fn
+from time_vary_norm_utils import M, phi
+
+plt.rcParams["font.family"] = "DejaVu Sans"
+plt.rcParams["font.sans-serif"] = ["DejaVu Sans"]
 
 
 # %%
@@ -23,20 +32,24 @@ REPO_DIR = os.path.dirname(SCRIPT_DIR)
 os.chdir(SCRIPT_DIR)
 
 DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
-ABL_arr = [20, 40, 60]
-ILD_arr = [-16.0, -8.0, -4.0, -2.0, -1.0, 1.0, 2.0, 4.0, 8.0, 16.0]
-QUANTILES_TO_PLOT = np.round(np.arange(0.1, 1.0, 0.1), 1).tolist()
-QUANTILE_TAG = "q10"
-CONTINUOUS_ILD_STEP = 0.1
-K_max = 10
+ABL_ARR = [20, 60]
+ABS_ILD_ARR = [1.0, 2.0, 4.0, 8.0, 16.0]
+ILD_ARR = sorted([-ild for ild in ABS_ILD_ARR] + ABS_ILD_ARR)
+RT_BINS = np.arange(0.0, 1.0 + 0.02, 0.02)
+RT_BIN_CENTERS = 0.5 * (RT_BINS[:-1] + RT_BINS[1:])
+
+K_MAX = 10
 T_PTS = np.arange(-2, 2, 0.001)
 N_THEORY = int(1e3)
 N_JOBS = max(1, min(30, (os.cpu_count() or 2) - 1))
 
 ILD2_RESULTS_DIR = os.path.join(REPO_DIR, "NPL_alpha_ILD2_fit_results", "result_pkls")
-OUTPUT_DIR = os.path.join(REPO_DIR, "NPL_alpha_ILD2_fit_results", "figure_4_diagnostics")
+OUTPUT_DIR = os.path.join(REPO_DIR, "NPL_alpha_ILD2_fit_results", "figure_4_diagnostics_part2")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-QUANT_OUTPUT_PKL = os.path.join(OUTPUT_DIR, f"npl_alpha_ild2_quant_fig4_data_{QUANTILE_TAG}.pkl")
+
+RTD_OUTPUT_PKL = os.path.join(OUTPUT_DIR, "npl_alpha_ild2_delay_rtds_abl20_abl60.pkl")
+OUTPUT_PNG = os.path.join(OUTPUT_DIR, "npl_alpha_ild2_delay_rtds_abl20_abl60.png")
+OUTPUT_PDF = os.path.join(OUTPUT_DIR, "npl_alpha_ild2_delay_rtds_abl20_abl60.pdf")
 
 RESULT_KEY = "vbmc_norm_alpha_ild2_delay_tied_results"
 RESULT_RE = re.compile(r"^results_(?P<batch>.+)_animal_(?P<animal>\d+)_NORM_ALPHA_ILD2_DELAY_FROM_ABORTS\.pkl$")
@@ -45,12 +58,12 @@ DEFAULT_T_TRUNC = 0.3
 
 
 # %%
-def _create_innermost_dict():
+def _empty_condition():
     return {"empirical": [], "theoretical": []}
 
 
-def _create_inner_defaultdict():
-    return defaultdict(_create_innermost_dict)
+def _empty_abl_dict():
+    return defaultdict(_empty_condition)
 
 
 def delay_s_from_params(ABL, ILD, params):
@@ -120,11 +133,11 @@ def CDF_E_alpha_vec(t, bound, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, rate_nor
     exponent_arg = -v_full * a * w_full - ((v_full ** 2) * safe_t / 2)
     result = np.exp(exponent_arg)
 
-    k_arr = np.arange(K_max + 1)
+    k_arr = np.arange(K_MAX + 1)
     t_b = safe_t[..., None]
     v_b = v_full[..., None]
     w_b = w_full[..., None]
-    k_b = k_arr.reshape((1,) * len(shape) + (K_max + 1,))
+    k_b = k_arr.reshape((1,) * len(shape) + (K_MAX + 1,))
 
     r_k = np.where(k_b % 2 == 0, k_b * a + a * w_b, k_b * a + a * (1 - w_b))
     sqrt_t = np.sqrt(t_b)
@@ -161,7 +174,7 @@ def rho_E_alpha_vec(t, bound, ABL, ILD, rate_lambda, T_0, theta_E, Z_E, rate_nor
         * np.exp(-v_full * a * w_full - (v_full**2 * safe_t) / 2)
     )
 
-    K_half = int(K_max / 2)
+    K_half = int(K_MAX / 2)
     k_vals = np.linspace(-K_half, K_half, 2 * K_half + 1)
     t_b = safe_t[..., None]
     w_b = w_full[..., None]
@@ -398,62 +411,65 @@ def get_animal_raw_RTs(batch_name, animal_id, ABL, ILD):
     return df_stim["RTwrtStim"].values
 
 
-def find_quantile_from_cdf(q, cdf, x_axis):
-    idx = np.searchsorted(cdf, q, side="left")
-    if idx == 0:
-        return x_axis[0]
-    if idx == len(cdf):
-        return x_axis[-1]
-    x1, x2 = x_axis[idx - 1], x_axis[idx]
-    y1, y2 = cdf[idx - 1], cdf[idx]
-    if y2 == y1:
-        return x1
-    return x1 + (x2 - x1) * (q - y1) / (y2 - y1)
+def raw_rts_to_hist(raw_rts):
+    if len(raw_rts) <= 5:
+        return np.full(len(RT_BIN_CENTERS), np.nan)
+    hist, _ = np.histogram(raw_rts, bins=RT_BINS, density=True)
+    return hist.astype(float)
 
 
-def process_animal_for_quantiles(batch_animal_pair, result_paths):
+def theoretical_rtd_to_bin_density(t_pts, rtd):
+    binned_rtd = []
+    for bin_idx, (left, right) in enumerate(zip(RT_BINS[:-1], RT_BINS[1:])):
+        if bin_idx == len(RT_BINS) - 2:
+            in_bin = (t_pts >= left) & (t_pts <= right)
+        else:
+            in_bin = (t_pts >= left) & (t_pts < right)
+        if np.sum(in_bin) < 2:
+            binned_rtd.append(np.nan)
+            continue
+        binned_rtd.append(np.trapz(rtd[in_bin], t_pts[in_bin]) / (right - left))
+    binned_rtd = np.asarray(binned_rtd, dtype=float)
+    area = np.nansum(binned_rtd * np.diff(RT_BINS))
+    if np.isfinite(area) and area > 0:
+        binned_rtd = binned_rtd / area
+    return binned_rtd
+
+
+def process_animal_for_rtds(batch_animal_pair, result_paths):
     batch_name, animal_id = batch_animal_pair
-    print(f"Processing quantiles for {batch_name}, animal {animal_id}")
-    animal_quantile_data = {}
+    print(f"Processing RTDs for {batch_name}, animal {animal_id}")
+    animal_rtd_data = {}
     try:
         abort_params, tied_params = load_posterior_mean_params(batch_name, animal_id, result_paths)
         P_A_mean, C_A_mean, t_stim_samples = get_p_a_c_a(batch_name, animal_id, abort_params)
 
-        for ABL in ABL_arr:
-            for ILD in ILD_arr:
+        for ABL in ABL_ARR:
+            for ILD in ILD_ARR:
                 raw_rts = get_animal_raw_RTs(batch_name, animal_id, ABL, ILD)
-                if len(raw_rts) > 5:
-                    emp_quantiles = np.quantile(raw_rts, QUANTILES_TO_PLOT)
-                else:
-                    emp_quantiles = [np.nan] * len(QUANTILES_TO_PLOT)
-                animal_quantile_data[(ABL, ILD)] = {"empirical": emp_quantiles}
+                empirical_rtd = raw_rts_to_hist(raw_rts)
 
-        continuous_ild_values = np.round(np.arange(-16.0, 16.0 + CONTINUOUS_ILD_STEP / 2, CONTINUOUS_ILD_STEP), 1)
-        for ABL in ABL_arr:
-            for ILD in continuous_ild_values:
-                try:
-                    t_pts, rtd = get_theoretical_rtd_from_params(
-                        P_A_mean, C_A_mean, t_stim_samples, abort_params, tied_params, ABL, float(ILD), batch_name
-                    )
-                    if np.all(np.isnan(rtd)) or len(t_pts) < 2:
-                        raise ValueError("Theoretical RTD is all NaN or too short")
-                    cdf = np.cumsum(rtd) * (t_pts[1] - t_pts[0])
-                    if cdf[-1] <= 1e-6:
-                        raise ValueError("Theoretical CDF sum is close to zero")
-                    cdf /= cdf[-1]
-                    theo_quantiles = [find_quantile_from_cdf(q, cdf, t_pts) for q in QUANTILES_TO_PLOT]
-                    animal_quantile_data[(ABL, float(ILD), "continuous")] = {"theoretical": theo_quantiles}
+                t_pts, model_rtd = get_theoretical_rtd_from_params(
+                    P_A_mean,
+                    C_A_mean,
+                    t_stim_samples,
+                    abort_params,
+                    tied_params,
+                    ABL,
+                    ILD,
+                    batch_name,
+                )
+                theoretical_rtd = theoretical_rtd_to_bin_density(t_pts, model_rtd)
 
-                    for discrete_ild in ILD_arr:
-                        if abs(float(ILD) - discrete_ild) < 0.05 and (ABL, discrete_ild) in animal_quantile_data:
-                            animal_quantile_data[(ABL, discrete_ild)]["theoretical"] = theo_quantiles
-                            break
-                except Exception:
-                    pass
+                animal_rtd_data[(ABL, ILD)] = {
+                    "empirical": empirical_rtd,
+                    "theoretical": theoretical_rtd,
+                    "n_trials": len(raw_rts),
+                }
     except Exception as exc:
         print(f"ERROR processing {batch_name}/{animal_id}: {exc}")
 
-    return animal_quantile_data
+    return animal_rtd_data
 
 
 # %%
@@ -467,114 +483,152 @@ batch_animal_pairs = sorted(
 batch_animal_pairs = [pair for pair in batch_animal_pairs if pair in result_paths]
 
 print(f"Found {len(result_paths)} ILD2 result pickles")
-print(f"Using {len(batch_animal_pairs)} matched animals for quantiles")
-print(f"Continuous ILD step: {CONTINUOUS_ILD_STEP}")
+print(f"Using {len(batch_animal_pairs)} matched animals for RTDs")
+print(f"RT bins: {RT_BINS[0]:.2f} to {RT_BINS[-1]:.2f} s in {RT_BINS[1] - RT_BINS[0]:.2f} s steps")
 print(f"Running with {N_JOBS} jobs")
 
 all_animal_results = Parallel(n_jobs=N_JOBS, verbose=10)(
-    delayed(process_animal_for_quantiles)(pair, result_paths) for pair in batch_animal_pairs
+    delayed(process_animal_for_rtds)(pair, result_paths) for pair in batch_animal_pairs
 )
 
 
 # %%
-print("Aggregating quantile data for plotting")
-abs_ild_sorted = sorted(list(set(abs(ild) for ild in ILD_arr)))
-continuous_abs_ild = np.round(np.arange(1.0, 16.0 + CONTINUOUS_ILD_STEP / 2, CONTINUOUS_ILD_STEP), 1)
-
-plot_data = defaultdict(_create_inner_defaultdict)
-continuous_plot_data = defaultdict(_create_inner_defaultdict)
+print("Aggregating RTDs for plotting")
+plot_data = defaultdict(_empty_abl_dict)
+n_trials_by_condition = defaultdict(lambda: defaultdict(list))
 
 for animal_data in all_animal_results:
     if not animal_data:
         continue
-    for ABL in ABL_arr:
-        for abs_ild in abs_ild_sorted:
-            emp_quantiles_combined = []
-            for ild_sign in [abs_ild, -abs_ild]:
-                stim_key = (ABL, ild_sign)
-                if stim_key in animal_data:
-                    emp_quantiles_combined.append(animal_data[stim_key]["empirical"])
-            if emp_quantiles_combined:
-                plot_data[ABL][abs_ild]["empirical"].append(np.nanmean(emp_quantiles_combined, axis=0))
+    for ABL in ABL_ARR:
+        for abs_ild in ABS_ILD_ARR:
+            empirical_signed = []
+            theoretical_signed = []
+            n_trials_signed = 0
+            for ILD in [abs_ild, -abs_ild]:
+                stim_key = (ABL, ILD)
+                if stim_key not in animal_data:
+                    continue
+                empirical_signed.append(animal_data[stim_key]["empirical"])
+                theoretical_signed.append(animal_data[stim_key]["theoretical"])
+                n_trials_signed += animal_data[stim_key]["n_trials"]
 
-    for ABL in ABL_arr:
-        continuous_keys = [
-            key
-            for key in animal_data.keys()
-            if isinstance(key, tuple) and len(key) == 3 and key[2] == "continuous" and key[0] == ABL
-        ]
-        for key in continuous_keys:
-            rounded_abs = np.round(abs(key[1]), 1)
-            continuous_plot_data[ABL][rounded_abs]["theoretical"].append(animal_data[key]["theoretical"])
+            empirical_signed = np.asarray(empirical_signed, dtype=float)
+            theoretical_signed = np.asarray(theoretical_signed, dtype=float)
+            if empirical_signed.size > 0 and np.any(np.isfinite(empirical_signed)):
+                plot_data[ABL][abs_ild]["empirical"].append(np.nanmean(empirical_signed, axis=0))
+            if theoretical_signed.size > 0 and np.any(np.isfinite(theoretical_signed)):
+                plot_data[ABL][abs_ild]["theoretical"].append(np.nanmean(theoretical_signed, axis=0))
+            if n_trials_signed > 0:
+                n_trials_by_condition[ABL][abs_ild].append(n_trials_signed)
 
-quantile_summary = []
-for q_idx, q in enumerate(QUANTILES_TO_PLOT):
-    emp_means, emp_sems = [], []
-    for abs_ild in abs_ild_sorted:
-        all_abl_emp_quantiles = np.concatenate([
-            np.array(plot_data[ABL][abs_ild]["empirical"])[:, q_idx] for ABL in ABL_arr
-        ])
-        emp_means.append(np.nanmean(all_abl_emp_quantiles))
-        emp_sems.append(sem(all_abl_emp_quantiles, nan_policy="omit"))
-
-    theo_means, theo_sems, continuous_abs_ild_valid = [], [], []
-    for abs_ild in continuous_abs_ild:
-        all_abl_theo_quantiles = []
-        for ABL in ABL_arr:
-            if len(continuous_plot_data[ABL][abs_ild]["theoretical"]) > 0:
-                all_abl_theo_quantiles.extend(np.array(continuous_plot_data[ABL][abs_ild]["theoretical"])[:, q_idx])
-        if len(all_abl_theo_quantiles) > 0:
-            theo_means.append(np.nanmean(all_abl_theo_quantiles))
-            theo_sems.append(sem(all_abl_theo_quantiles, nan_policy="omit"))
-            continuous_abs_ild_valid.append(abs_ild)
-
-    quantile_summary.append({
-        "q": q,
-        "emp_abs_ild": abs_ild_sorted,
-        "emp_means": emp_means,
-        "emp_sems": emp_sems,
-        "theo_abs_ild": continuous_abs_ild_valid,
-        "theo_means": theo_means,
-        "theo_sems": theo_sems,
-    })
-
-plot_data_for_pickle = {
-    ABL: {
-        abs_ild: {
-            "empirical": list(plot_data[ABL][abs_ild]["empirical"]),
-            "theoretical": list(plot_data[ABL][abs_ild]["theoretical"]),
+rtd_plot_data = {
+    "plot_data": {
+        ABL: {
+            abs_ild: {
+                "empirical": list(plot_data[ABL][abs_ild]["empirical"]),
+                "theoretical": list(plot_data[ABL][abs_ild]["theoretical"]),
+            }
+            for abs_ild in ABS_ILD_ARR
         }
-        for abs_ild in abs_ild_sorted
-    }
-    for ABL in ABL_arr
-}
-continuous_plot_data_for_pickle = {
-    ABL: {
-        abs_ild: {
-            "empirical": list(continuous_plot_data[ABL][abs_ild]["empirical"]),
-            "theoretical": list(continuous_plot_data[ABL][abs_ild]["theoretical"]),
-        }
-        for abs_ild in continuous_abs_ild
-    }
-    for ABL in ABL_arr
-}
-
-quantile_plot_data = {
-    "plot_data": plot_data_for_pickle,
-    "continuous_plot_data": continuous_plot_data_for_pickle,
-    "quantile_summary": quantile_summary,
-    "QUANTILES_TO_PLOT": QUANTILES_TO_PLOT,
-    "abs_ild_sorted": abs_ild_sorted,
-    "continuous_abs_ild": continuous_abs_ild,
-    "ABL_arr": ABL_arr,
-    "MODEL_TYPE": "npl_alpha_ild2_delay",
+        for ABL in ABL_ARR
+    },
+    "rt_bins": RT_BINS,
+    "rt_bin_centers": RT_BIN_CENTERS,
+    "ABL_arr": ABL_ARR,
+    "abs_ild_arr": ABS_ILD_ARR,
     "animal_keys": batch_animal_pairs,
+    "model": "NPL + alpha + ILD2 delay",
 }
+with open(RTD_OUTPUT_PKL, "wb") as handle:
+    pickle.dump(rtd_plot_data, handle)
+print(f"Saved {RTD_OUTPUT_PKL}")
 
-with open(QUANT_OUTPUT_PKL, "wb") as handle:
-    pickle.dump(quantile_plot_data, handle)
 
-print(f"Saved {QUANT_OUTPUT_PKL}")
+# %%
+fig, axes = plt.subplots(2, 5, figsize=(17.5, 6.8), sharex=True, sharey=True)
+global_y_max = 0.0
+
+for row_idx, ABL in enumerate(ABL_ARR):
+    for col_idx, abs_ild in enumerate(ABS_ILD_ARR):
+        ax = axes[row_idx, col_idx]
+        empirical_curves = np.asarray(plot_data[ABL][abs_ild]["empirical"], dtype=float)
+        theoretical_curves = np.asarray(plot_data[ABL][abs_ild]["theoretical"], dtype=float)
+        if empirical_curves.size == 0:
+            empirical_curves = np.full((1, len(RT_BIN_CENTERS)), np.nan)
+        if theoretical_curves.size == 0:
+            theoretical_curves = np.full((1, len(RT_BIN_CENTERS)), np.nan)
+
+        empirical_mean = np.nanmean(empirical_curves, axis=0)
+        empirical_sem = sem(empirical_curves, axis=0, nan_policy="omit")
+        theoretical_mean = np.nanmean(theoretical_curves, axis=0)
+        theoretical_sem = sem(theoretical_curves, axis=0, nan_policy="omit")
+        theoretical_area = np.nansum(theoretical_mean * np.diff(RT_BINS))
+        panel_y_max = np.nanmax(
+            [
+                np.nanmax(empirical_mean + empirical_sem),
+                np.nanmax(theoretical_mean + theoretical_sem),
+            ]
+        )
+        if np.isfinite(panel_y_max):
+            global_y_max = max(global_y_max, panel_y_max)
+
+        ax.plot(RT_BIN_CENTERS, empirical_mean, color="black", linewidth=1.8, label="Data")
+        ax.fill_between(
+            RT_BIN_CENTERS,
+            empirical_mean - empirical_sem,
+            empirical_mean + empirical_sem,
+            color="black",
+            alpha=0.16,
+            linewidth=0,
+        )
+
+        ax.plot(RT_BIN_CENTERS, theoretical_mean, color="tab:red", linewidth=1.8, label="Model")
+        ax.fill_between(
+            RT_BIN_CENTERS,
+            theoretical_mean - theoretical_sem,
+            theoretical_mean + theoretical_sem,
+            color="tab:red",
+            alpha=0.18,
+            linewidth=0,
+        )
+
+        if row_idx == 0:
+            ax.set_title(f"|ILD| = {abs_ild:g}", fontsize=13)
+        if col_idx == 0:
+            ax.set_ylabel(f"ABL {ABL}\nDensity", fontsize=14)
+        if row_idx == len(ABL_ARR) - 1:
+            ax.set_xlabel("RT (s)", fontsize=13)
+
+        ax.set_xlim(0, 1)
+        ax.set_xticks([0, 0.5, 1.0])
+        ax.tick_params(axis="both", which="major", labelsize=9)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+        print(f"Model RTD plotted normalized area: ABL={ABL}, |ILD|={abs_ild:g}, area={theoretical_area:.6f}")
+
+axes[0, -1].legend(frameon=False, fontsize=12, loc="upper right")
+for ax in axes.flat:
+    ax.set_ylim(0, global_y_max * 1.05)
+fig.suptitle(
+    "NPL + alpha + ILD2 delay: model vs data RTDs",
+    fontsize=18,
+    y=0.985,
+)
+fig.subplots_adjust(left=0.07, right=0.99, bottom=0.11, top=0.88, hspace=0.28, wspace=0.18)
+fig.savefig(OUTPUT_PNG, dpi=300, bbox_inches="tight")
+fig.savefig(OUTPUT_PDF, dpi=300, bbox_inches="tight")
+plt.close(fig)
+
+print(f"Saved {OUTPUT_PNG}")
+print(f"Saved {OUTPUT_PDF}")
 print(f"Animals processed: {sum(bool(item) for item in all_animal_results)}")
+
+for ABL in ABL_ARR:
+    for abs_ild in ABS_ILD_ARR:
+        n_animals = len(plot_data[ABL][abs_ild]["empirical"])
+        median_trials = np.nanmedian(n_trials_by_condition[ABL][abs_ild])
+        print(f"ABL={ABL}, |ILD|={abs_ild:g}: n_animals={n_animals}, median signed-pool trials={median_trials:.0f}")
 
 # %%
