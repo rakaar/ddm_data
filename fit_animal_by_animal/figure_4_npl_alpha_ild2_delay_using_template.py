@@ -21,7 +21,6 @@ os.chdir(SCRIPT_DIR)
 DATA_DIR = os.path.join(REPO_DIR, "NPL_alpha_ILD2_fit_results", "figure_4_diagnostics")
 PSY_DATA_PKL = os.path.join(DATA_DIR, "npl_alpha_ild2_psy_fig4_data.pkl")
 QUANT_DATA_PKL = os.path.join(DATA_DIR, "npl_alpha_ild2_quant_fig4_data.pkl")
-SLOPES_DATA_PKL = os.path.join(DATA_DIR, "npl_alpha_ild2_slopes_fig4_data.pkl")
 
 OUTPUT_PNG = os.path.join(DATA_DIR, "figure_4_npl_alpha_ild2_delay_psy_quant_slopes.png")
 OUTPUT_PDF = os.path.join(DATA_DIR, "figure_4_npl_alpha_ild2_delay_psy_quant_slopes.pdf")
@@ -41,9 +40,86 @@ def load_data():
         psy_data = pickle.load(handle)
     with open(QUANT_DATA_PKL, "rb") as handle:
         quant_data = pickle.load(handle)
-    with open(SLOPES_DATA_PKL, "rb") as handle:
-        slopes_data = pickle.load(handle)
-    return psy_data, quant_data, slopes_data
+    return psy_data, quant_data
+
+
+# %%
+def sigmoid(x, upper, lower, x0, k):
+    return lower + (upper - lower) / (1 + np.exp(-k * (x - x0)))
+
+
+def fit_psychometric_sigmoid(ild_values, right_choice_probs):
+    ild_values = np.asarray(ild_values, dtype=float)
+    right_choice_probs = np.asarray(right_choice_probs, dtype=float)
+    valid_idx = np.isfinite(ild_values) & np.isfinite(right_choice_probs)
+    if np.sum(valid_idx) < 4:
+        return None
+
+    try:
+        popt, _ = curve_fit(
+            sigmoid,
+            ild_values[valid_idx],
+            right_choice_probs[valid_idx],
+            p0=[1.0, 0.0, 0.0, 1.0],
+            bounds=([0, 0, -np.inf, 0], [1, 1, np.inf, np.inf]),
+        )
+        return popt
+    except Exception:
+        return None
+
+
+def apply_sd_model_ild_mismatch_correction(data):
+    corrected_data = dict(data)
+    corrected_data["theory_agg"] = {
+        ABL: np.array(theory_values, copy=True) for ABL, theory_values in data["theory_agg"].items()
+    }
+
+    animal_keys = data["animal_keys"]
+    ilds = np.asarray(data["ILD_arr"], dtype=float)
+    sd_rows = np.array([batch_name == "SD" for batch_name, _animal in animal_keys])
+    high_ild_cols = np.abs(ilds) > 8
+
+    for ABL in corrected_data["theory_agg"]:
+        corrected_data["theory_agg"][ABL][np.ix_(sd_rows, high_ild_cols)] = np.nan
+
+    print(
+        f"Masked SD model psychometric entries for {int(np.sum(sd_rows))} animals "
+        f"at ILDs {ilds[high_ild_cols].tolist()}"
+    )
+    return corrected_data
+
+
+def compute_slope_data_from_psychometric(data):
+    ilds = np.asarray(data["ILD_arr"], dtype=float)
+    empirical_agg = data["empirical_agg"]
+    theory_agg = data["theory_agg"]
+    animal_keys = data["animal_keys"]
+    ABL_arr = sorted(empirical_agg.keys())
+
+    data_means = []
+    model_means = []
+    for animal_idx, _animal_key in enumerate(animal_keys):
+        data_slopes = []
+        model_slopes = []
+        for ABL in ABL_arr:
+            data_fit = fit_psychometric_sigmoid(ilds, empirical_agg[ABL][animal_idx])
+            model_fit = fit_psychometric_sigmoid(ilds, theory_agg[ABL][animal_idx])
+
+            data_slopes.append(data_fit[3] if data_fit is not None else np.nan)
+            model_slopes.append(model_fit[3] if model_fit is not None else np.nan)
+
+        data_slopes = np.asarray(data_slopes, dtype=float)
+        model_slopes = np.asarray(model_slopes, dtype=float)
+        data_means.append(np.nanmean(data_slopes) if np.any(np.isfinite(data_slopes)) else np.nan)
+        model_means.append(np.nanmean(model_slopes) if np.any(np.isfinite(model_slopes)) else np.nan)
+
+    data_means = np.asarray(data_means, dtype=float)
+    model_means = np.asarray(model_means, dtype=float)
+    sort_idx = np.argsort(data_means)
+    return {
+        "data_means": data_means[sort_idx],
+        "npl_alpha_ild2_means": model_means[sort_idx],
+    }
 
 
 # %%
@@ -73,29 +149,18 @@ def plot_psychometric(ax, data):
             markersize=8,
         )
 
-        valid_idx = np.isfinite(theo_mean)
-        if np.sum(valid_idx) >= 4:
-            try:
-                def sigmoid(x, upper, lower, x0, k):
-                    return lower + (upper - lower) / (1 + np.exp(-k * (x - x0)))
-
-                popt, _ = curve_fit(
-                    sigmoid,
-                    ilds[valid_idx],
-                    theo_mean[valid_idx],
-                    p0=[1.0, 0.0, 0.0, 1.0],
-                    bounds=([0, 0, -np.inf, 0], [1, 1, np.inf, np.inf]),
-                )
-                ilds_smooth = np.linspace(min(ilds), max(ilds), 200)
-                ax.plot(
-                    ilds_smooth,
-                    sigmoid(ilds_smooth, *popt),
-                    linestyle="-",
-                    color=colors[ABL],
-                    label=f"Model ABL={ABL}",
-                )
-            except Exception as exc:
-                print(f"Could not fit logistic for ABL={ABL}: {exc}")
+        popt = fit_psychometric_sigmoid(ilds, theo_mean)
+        if popt is not None:
+            ilds_smooth = np.linspace(min(ilds), max(ilds), 200)
+            ax.plot(
+                ilds_smooth,
+                sigmoid(ilds_smooth, *popt),
+                linestyle="-",
+                color=colors[ABL],
+                label=f"Model ABL={ABL}",
+            )
+        else:
+            print(f"Could not fit logistic for ABL={ABL}")
 
     ax.set_xlabel("ILD (dB)", fontsize=ft.STYLE.LABEL_FONTSIZE)
     ax.set_ylabel("P(choice = right)", fontsize=ft.STYLE.LABEL_FONTSIZE)
@@ -182,7 +247,7 @@ def plot_quantiles(ax, data):
 
 def plot_slopes(ax, data):
     data_means = data["data_means"]
-    ild2_means = data.get("npl_alpha_ild2_means", data["norm_means"])
+    ild2_means = data["npl_alpha_ild2_means"] if "npl_alpha_ild2_means" in data else data["norm_means"]
 
     ax.scatter(data_means, ild2_means, marker="o", s=64, facecolors="w", edgecolors="k", linewidths=1.5)
     ax.set_xlabel("Data", fontsize=ft.STYLE.LABEL_FONTSIZE)
@@ -204,7 +269,9 @@ def plot_slopes(ax, data):
 
 
 # %%
-psy_data, quant_data, slopes_data = load_data()
+psy_data, quant_data = load_data()
+psy_data = apply_sd_model_ild_mismatch_correction(psy_data)
+slopes_data = compute_slope_data_from_psychometric(psy_data)
 
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 plot_psychometric(axes[0], psy_data)
