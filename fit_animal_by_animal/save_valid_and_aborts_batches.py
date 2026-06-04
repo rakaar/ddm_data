@@ -7,43 +7,45 @@ import random
 
 # Flag to include abort_event == 4. If True, abort_event==4 will be included and
 # the output filename will be suffixed with '_and_4'.
-INCLUDE_ABORT_EVENT_4 = True
+INCLUDE_ABORT_EVENT_4 = False
+raw_data_dir = '/home/rlab/raghavendra/ddm_data/raw_data'
 
 # Map batch to file
 batch_file_map = {
-    'SD': '../outExp.csv',
-    'LED1': '../outExp.csv',
-    'LED2': '../outExp.csv',
-    'LED34': '../outExp.csv',
-    'Comparable': '../outExp.csv',
-    'LED6': '../outExp.csv',
-    'LED7': '../out_LED.csv',
-    'LED8': '../outLED8.csv',
-    'LED34_even': '../outUni.csv' 
+    'SD': 'outExp.csv',
+    'LED1': 'outExp.csv',
+    'LED2': 'outExp.csv',
+    'LED34': 'outExp.csv',
+    'Comparable': 'outExp.csv',
+    'LED6': 'outExp.csv',
+    'LED7': 'out_LED.csv',
+    'LED8': 'outLED8.csv',
+    'LED34_even': 'outUni.csv' 
 }
 
 # batch_file_map = {
-#     # 'SD': '../outExp.csv',
-#     # 'LED1': '../outExp.csv',
-#     # 'LED2': '../outExp.csv',
-#     # 'LED34': '../outExp.csv',
-#     # 'Comparable': '../outExp.csv',
-#     # 'LED6': '../outExp.csv',
-#     # 'LED7': '../out_LED.csv',
-#     # 'LED8': '../outLED8.csv',
-#     'LED34_even': '../outUni.csv' 
+#     # 'SD': 'outExp.csv',
+#     # 'LED1': 'outExp.csv',
+#     # 'LED2': 'outExp.csv',
+#     # 'LED34': 'outExp.csv',
+#     # 'Comparable': 'outExp.csv',
+#     # 'LED6': 'outExp.csv',
+#     # 'LED7': 'out_LED.csv',
+#     # 'LED8': 'outLED8.csv',
+#     'LED34_even': 'outUni.csv' 
 # }
 
 batch_names = batch_file_map.keys()
 # batch_names = ['SD', 'LED1', 'LED2', 'LED34', 'Comparable', 'LED6', 'LED7']
 
 # Output directory
-output_dir = 'batch_csvs'
+output_dir = os.path.join(raw_data_dir, 'batch_csvs')
 os.makedirs(output_dir, exist_ok=True)
 
 for batch_name in batch_names:
     print(f'Processing batch: {batch_name}')
-    exp_df = pd.read_csv(batch_file_map[batch_name])
+    input_csv = os.path.join(raw_data_dir, batch_file_map[batch_name])
+    exp_df = pd.read_csv(input_csv)
 
     # If needed, reconstruct RTwrtStim and rename timed_fix
     if 'timed_fix' in exp_df.columns:
@@ -166,4 +168,3 @@ for batch_name in batch_names:
     print(f'Saved {csv_filename} ({len(df_valid_and_aborts)} rows)')
 
 print('Done!')
-

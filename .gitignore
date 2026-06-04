@@ -23,3 +23,4 @@ fit_each_condn/each_cond_data/*
 codex_*.md
 .codex*.md.swp
 daily_notes_site/
+fit_each_condn/watcher_locks/

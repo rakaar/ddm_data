@@ -11,7 +11,12 @@
 ## Root Level Docs
 
 - `CODEX_GIT_WRAPUP.md`: Reusable shorthand request for Codex. Referring to this file means: check `git status`, document new or undocumented files in the relevant `README.md` files, commit the intended changes, and push to `origin/main`.
+- `FIT_BACKUP_LEDGER.md`: Running ledger for large fit result locations and Google Drive backups, including which animals ran on lavos/ganon, local and remote result paths, Drive folders, counts, and backup status.
 - `led8_led_off_rtds_task.md`: Task note specifying the LED8 session-type-8 LED-off RTD plotting requirements and suggested script structure for `fitting_aborts/led8_session8_led_off_rtds.py`.
+
+## Utility Scripts
+
+- `scripts/backup_ganon_fit_results_to_drive.sh`: Idempotent `rclone copy` wrapper for backing up the copied ganon ABL-specific NPL+alpha+ILD2 upstream results and condition-by-condition outputs to Google Drive under `raga:ddm_fit_backups_20260604_ganon/`.
 
 ## `fit_animal_by_animal/` Scripts
 

@@ -22,6 +22,8 @@ import pandas as pd
 from joblib import Parallel, delayed
 from matplotlib.backends.backend_pdf import PdfPages
 from pyvbmc import VBMC
+import pyvbmc.vbmc.active_sample as pyvbmc_active_sample
+import pyvbmc.vbmc.variational_optimization as pyvbmc_variational_optimization
 from scipy.special import erf
 from tqdm.notebook import tqdm
 
@@ -45,6 +47,42 @@ from time_vary_norm_alpha_utils import (
 )
 from time_vary_norm_utils import M, phi, rho_A_t_VEC_fn
 from vbmc_animal_wise_fit_utils import trapezoidal_logpdf
+
+
+# %%
+########### PyVBMC compatibility patch ##############
+# PyVBMC can return one-element arrays for full-ELBO scalar variance terms
+# with some GP states. Newer NumPy refuses assigning those arrays into scalar
+# slots, so coerce only the scalar diagnostics while leaving gradients and
+# per-component arrays unchanged.
+if not getattr(pyvbmc_variational_optimization, "_ddm_scalar_elcbo_patch", False):
+    _original_neg_elcbo = pyvbmc_variational_optimization._neg_elcbo
+
+    def _scalar_like(value):
+        arr = np.asarray(value)
+        if arr.ndim == 0:
+            return float(arr)
+        if arr.size == 1:
+            return float(arr.reshape(-1)[0])
+        return float(np.mean(arr))
+
+    def _neg_elcbo_with_scalar_diagnostics(*args, **kwargs):
+        result = _original_neg_elcbo(*args, **kwargs)
+        if not isinstance(result, tuple):
+            return result
+
+        result = list(result)
+        if len(result) == 11:
+            for idx in [0, 2, 3, 4, 6, 7, 8]:
+                result[idx] = _scalar_like(result[idx])
+        elif len(result) == 5:
+            for idx in [0, 2, 3, 4]:
+                result[idx] = _scalar_like(result[idx])
+        return tuple(result)
+
+    pyvbmc_variational_optimization._neg_elcbo = _neg_elcbo_with_scalar_diagnostics
+    pyvbmc_active_sample._neg_elcbo = _neg_elcbo_with_scalar_diagnostics
+    pyvbmc_variational_optimization._ddm_scalar_elcbo_patch = True
 
 
 # %%
@@ -83,9 +121,17 @@ DEFAULT_T_TRUNC = 0.3
 T_trunc = DEFAULT_T_TRUNC
 
 N_theory = int(1e3)
-N_sim = int(1e6)
+N_sim = int(float(os.environ.get('N_SIM_OVERRIDE', 1e6)))
 dt = 1e-3
-N_print = int(N_sim / 5)
+N_print = max(1, int(N_sim / 5))
+DIAGNOSTIC_N_JOBS = int(os.environ.get('DIAGNOSTIC_N_JOBS', 30))
+VBMC_FUN_EVAL_SCALE = int(os.environ.get('VBMC_FUN_EVAL_SCALE', 200))
+VBMC_MAX_FUN_EVALS_OVERRIDE = os.environ.get('VBMC_MAX_FUN_EVALS')
+FIT_RANDOM_SEED = os.environ.get('FIT_RANDOM_SEED')
+if FIT_RANDOM_SEED is not None:
+    FIT_RANDOM_SEED = int(FIT_RANDOM_SEED)
+    random.seed(FIT_RANDOM_SEED)
+    np.random.seed(FIT_RANDOM_SEED)
 
 
 # %%
@@ -144,6 +190,15 @@ def is_finished_alpha_result(pkl_path):
 
     if len(alpha_results['alpha_samples']) == 0:
         print(f"WARNING: Existing result pkl has no alpha samples; will rerun: {os.path.relpath(pkl_path, SCRIPT_DIR)}")
+        return False
+
+    vbmc_message = str(alpha_results.get('message', ''))
+    if 'stable' not in vbmc_message.lower():
+        short_message = vbmc_message.replace('\n', ' ')[:120] or 'missing VBMC message'
+        print(
+            f"WARNING: Existing result pkl is not a stable VBMC fit ({short_message}); "
+            f"will rerun: {os.path.relpath(pkl_path, SCRIPT_DIR)}"
+        )
         return False
 
     return True
@@ -707,7 +762,7 @@ def vbmc_norm_alpha_tied_joint_fn(params):
     priors = vbmc_prior_norm_alpha_tied_fn(params)
     loglike = vbmc_norm_alpha_tied_active_loglike_fn(params)
 
-    return priors + loglike
+    return float(priors + loglike)
 
 
 norm_tied_rate_lambda_bounds = [0.5, 5]
@@ -722,15 +777,15 @@ norm_tied_rate_norm_bounds = [0, 2]
 norm_tied_alpha_bounds = [0, 2]
 
 norm_tied_rate_lambda_plausible_bounds = [1, 3]
-norm_tied_T_0_plausible_bounds = [90e-3, 400e-3]
+norm_tied_T_0_plausible_bounds = [40e-3, 400e-3]
 norm_tied_theta_E_plausible_bounds = [1.5, 10]
 norm_tied_w_plausible_bounds = [0.4, 0.6]
 norm_tied_bias_ms_plausible_bounds = [50, 150]
-norm_tied_abs_ild_delay_coeff_ms_per_unit_plausible_bounds = [-1, -0.1]
+norm_tied_abs_ild_delay_coeff_ms_per_unit_plausible_bounds = [-1.8, 0.3]
 norm_tied_ild2_delay_coeff_ms_per_unit2_plausible_bounds = [-0.1, 0.05]
-norm_tied_del_go_plausible_bounds = [0.05, 0.15]
-norm_tied_rate_norm_plausible_bounds = [0.8, 0.99]
-norm_tied_alpha_plausible_bounds = [0.5, 1.5]
+norm_tied_del_go_plausible_bounds = [0.02, 0.199]
+norm_tied_rate_norm_plausible_bounds = [0.75, 1.05]
+norm_tied_alpha_plausible_bounds = [0.1, 1.8]
 
 norm_tied_shared_lb = np.array([
     norm_tied_rate_lambda_bounds[0],
@@ -876,6 +931,11 @@ print(f'Default Aborts Truncation Time: {DEFAULT_T_TRUNC}')
 print(f'Batch-specific Aborts Truncation Times: {BATCH_T_TRUNC}')
 print(f'Use vectorized likelihood: {USE_VECTORIZED_LIKELIHOOD}')
 print(f'Skip finished fits: {SKIP_FINISHED_FITS}')
+print(f'N_sim for diagnostics: {N_sim}')
+print(f'Diagnostic n_jobs: {DIAGNOSTIC_N_JOBS}')
+print(f'VBMC fun-eval scale: {VBMC_FUN_EVAL_SCALE}')
+print(f'VBMC max_fun_evals override: {VBMC_MAX_FUN_EVALS_OVERRIDE}')
+print(f'Fit random seed: {FIT_RANDOM_SEED}')
 print('####################################')
 
 print(f"Found {len(batch_animal_pairs)} batch-animal pairs from {len(set(p[0] for p in batch_animal_pairs))} batches:")
@@ -1059,6 +1119,7 @@ for batch_name, animal in batch_animal_pairs:
         'rate_norm_l_samples'
     ]
 
+    initialization_source = 'generic plausible defaults'
     if (
             norm_tied_keyname in fit_results_data and
             all(key in fit_results_data[norm_tied_keyname] for key in norm_tied_start_keys)):
@@ -1072,6 +1133,7 @@ for batch_name, animal in batch_animal_pairs:
             np.mean(norm_tied_samples['rate_norm_l_samples']),
             1.0
         ])
+        initialization_source = 'existing normalized TIED posterior mean'
         print("Initializing shared parameters from existing normalized TIED posterior mean.")
     else:
         shared_x_0 = np.array([
@@ -1092,10 +1154,19 @@ for batch_name, animal in batch_animal_pairs:
             -0.55,
             -0.025,
         ])
-    x_0 = np.concatenate([shared_x_0, np.array(delay_x_0, dtype=float)])
+    raw_x_0 = np.concatenate([shared_x_0, np.array(delay_x_0, dtype=float)])
+    x_0 = raw_x_0.copy()
 
     plausible_eps = 1e-6 * (norm_tied_pub - norm_tied_plb)
     x_0 = np.clip(x_0, norm_tied_plb + plausible_eps, norm_tied_pub - plausible_eps)
+    clipped_init = ~np.isclose(raw_x_0, x_0, rtol=0, atol=1e-10)
+    if np.any(clipped_init):
+        print("Initial parameters clipped to plausible bounds:")
+        for param_name, raw_value, clipped_value in zip(get_norm_alpha_abl_specific_param_names(delay_abl_levels), raw_x_0, x_0):
+            if not np.isclose(raw_value, clipped_value, rtol=0, atol=1e-10):
+                print(f"  {param_name}: {raw_value:.6g} -> {clipped_value:.6g}")
+    else:
+        print("Initial parameters were inside plausible bounds; no clipping applied.")
 
     print("Initial alpha-normalized parameters:")
     print(f"  rate_lambda = {x_0[0]:.5f}")
@@ -1114,6 +1185,13 @@ for batch_name, animal in batch_animal_pairs:
             f"ILD^2 coeff={x_0[start_idx + 2]:.5f} ms/unit^2"
         )
 
+    max_fun_evals = (
+        int(VBMC_MAX_FUN_EVALS_OVERRIDE)
+        if VBMC_MAX_FUN_EVALS_OVERRIDE is not None
+        else VBMC_FUN_EVAL_SCALE * (2 + len(x_0))
+    )
+    print(f"VBMC max_fun_evals for this animal: {max_fun_evals}")
+
     vbmc = VBMC(
         vbmc_norm_alpha_tied_joint_fn,
         x_0,
@@ -1121,7 +1199,7 @@ for batch_name, animal in batch_animal_pairs:
         norm_tied_ub,
         norm_tied_plb,
         norm_tied_pub,
-        options={'display': 'on', 'max_fun_evals': 200 * (2 + len(x_0))}
+        options={'display': 'on', 'max_fun_evals': max_fun_evals}
     )
     vp, results = vbmc.optimize()
     vbmc.save(
@@ -1306,6 +1384,85 @@ for batch_name, animal in batch_animal_pairs:
         'loglike': norm_alpha_tied_loglike
     }
 
+    save_dict = {
+        'vbmc_aborts_results': vbmc_aborts_results,
+        'vbmc_norm_alpha_abl_specific_ild2_delay_tied_results': vbmc_norm_alpha_abl_specific_ild2_delay_tied_results,
+        'fit_config': {
+            'batch_name': batch_name,
+            'animal': animal,
+            'likelihood_mode': 'choice_aware_alpha_normalized_abl_specific_ild2_delay',
+            'delay_rule_ms': 'bias_ms[ABL] + abs_ild_delay_coeff_ms_per_unit[ABL] * |ILD| + ild2_delay_coeff_ms_per_unit2[ABL] * ILD^2',
+            'negative_delay_rule': 'if delay_ms < 0 for any observed fit condition, return log(1e-50)',
+            'delay_return_units': 'seconds',
+            'parameter_order': get_norm_alpha_abl_specific_param_names(delay_abl_levels),
+            'delay_coefficient_bounds': {
+                'bias_ms': {
+                    'hard': norm_tied_bias_ms_bounds,
+                    'plausible': norm_tied_bias_ms_plausible_bounds,
+                },
+                'abs_ild_delay_coeff_ms_per_unit': {
+                    'hard': norm_tied_abs_ild_delay_coeff_ms_per_unit_bounds,
+                    'plausible': norm_tied_abs_ild_delay_coeff_ms_per_unit_plausible_bounds,
+                },
+                'ild2_delay_coeff_ms_per_unit2': {
+                    'hard': norm_tied_ild2_delay_coeff_ms_per_unit2_bounds,
+                    'plausible': norm_tied_ild2_delay_coeff_ms_per_unit2_plausible_bounds,
+                },
+            },
+            'shared_parameter_bounds': {
+                'rate_lambda': {
+                    'hard': norm_tied_rate_lambda_bounds,
+                    'plausible': norm_tied_rate_lambda_plausible_bounds,
+                },
+                'T_0': {
+                    'hard': norm_tied_T_0_bounds,
+                    'plausible': norm_tied_T_0_plausible_bounds,
+                },
+                'theta_E': {
+                    'hard': norm_tied_theta_E_bounds,
+                    'plausible': norm_tied_theta_E_plausible_bounds,
+                },
+                'w': {
+                    'hard': norm_tied_w_bounds,
+                    'plausible': norm_tied_w_plausible_bounds,
+                },
+                'del_go': {
+                    'hard': norm_tied_del_go_bounds,
+                    'plausible': norm_tied_del_go_plausible_bounds,
+                },
+                'rate_norm_l': {
+                    'hard': norm_tied_rate_norm_bounds,
+                    'plausible': norm_tied_rate_norm_plausible_bounds,
+                },
+                'alpha': {
+                    'hard': norm_tied_alpha_bounds,
+                    'plausible': norm_tied_alpha_plausible_bounds,
+                },
+            },
+            'delay_abl_levels': delay_abl_levels.tolist(),
+            'fit_abl_filter': f"valid RT<1 trials restricted to ABLs {HARD_CODED_DELAY_ABL_LEVELS.astype(int).tolist()}",
+            'n_excluded_non_fit_abl_valid_rt_lt_1': int(n_excluded_non_fit_abl),
+            'delay_condition_pairs_checked_for_nonnegative_delay': observed_delay_condition_pairs.tolist(),
+            'observed_delay_condition_pairs_used_for_fit': observed_delay_condition_pairs.tolist(),
+            'T_trunc': T_trunc,
+            'initialization_source': initialization_source,
+            'raw_initial_x0': raw_x_0.tolist(),
+            'initial_x0': x_0.tolist(),
+            'initial_x0_was_clipped': bool(np.any(clipped_init)),
+            'vbmc_max_fun_evals': int(max_fun_evals),
+            'vbmc_fun_eval_scale': int(VBMC_FUN_EVAL_SCALE),
+            'N_sim': int(N_sim),
+            'diagnostic_n_jobs': int(DIAGNOSTIC_N_JOBS),
+            'fit_random_seed': FIT_RANDOM_SEED,
+            'diagnostics_status': 'posterior_saved_before_diagnostics',
+        },
+        'posterior_mean_delay_ms_by_ABL_absILD': posterior_mean_delay_ms_by_ABL_absILD,
+    }
+
+    with open(pkl_filename, 'wb') as f:
+        pickle.dump(save_dict, f)
+    print(f"Saved posterior results before diagnostics to {pkl_filename}")
+
     # %%
     #######################################
     ##### alpha-normalized tied diagnostics
@@ -1322,7 +1479,7 @@ for batch_name, animal in batch_animal_pairs:
         df_valid_and_aborts, N_theory, t_pts, t_A_aff, V_A, theta_A, rho_A_t_fn
     )
 
-    sim_results = Parallel(n_jobs=30)(
+    sim_results = Parallel(n_jobs=DIAGNOSTIC_N_JOBS)(
         delayed(psiam_tied_data_gen_wrapper_rate_norm_alpha_fn)(
             V_A, theta_A, ABL_samples[iter_num], ILD_samples[iter_num],
             rate_lambda, T_0, theta_E, Z_E, t_A_aff,
@@ -1412,40 +1569,7 @@ for batch_name, animal in batch_animal_pairs:
 
     # %%
     print("\nGenerating model comparison tables...")
-    save_dict = {
-        'vbmc_aborts_results': vbmc_aborts_results,
-        'vbmc_norm_alpha_abl_specific_ild2_delay_tied_results': vbmc_norm_alpha_abl_specific_ild2_delay_tied_results,
-        'fit_config': {
-            'batch_name': batch_name,
-            'animal': animal,
-            'likelihood_mode': 'choice_aware_alpha_normalized_abl_specific_ild2_delay',
-            'delay_rule_ms': 'bias_ms[ABL] + abs_ild_delay_coeff_ms_per_unit[ABL] * |ILD| + ild2_delay_coeff_ms_per_unit2[ABL] * ILD^2',
-            'negative_delay_rule': 'if delay_ms < 0 for any observed fit condition, return log(1e-50)',
-            'delay_return_units': 'seconds',
-            'parameter_order': get_norm_alpha_abl_specific_param_names(delay_abl_levels),
-            'delay_coefficient_bounds': {
-                'bias_ms': {
-                    'hard': norm_tied_bias_ms_bounds,
-                    'plausible': norm_tied_bias_ms_plausible_bounds,
-                },
-                'abs_ild_delay_coeff_ms_per_unit': {
-                    'hard': norm_tied_abs_ild_delay_coeff_ms_per_unit_bounds,
-                    'plausible': norm_tied_abs_ild_delay_coeff_ms_per_unit_plausible_bounds,
-                },
-                'ild2_delay_coeff_ms_per_unit2': {
-                    'hard': norm_tied_ild2_delay_coeff_ms_per_unit2_bounds,
-                    'plausible': norm_tied_ild2_delay_coeff_ms_per_unit2_plausible_bounds,
-                },
-            },
-            'delay_abl_levels': delay_abl_levels.tolist(),
-            'fit_abl_filter': f"valid RT<1 trials restricted to ABLs {HARD_CODED_DELAY_ABL_LEVELS.astype(int).tolist()}",
-            'n_excluded_non_fit_abl_valid_rt_lt_1': int(n_excluded_non_fit_abl),
-            'delay_condition_pairs_checked_for_nonnegative_delay': observed_delay_condition_pairs.tolist(),
-            'observed_delay_condition_pairs_used_for_fit': observed_delay_condition_pairs.tolist(),
-            'T_trunc': T_trunc,
-        },
-        'posterior_mean_delay_ms_by_ABL_absILD': posterior_mean_delay_ms_by_ABL_absILD,
-    }
+    save_dict['fit_config']['diagnostics_status'] = 'diagnostics_complete'
 
     abort_df = create_abort_table(save_dict['vbmc_aborts_results'])
     if abort_df is not None:
