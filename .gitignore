@@ -11,6 +11,7 @@ fit_each_condn/each_cond_data/*
 *.pdf
 *.docx
 *.png
+!docs/assets/results/**/*.png
 *.mat
 *.aux
 *.log
@@ -23,4 +24,8 @@ fit_each_condn/each_cond_data/*
 codex_*.md
 .codex*.md.swp
 daily_notes_site/
+site/
+logs/mkdocs_result_book.*
+logs/result_book_drive_backup_*.log
+logs/result_book_drive_backup.lock/
 fit_each_condn/watcher_locks/

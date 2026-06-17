@@ -161,6 +161,52 @@ The script should:
 
 After creating the skill, validate it with the Codex skill validator if available.
 
+## Optional Google Drive Backup
+
+If the user has an `rclone` Google Drive remote and wants the result book protected from laptop loss, add a simple backup step after each result-doc update.
+
+Recommended behavior:
+
+1. Check configured remotes:
+
+```bash
+rclone listremotes
+```
+
+2. Prefer an existing Google Drive remote such as `raga:`.
+3. Back up with `rclone copy`, not `rclone sync`.
+4. Copy at least:
+
+```text
+docs/
+mkdocs.yml
+RESULT_BOOK_AGENT_SETUP.md
+FIT_BACKUP_LEDGER.md, if present
+scripts/backup_result_book_to_drive, if present
+~/.codex/skills/update-result-book/
+```
+
+5. Use a dated Drive folder, for example:
+
+```text
+raga:ddm_result_book_backups_YYYYMMDD_laptop-name/
+```
+
+6. Verify the remote backup:
+
+```bash
+rclone lsf -R --files-only raga:ddm_result_book_backups_YYYYMMDD_laptop-name/ | wc -l
+rclone size raga:ddm_result_book_backups_YYYYMMDD_laptop-name/
+```
+
+7. If the repo has a backup ledger, append the Drive path, local source paths, file counts, status, and log path.
+
+For unattended protection, create a cron-safe script like `scripts/backup_result_book_to_drive` and add a daily user crontab entry. A typical local-laptop schedule is:
+
+```cron
+30 2 * * * /usr/bin/bash /path/to/repo/scripts/backup_result_book_to_drive >/dev/null 2>&1
+```
+
 ## Important Details
 
 - Keep the setup simple. This is for exploratory research notes, not production documentation.

@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_DIR="/home/rlab/raghavendra/ddm_data"
+RCLONE="/home/rlab/bin/rclone"
+REMOTE="raga:"
+MACHINE_NAME="lavos"
+RUN_DATE="$(date +%Y%m%d)"
+RUN_STAMP="$(date +%Y%m%d_%H%M%S)"
+DEST_PARENT="${REMOTE}ddm_result_book_daily_backups_${MACHINE_NAME}/${RUN_DATE}"
+LOG_DIR="${REPO_DIR}/logs"
+LOG_PATH="${LOG_DIR}/result_book_drive_backup_${RUN_STAMP}.log"
+LOCK_DIR="${LOG_DIR}/result_book_drive_backup.lock"
+SKILL_DIR="/home/rlab/.codex/skills/update-result-book"
+
+mkdir -p "${LOG_DIR}"
+
+if ! mkdir "${LOCK_DIR}" 2>/dev/null; then
+    echo "$(date): result book backup already running; exiting."
+    exit 0
+fi
+trap 'rmdir "${LOCK_DIR}"' EXIT
+
+{
+    echo "Started: $(date)"
+    echo "Repository: ${REPO_DIR}"
+    echo "Destination: ${DEST_PARENT}"
+    echo
+
+    cd "${REPO_DIR}"
+
+    echo "Configured rclone remotes:"
+    "${RCLONE}" listremotes
+    echo
+
+    if ! "${RCLONE}" listremotes | grep -qx "raga:"; then
+        echo "Missing required rclone remote: raga:"
+        exit 1
+    fi
+
+    echo "Local source counts:"
+    if [[ -d docs ]]; then
+        echo "docs files: $(find docs -type f | wc -l)"
+        du -sh docs
+    else
+        echo "Missing docs/ directory"
+        exit 1
+    fi
+    [[ -f mkdocs.yml ]] && ls -lh mkdocs.yml
+    [[ -f RESULT_BOOK_AGENT_SETUP.md ]] && ls -lh RESULT_BOOK_AGENT_SETUP.md
+    [[ -f FIT_BACKUP_LEDGER.md ]] && ls -lh FIT_BACKUP_LEDGER.md
+    [[ -f scripts/backup_result_book_to_drive ]] && ls -lh scripts/backup_result_book_to_drive
+    if [[ -d "${SKILL_DIR}" ]]; then
+        echo "skill files: $(find "${SKILL_DIR}" -type f | wc -l)"
+        du -sh "${SKILL_DIR}"
+    fi
+    echo
+
+    "${RCLONE}" copy docs "${DEST_PARENT}/docs" \
+        --transfers 4 --checkers 8 --drive-chunk-size 64M --stats 30s --log-level INFO
+
+    "${RCLONE}" copyto mkdocs.yml "${DEST_PARENT}/config/mkdocs.yml" \
+        --drive-chunk-size 64M --log-level INFO
+
+    if [[ -f RESULT_BOOK_AGENT_SETUP.md ]]; then
+        "${RCLONE}" copyto RESULT_BOOK_AGENT_SETUP.md "${DEST_PARENT}/config/RESULT_BOOK_AGENT_SETUP.md" \
+            --drive-chunk-size 64M --log-level INFO
+    fi
+
+    if [[ -f FIT_BACKUP_LEDGER.md ]]; then
+        "${RCLONE}" copyto FIT_BACKUP_LEDGER.md "${DEST_PARENT}/config/FIT_BACKUP_LEDGER.md" \
+            --drive-chunk-size 64M --log-level INFO
+    fi
+
+    "${RCLONE}" copyto scripts/backup_result_book_to_drive "${DEST_PARENT}/config/backup_result_book_to_drive" \
+        --drive-chunk-size 64M --log-level INFO
+
+    if [[ -d "${SKILL_DIR}" ]]; then
+        "${RCLONE}" copy "${SKILL_DIR}" "${DEST_PARENT}/codex_skills/update-result-book" \
+            --transfers 4 --checkers 8 --drive-chunk-size 64M --stats 30s --log-level INFO
+    fi
+
+    echo
+    echo "Remote file count:"
+    "${RCLONE}" lsf -R --files-only "${DEST_PARENT}" | wc -l
+    echo "Remote size:"
+    "${RCLONE}" size "${DEST_PARENT}"
+    echo "Finished: $(date)"
+} 2>&1 | tee -a "${LOG_PATH}"

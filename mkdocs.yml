@@ -1,0 +1,20 @@
+site_name: DDM Data Result Book
+site_description: Date-wise research result notes and generated figures for ddm_data.
+docs_dir: docs
+site_dir: site
+dev_addr: 0.0.0.0:8000
+
+theme:
+  name: readthedocs
+
+nav:
+  - Home: index.md
+  - Results:
+      - Overview: results/index.md
+      - "2026-06-16": results/2026-06-16.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - tables
+  - fenced_code
