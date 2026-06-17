@@ -18,8 +18,9 @@ Condition delay cache:
 
 | Machine | Remote folder | Batches | Animals | Count | Status |
 |---|---|---:|---|---:|---|
-| lavos | `/home/rlab/raghavendra/ddm_data` | `LED34`, `LED6`, `LED7` | `LED34: 45,57,59,61,63`; `LED6: 81,82,84,86`; `LED7: 92,93,98,99,100,103` | 15 | Assigned; use command below unless already running |
-| ganon | `/home/rlab/raghavendra/npl_alpha_condition_t_E_aff_fixed_delay` | `LED34_even`, `LED8`, `SD` | `LED34_even: 48,52,56,60`; `LED8: 105,107,108,109,112`; `SD: 48,49,50,52,53,55` | 15 | Files transferred and dry-run validated; not started by Codex |
+| lavos | `/home/rlab/raghavendra/ddm_data` | `LED34`, `LED6`, `LED7` | `LED34: 45,57,59,61,63`; `LED6: 81,82,84,86`; `LED7: 92,93,98,99,100,103` | 15 | Stopped after 3 stable: `LED34/45`, `LED34/57`, `LED34/59` |
+| ganon | `/home/rlab/raghavendra/npl_alpha_condition_t_E_aff_fixed_delay` | `LED34_even`, `LED8`, `SD` | `LED34_even: 48,52,56,60`; `LED8: 105,107,108,109,112`; `SD: 48,49,50,52,53,55` | 15 | Complete; all 15 stable as of 2026-06-17 |
+| ganon | `/home/rlab/raghavendra/npl_alpha_condition_t_E_aff_fixed_delay` | remaining from lavos assignment: `LED34`, `LED6`, `LED7` | `LED34: 61,63`; `LED6: 81,82,84,86`; `LED7: 92,93,98,99,100,103` | 12 | Running in tmux session `npl_alpha_fixed_delay_lavos_remaining` as of 2026-06-17 17:33 |
 
 ## Output Folders
 
@@ -55,6 +56,18 @@ RUN_DIAGNOSTICS_AFTER_FIT=0 \
 2>&1 | tee logs/fixed_condition_delay_ganon_LED34even_LED8_SD_$(date +%Y%m%d_%H%M%S).log
 ```
 
+ganon, remaining animals moved from lavos:
+
+```bash
+cd /home/rlab/raghavendra/npl_alpha_condition_t_E_aff_fixed_delay
+DESIRED_BATCHES_OVERRIDE=LED34,LED6,LED7 \
+TEST_BATCH_ANIMAL_PAIRS=LED34:61,LED34:63,LED6:81,LED6:82,LED6:84,LED6:86,LED7:92,LED7:93,LED7:98,LED7:99,LED7:100,LED7:103 \
+SKIP_FINISHED_FITS=1 \
+RUN_DIAGNOSTICS_AFTER_FIT=0 \
+.venv/bin/python -u fit_animal_by_animal/animal_wise_norm_alpha_tied_fit_from_abort_params_condition_t_E_aff_fixed_delay.py \
+2>&1 | tee logs/fixed_condition_delay_ganon_lavos_remaining_$(date +%Y%m%d_%H%M%S).log
+```
+
 ## Validation Notes
 
 ganon transfer validation on 2026-06-17:
@@ -69,8 +82,40 @@ ganon transfer validation on 2026-06-17:
 ## Collection Checklist
 
 - [ ] Confirm lavos run started.
-- [ ] Confirm ganon run started.
+- [x] Confirm ganon run started.
 - [ ] Collect lavos result PKLs/PDFs/logs.
-- [ ] Collect ganon result PKLs/PDFs/logs.
+- [ ] Collect ganon result PKLs/PDFs/logs. Ganon fit complete; result folder currently 1.2G.
+- [ ] Collect ganon remaining-lavos result PKLs/PDFs/logs after `npl_alpha_fixed_delay_lavos_remaining` completes.
 - [ ] Merge all 30 animals into the local result folder or a consolidation folder.
 - [ ] Record any failed or unstable VBMC fits before rerunning.
+
+## Progress Snapshots
+
+2026-06-17 16:20 ganon:
+
+- Stable completed: `LED34_even/48`, `LED34_even/52`, `LED34_even/56`, `LED34_even/60`, `LED8/105`, `LED8/107`, `LED8/108`, `LED8/109`, `LED8/112`, `SD/48`, `SD/49`, `SD/50`.
+- Current log shows active fit at `SD/52`.
+- Remaining after current fit: `SD/53`, `SD/55`.
+
+2026-06-17 ganon completion check:
+
+- Result PKLs: 15/15.
+- Non-empty PDFs: 15/15.
+- Stable completed: all ganon animals.
+- Unstable/missing fits: none.
+- No fixed-delay fit Python process running after completion.
+- Result folder size: 1.2G.
+
+2026-06-17 lavos partial run:
+
+- Stable completed on lavos: `LED34/45`, `LED34/57`, `LED34/59`.
+- Missing/stopped before stable result PKL: `LED34/61`, `LED34/63`, `LED6/81`, `LED6/82`, `LED6/84`, `LED6/86`, `LED7/92`, `LED7/93`, `LED7/98`, `LED7/99`, `LED7/100`, `LED7/103`.
+- `LED34/61` had only a small partial PDF on lavos and no stable result PKL.
+
+2026-06-17 ganon remaining-lavos transfer/run:
+
+- Transferred batch CSVs for `LED34`, `LED6`, and `LED7`.
+- Transferred abort-source PKLs for the 12 missing/stopped animals.
+- Dry-run with `TEST_BATCH_ANIMAL_PAIRS=LED34:61,LED34:63,LED6:81,LED6:82,LED6:84,LED6:86,LED7:92,LED7:93,LED7:98,LED7:99,LED7:100,LED7:103` found 12 animals and 360 observed fit conditions.
+- Started tmux session `npl_alpha_fixed_delay_lavos_remaining`.
+- Log: `/home/rlab/raghavendra/npl_alpha_condition_t_E_aff_fixed_delay/logs/fixed_condition_delay_ganon_lavos_remaining_20260617_173341.log`.
