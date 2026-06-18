@@ -1,6 +1,6 @@
 # Fit Backup Ledger
 
-Last updated: 2026-06-16 16:58 WEST
+Last updated: 2026-06-18 00:41 WEST
 
 ## Current Fit Campaign
 
@@ -93,6 +93,9 @@ Consolidated validation:
 
 rclone remote:
 - `raga:`
+
+Central Drive ledger:
+- `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`
 
 ### ganon backup started 2026-06-04
 
@@ -313,3 +316,52 @@ The daily backup includes:
 - `FIT_BACKUP_LEDGER.md`.
 - `scripts/backup_result_book_to_drive`.
 - Codex `update-result-book` skill folder.
+
+### all-30 fixed condition t_E_aff backup completed 2026-06-18
+
+Fit family:
+- NPL + alpha animal-wise refit with condition-by-condition `t_E_aff` fixed from the condition cache.
+- Fitted parameters: `rate_lambda`, `T_0`, `theta_E`, `w`, `del_go`, `rate_norm_l`, `alpha`.
+
+Source machines:
+- lavos supplied 3 stable fits: `LED34/45`, `LED34/57`, `LED34/59`.
+- ganon supplied 27 stable fits:
+  - original ganon split: `LED34_even/48`, `LED34_even/52`, `LED34_even/56`, `LED34_even/60`, `LED8/105`, `LED8/107`, `LED8/108`, `LED8/109`, `LED8/112`, `SD/48`, `SD/49`, `SD/50`, `SD/52`, `SD/53`, `SD/55`
+  - lavos remaining animals moved to ganon: `LED34/61`, `LED34/63`, `LED6/81`, `LED6/82`, `LED6/84`, `LED6/86`, `LED7/92`, `LED7/93`, `LED7/98`, `LED7/99`, `LED7/100`, `LED7/103`
+
+Canonical local lavos folder:
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/NPL_alpha_condition_t_E_aff_fixed_delay_fit_results_all_30/`
+
+Drive parent folder:
+- `raga:ddm_fit_backups_20260618_fixed_condition_t_E_aff_all30_lavos/`
+
+Drive subfolders:
+- `raga:ddm_fit_backups_20260618_fixed_condition_t_E_aff_all30_lavos/NPL_alpha_condition_t_E_aff_fixed_delay_fit_results_all_30/`
+- `raga:ddm_fit_backups_20260618_fixed_condition_t_E_aff_all30_lavos/config/`
+
+Upload command wrapper:
+- `/home/rlab/raghavendra/ddm_data/scripts/backup_fixed_condition_teaff_all30_to_drive_20260618.sh`
+
+Upload tmux session:
+- `gdrive_fixed_teaff_all30_backup_20260618_003958`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_fixed_teaff_all30_backup_20260618_003958.log`
+
+Expected local counts:
+- Result pickles: 30
+- Non-empty result PDFs: 30
+- VBMC posterior files: 30
+- Fit logs: 3
+- Consolidation summary: 1
+- Total files in consolidated result folder: 94
+
+Status:
+- Local convergence check: 30/30 stable, 0 missing, 0 unstable.
+- Local consolidated folder size: 2.3G.
+- Google Drive upload completed on 2026-06-18 00:41 WEST.
+- Observed remote result files: 94.
+- Observed remote config files: 3 (`FIT_BACKUP_LEDGER.md`, `DISTRIBUTED_FIXED_DELAY_FIT_LEDGER.md`, `backup_fixed_condition_teaff_all30_to_drive_20260618.sh`).
+- Observed remote total: 97 objects, 2.238 GiB.
+- A central Drive copy of this ledger was created/updated at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.

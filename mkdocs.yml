@@ -13,6 +13,7 @@ nav:
       - Overview: results/index.md
       - "2026-06-16": results/2026-06-16.md
 
+      - "2026-06-18": results/2026-06-18.md
 markdown_extensions:
   - toc:
       permalink: true
