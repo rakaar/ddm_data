@@ -1,6 +1,6 @@
 # Fit Backup Ledger
 
-Last updated: 2026-06-18 00:41 WEST
+Last updated: 2026-06-24 16:55 WEST
 
 ## Current Fit Campaign
 
@@ -364,4 +364,50 @@ Status:
 - Observed remote config files: 3 (`FIT_BACKUP_LEDGER.md`, `DISTRIBUTED_FIXED_DELAY_FIT_LEDGER.md`, `backup_fixed_condition_teaff_all30_to_drive_20260618.sh`).
 - Observed remote total: 97 objects, 2.238 GiB.
 - A central Drive copy of this ledger was created/updated at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### NumPyro SVI condition-delay backup completed 2026-06-24
+
+Fit family:
+- NumPyro SVI NPL + alpha model with shared animal-wise parameters and per-condition `t_E_aff`.
+- Main completed guide label: `main_fullrank`.
+- Repository commit containing scripts/result-book entries: `024894f`.
+
+Source machine:
+- lavos.
+
+Local source paths:
+- Per-animal SVI outputs: `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/numpyro_svi_npl_alpha_condition_delay_single_animal_outputs/`
+- All-animal SVI diagnostics: `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/numpyro_svi_npl_alpha_condition_delay_all_animals_diagnostics/`
+- Fixed-condition `t_E_aff` versus ABL-specific ILD2 parameter comparison outputs: `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/fixed_condition_t_E_aff_vs_abl_specific_ild2_param_comparison/`
+
+Drive parent folder:
+- `raga:ddm_fit_backups_20260624_numpyro_svi_condition_delay_lavos/`
+
+Drive subfolders:
+- `raga:ddm_fit_backups_20260624_numpyro_svi_condition_delay_lavos/numpyro_svi_npl_alpha_condition_delay_single_animal_outputs/`
+- `raga:ddm_fit_backups_20260624_numpyro_svi_condition_delay_lavos/numpyro_svi_npl_alpha_condition_delay_all_animals_diagnostics/`
+- `raga:ddm_fit_backups_20260624_numpyro_svi_condition_delay_lavos/fixed_condition_t_E_aff_vs_abl_specific_ild2_param_comparison/`
+- `raga:ddm_fit_backups_20260624_numpyro_svi_condition_delay_lavos/config/`
+
+Upload tmux session:
+- `gdrive_numpyro_svi_backup_20260624_164544`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_numpyro_svi_backup_20260624_164544.log`
+
+Expected local counts and sizes:
+- Per-animal SVI outputs: 505 files, 439M.
+- All-animal SVI diagnostics: 7 files, 27M.
+- Parameter comparison outputs: 7 files, 1.6M.
+
+Status:
+- Google Drive upload completed on 2026-06-24 16:51 WEST.
+- Observed remote per-animal SVI output files: 505.
+- Observed remote all-animal diagnostic files: 7.
+- Observed remote parameter-comparison output files: 7.
+- Observed remote total before config ledger copy: 519 objects, 465.334 MiB.
+- Readable config copies: `config/gdrive_numpyro_svi_backup_20260624_164544.log` and `config/FIT_BACKUP_LEDGER_20260624.md`.
+- Observed remote total after config copies: 522 objects, 465.695 MiB.
+- A central Drive copy of this ledger was updated at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
