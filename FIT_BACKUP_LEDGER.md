@@ -411,3 +411,51 @@ Status:
 - Observed remote total after config copies: 522 objects, 465.695 MiB.
 - A central Drive copy of this ledger was updated at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### Condition-by-condition Gamma/Omega SVI backup completed 2026-06-25
+
+Fit family:
+- NumPyro SVI condition-by-condition Gamma/Omega fits with `w`, `del_go`, and each condition's `t_E_aff` fixed from the matching animal-wise NPL+alpha condition-delay SVI posterior means.
+- Includes the original all-observed run, selected extra-step reruns, and the consolidated `all_observed_with_30k_reruns` result folder used for the Gamma/Omega comparison figures.
+
+Source machine:
+- lavos.
+
+Local source paths:
+- Condition SVI outputs: `/home/rlab/raghavendra/ddm_data/fit_each_condn/svi_gamma_omega_fixed_from_animal_svi_condition_delay_results/`
+- Gamma/Omega and likelihood comparison outputs: `/home/rlab/raghavendra/ddm_data/fit_each_condn/svi_condition_gamma_omega_vs_npl_alpha_svi_comparison/`
+
+Drive parent folder:
+- `raga:ddm_fit_backups_20260625_cond_svi_gamma_omega_fixed_from_animal_svi_lavos/`
+
+Drive subfolders:
+- `raga:ddm_fit_backups_20260625_cond_svi_gamma_omega_fixed_from_animal_svi_lavos/svi_gamma_omega_fixed_from_animal_svi_condition_delay_results/`
+- `raga:ddm_fit_backups_20260625_cond_svi_gamma_omega_fixed_from_animal_svi_lavos/svi_condition_gamma_omega_vs_npl_alpha_svi_comparison/`
+- `raga:ddm_fit_backups_20260625_cond_svi_gamma_omega_fixed_from_animal_svi_lavos/config/`
+
+Upload command wrapper:
+- `/home/rlab/raghavendra/ddm_data/scripts/backup_cond_svi_gamma_omega_to_drive_20260625.sh`
+
+Upload tmux session:
+- `gdrive_cond_svi_backup_20260625_171806`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_cond_svi_backup_20260625_171806.log`
+
+Expected local counts and sizes:
+- Condition SVI outputs: 451 files, 661M.
+  - `all_observed`: 184 files, 317M.
+  - `all_observed_with_30k_reruns`: 186 files, 324M.
+  - `custom_conditions`: 10 files, 2.2M.
+  - `nonstable_extra_steps_30k`: 71 files, 18M.
+- Gamma/Omega and likelihood comparison outputs: 22 files, 3.1M.
+
+Status:
+- Google Drive upload completed on 2026-06-25 17:22 WEST.
+- Observed remote condition SVI files: 451.
+- Observed remote comparison output files: 22.
+- Observed remote config files after final ledger/log refresh: 10.
+- Observed remote total after final ledger/log refresh: 483 objects, 662.736 MiB.
+- The 2026-06-24 NPL SVI backup was rechecked on 2026-06-25 before this upload: 505 per-animal SVI files and 522 total objects were present at `raga:ddm_fit_backups_20260624_numpyro_svi_condition_delay_lavos/`.
+- A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
