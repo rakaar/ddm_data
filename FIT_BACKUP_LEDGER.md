@@ -459,3 +459,45 @@ Status:
 - The 2026-06-24 NPL SVI backup was rechecked on 2026-06-25 before this upload: 505 per-animal SVI files and 522 total objects were present at `raga:ddm_fit_backups_20260624_numpyro_svi_condition_delay_lavos/`.
 - A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### Big Gamma/Omega/delay SVI backup completed 2026-06-26
+
+Fit family:
+- NumPyro SVI direct Gamma/Omega model with condition-wise `gamma`, `omega`, and `t_E_aff`, plus global `w` and `del_go`.
+- Includes the completed all-30-animal run, the LED8/105 single-animal smoke fit, all-animal condition-parameter summaries, and the per-animal MSE alpha-model comparison outputs derived from the big SVI condition means.
+
+Source machine:
+- lavos.
+
+Local source paths:
+- All-animal big SVI outputs: `/home/rlab/raghavendra/ddm_data/fit_each_condn/svi_big_gamma_omega_delay_all_animals_outputs/`
+- Single-animal smoke outputs: `/home/rlab/raghavendra/ddm_data/fit_each_condn/svi_big_gamma_omega_delay_single_animal_outputs/`
+
+Drive parent folder:
+- `raga:ddm_fit_backups_20260626_big_gamma_omega_delay_svi_lavos/`
+
+Drive subfolders:
+- `raga:ddm_fit_backups_20260626_big_gamma_omega_delay_svi_lavos/svi_big_gamma_omega_delay_all_animals_outputs/`
+- `raga:ddm_fit_backups_20260626_big_gamma_omega_delay_svi_lavos/svi_big_gamma_omega_delay_single_animal_outputs/`
+- `raga:ddm_fit_backups_20260626_big_gamma_omega_delay_svi_lavos/config/`
+
+Upload tmux session:
+- `gdrive_big_gamma_omega_delay_svi_backup_20260626_122514`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_big_gamma_omega_delay_svi_backup_20260626_122514.log`
+
+Expected local counts and sizes:
+- All-animal big SVI outputs: 323 files, 430M.
+- Single-animal smoke outputs: 9 files, 7.6M.
+
+Status:
+- Google Drive upload completed on 2026-06-26 12:28 WEST.
+- Observed remote all-animal big SVI output files: 323.
+- Observed remote single-animal smoke output files: 9.
+- Observed remote total before config ledger/log copies: 332 objects, 436.283 MiB.
+- Observed remote config files after ledger/log copy: 2.
+- Observed remote total after config ledger/log copies: 334 objects, 436.514 MiB.
+- Readable config copies: `config/gdrive_big_gamma_omega_delay_svi_backup_20260626_122514.log` and `config/FIT_BACKUP_LEDGER_20260626.md`.
+- A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
