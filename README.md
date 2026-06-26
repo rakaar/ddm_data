@@ -7,6 +7,8 @@
 - `schematics_for_fct.py`: Generates schematic plots for the proactive LED model including RT wrt LED theory/data comparisons, drift switch visualizations, corner plots, and RTD wrt fixation plots. Includes `save_plot_payload()` calls for data persistence and comprehensive plot metadata storage.
 - `fct_march_5_panel_v2.py`: Panel plotting script for FCT analysis created on March 5th, version 2.
 - `fct_panel_march_26.py`: Panel plotting script for FCT analysis created on March 26th.
+- `juan_ddm_math.py`: JAX/NumPyro analytical two-bound DDM likelihood helpers for the simple 2AFC teaching fit.
+- `juan_fit_teaching_2afc_ddm.py`: Small teaching SVI script for fitting a standard two-bound DDM to 2AFC workshop data, using `juan_ddm_math.py`.
 
 ## Root Level Docs
 

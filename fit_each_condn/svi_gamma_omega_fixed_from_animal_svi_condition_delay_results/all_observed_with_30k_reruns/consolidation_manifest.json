@@ -1,0 +1,21 @@
+{
+  "base_label": "all_observed",
+  "rerun_labels": [
+    "nonstable_extra_steps_30k"
+  ],
+  "consolidated_label": "all_observed_with_30k_reruns",
+  "base_dir": "/home/rlab/raghavendra/ddm_data/fit_each_condn/svi_gamma_omega_fixed_from_animal_svi_condition_delay_results/all_observed",
+  "rerun_dirs": [
+    "/home/rlab/raghavendra/ddm_data/fit_each_condn/svi_gamma_omega_fixed_from_animal_svi_condition_delay_results/nonstable_extra_steps_30k"
+  ],
+  "consolidated_dir": "/home/rlab/raghavendra/ddm_data/fit_each_condn/svi_gamma_omega_fixed_from_animal_svi_condition_delay_results/all_observed_with_30k_reruns",
+  "n_animals": 30,
+  "n_conditions": 864,
+  "n_replaced_conditions": 20,
+  "stop_reason_counts": {
+    "max_steps": 7,
+    "no_improve_20_windows": 1,
+    "stable_3_windows": 856
+  },
+  "script": "/home/rlab/raghavendra/ddm_data/fit_each_condn/consolidate_svi_gamma_omega_fixed_from_animal_svi_reruns.py"
+}
