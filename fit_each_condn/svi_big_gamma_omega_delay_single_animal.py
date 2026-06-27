@@ -40,6 +40,8 @@ OPTIMIZER_KIND = os.environ.get("NUMPYRO_BIG_GAMMA_OMEGA_DELAY_OPTIMIZER", "clip
 CLIP_NORM = float(os.environ.get("NUMPYRO_BIG_GAMMA_OMEGA_DELAY_CLIP_NORM", "2.0"))
 SVI_STEPS = int(os.environ.get("NUMPYRO_BIG_GAMMA_OMEGA_DELAY_STEPS", "5000"))
 SVI_CHECK_EVERY = int(os.environ.get("NUMPYRO_BIG_GAMMA_OMEGA_DELAY_CHECK_EVERY", "500"))
+SVI_STOP_MODE = os.environ.get("NUMPYRO_BIG_GAMMA_OMEGA_DELAY_STOP_MODE", "legacy").strip().lower()
+SVI_MIN_STEPS = int(os.environ.get("NUMPYRO_BIG_GAMMA_OMEGA_DELAY_MIN_STEPS", "0"))
 SVI_EARLY_STOP = os.environ.get("NUMPYRO_BIG_GAMMA_OMEGA_DELAY_EARLY_STOP", "1").strip().lower() in {
     "1",
     "true",
@@ -56,6 +58,12 @@ SVI_STABLE_UPDATE = os.environ.get("NUMPYRO_BIG_GAMMA_OMEGA_DELAY_STABLE_UPDATE"
     "true",
     "yes",
 }
+if SVI_STOP_MODE not in {"legacy", "stable_or_no_improve", "patience_restore_best"}:
+    raise ValueError(
+        "NUMPYRO_BIG_GAMMA_OMEGA_DELAY_STOP_MODE must be one of "
+        "'legacy', 'stable_or_no_improve', or 'patience_restore_best', "
+        f"got {SVI_STOP_MODE!r}."
+    )
 POSTERIOR_N_SAMPLES = int(os.environ.get("NUMPYRO_BIG_GAMMA_OMEGA_DELAY_POSTERIOR_N_SAMPLES", "2000"))
 RNG_SEED = int(os.environ.get("NUMPYRO_BIG_GAMMA_OMEGA_DELAY_SEED", "0"))
 K_MAX = int(os.environ.get("NUMPYRO_BIG_GAMMA_OMEGA_DELAY_K_MAX", "10"))
@@ -304,6 +312,10 @@ def run_svi_with_convergence_checks(svi, rng_key, n_steps, data, n_conditions, r
         f"\nRunning {run_label} for up to {n_steps} steps "
         f"with checks every {SVI_CHECK_EVERY} steps..."
     )
+    print(
+        f"Stopping mode: {SVI_STOP_MODE}; min_steps={SVI_MIN_STEPS}; "
+        f"stable_patience={SVI_PATIENCE_WINDOWS}; no_improve_patience={SVI_NO_IMPROVE_PATIENCE_WINDOWS}"
+    )
     while completed_steps < n_steps:
         chunk_index = len(convergence_rows) + 1
         chunk_steps = min(SVI_CHECK_EVERY, n_steps - completed_steps)
@@ -388,6 +400,8 @@ def run_svi_with_convergence_checks(svi, rng_key, n_steps, data, n_conditions, r
         else:
             stable_window_count = 0
 
+        can_stop_for_patience = completed_steps >= SVI_MIN_STEPS
+
         convergence_rows.append(
             {
                 "chunk": chunk_index,
@@ -411,6 +425,7 @@ def run_svi_with_convergence_checks(svi, rng_key, n_steps, data, n_conditions, r
                 "significant_best_improvement": bool(significant_improvement and n_nonfinite == 0),
                 "slope_per_1000_steps": slope_per_1000,
                 "stable_window_count": stable_window_count,
+                "can_stop_for_patience": can_stop_for_patience,
                 "n_nonfinite": n_nonfinite,
             }
         )
@@ -428,7 +443,7 @@ def run_svi_with_convergence_checks(svi, rng_key, n_steps, data, n_conditions, r
             f"rel_change={rel_text}, best_delta={best_rel_text}, "
             f"slope/1k={slope_text}, stable={stable_window_count}/{SVI_PATIENCE_WINDOWS}, "
             f"no_improve={no_improve_window_count}/{SVI_NO_IMPROVE_PATIENCE_WINDOWS}, "
-            f"best_chunk={best_window_chunk}, nonfinite={n_nonfinite}"
+            f"best_chunk={best_window_chunk}, can_stop={can_stop_for_patience}, nonfinite={n_nonfinite}"
         )
 
         if n_nonfinite:
@@ -438,12 +453,20 @@ def run_svi_with_convergence_checks(svi, rng_key, n_steps, data, n_conditions, r
                 f"Returning best state from chunk {best_window_chunk}."
             )
             break
-        if SVI_EARLY_STOP and stable_window_count >= SVI_PATIENCE_WINDOWS:
+
+        if not SVI_EARLY_STOP or not can_stop_for_patience:
+            prev_window_mean = window_mean
+            continue
+
+        if SVI_STOP_MODE in {"legacy", "stable_or_no_improve"} and stable_window_count >= SVI_PATIENCE_WINDOWS:
             stop_reason = f"stable_{SVI_PATIENCE_WINDOWS}_windows"
             print(f"Stopping {run_label} early at step {completed_steps}: stable windows reached.")
             break
-        if SVI_EARLY_STOP and no_improve_window_count >= SVI_NO_IMPROVE_PATIENCE_WINDOWS:
-            stop_reason = f"no_improve_{SVI_NO_IMPROVE_PATIENCE_WINDOWS}_windows"
+        if no_improve_window_count >= SVI_NO_IMPROVE_PATIENCE_WINDOWS:
+            if SVI_STOP_MODE == "patience_restore_best":
+                stop_reason = f"patience_restore_best_{SVI_NO_IMPROVE_PATIENCE_WINDOWS}_windows"
+            else:
+                stop_reason = f"no_improve_{SVI_NO_IMPROVE_PATIENCE_WINDOWS}_windows"
             print(
                 f"Stopping {run_label} early at step {completed_steps}: no best-window improvement. "
                 f"Returning best state from chunk {best_window_chunk}."
@@ -729,7 +752,9 @@ print(f"  init w={w_init:.6f}, del_go={1e3 * del_go_init:.3f} ms")
 print(f"  gamma/omega init sources:\n{condition_table['gamma_omega_init_source'].value_counts().to_string()}")
 print(
     f"  SVI config: guide={GUIDE_KIND}, lr={LEARNING_RATE:g}, clip_norm={CLIP_NORM:g}, "
-    f"steps={SVI_STEPS}, check_every={SVI_CHECK_EVERY}, posterior_samples={POSTERIOR_N_SAMPLES}"
+    f"steps={SVI_STEPS}, check_every={SVI_CHECK_EVERY}, stop_mode={SVI_STOP_MODE}, "
+    f"min_steps={SVI_MIN_STEPS}, no_improve_patience={SVI_NO_IMPROVE_PATIENCE_WINDOWS}, "
+    f"posterior_samples={POSTERIOR_N_SAMPLES}"
 )
 
 
@@ -901,6 +926,13 @@ bundle = {
         "CLIP_NORM": CLIP_NORM,
         "SVI_STEPS": SVI_STEPS,
         "SVI_CHECK_EVERY": SVI_CHECK_EVERY,
+        "SVI_STOP_MODE": SVI_STOP_MODE,
+        "SVI_MIN_STEPS": SVI_MIN_STEPS,
+        "SVI_EARLY_STOP": SVI_EARLY_STOP,
+        "SVI_REL_TOL": SVI_REL_TOL,
+        "SVI_PATIENCE_WINDOWS": SVI_PATIENCE_WINDOWS,
+        "SVI_MIN_IMPROVEMENT_REL": SVI_MIN_IMPROVEMENT_REL,
+        "SVI_NO_IMPROVE_PATIENCE_WINDOWS": SVI_NO_IMPROVE_PATIENCE_WINDOWS,
         "POSTERIOR_N_SAMPLES": POSTERIOR_N_SAMPLES,
         "K_MAX": K_MAX,
         "latent_dim": latent_dim,

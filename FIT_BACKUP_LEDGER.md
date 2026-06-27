@@ -1,6 +1,6 @@
 # Fit Backup Ledger
 
-Last updated: 2026-06-24 16:55 WEST
+Last updated: 2026-06-27 16:42 WEST
 
 ## Current Fit Campaign
 
@@ -499,5 +499,45 @@ Status:
 - Observed remote config files after ledger/log copy: 2.
 - Observed remote total after config ledger/log copies: 334 objects, 436.514 MiB.
 - Readable config copies: `config/gdrive_big_gamma_omega_delay_svi_backup_20260626_122514.log` and `config/FIT_BACKUP_LEDGER_20260626.md`.
+- A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### Big Gamma/Omega/delay SVI patience12 backup completed 2026-06-27
+
+Fit family:
+- NumPyro SVI direct Gamma/Omega model with condition-wise `gamma`, `omega`, and `t_E_aff`, plus global `w` and `del_go`.
+- Includes the all-30-animal patience12 restore-best rerun and the six-animal 50k convergence-audit outputs used to choose/check the stopping rule.
+
+Source machine:
+- lavos.
+
+Local source paths:
+- Patience12 all-animal big SVI outputs: `/home/rlab/raghavendra/ddm_data/fit_each_condn/svi_big_gamma_omega_delay_patience12_restore_best_all_animals_outputs/`
+- Convergence-audit outputs: `/home/rlab/raghavendra/ddm_data/fit_each_condn/svi_big_gamma_omega_delay_convergence_audit_outputs/`
+
+Drive parent folder:
+- `raga:ddm_fit_backups_20260627_big_gamma_omega_delay_patience12_lavos/`
+
+Drive subfolders:
+- `raga:ddm_fit_backups_20260627_big_gamma_omega_delay_patience12_lavos/svi_big_gamma_omega_delay_patience12_restore_best_all_animals_outputs/`
+- `raga:ddm_fit_backups_20260627_big_gamma_omega_delay_patience12_lavos/svi_big_gamma_omega_delay_convergence_audit_outputs/`
+- `raga:ddm_fit_backups_20260627_big_gamma_omega_delay_patience12_lavos/config/`
+
+Upload tmux session:
+- `gdrive_big_gamma_patience12_backup_20260627_163700`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_big_gamma_patience12_backup_20260627_163700.log`
+
+Expected local counts and sizes:
+- Patience12 all-animal big SVI outputs: 310 files, 479M.
+- Convergence-audit outputs: 78 files, 97M.
+
+Status:
+- Google Drive upload completed on 2026-06-27 16:40 WEST.
+- Observed remote patience12 all-animal output files: 310.
+- Observed remote convergence-audit output files: 78.
+- Observed remote total before config ledger/log copies: 388 objects, 573.549 MiB.
+- Readable config copies: `config/gdrive_big_gamma_patience12_backup_20260627_163700.log` and `config/FIT_BACKUP_LEDGER_20260627.md`.
 - A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
