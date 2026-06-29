@@ -81,6 +81,14 @@ OUTPUT_PKL = OUTPUT_DIR / os.environ.get(
     "MSE_FIG4_PKL_BASENAME",
     "patience12_mse_npl_params_fig4_psychometric_slopes_quantiles.pkl",
 )
+PAPER_QUANTILE_COMPARE_PNG = OUTPUT_DIR / os.environ.get(
+    "MSE_FIG4_PAPER_QUANTILE_COMPARE_BASENAME",
+    "patience12_mse_npl_params_fig4_paper_quantiles_sd_flat_compare.png",
+)
+PAPER_QUANTILE_COMPARE_PKL = OUTPUT_DIR / os.environ.get(
+    "MSE_FIG4_PAPER_QUANTILE_COMPARE_PKL_BASENAME",
+    "patience12_mse_npl_params_fig4_paper_quantiles_sd_flat_compare.pkl",
+)
 
 DESIRED_BATCHES = ["SD", "LED34", "LED6", "LED8", "LED7", "LED34_even"]
 BATCH_ORDER = {batch: idx for idx, batch in enumerate(DESIRED_BATCHES)}
@@ -537,7 +545,7 @@ def discover_matched_animals(raw_df, mse_params, big_svi_params):
 # =============================================================================
 # Theory and empirical per-animal calculations
 # =============================================================================
-def interpolate_t_e_aff(delay_by_condition, ABL, signed_ild):
+def interpolate_t_e_aff(delay_by_condition, ABL, signed_ild, flat_after_max=False):
     signed_ild = float(signed_ild)
     exact = delay_by_condition.get((int(ABL), signed_ild))
     if exact is not None:
@@ -557,7 +565,11 @@ def interpolate_t_e_aff(delay_by_condition, ABL, signed_ild):
     x = np.array([item[0] for item in branch], dtype=float)
     y = np.array([item[1] for item in branch], dtype=float)
     abs_ild = abs(signed_ild)
-    if abs_ild < x.min() or abs_ild > x.max():
+    if abs_ild < x.min():
+        return None
+    if abs_ild > x.max():
+        if flat_after_max:
+            return float(y[-1])
         return None
     return float(np.interp(abs_ild, x, y))
 
@@ -688,6 +700,7 @@ def process_animal(pair, raw_df, mse_params, big_svi_params):
     theory_psy = {ABL: {} for ABL in ABL_arr}
     discrete_quantiles = {}
     continuous_quantiles = {}
+    continuous_quantiles_sd_flat = {}
 
     for ABL in ABL_arr:
         empirical_psy[ABL] = empirical_psychometric(batch_df, animal, ABL)
@@ -723,10 +736,45 @@ def process_animal(pair, raw_df, mse_params, big_svi_params):
     for ABL in ABL_arr:
         for abs_ild in CONTINUOUS_ABS_ILD:
             sign_quantiles = []
+            sign_quantiles_sd_flat = []
             for sign in [-1, 1]:
                 signed_ild = float(sign * abs_ild)
                 delay = interpolate_t_e_aff(delay_by_condition, ABL, signed_ild)
+                quantile_for_standard_delay = None
                 if delay is None:
+                    pass
+                else:
+                    try:
+                        t_pts, up, down = get_theoretical_rtd_components(
+                            P_A_mean,
+                            C_A_mean,
+                            t_stim_samples,
+                            abort_params,
+                            tied_params,
+                            ABL,
+                            signed_ild,
+                            batch_name,
+                            delay,
+                        )
+                        quantile_for_standard_delay = quantiles_from_rtd(t_pts, up + down)
+                        sign_quantiles.append(quantile_for_standard_delay)
+                    except Exception:
+                        quantile_for_standard_delay = None
+
+                flat_delay = interpolate_t_e_aff(
+                    delay_by_condition,
+                    ABL,
+                    signed_ild,
+                    flat_after_max=(batch_name == "SD"),
+                )
+                if flat_delay is None:
+                    continue
+                if (
+                    quantile_for_standard_delay is not None
+                    and delay is not None
+                    and np.isclose(flat_delay, delay)
+                ):
+                    sign_quantiles_sd_flat.append(quantile_for_standard_delay)
                     continue
                 try:
                     t_pts, up, down = get_theoretical_rtd_components(
@@ -738,13 +786,15 @@ def process_animal(pair, raw_df, mse_params, big_svi_params):
                         ABL,
                         signed_ild,
                         batch_name,
-                        delay,
+                        flat_delay,
                     )
-                    sign_quantiles.append(quantiles_from_rtd(t_pts, up + down))
+                    sign_quantiles_sd_flat.append(quantiles_from_rtd(t_pts, up + down))
                 except Exception:
                     continue
             if sign_quantiles:
                 continuous_quantiles[(ABL, float(abs_ild))] = np.nanmean(sign_quantiles, axis=0)
+            if sign_quantiles_sd_flat:
+                continuous_quantiles_sd_flat[(ABL, float(abs_ild))] = np.nanmean(sign_quantiles_sd_flat, axis=0)
 
     return {
         "pair": pair,
@@ -752,6 +802,7 @@ def process_animal(pair, raw_df, mse_params, big_svi_params):
         "theory_psy": theory_psy,
         "discrete_quantiles": discrete_quantiles,
         "continuous_quantiles": continuous_quantiles,
+        "continuous_quantiles_sd_flat": continuous_quantiles_sd_flat,
     }
 
 
@@ -823,10 +874,12 @@ def aggregate_slopes(psy_data):
 def aggregate_quantiles(results, animal_keys):
     plot_data = defaultdict(_create_inner_defaultdict)
     continuous_plot_data = defaultdict(_create_inner_defaultdict)
+    continuous_plot_data_sd_flat = defaultdict(_create_inner_defaultdict)
 
     for result in results:
         discrete_quantiles = result["discrete_quantiles"]
         continuous_quantiles = result["continuous_quantiles"]
+        continuous_quantiles_sd_flat = result["continuous_quantiles_sd_flat"]
 
         for ABL in ABL_arr:
             for abs_ild in ABS_ILD_SORTED:
@@ -855,6 +908,10 @@ def aggregate_quantiles(results, animal_keys):
                 key = (ABL, float(abs_ild))
                 if key in continuous_quantiles and np.any(np.isfinite(continuous_quantiles[key])):
                     continuous_plot_data[ABL][float(abs_ild)]["theoretical"].append(continuous_quantiles[key])
+                if key in continuous_quantiles_sd_flat and np.any(np.isfinite(continuous_quantiles_sd_flat[key])):
+                    continuous_plot_data_sd_flat[ABL][float(abs_ild)]["theoretical"].append(
+                        continuous_quantiles_sd_flat[key]
+                    )
 
     plot_data_for_pickle = {
         ABL: {
@@ -876,9 +933,20 @@ def aggregate_quantiles(results, animal_keys):
         }
         for ABL in ABL_arr
     }
+    continuous_plot_data_sd_flat_for_pickle = {
+        ABL: {
+            float(abs_ild): {
+                "empirical": list(continuous_plot_data_sd_flat[ABL][float(abs_ild)]["empirical"]),
+                "theoretical": list(continuous_plot_data_sd_flat[ABL][float(abs_ild)]["theoretical"]),
+            }
+            for abs_ild in CONTINUOUS_ABS_ILD
+        }
+        for ABL in ABL_arr
+    }
     return {
         "plot_data": plot_data_for_pickle,
         "continuous_plot_data": continuous_plot_data_for_pickle,
+        "continuous_plot_data_sd_flat": continuous_plot_data_sd_flat_for_pickle,
         "QUANTILES_TO_PLOT": QUANTILES_TO_PLOT,
         "abs_ild_sorted": ABS_ILD_SORTED,
         "continuous_abs_ild": CONTINUOUS_ABS_ILD,
@@ -985,6 +1053,12 @@ def plot_quantiles(ax, data, mode, quantiles_to_show=None, title_suffix=""):
         theory_marker = None
         theory_linestyle = "-"
         title = f"RT quantiles\ninterpolated delay{title_suffix}"
+    elif mode == "continuous_sd_flat":
+        theory_source = data["continuous_plot_data_sd_flat"]
+        theory_x = data["continuous_abs_ild"]
+        theory_marker = None
+        theory_linestyle = "-"
+        title = f"RT quantiles\nSD flat delay{title_suffix}"
     elif mode == "discrete":
         theory_source = plot_data
         theory_x = abs_ild_sorted
@@ -1032,7 +1106,7 @@ def plot_quantiles(ax, data, mode, quantiles_to_show=None, title_suffix=""):
                 theo_sems.append(curr_sem)
 
         if theo_x_valid:
-            if mode == "continuous":
+            if mode in {"continuous", "continuous_sd_flat"}:
                 ax.plot(
                     theo_x_valid,
                     theo_means,
@@ -1114,6 +1188,25 @@ def make_figure(psy_data, slopes_data, quantile_data):
     return fig
 
 
+def make_paper_quantile_extrapolation_figure(quantile_data):
+    fig, axes = plt.subplots(1, 2, figsize=(13.8, 6.2), sharey=True)
+
+    plot_quantiles(axes[0], quantile_data, "continuous", PAPER_QUANTILES_TO_PLOT)
+    plot_quantiles(axes[1], quantile_data, "continuous_sd_flat", PAPER_QUANTILES_TO_PLOT)
+    axes[0].set_title("No SD extrapolation", fontsize=20)
+    axes[1].set_title("SD flat delay beyond |ILD|=8", fontsize=20)
+    axes[1].set_ylabel("")
+
+    fig.suptitle(
+        "Paper RT quantiles: current delay interpolation vs SD flat extrapolation",
+        fontsize=20,
+        y=0.97,
+    )
+    fig.subplots_adjust(left=0.08, right=0.98, bottom=0.14, top=0.82, wspace=0.22)
+    fig.savefig(PAPER_QUANTILE_COMPARE_PNG, dpi=300, bbox_inches="tight")
+    return fig
+
+
 # %%
 # =============================================================================
 # Main analysis
@@ -1156,7 +1249,18 @@ print(f"SD model psychometric entries at |ILD|>8: {sd_high_ild_model_count}")
 if sd_high_ild_model_count != 0:
     raise RuntimeError("SD model psychometric/slope grid should not include |ILD|>8.")
 
+for data_key, label in [
+    ("continuous_plot_data", "no SD extrapolation"),
+    ("continuous_plot_data_sd_flat", "SD flat extrapolation"),
+]:
+    counts_at_16 = [
+        len(quantile_data[data_key][ABL][float(16.0)]["theoretical"])
+        for ABL in ABL_arr
+    ]
+    print(f"Continuous quantile animal counts at |ILD|=16 ({label}): {counts_at_16}")
+
 fig = make_figure(psy_data, slopes_data, quantile_data)
+paper_quantile_fig = make_paper_quantile_extrapolation_figure(quantile_data)
 
 payload = {
     "psy_data": psy_data,
@@ -1171,6 +1275,8 @@ payload = {
     "big_condition_rows": big_condition_df.to_dict("records"),
     "big_scalar_rows": big_scalar_df.to_dict("records"),
     "output_png": str(OUTPUT_PNG),
+    "paper_quantile_compare_png": str(PAPER_QUANTILE_COMPARE_PNG),
+    "paper_quantile_compare_pkl": str(PAPER_QUANTILE_COMPARE_PKL),
     "config": {
         "N_THEORY": N_THEORY,
         "N_JOBS": N_JOBS,
@@ -1185,14 +1291,30 @@ payload = {
         "T_PTS_STEP": float(T_PTS[1] - T_PTS[0]),
         "sd_psychometric_model_abs_ild_max": 8,
         "continuous_delay_policy": "signed-branch linear interpolation, no extrapolation",
+        "continuous_sd_flat_delay_policy": "same as continuous policy, but SD animals hold signed-branch t_E_aff flat after |ILD|=8",
         "discrete_delay_policy": "exact condition t_E_aff only",
     },
 }
 with OUTPUT_PKL.open("wb") as handle:
     pickle.dump(payload, handle)
 
+paper_quantile_payload = {
+    "quantile_data": quantile_data,
+    "mse_objective": MSE_OBJECTIVE,
+    "mse_objective_label": MSE_OBJECTIVE_LABEL,
+    "mse_params_csv": str(MSE_PARAM_CSV),
+    "big_svi_root": str(BIG_SVI_ROOT),
+    "animal_keys": animal_keys,
+    "output_png": str(PAPER_QUANTILE_COMPARE_PNG),
+    "config": payload["config"],
+}
+with PAPER_QUANTILE_COMPARE_PKL.open("wb") as handle:
+    pickle.dump(paper_quantile_payload, handle)
+
 print(f"Saved figure: {OUTPUT_PNG}")
 print(f"Saved data: {OUTPUT_PKL}")
+print(f"Saved paper quantile comparison figure: {PAPER_QUANTILE_COMPARE_PNG}")
+print(f"Saved paper quantile comparison data: {PAPER_QUANTILE_COMPARE_PKL}")
 
 plt.show()
 
