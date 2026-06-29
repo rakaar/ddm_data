@@ -28,9 +28,33 @@ from gamma_omega_alpha_utils import gamma_omega_alpha_model
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-OUTPUT_ROOT = SCRIPT_DIR / "svi_big_gamma_omega_delay_all_animals_outputs"
-OUTPUT_DIR = OUTPUT_ROOT / "mse_alpha_model_comparison"
+OUTPUT_ROOT = Path(
+    os.environ.get(
+        "BIG_SVI_GAMMA_OMEGA_OUTPUT_ROOT",
+        str(SCRIPT_DIR / "svi_big_gamma_omega_delay_all_animals_outputs"),
+    )
+).expanduser()
+OUTPUT_DIR = Path(
+    os.environ.get(
+        "BIG_SVI_GAMMA_OMEGA_OUTPUT_DIR",
+        str(OUTPUT_ROOT / "mse_alpha_model_comparison"),
+    )
+).expanduser()
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+SOURCE_LABEL = os.environ.get("BIG_SVI_GAMMA_OMEGA_SOURCE_LABEL", "Big Gamma/Omega/delay SVI")
+MSE_OBJECTIVE = os.environ.get("BIG_SVI_GAMMA_OMEGA_MSE_OBJECTIVE", "gamma_omega").strip().lower()
+OBJECTIVE_CONFIGS = {
+    "gamma_omega": {"label": "fit Gamma + Omega", "fit_params": ["gamma", "omega"]},
+    "gamma_only": {"label": "fit Gamma only", "fit_params": ["gamma"]},
+    "omega_only": {"label": "fit Omega only", "fit_params": ["omega"]},
+}
+if MSE_OBJECTIVE not in OBJECTIVE_CONFIGS:
+    raise ValueError(
+        "BIG_SVI_GAMMA_OMEGA_MSE_OBJECTIVE must be one of "
+        f"{sorted(OBJECTIVE_CONFIGS)}, got {MSE_OBJECTIVE!r}."
+    )
+OBJECTIVE_LABEL = OBJECTIVE_CONFIGS[MSE_OBJECTIVE]["label"]
+FIT_PARAMS = OBJECTIVE_CONFIGS[MSE_OBJECTIVE]["fit_params"]
 
 ANIMAL_VALUES_CSV = OUTPUT_DIR / "big_svi_gamma_omega_animal_values.csv"
 CONDITION_SUMMARY_CSV = OUTPUT_DIR / "big_svi_gamma_omega_summary.csv"
@@ -39,7 +63,10 @@ MSE_CONDITION_VALUES_CSV = OUTPUT_DIR / "per_animal_mse_gamma_omega_condition_va
 MSE_CONTINUOUS_VALUES_CSV = OUTPUT_DIR / "per_animal_mse_gamma_omega_continuous_values.csv"
 MSE_CONTINUOUS_SUMMARY_CSV = OUTPUT_DIR / "per_animal_mse_gamma_omega_continuous_summary.csv"
 METRICS_CSV = OUTPUT_DIR / "per_animal_mse_gamma_omega_metrics.csv"
-FIG_PNG = OUTPUT_DIR / "big_svi_gamma_omega_with_per_animal_mse_alpha_model.png"
+FIG_PNG = OUTPUT_DIR / os.environ.get(
+    "BIG_SVI_GAMMA_OMEGA_FIG_BASENAME",
+    "big_svi_gamma_omega_with_per_animal_mse_alpha_model.png",
+)
 
 EXPECTED_N_ANIMALS = 30
 EXPECTED_N_CONDITION_ROWS = 864
@@ -159,7 +186,7 @@ def model_values_for_condition_rows(params, condition_rows):
     return values
 
 
-def fit_gamma_omega_alpha(fit_abls, fit_ilds, target_gamma, target_omega):
+def fit_gamma_omega_alpha(fit_abls, fit_ilds, target_gamma, target_omega, fit_params):
     gamma_scale = np.nanstd(target_gamma)
     omega_scale = np.nanstd(target_omega)
     if gamma_scale == 0 or not np.isfinite(gamma_scale):
@@ -179,9 +206,12 @@ def fit_gamma_omega_alpha(fit_abls, fit_ilds, target_gamma, target_omega):
             T_0,
             P_0,
         )
-        gamma_residuals = (pred_gamma - target_gamma) / gamma_scale
-        omega_residuals = (pred_omega - target_omega) / omega_scale
-        return np.concatenate([gamma_residuals, omega_residuals])
+        pieces = []
+        if "gamma" in fit_params:
+            pieces.append((pred_gamma - target_gamma) / gamma_scale)
+        if "omega" in fit_params:
+            pieces.append((pred_omega - target_omega) / omega_scale)
+        return np.concatenate(pieces)
 
     return least_squares(residuals, P0_FIT, bounds=(LOWER_BOUNDS, UPPER_BOUNDS))
 
@@ -208,6 +238,8 @@ def fit_per_animal_mse_models(cond_df):
         if len(animal_cond) < len(PARAM_NAMES):
             fit_rows.append(
                 {
+                    "objective": MSE_OBJECTIVE,
+                    "objective_label": OBJECTIVE_LABEL,
                     "batch_name": batch_name,
                     "animal": animal_id,
                     "success": False,
@@ -223,10 +255,13 @@ def fit_per_animal_mse_models(cond_df):
                 animal_cond["ILD"].to_numpy(dtype=float),
                 animal_cond["condition_gamma"].to_numpy(dtype=float),
                 animal_cond["condition_omega"].to_numpy(dtype=float),
+                FIT_PARAMS,
             )
             params = {name: float(value) for name, value in zip(PARAM_NAMES, fit_result.x)}
             fit_rows.append(
                 {
+                    "objective": MSE_OBJECTIVE,
+                    "objective_label": OBJECTIVE_LABEL,
                     "batch_name": batch_name,
                     "animal": animal_id,
                     "success": bool(fit_result.success),
@@ -244,15 +279,19 @@ def fit_per_animal_mse_models(cond_df):
                 continue
 
             smooth_df = model_curves_for_params(params, SMOOTH_ILDS)
+            smooth_df.insert(0, "objective", MSE_OBJECTIVE)
             smooth_df.insert(0, "animal", animal_id)
             smooth_df.insert(0, "batch_name", batch_name)
             smooth_rows.extend(smooth_df.to_dict("records"))
 
             condition_df = model_values_for_condition_rows(params, animal_cond)
+            condition_df.insert(0, "objective", MSE_OBJECTIVE)
             condition_rows.extend(condition_df.to_dict("records"))
         except Exception as exc:
             fit_rows.append(
                 {
+                    "objective": MSE_OBJECTIVE,
+                    "objective_label": OBJECTIVE_LABEL,
                     "batch_name": batch_name,
                     "animal": animal_id,
                     "success": False,
@@ -285,6 +324,8 @@ def compute_metrics(cond_df, mse_condition_df):
                 diff = target[finite] - pred[finite]
                 rows.append(
                     {
+                        "objective": MSE_OBJECTIVE,
+                        "objective_label": OBJECTIVE_LABEL,
                         "parameter": param,
                         "ABL": abl,
                         "n_points": int(np.sum(finite)),
@@ -296,6 +337,8 @@ def compute_metrics(cond_df, mse_condition_df):
             else:
                 rows.append(
                     {
+                        "objective": MSE_OBJECTIVE,
+                        "objective_label": OBJECTIVE_LABEL,
                         "parameter": param,
                         "ABL": abl,
                         "n_points": int(np.sum(finite)),
@@ -354,7 +397,8 @@ def plot_gamma_omega(condition_summary_df, mse_continuous_summary_df, metrics_df
         metric_text = ""
         if metric is not None:
             metric_text = f"\nRMSE={metric['rmse']:.3g}, r={metric['pearson_r']:.2f}"
-        ax.set_title(f"{ylabel}: big SVI condition means vs per-animal MSE alpha model{metric_text}", fontsize=11)
+        fit_note = "fit" if param in FIT_PARAMS else "held out"
+        ax.set_title(f"{ylabel} ({fit_note}){metric_text}", fontsize=11)
         ax.set_xlabel("ILD")
         ax.set_ylabel(ylabel)
         ax.set_xlim(-17, 17)
@@ -376,7 +420,10 @@ def plot_gamma_omega(condition_summary_df, mse_continuous_summary_df, metrics_df
         frameon=False,
         bbox_to_anchor=(0.5, 1.02),
     )
-    fig.suptitle("Big Gamma/Omega/delay SVI condition Gamma/Omega with per-animal MSE alpha-model fits", y=1.11)
+    fig.suptitle(
+        f"{SOURCE_LABEL} condition Gamma/Omega with per-animal MSE alpha-model fits: {OBJECTIVE_LABEL}",
+        y=1.11,
+    )
     fig.tight_layout(rect=[0, 0, 1, 0.94])
     fig.savefig(FIG_PNG, dpi=300, bbox_inches="tight")
     return FIG_PNG
@@ -388,6 +435,8 @@ def plot_gamma_omega(condition_summary_df, mse_continuous_summary_df, metrics_df
 # =============================================================================
 print(f"Big SVI output root: {OUTPUT_ROOT}")
 print(f"MSE comparison output folder: {OUTPUT_DIR}")
+print(f"MSE objective: {MSE_OBJECTIVE} ({OBJECTIVE_LABEL})")
+print(f"Fit residuals include: {', '.join(FIT_PARAMS)}")
 
 cond_df = load_big_svi_condition_values()
 cond_df.to_csv(ANIMAL_VALUES_CSV, index=False)
