@@ -541,3 +541,41 @@ Status:
 - Readable config copies: `config/gdrive_big_gamma_patience12_backup_20260627_163700.log` and `config/FIT_BACKUP_LEDGER_20260627.md`.
 - A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### NPL+alpha condition-delay SVI patience12 backup completed 2026-06-30
+
+Fit family:
+- NumPyro SVI NPL+alpha condition-delay model with shared per-animal NPL parameters, global `w` and `del_go`, and condition-wise `t_E_aff`.
+- Includes the latest all-30-animal patience12 restore-best outputs, the six replaced `min_steps=50000` reruns already consolidated into the output root, all-animal loss/summary figures, and the generated comparisons against the patience12 92-parameter big Gamma/Omega/delay SVI.
+
+Source machine:
+- lavos.
+
+Local source path:
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/numpyro_svi_npl_alpha_condition_delay_patience12_restore_best_outputs/`
+
+Drive parent folder:
+- `raga:ddm_fit_backups_20260630_numpyro_svi_condition_delay_patience12_lavos/`
+
+Drive subfolders:
+- `raga:ddm_fit_backups_20260630_numpyro_svi_condition_delay_patience12_lavos/numpyro_svi_npl_alpha_condition_delay_patience12_restore_best_outputs/`
+- `raga:ddm_fit_backups_20260630_numpyro_svi_condition_delay_patience12_lavos/config/`
+
+Upload tmux session:
+- `gdrive_npl37_patience12_backup_20260630_122521`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_npl37_patience12_backup_20260630_122521.log`
+
+Expected local counts and sizes:
+- Latest 37-param patience12 NPL SVI output root: 505 files, 425M.
+- Top-level output folders: 30 animal folders plus `_batch_logs`, `summary_figures`, `comparison_with_big_gamma_omega_delay_patience12`, and `three_npl_param_source_comparison`.
+
+Status:
+- Google Drive upload completed on 2026-06-30 12:30 WEST.
+- Observed remote 37-param patience12 output files before config copies: 505.
+- Observed remote total before config copies: 505 objects, 423.232 MiB.
+- Observed remote total after config copies: 507 objects, 423.574 MiB.
+- Readable config copies: `config/gdrive_npl37_patience12_backup_20260630_122521.log` and `config/FIT_BACKUP_LEDGER_20260630.md`.
+- A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.

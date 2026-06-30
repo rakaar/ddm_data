@@ -48,9 +48,14 @@ RAW_BATCH_FILE_MAP = {
     "LED34_even": "outUni.csv",
 }
 
+OUTPUT_ROOT = Path(
+    os.environ.get(
+        "NUMPYRO_SVI_OUTPUT_ROOT",
+        str(SCRIPT_DIR / "numpyro_svi_npl_alpha_condition_delay_single_animal_outputs"),
+    )
+).expanduser()
 OUTPUT_DIR = (
-    SCRIPT_DIR
-    / "numpyro_svi_npl_alpha_condition_delay_single_animal_outputs"
+    OUTPUT_ROOT
     / f"{BATCH_NAME}_{ANIMAL}"
 )
 DIAGNOSTIC_DIR = OUTPUT_DIR / "diagnostics"

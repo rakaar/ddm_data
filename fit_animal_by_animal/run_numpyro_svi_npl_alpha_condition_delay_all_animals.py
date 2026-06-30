@@ -391,11 +391,49 @@ parser.add_argument("--python", default=str(REPO_DIR / ".venv" / "bin" / "python
 parser.add_argument("--guide", default="fullrank", help="NumPyro guide kind. Default: fullrank.")
 parser.add_argument("--main-steps", type=int, default=100000, help="Maximum main SVI steps.")
 parser.add_argument("--check-every", type=int, default=10000, help="SVI convergence check interval.")
+parser.add_argument("--output-root", default=str(OUTPUT_ROOT), help="Output root for all animal fit folders.")
+parser.add_argument(
+    "--stop-mode",
+    default="stable_or_no_improve",
+    choices=["legacy", "stable_or_no_improve", "patience_restore_best"],
+    help="SVI stopping rule mode passed to the single-animal script.",
+)
+parser.add_argument("--rel-tol", type=float, default=0.01, help="Relative change tolerance for stable-window stopping.")
+parser.add_argument(
+    "--patience-windows",
+    type=int,
+    default=3,
+    help="Stable-window patience for legacy/stable stopping.",
+)
+parser.add_argument(
+    "--no-improve-patience-windows",
+    type=int,
+    default=2,
+    help="No-best-window-improvement patience, measured in check windows.",
+)
+parser.add_argument(
+    "--min-improvement-rel",
+    type=float,
+    default=0.005,
+    help="Relative best-window improvement required to reset no-improve patience.",
+)
+parser.add_argument("--min-steps", type=int, default=0, help="Minimum SVI steps before early stopping can trigger.")
 parser.add_argument("--seed", type=int, default=0, help="NumPyro/JAX random seed.")
 parser.add_argument("--posterior-samples", type=int, default=10000, help="Number of posterior samples to save.")
 parser.add_argument("--expected-n-animals", type=int, default=EXPECTED_N_ANIMALS, help="Expected discovered animal count.")
 parser.add_argument("--stop-on-failure", action="store_true", help="Stop immediately if any fit or diagnostic fails.")
+parser.add_argument(
+    "--ledger-name",
+    default="batch_run_status.csv",
+    help="Ledger CSV filename under the output root's _batch_logs folder.",
+)
 args = parser.parse_args()
+
+OUTPUT_ROOT = Path(args.output_root).expanduser()
+if not OUTPUT_ROOT.is_absolute():
+    OUTPUT_ROOT = (REPO_DIR / OUTPUT_ROOT).resolve()
+LOG_DIR = OUTPUT_ROOT / "_batch_logs"
+LEDGER_PATH = LOG_DIR / args.ledger_name
 
 RUN_ID = datetime.now().strftime("%Y%m%d_%H%M%S")
 label = f"main_{args.guide}"
@@ -423,7 +461,15 @@ print(f"Run id: {RUN_ID}")
 print(f"Repository: {REPO_DIR}")
 print(f"Single-animal fit script: {FIT_SCRIPT}")
 print(f"Diagnostic script: {DIAGNOSTIC_SCRIPT}")
+print(f"Output root: {OUTPUT_ROOT}")
 print(f"Guide label: {label}")
+print(
+    "Stopping controls: "
+    f"steps={args.main_steps}, check_every={args.check_every}, stop_mode={args.stop_mode}, "
+    f"rel_tol={args.rel_tol:g}, patience_windows={args.patience_windows}, "
+    f"no_improve_patience={args.no_improve_patience_windows}, "
+    f"min_improvement_rel={args.min_improvement_rel:g}, min_steps={args.min_steps}"
+)
 print(f"Selected animals: {len(pairs)}")
 print_pair_table(pairs)
 
@@ -454,7 +500,6 @@ if args.dry_run:
     raise SystemExit(0)
 
 LOG_DIR.mkdir(parents=True, exist_ok=True)
-ledger_path = LOG_DIR / "batch_run_status.csv"
 rows = []
 for run_index, (batch, animal) in enumerate(pairs, start=1):
     paths = animal_paths(batch, animal, label)
@@ -470,7 +515,7 @@ for run_index, (batch, animal) in enumerate(pairs, start=1):
             "output_dir": rel(paths["output_dir"]),
         }
     )
-write_ledger(rows, ledger_path)
+write_ledger(rows, LEDGER_PATH)
 
 failures = []
 for row in rows:
@@ -489,7 +534,7 @@ for row in rows:
             row["status"] = "missing_existing_artifacts"
             row["error"] = "; ".join(missing)
             failures.append((batch, animal, row["status"]))
-            write_ledger(rows, ledger_path)
+            write_ledger(rows, LEDGER_PATH)
             if args.stop_on_failure:
                 break
             continue
@@ -507,21 +552,21 @@ for row in rows:
             row["status"] = "bundle_failed"
             row["error"] = repr(exc)
             failures.append((batch, animal, row["status"]))
-            write_ledger(rows, ledger_path)
+            write_ledger(rows, LEDGER_PATH)
             if args.stop_on_failure:
                 break
             continue
         row["status"] = "bundled_existing"
         row["bundle_path"] = rel(bundle_path)
         row["elapsed_seconds"] = 0.0
-        write_ledger(rows, ledger_path)
+        write_ledger(rows, LEDGER_PATH)
         print(f"[{run_index}/{len(rows)}] Bundled existing artifacts for {batch}/{animal}: {bundle_path}")
         continue
 
     if outputs_complete(paths) and not args.force:
         row["status"] = "skipped_existing"
         row["elapsed_seconds"] = 0.0
-        write_ledger(rows, ledger_path)
+        write_ledger(rows, LEDGER_PATH)
         print(f"\n[{run_index}/{len(rows)}] Skipping {batch}/{animal}; expected outputs already exist.")
         continue
 
@@ -534,15 +579,23 @@ for row in rows:
         {
             "NUMPYRO_SVI_BATCH": str(batch),
             "NUMPYRO_SVI_ANIMAL": str(animal),
+            "NUMPYRO_SVI_OUTPUT_ROOT": str(OUTPUT_ROOT),
             "NUMPYRO_SVI_GUIDE": str(args.guide),
             "NUMPYRO_SVI_SAVE_TABLE_CSVS": "1",
             "RUN_SMOKE_SVI": "0",
             "RUN_MAIN_SVI": "1",
             "MAIN_STEPS": str(args.main_steps),
             "SVI_CHECK_EVERY": str(args.check_every),
+            "SVI_STOP_MODE": str(args.stop_mode),
+            "SVI_REL_TOL": str(args.rel_tol),
+            "SVI_PATIENCE_WINDOWS": str(args.patience_windows),
+            "SVI_NO_IMPROVE_PATIENCE_WINDOWS": str(args.no_improve_patience_windows),
+            "SVI_MIN_IMPROVEMENT_REL": str(args.min_improvement_rel),
+            "SVI_MIN_STEPS": str(args.min_steps),
             "NUMPYRO_SVI_SEED": str(args.seed),
             "POSTERIOR_N_SAMPLES": str(args.posterior_samples),
             "NUMPYRO_SVI_DIAG_LABEL": str(label),
+            "XLA_PYTHON_CLIENT_PREALLOCATE": "false",
         }
     )
 
@@ -554,7 +607,7 @@ for row in rows:
         row["elapsed_seconds"] = f"{time.monotonic() - total_start:.3f}"
         row["error"] = f"fit returned {fit_return_code}"
         failures.append((batch, animal, row["status"]))
-        write_ledger(rows, ledger_path)
+        write_ledger(rows, LEDGER_PATH)
         if args.stop_on_failure:
             break
         continue
@@ -566,7 +619,7 @@ for row in rows:
         row["elapsed_seconds"] = f"{time.monotonic() - total_start:.3f}"
         row["error"] = f"diagnostic returned {diagnostic_return_code}"
         failures.append((batch, animal, row["status"]))
-        write_ledger(rows, ledger_path)
+        write_ledger(rows, LEDGER_PATH)
         if args.stop_on_failure:
             break
         continue
@@ -596,7 +649,7 @@ for row in rows:
         row["elapsed_seconds"] = f"{time.monotonic() - total_start:.3f}"
         row["error"] = repr(exc)
         failures.append((batch, animal, row["status"]))
-        write_ledger(rows, ledger_path)
+        write_ledger(rows, LEDGER_PATH)
         if args.stop_on_failure:
             break
         continue
@@ -604,7 +657,7 @@ for row in rows:
     row["status"] = "completed"
     row["elapsed_seconds"] = f"{time.monotonic() - total_start:.3f}"
     row["bundle_path"] = rel(bundle_path)
-    write_ledger(rows, ledger_path)
+    write_ledger(rows, LEDGER_PATH)
     print(f"[{run_index}/{len(rows)}] Completed {batch}/{animal}; bundle: {bundle_path}")
 
 print("\n" + "=" * 80)
@@ -615,7 +668,7 @@ for row in rows:
     status_counts[row["status"]] = status_counts.get(row["status"], 0) + 1
 for status, count in sorted(status_counts.items()):
     print(f"  {status}: {count}")
-print(f"Ledger: {ledger_path}")
+print(f"Ledger: {LEDGER_PATH}")
 print(f"Logs: {LOG_DIR}")
 
 if failures:
