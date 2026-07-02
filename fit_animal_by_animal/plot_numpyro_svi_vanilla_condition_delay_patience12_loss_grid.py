@@ -83,6 +83,7 @@ for _, ledger_row in ledger_df.sort_values("run_index").iterrows():
     best_step = int(final_row["best_end_step_so_far"])
     best_loss = float(final_row["best_mean_loss_so_far"])
     final_loss = float(final_row["mean_loss"])
+    no_improve_windows = int(final_row["no_improve_window_count"])
 
     if int(final_row.get("n_nonfinite", 0)) > 0:
         stop_reason = "nonfinite_loss"
@@ -102,6 +103,7 @@ for _, ledger_row in ledger_df.sort_values("run_index").iterrows():
             "checked_step": checked_step,
             "best_loss": best_loss,
             "final_loss": final_loss,
+            "no_improve_windows": no_improve_windows,
             "stop_reason": stop_reason,
         }
     )
@@ -116,6 +118,7 @@ for _, ledger_row in ledger_df.sort_values("run_index").iterrows():
             "best_mean_loss": best_loss,
             "final_checked_mean_loss": final_loss,
             "loss_rebound_from_best": final_loss - best_loss,
+            "no_improve_windows": no_improve_windows,
             "n_windows": len(conv_df),
         }
     )
@@ -146,10 +149,13 @@ for ax, payload in zip(axes, plot_payload):
     ax.axvline(payload["best_step"], color=BEST_COLOR, lw=1.4)
     ax.axvline(payload["checked_step"], color=STOP_COLOR, lw=1.4, ls="--")
     ax.scatter([payload["best_step"]], [payload["best_loss"]], s=18, color=BEST_COLOR, zorder=3)
-    ax.set_title(
-        f"{payload['label']}\nmin {payload['best_step'] / 1000:.0f}k, checked {payload['checked_step'] / 1000:.0f}k",
-        fontsize=8,
-    )
+    title_lines = [
+        payload["label"],
+        f"min {payload['best_step'] / 1000:.0f}k, checked {payload['checked_step'] / 1000:.0f}k",
+    ]
+    if payload["best_step"] == payload["checked_step"]:
+        title_lines.append(f"no >0.1%: {payload['no_improve_windows']}w")
+    ax.set_title("\n".join(title_lines), fontsize=8)
     ax.tick_params(axis="both", labelsize=7)
     ax.grid(alpha=0.18, lw=0.5)
     ax.set_xlabel("SVI step", fontsize=7)

@@ -579,3 +579,45 @@ Status:
 - Readable config copies: `config/gdrive_npl37_patience12_backup_20260630_122521.log` and `config/FIT_BACKUP_LEDGER_20260630.md`.
 - A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### Vanilla/IPL condition-delay SVI patience12 min50k backup completed 2026-07-02
+
+Fit family:
+- NumPyro SVI vanilla/IPL condition-delay model with shared per-animal `rate_lambda`, `T_0`, `theta_E`, global `w` and `del_go`, and condition-wise `t_E_aff`.
+- Includes the all-30-animal patience12 min50k restore-best outputs, all-animal loss/summary figures, the comparison against NPL and 92-parameter big Gamma/Omega/delay SVI fits, and the one-row Fig 2-style IPL diagnostic.
+
+Source machine:
+- lavos.
+
+Local source path:
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/numpyro_svi_vanilla_condition_delay_patience12_min50k_restore_best_outputs/`
+
+Deleted local obsolete path before backup:
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/numpyro_svi_vanilla_condition_delay_patience12_restore_best_outputs/`
+- This was the earlier 20k IPL/vanilla run and was intentionally not backed up to avoid confusion with the 50k run.
+
+Drive parent folder:
+- `raga:ddm_fit_backups_20260702_vanilla_ipl_condition_delay_patience12_min50k_lavos/`
+
+Drive subfolders:
+- `raga:ddm_fit_backups_20260702_vanilla_ipl_condition_delay_patience12_min50k_lavos/numpyro_svi_vanilla_condition_delay_patience12_min50k_restore_best_outputs/`
+- `raga:ddm_fit_backups_20260702_vanilla_ipl_condition_delay_patience12_min50k_lavos/config/`
+
+Upload tmux session:
+- `gdrive_ipl50k_backup_20260702_122439`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_ipl50k_backup_20260702_122439.log`
+
+Expected local counts and sizes:
+- Latest vanilla/IPL patience12 min50k SVI output root: 345 files, 229M.
+- Top-level output folders: 30 animal folders plus `_batch_logs`, `summary_figures`, `comparison_with_npl_and_big_gamma_omega_delay_patience12`, and `fig2_like_diagnostics`.
+
+Status:
+- Google Drive upload completed on 2026-07-02 12:29 WEST.
+- Observed remote vanilla/IPL min50k output files before config copies: 345.
+- Observed remote total before config copies: 345 objects, 228.044 MiB.
+- Observed remote total after config copies: 347 objects, 228.285 MiB.
+- Readable config copies: `config/gdrive_ipl50k_backup_20260702_122439.log` and `config/FIT_BACKUP_LEDGER_20260702.md`.
+- A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
