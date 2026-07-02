@@ -34,6 +34,15 @@ N_THEORY = int(os.environ.get("NUMPYRO_SVI_DIAG_N_THEORY", "1000"))
 RNG_SEED = int(os.environ.get("NUMPYRO_SVI_DIAG_SEED", "0"))
 K_MAX = int(os.environ.get("K_MAX", "10"))
 
+SELECTED_RTD_ABLS_TEXT = os.environ.get("NUMPYRO_SVI_SELECTED_RTD_ABLS", "")
+SELECTED_RTD_ABLS = [
+    int(value.strip())
+    for value in SELECTED_RTD_ABLS_TEXT.split(",")
+    if value.strip()
+]
+SELECTED_RTD_ILD_TEXT = os.environ.get("NUMPYRO_SVI_SELECTED_RTD_ILD", "")
+SELECTED_RTD_ILD = float(SELECTED_RTD_ILD_TEXT) if SELECTED_RTD_ILD_TEXT.strip() else None
+
 THEORY_ABORT_EVENTS = [3]
 RTD_ABORT_EVENTS = [3, 4]
 BATCH_T_TRUNC = {"LED34_even": 0.15}
@@ -74,6 +83,12 @@ SAVED_CONDITION_TABLE = OUTPUT_DIR / "condition_table.csv"
 RTD_FULL_PNG = DIAGNOSTIC_DIR / f"{SVI_LABEL}_rtd_by_abl_abs_ild.png"
 RTD_ZOOM_PNG = DIAGNOSTIC_DIR / f"{SVI_LABEL}_rtd_by_abl_abs_ild_zoom.png"
 PSYCHOMETRIC_PNG = DIAGNOSTIC_DIR / f"{SVI_LABEL}_psychometric_by_abl.png"
+
+RTD_SELECTED_PNG = None
+if SELECTED_RTD_ABLS and SELECTED_RTD_ILD is not None:
+    selected_abl_label = "_".join(str(abl) for abl in SELECTED_RTD_ABLS)
+    selected_ild_label = f"{SELECTED_RTD_ILD:+g}".replace("+", "p").replace("-", "m").replace(".", "p")
+    RTD_SELECTED_PNG = DIAGNOSTIC_DIR / f"{SVI_LABEL}_rtd_selected_abl{selected_abl_label}_ild{selected_ild_label}.png"
 
 
 # %%
@@ -570,6 +585,8 @@ print(f"Processed valid/abort batch CSV: {BATCH_CSV}")
 print(f"Abort params: {ABORT_RESULT_PKL}")
 print(f"Output diagnostics: {DIAGNOSTIC_DIR}")
 print(f"RTD data bin width: {RT_BIN_WIDTH * 1e3:.0f} ms")
+if RTD_SELECTED_PNG is not None:
+    print("Selected RTD data bin width: 5 ms")
 print(f"Model RTD grid spacing: {DT_THEORY * 1e3:.0f} ms")
 print(f"RTD data abort events: {RTD_ABORT_EVENTS}; model/theory abort events: {THEORY_ABORT_EVENTS}")
 
@@ -945,6 +962,348 @@ save_rtd_grid(
     [-0.6, 0, 0.6],
     "-0.6 to 0.6 s",
 )
+
+
+# %%
+# =============================================================================
+# Optional selected signed-ILD RTD panels
+# =============================================================================
+if RTD_SELECTED_PNG is not None:
+    selected_data_bin_width = 0.005
+    selected_top_xlim = (-0.2, 0.6)
+    selected_trunc_xlim = (0.0, 0.3)
+    selected_reactive_xlim = (0.0, 1.0)
+    selected_reactive_plot_xlim = (0.0, 0.3)
+    selected_full_bins = np.arange(
+        RT_MIN,
+        RT_MAX + 0.5 * selected_data_bin_width,
+        selected_data_bin_width,
+    )
+    selected_full_bin_centers = 0.5 * (selected_full_bins[:-1] + selected_full_bins[1:])
+    selected_trunc_bins = np.arange(
+        selected_trunc_xlim[0],
+        selected_trunc_xlim[1] + 0.5 * selected_data_bin_width,
+        selected_data_bin_width,
+    )
+    selected_trunc_bin_centers = 0.5 * (selected_trunc_bins[:-1] + selected_trunc_bins[1:])
+    selected_reactive_bins = np.arange(
+        selected_reactive_xlim[0],
+        selected_reactive_xlim[1] + 0.5 * selected_data_bin_width,
+        selected_data_bin_width,
+    )
+    selected_reactive_bin_centers = 0.5 * (selected_reactive_bins[:-1] + selected_reactive_bins[1:])
+    selected_trunc_theory_mask = (
+        (THEORY_RT_PTS >= selected_trunc_xlim[0])
+        & (THEORY_RT_PTS <= selected_trunc_xlim[1])
+    )
+    selected_reactive_theory_mask = (
+        (THEORY_RT_PTS >= selected_reactive_xlim[0])
+        & (THEORY_RT_PTS <= selected_reactive_xlim[1])
+    )
+
+    selected_entries = []
+    for ABL in SELECTED_RTD_ABLS:
+        key = (int(ABL), float(SELECTED_RTD_ILD))
+        if key not in condition_results:
+            print(f"Skipping selected RTD panel for missing condition ABL={ABL}, ILD={SELECTED_RTD_ILD:g}.")
+            continue
+
+        selected_data_df = rtd_data[
+            (rtd_data["ABL"] == ABL)
+            & np.isclose(rtd_data["ILD"].to_numpy(dtype=float), SELECTED_RTD_ILD)
+        ]
+        selected_raw_rts = selected_data_df["RTwrtStim"].to_numpy(dtype=float)
+        selected_raw_rts = selected_raw_rts[np.isfinite(selected_raw_rts)]
+        if len(selected_raw_rts) > 5:
+            data_rtd, _ = np.histogram(selected_raw_rts, bins=selected_full_bins, density=True)
+            data_area = np.nansum(data_rtd * np.diff(selected_full_bins))
+            if np.isfinite(data_area) and data_area > 0:
+                data_rtd = data_rtd / data_area
+            else:
+                data_rtd = np.full(len(selected_full_bin_centers), np.nan)
+        else:
+            data_rtd = np.full(len(selected_full_bin_centers), np.nan)
+        model_rtd = condition_results[key]["model_rtd_continuous"]
+
+        truncated_rts = selected_raw_rts[
+            (selected_raw_rts >= selected_trunc_xlim[0])
+            & (selected_raw_rts <= selected_trunc_xlim[1])
+        ]
+        truncated_data_retained_area = (
+            len(truncated_rts) / len(selected_raw_rts)
+            if len(selected_raw_rts)
+            else np.nan
+        )
+        if len(truncated_rts) > 5:
+            truncated_data_rtd, _ = np.histogram(truncated_rts, bins=selected_trunc_bins, density=True)
+            truncated_data_area = np.nansum(truncated_data_rtd * np.diff(selected_trunc_bins))
+            if np.isfinite(truncated_data_area) and truncated_data_area > 0:
+                truncated_data_rtd = truncated_data_rtd / truncated_data_area
+            else:
+                truncated_data_rtd = np.full(len(selected_trunc_bin_centers), np.nan)
+        else:
+            truncated_data_rtd = np.full(len(selected_trunc_bin_centers), np.nan)
+
+        truncated_model_t = THEORY_RT_PTS[selected_trunc_theory_mask]
+        truncated_model_rtd = normalize_continuous_density(
+            truncated_model_t,
+            model_rtd[selected_trunc_theory_mask],
+        )
+        truncated_model_retained_area = trapezoid(model_rtd[selected_trunc_theory_mask], truncated_model_t)
+
+        reactive_data_df = batch_df[
+            (batch_df["animal"] == ANIMAL)
+            & batch_df["success"].isin([1, -1])
+            & (batch_df["ABL"] == ABL)
+            & np.isclose(batch_df["ILD"].to_numpy(dtype=float), SELECTED_RTD_ILD)
+            & batch_df["RTwrtStim"].between(selected_reactive_xlim[0], selected_reactive_xlim[1], inclusive="both")
+        ].copy()
+        reactive_raw_rts = reactive_data_df["RTwrtStim"].to_numpy(dtype=float)
+        reactive_raw_rts = reactive_raw_rts[np.isfinite(reactive_raw_rts)]
+        if len(reactive_raw_rts) > 5:
+            reactive_data_rtd, _ = np.histogram(reactive_raw_rts, bins=selected_reactive_bins, density=True)
+            reactive_data_area = np.nansum(reactive_data_rtd * np.diff(selected_reactive_bins))
+            if np.isfinite(reactive_data_area) and reactive_data_area > 0:
+                reactive_data_rtd = reactive_data_rtd / reactive_data_area
+            else:
+                reactive_data_rtd = np.full(len(selected_reactive_bin_centers), np.nan)
+        else:
+            reactive_data_rtd = np.full(len(selected_reactive_bin_centers), np.nan)
+
+        reactive_model_t = THEORY_RT_PTS[selected_reactive_theory_mask]
+        reactive_zeros = np.zeros_like(reactive_model_t)
+        t_E_aff = float(condition_results[key]["t_E_aff_s"])
+        reactive_model_raw = (
+            up_or_down_alpha_pa_ca_vec(
+                reactive_model_t,
+                1,
+                reactive_zeros,
+                reactive_zeros,
+                ABL,
+                SELECTED_RTD_ILD,
+                tied_params,
+                (tied_params["w"] - 0.5) * 2 * tied_params["theta_E"],
+                t_E_aff,
+            )
+            + up_or_down_alpha_pa_ca_vec(
+                reactive_model_t,
+                -1,
+                reactive_zeros,
+                reactive_zeros,
+                ABL,
+                SELECTED_RTD_ILD,
+                tied_params,
+                (tied_params["w"] - 0.5) * 2 * tied_params["theta_E"],
+                t_E_aff,
+            )
+        )
+        reactive_model_rtd = normalize_continuous_density(reactive_model_t, reactive_model_raw)
+
+        selected_entries.append(
+            {
+                "ABL": int(ABL),
+                "ILD": float(SELECTED_RTD_ILD),
+                "n_rtd_trials": int(len(selected_data_df)),
+                "n_truncated_rtd_trials": int(len(truncated_rts)),
+                "n_reactive_data_trials": int(len(reactive_raw_rts)),
+                "t_E_aff_ms": 1e3 * condition_results[key]["t_E_aff_s"],
+                "data_rtd": data_rtd,
+                "model_rtd": model_rtd,
+                "truncated_data_rtd": truncated_data_rtd,
+                "truncated_model_rtd": truncated_model_rtd,
+                "reactive_data_rtd": reactive_data_rtd,
+                "reactive_model_rtd": reactive_model_rtd,
+                "reactive_model_raw": reactive_model_raw,
+                "data_area": float(np.nansum(data_rtd * np.diff(selected_full_bins))),
+                "model_area": float(trapezoid(model_rtd, THEORY_RT_PTS)),
+                "truncated_data_area": float(np.nansum(truncated_data_rtd * np.diff(selected_trunc_bins))),
+                "truncated_model_area": float(trapezoid(truncated_model_rtd, truncated_model_t)),
+                "truncated_data_retained_area": float(truncated_data_retained_area),
+                "truncated_model_retained_area": float(truncated_model_retained_area),
+                "reactive_data_area": float(np.nansum(reactive_data_rtd * np.diff(selected_reactive_bins))),
+                "reactive_model_raw_area": float(trapezoid(reactive_model_raw, reactive_model_t)),
+                "reactive_model_area": float(trapezoid(reactive_model_rtd, reactive_model_t)),
+            }
+        )
+
+    if selected_entries:
+        fig, axes = plt.subplots(
+            3,
+            len(selected_entries),
+            figsize=(5.2 * len(selected_entries), 9.8),
+            sharey="row",
+        )
+        axes = np.asarray(axes)
+        if axes.ndim == 1:
+            axes = axes.reshape(3, 1)
+
+        top_y_max = 0.0
+        bottom_y_max = 0.0
+        reactive_y_max = 0.0
+        top_data_mask = (
+            (selected_full_bin_centers >= selected_top_xlim[0])
+            & (selected_full_bin_centers <= selected_top_xlim[1])
+        )
+        top_model_mask = (THEORY_RT_PTS >= selected_top_xlim[0]) & (THEORY_RT_PTS <= selected_top_xlim[1])
+        reactive_data_mask = (
+            (selected_reactive_bin_centers >= selected_reactive_plot_xlim[0])
+            & (selected_reactive_bin_centers <= selected_reactive_plot_xlim[1])
+        )
+        reactive_model_mask = (
+            (reactive_model_t >= selected_reactive_plot_xlim[0])
+            & (reactive_model_t <= selected_reactive_plot_xlim[1])
+        )
+        for entry in selected_entries:
+            if np.any(np.isfinite(entry["data_rtd"][top_data_mask])):
+                top_y_max = max(top_y_max, float(np.nanmax(entry["data_rtd"][top_data_mask])))
+            if np.any(np.isfinite(entry["model_rtd"][top_model_mask])):
+                top_y_max = max(top_y_max, float(np.nanmax(entry["model_rtd"][top_model_mask])))
+            if np.any(np.isfinite(entry["truncated_data_rtd"])):
+                bottom_y_max = max(bottom_y_max, float(np.nanmax(entry["truncated_data_rtd"])))
+            if np.any(np.isfinite(entry["truncated_model_rtd"])):
+                bottom_y_max = max(bottom_y_max, float(np.nanmax(entry["truncated_model_rtd"])))
+            if np.any(np.isfinite(entry["reactive_data_rtd"][reactive_data_mask])):
+                reactive_y_max = max(reactive_y_max, float(np.nanmax(entry["reactive_data_rtd"][reactive_data_mask])))
+            if np.any(np.isfinite(entry["reactive_model_rtd"][reactive_model_mask])):
+                reactive_y_max = max(reactive_y_max, float(np.nanmax(entry["reactive_model_rtd"][reactive_model_mask])))
+
+        for col_idx, entry in enumerate(selected_entries):
+            t_E_aff_s = entry["t_E_aff_ms"] / 1e3
+            ax = axes[0, col_idx]
+            ax.plot(
+                selected_full_bin_centers,
+                entry["data_rtd"],
+                color=COLORS["data"],
+                linewidth=1.8,
+                label="Data",
+            )
+            ax.plot(
+                THEORY_RT_PTS,
+                entry["model_rtd"],
+                color=COLORS["model"],
+                linewidth=1.7,
+                label="SVI posterior mean",
+            )
+            ax.axvline(0, color="0.82", linewidth=0.7, zorder=0)
+            ax.axvline(
+                t_E_aff_s,
+                color="#D55E00",
+                linestyle=":",
+                linewidth=1.5,
+                label="t_E_aff",
+            )
+            ax.set_title(
+                f"ABL {entry['ABL']}, ILD {entry['ILD']:+g}\n"
+                f"t_E_aff={entry['t_E_aff_ms']:.1f} ms",
+                fontsize=12,
+            )
+            ax.set_xlim(*selected_top_xlim)
+            ax.set_xticks([-0.2, 0, 0.2, 0.4, 0.6])
+            if top_y_max > 0:
+                ax.set_ylim(0, top_y_max * 1.08)
+            ax.tick_params(axis="both", labelsize=9)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+
+            ax = axes[1, col_idx]
+            ax.plot(
+                selected_trunc_bin_centers,
+                entry["truncated_data_rtd"],
+                color=COLORS["data"],
+                linewidth=1.8,
+                label="Data",
+            )
+            ax.plot(
+                truncated_model_t,
+                entry["truncated_model_rtd"],
+                color=COLORS["model"],
+                linewidth=1.7,
+                label="SVI posterior mean",
+            )
+            ax.axvline(0, color="0.82", linewidth=0.7, zorder=0)
+            ax.axvline(
+                t_E_aff_s,
+                color="#D55E00",
+                linestyle=":",
+                linewidth=1.5,
+                label="t_E_aff",
+            )
+            ax.set_title(
+                f"0 to 0.3 truncated from above\n"
+                f"Plotted area data/model: {entry['truncated_data_area']:.2f}/{entry['truncated_model_area']:.2f}",
+                fontsize=12,
+            )
+            ax.set_xlim(*selected_trunc_xlim)
+            ax.set_xticks([0, 0.1, 0.2, 0.3])
+            if bottom_y_max > 0:
+                ax.set_ylim(0, bottom_y_max * 1.08)
+            ax.set_xlabel("RT wrt stimulus (s)", fontsize=10)
+            ax.tick_params(axis="both", labelsize=9)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+
+            ax = axes[2, col_idx]
+            ax.plot(
+                selected_reactive_bin_centers,
+                entry["reactive_data_rtd"],
+                color=COLORS["data"],
+                linewidth=1.8,
+                label="Valid data",
+            )
+            ax.plot(
+                reactive_model_t,
+                entry["reactive_model_rtd"],
+                color=COLORS["model"],
+                linewidth=1.7,
+                label="Reactive only",
+            )
+            ax.axvline(0, color="0.82", linewidth=0.7, zorder=0)
+            ax.axvline(
+                t_E_aff_s,
+                color="#D55E00",
+                linestyle=":",
+                linewidth=1.5,
+                label="t_E_aff",
+            )
+            ax.set_title(
+                f"0 to 1 s valid trials vs reactive only\n"
+                f"Area from 0 to 1: {entry['reactive_model_raw_area']:.2f}",
+                fontsize=12,
+            )
+            ax.set_xlim(*selected_reactive_plot_xlim)
+            ax.set_xticks([0, 0.1, 0.2, 0.3])
+            if reactive_y_max > 0:
+                ax.set_ylim(0, reactive_y_max * 1.08)
+            ax.set_xlabel("RT wrt stimulus (s)", fontsize=10)
+            ax.tick_params(axis="both", labelsize=9)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+
+        axes[0, 0].set_ylabel("Density", fontsize=11)
+        axes[1, 0].set_ylabel("Conditional density", fontsize=11)
+        axes[2, 0].set_ylabel("Conditional density", fontsize=11)
+        axes[0, -1].legend(frameon=False, fontsize=9, loc="upper right")
+        axes[2, -1].legend(frameon=False, fontsize=9, loc="upper right")
+        selected_abl_text = ", ".join(str(entry["ABL"]) for entry in selected_entries)
+        fig.suptitle(
+            f"ABL {selected_abl_text}; ILD {SELECTED_RTD_ILD:g}; {BATCH_NAME}/{ANIMAL}",
+            fontsize=14,
+            y=0.99,
+        )
+        fig.tight_layout(rect=[0, 0, 1, 0.96])
+        fig.savefig(RTD_SELECTED_PNG, dpi=300, bbox_inches="tight")
+        print(f"Saved selected signed-ILD RTD figure: {RTD_SELECTED_PNG}")
+        for entry in selected_entries:
+            print(
+                f"  ABL {entry['ABL']}, ILD {entry['ILD']:+g}: "
+                f"t_E_aff={entry['t_E_aff_ms']:.3f} ms, n={entry['n_rtd_trials']}, "
+                f"areas data={entry['data_area']:.3f}, model={entry['model_area']:.3f}, "
+                f"truncated areas data={entry['truncated_data_area']:.3f}, "
+                f"model={entry['truncated_model_area']:.3f}, "
+                f"valid data/reactive areas data={entry['reactive_data_area']:.3f}, "
+                f"reactive_raw={entry['reactive_model_raw_area']:.3f}, "
+                f"reactive_norm={entry['reactive_model_area']:.3f}"
+            )
 
 
 # %%
