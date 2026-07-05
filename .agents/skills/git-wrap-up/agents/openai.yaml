@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Wrap Up"
+  short_description: "Commit and push repository wrap-up changes"
+  default_prompt: "Use $git-wrap-up to inspect, document, commit, and push the current repository changes."

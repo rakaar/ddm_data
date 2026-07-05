@@ -1,0 +1,4 @@
+interface:
+  display_name: "Update Result Book"
+  short_description: "Add result figures to dated MkDocs pages"
+  default_prompt: "Use $update-result-book to add my latest figure and source script to the dated result docs."

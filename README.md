@@ -16,6 +16,7 @@
 - `FIT_BACKUP_LEDGER.md`: Running ledger for large fit result locations and Google Drive backups, including which animals ran on lavos/ganon, local and remote result paths, Drive folders, counts, and backup status.
 - `led8_led_off_rtds_task.md`: Task note specifying the LED8 session-type-8 LED-off RTD plotting requirements and suggested script structure for `fitting_aborts/led8_session8_led_off_rtds.py`.
 - `paper_notes/model_taxonomy_and_paper_notes.md`: Repo-owned notes on IPL/vanilla TIED, NPL, NPL+alpha, lapse variants, Gamma/Omega fits, and comparison rules. The repo-local Codex skill in `.agents/skills/ddm-model-comparison/` points future agents to this note before model-comparison work.
+- `.agents/skills/`: Repo-local Codex skills for DDM model comparisons, result-book updates, fit backups to Google Drive, and standard git wrap-up. These are committed so the workflows survive machine-local skill loss.
 
 ## Utility Scripts
 

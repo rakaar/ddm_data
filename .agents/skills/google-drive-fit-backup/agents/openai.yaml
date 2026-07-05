@@ -1,0 +1,4 @@
+interface:
+  display_name: "Google Drive Fit Backup"
+  short_description: "Back up DDM fit outputs with rclone"
+  default_prompt: "Use $google-drive-fit-backup to back up fit result folders, verify counts, and update the fit ledger."
