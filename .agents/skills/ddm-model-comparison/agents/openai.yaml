@@ -1,0 +1,4 @@
+interface:
+  display_name: "DDM Model Comparison"
+  short_description: "Compare IPL/NPL/DDM fit families in ddm_data."
+  default_prompt: "Use this skill to orient model comparisons, diagnostics, likelihood checks, and result-book updates in the ddm_data repository."

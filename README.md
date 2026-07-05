@@ -15,6 +15,7 @@
 - `CODEX_GIT_WRAPUP.md`: Reusable shorthand request for Codex. Referring to this file means: check `git status`, document new or undocumented files in the relevant `README.md` files, commit the intended changes, and push to `origin/main`.
 - `FIT_BACKUP_LEDGER.md`: Running ledger for large fit result locations and Google Drive backups, including which animals ran on lavos/ganon, local and remote result paths, Drive folders, counts, and backup status.
 - `led8_led_off_rtds_task.md`: Task note specifying the LED8 session-type-8 LED-off RTD plotting requirements and suggested script structure for `fitting_aborts/led8_session8_led_off_rtds.py`.
+- `paper_notes/model_taxonomy_and_paper_notes.md`: Repo-owned notes on IPL/vanilla TIED, NPL, NPL+alpha, lapse variants, Gamma/Omega fits, and comparison rules. The repo-local Codex skill in `.agents/skills/ddm-model-comparison/` points future agents to this note before model-comparison work.
 
 ## Utility Scripts
 
