@@ -243,3 +243,62 @@ def gamma_omega_delay_loglike(params, data, K_max):
     log_pdf = jnp.log(normalized_pdf)
     return jnp.sum(jnp.where(data["mask"], log_pdf, 0.0))
 
+
+def gamma_omega_delay_lapse_loglike(params, data, K_max):
+    condition_id = data["condition_id"]
+    gamma = params["gamma"][condition_id]
+    omega = params["omega"][condition_id]
+    t_E_aff = params["t_E_aff"][condition_id]
+
+    pdf = up_or_down_gamma_omega_with_w_jax(
+        data["total_fix"],
+        data["choice"],
+        data["V_A"],
+        data["theta_A"],
+        data["t_A_aff"],
+        data["t_stim"],
+        gamma,
+        omega,
+        t_E_aff,
+        params["del_go"],
+        params["w"],
+        K_max,
+    )
+    trunc_factor = (
+        cum_pro_and_reactive_gamma_omega_with_w_jax(
+            data["t_stim"] + 1.0,
+            data["T_trunc"],
+            data["V_A"],
+            data["theta_A"],
+            data["t_A_aff"],
+            data["t_stim"],
+            gamma,
+            omega,
+            t_E_aff,
+            params["w"],
+            K_max,
+        )
+        - cum_pro_and_reactive_gamma_omega_with_w_jax(
+            data["t_stim"],
+            data["T_trunc"],
+            data["V_A"],
+            data["theta_A"],
+            data["t_A_aff"],
+            data["t_stim"],
+            gamma,
+            omega,
+            t_E_aff,
+            params["w"],
+            K_max,
+        )
+    )
+
+    ddm_pdf = jnp.maximum(pdf / (trunc_factor + 1e-10), 1e-10)
+    lapse_choice_pdf = jnp.where(
+        data["choice"] == 1,
+        params["lapse_prob_right"],
+        1.0 - params["lapse_prob_right"],
+    )
+    mixed_pdf = (1.0 - params["lapse_prob"]) * ddm_pdf + params["lapse_prob"] * lapse_choice_pdf
+    log_pdf = jnp.log(jnp.maximum(mixed_pdf, 1e-50))
+    return jnp.sum(jnp.where(data["mask"], log_pdf, 0.0))
