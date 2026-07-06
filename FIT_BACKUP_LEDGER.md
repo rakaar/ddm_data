@@ -621,3 +621,42 @@ Status:
 - Readable config copies: `config/gdrive_ipl50k_backup_20260702_122439.log` and `config/FIT_BACKUP_LEDGER_20260702.md`.
 - A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### NPL+alpha+lapse condition-delay SVI patience12 min50k backup completed 2026-07-06
+
+Fit family:
+- NumPyro SVI NPL+alpha+lapse condition-delay model with shared per-animal NPL+alpha parameters, global `w` and `del_go`, global lapse parameters, and condition-wise `t_E_aff`.
+- This is the all-30-animal patience12 min50k restore-best output root with atypical early restored-best loss curves for some animals.
+- This is the analysis root to use going forward for this fit family; do not substitute the random-plausible 100k rerun root or the refreshed VBMC scalar-`t_E_aff` runs for this result.
+
+Source machine:
+- lavos.
+
+Local source path:
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/numpyro_svi_npl_alpha_lapse_condition_delay_patience12_min50k_restore_best_outputs/`
+
+Drive parent folder:
+- `raga:ddm_fit_backups_20260706_npl_alpha_lapse_condition_delay_patience12_min50k_lavos/`
+
+Drive subfolders:
+- `raga:ddm_fit_backups_20260706_npl_alpha_lapse_condition_delay_patience12_min50k_lavos/numpyro_svi_npl_alpha_lapse_condition_delay_patience12_min50k_restore_best_outputs/`
+- `raga:ddm_fit_backups_20260706_npl_alpha_lapse_condition_delay_patience12_min50k_lavos/config/`
+
+Upload tmux session:
+- `gdrive_npl_alpha_lapse_min50k_backup_20260706_125058`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_npl_alpha_lapse_min50k_backup_20260706_125058.log`
+
+Expected local counts and sizes:
+- NPL+alpha+lapse patience12 min50k SVI output root: 373 files, 244M.
+- Top-level output folders: 30 animal folders plus `_batch_logs`, `comparison_with_npl_no_lapse`, and `summary_figures`.
+
+Status:
+- Google Drive upload completed on 2026-07-06 12:54 WEST.
+- Observed remote NPL+alpha+lapse min50k output files before config copies: 373.
+- Observed remote total before config copies: 373 objects, 242.973 MiB.
+- Observed remote total after config copies: 375 objects, 243.231 MiB.
+- Readable config copies: `config/gdrive_npl_alpha_lapse_min50k_backup_20260706_125058.log` and `config/FIT_BACKUP_LEDGER_20260706.md`.
+- A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
