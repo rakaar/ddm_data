@@ -1,6 +1,6 @@
 # Fit Backup Ledger
 
-Last updated: 2026-06-27 16:42 WEST
+Last updated: 2026-07-07 10:54 WEST
 
 ## Current Fit Campaign
 
@@ -658,5 +658,43 @@ Status:
 - Observed remote total before config copies: 373 objects, 242.973 MiB.
 - Observed remote total after config copies: 375 objects, 243.231 MiB.
 - Readable config copies: `config/gdrive_npl_alpha_lapse_min50k_backup_20260706_125058.log` and `config/FIT_BACKUP_LEDGER_20260706.md`.
+- A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### Gamma/Omega/delay+lapse condition SVI patience12 backup completed 2026-07-07
+
+Fit family:
+- NumPyro SVI condition-wise Gamma/Omega/delay+lapse model with condition-wise `gamma`, `omega`, and `t_E_aff`, plus shared per-animal `w`, `del_go`, `lapse_rate`, and `lapse_prob_right`.
+- This is the all-30-animal patience12 restore-best condition-fit output root used to compare condition-wise Gamma/Omega fits with and without lapses.
+
+Source machine:
+- lavos.
+
+Local source path:
+- `/home/rlab/raghavendra/ddm_data/fit_each_condn/svi_big_gamma_omega_delay_lapse_patience12_restore_best_all_animals_outputs/`
+
+Drive parent folder:
+- `raga:ddm_fit_backups_20260707_big_gamma_omega_delay_lapse_condition_fit_patience12_lavos/`
+
+Drive subfolders:
+- `raga:ddm_fit_backups_20260707_big_gamma_omega_delay_lapse_condition_fit_patience12_lavos/svi_big_gamma_omega_delay_lapse_patience12_restore_best_all_animals_outputs/`
+- `raga:ddm_fit_backups_20260707_big_gamma_omega_delay_lapse_condition_fit_patience12_lavos/config/`
+
+Upload tmux session:
+- `gdrive_gamma_omega_lapse_condfit_backup_20260707_104913`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_gamma_omega_lapse_condfit_backup_20260707_104913.log`
+
+Expected local counts and sizes:
+- Gamma/Omega/delay+lapse condition SVI output root: 307 files, 488M.
+- Top-level output folders: 30 animal folders plus `_batch_logs` and `summary_figures`.
+- Structured counts: 30 fit bundles, 30 posterior sample archives, and 30 condition summary CSVs.
+
+Status:
+- Google Drive upload completed on 2026-07-07 10:52 WEST.
+- Observed remote condition-fit output files before config copies: 307.
+- Observed remote total before config copies: 307 objects, 486.371 MiB.
+- Readable config copies: `config/gdrive_gamma_omega_lapse_condfit_backup_20260707_104913.log` and `config/FIT_BACKUP_LEDGER_20260707.md`.
 - A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
