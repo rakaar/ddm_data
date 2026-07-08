@@ -50,9 +50,11 @@ class StyleConfig:
             "font.family": "sans-serif",
             "font.sans-serif": [
                 self.font_family,
+                "Nimbus Sans",
                 "Helvetica Neue",
                 "TeX Gyre Heros",
                 "Arial",
+                "Liberation Sans",
                 "sans-serif",
             ],
             "axes.labelpad": 12,

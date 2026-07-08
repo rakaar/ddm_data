@@ -101,6 +101,7 @@
 - `compare_gamma_from_cond_fit_and_norm_model_fit_for_paper.py` - gamma: cond by cond fit vs model fit
 (but cond by cond fit is done here - `fit_single_rat_condn_by_condn_fix_t_E_w_del_go_all_animals_loop_for_paper.py`)
 - `see_only_psycho_all_ILD_tied.py` - psychometric slope model vs data - vanilla, norm
+- `figure2_v2/` - Fig. 2-style regenerated IPL/vanilla panels from the direct patience12/min50k IPL condition-delay SVI fit, using condition-wise `t_E_aff`; `build_ipl_svi_fig2_v2_data.py` writes the compact panel pickles and `plot_ipl_svi_fig2_v2.py` assembles the five-panel PNG/PDF.
 
 ### psycho fit, del E,go fixed
 - `decoding_conf_NEW_psychometric_fit_vbmc_all_animals_pot_supp_for_paper.py` - psychometric ONLY fits
@@ -131,6 +132,7 @@
 
 ## Supplementary Lapses Figure
 See [`lapses_figures_list.md`](lapses_figures_list.md) for full documentation of the 2×4 lapses supplementary figure (layout, pkl files, producer scripts).
+- `supplementary_lapses_v2/` - SVI-based regeneration of the same 2 x 4 lapses supplementary figure using the current IPL, NPL+alpha, IPL+lapse, NPL+alpha+lapse condition-delay SVI roots plus the completed no-lapse/lapse big Gamma/Omega/delay SVI condition summaries for the Gamma panel.
 
 ### Additional lapse-rate diagnostics
 - `rate_lambda_vs_lapse_prob_save_data.py` - Samples `rate_lambda` vs lapse rate from norm+lapse fits and saves `rate_lambda_vs_lapse_prob_data.pkl` plus scatter plot.

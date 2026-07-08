@@ -698,3 +698,73 @@ Status:
 - Readable config copies: `config/gdrive_gamma_omega_lapse_condfit_backup_20260707_104913.log` and `config/FIT_BACKUP_LEDGER_20260707.md`.
 - A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### WL normalization v2 Figure 2 reproducibility backup completed 2026-07-07
+
+Artifact family:
+- Compact reproduction folder for the Fig. 2-style direct IPL/vanilla condition-delay SVI diagnostic.
+- Includes the plotting script, compact panel-data pickles, bundled validation pkl, final PNG/PDF, and local README.
+- Does not include the full upstream all-animal IPL SVI output root; the included plot script redraws the figure from the compact panel pickles.
+
+Source machine:
+- lavos.
+
+Local source path:
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/figure2_v2/`
+
+Drive folder:
+- `raga:WL_normalization_v2/figure 2/`
+
+Drive config folder:
+- `raga:WL_normalization_v2/config/`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_wl_normalization_v2_figure2_backup_20260707_162303.log`
+
+Expected local counts and sizes:
+- Figure 2 v2 compact folder: 10 files, 3.7M.
+
+Status:
+- Google Drive upload completed on 2026-07-07 16:23 WEST.
+- Observed remote `figure 2` folder after removing generated `__pycache__`: 10 files, 3.602 MiB.
+- Readable config copies: `config/gdrive_wl_normalization_v2_figure2_backup_20260707_162303.log` and `config/FIT_BACKUP_LEDGER_20260707.md`.
+- A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### WL normalization v2 Figure 2 and Figure 6 reproducibility backup completed 2026-07-08
+
+Artifact families:
+- Updated compact reproduction folder for the Fig. 2-style direct IPL/vanilla condition-delay SVI diagnostic.
+- New compact reproduction folder for the Fig. 6 / lapses supplementary 2 x 4 SVI diagnostic.
+- Includes plotting/build scripts, compact panel-data pickles/CSVs, rendered PNG/PDF outputs, and local READMEs.
+- Does not include the full upstream all-animal SVI output roots; the included scripts redraw the figures from compact products and documented upstream fit roots.
+
+Source machine:
+- lavos.
+
+Local source paths:
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/figure2_v2/`
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/supplementary_lapses_v2/`
+
+Drive folders:
+- `raga:WL_normalization_v2/figure 2/figure2_v2/`
+- `raga:WL_normalization_v2/figure 6/supplementary_lapses_v2/`
+
+Drive config folder:
+- `raga:WL_normalization_v2/config/`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_wl_normalization_v2_figures_backup_20260708_122108.log`
+
+Expected local counts and sizes:
+- Figure 2 v2 compact folder: 17 files, 4.8M.
+- Figure 6 / supplementary lapses v2 compact folder: 11 files, 784K.
+
+Status:
+- Google Drive upload completed on 2026-07-08 12:21 WEST.
+- Observed remote `figure 2/figure2_v2` folder: 17 files, 4.723 MiB.
+- Observed remote `figure 6/supplementary_lapses_v2` folder: 11 files, 751.851 KiB.
+- Observed remote `WL_normalization_v2` total after upload: 40 objects, 8.954 MiB.
+- Readable config copies: `config/gdrive_wl_normalization_v2_figures_backup_20260708_122108.log` and `config/FIT_BACKUP_LEDGER_20260708.md`.
+- A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
