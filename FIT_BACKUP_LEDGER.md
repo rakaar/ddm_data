@@ -768,3 +768,41 @@ Status:
 - Readable config copies: `config/gdrive_wl_normalization_v2_figures_backup_20260708_122108.log` and `config/FIT_BACKUP_LEDGER_20260708.md`.
 - A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### WL normalization v2 Figure 4 reproducibility backup completed 2026-07-09
+
+Artifact family:
+- Compact reproduction folder for the Fig. 4-style NPL+alpha diagnostic using
+  per-animal Gamma+Omega MSE parameters from the patience12 92-parameter big
+  Gamma/Omega/delay SVI fit.
+- Includes plotting/build scripts, compact panel-data pickles, bundled
+  validation pkl, rendered PNG/PDF outputs, and local README.
+- Does not include the full upstream 92-parameter big SVI output root; the
+  included scripts redraw the figures from compact products and documented
+  upstream fit roots.
+
+Source machine:
+- lavos.
+
+Local source path:
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/figure4_v2/`
+
+Drive folder:
+- `raga:WL_normalization_v2/figure 4/figure4_v2/`
+
+Drive config folder:
+- `raga:WL_normalization_v2/config/`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_wl_normalization_v2_figure4_backup_20260709_123216.log`
+
+Expected local counts and sizes:
+- Figure 4 v2 compact folder: 13 files, 4.8M.
+
+Status:
+- Google Drive upload completed on 2026-07-09 12:32 WEST.
+- Observed remote `figure 4/figure4_v2` folder: 13 files, 4.752 MiB.
+- Observed remote `WL_normalization_v2` total after upload: 55 objects, 13.747 MiB.
+- Readable config copies: `config/gdrive_wl_normalization_v2_figure4_backup_20260709_123216.log` and `config/FIT_BACKUP_LEDGER_20260709.md`.
+- A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
