@@ -39,6 +39,7 @@ plt.rcParams.update({
     "font.sans-serif": ["Helvetica", "Nimbus Sans", "Helvetica Neue", "Arial", "Liberation Sans", "sans-serif"],
     "pdf.use14corefonts": True,
     "ps.useafm": True,
+    "axes.unicode_minus": False,
 })
 
 
@@ -326,7 +327,7 @@ def plot_gamma_omega(ax, data, param):
     condition_col = f"condition_{param}"
     model_mean_col = f"model_{param}_mean"
     model_sem_col = f"model_{param}_sem"
-    ylabel = "Discriminability Γ" if param == "gamma" else "Omega ω"
+    ylabel = r"Discriminability $\Gamma$" if param == "gamma" else r"Omega $\omega$"
 
     for abl in ABLS:
         color = ABL_COLORS[abl]

@@ -886,3 +886,32 @@ Status:
 - A central Drive copy of this ledger was refreshed at
   `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Copies used `rclone copyto`, not `rclone sync`.
+
+### Figure 2 v2 PDF symbol-rendering repair completed 2026-07-10
+
+Issue and fix:
+- The Figure 2 v2 PDF used literal Unicode Gamma, omega, and minus glyphs while
+  `pdf.use14corefonts=True` selected WinAnsi Helvetica, causing those glyphs to
+  render as question marks.
+- The plotting script now uses Matplotlib math text for `Gamma` and `omega`
+  and ASCII hyphen-minus tick labels through `axes.unicode_minus=False`.
+
+Replaced Drive files:
+- `raga:WL_normalization_v2/figure 2/figure2_v2/figure2_v2_ipl_svi_condition_delay.pdf`
+- `raga:WL_normalization_v2/PDFs/Figure_2_v2.pdf`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_wl_normalization_v2_figure2_pdf_greek_fix_20260710_160946.log`
+
+Status:
+- Corrected PDF regenerated and visually checked from a PDF raster on
+  2026-07-10 16:09 WEST.
+- PDF text extraction contains no question-mark replacement characters, and
+  the rendered labels show `Gamma`, `omega`, and negative tick signs correctly.
+- Local and both remote MD5 values match:
+  `bb3c4b9cab59a45eb1c9a08f44ef1fa7`.
+- Readable config copies: `config/gdrive_wl_normalization_v2_figure2_pdf_greek_fix_20260710_160946.log`
+  and the refreshed `config/FIT_BACKUP_LEDGER_20260710.md`.
+- A central Drive copy of this ledger was refreshed at
+  `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Replacements used `rclone copyto`, not `rclone sync`.
