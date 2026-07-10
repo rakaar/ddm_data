@@ -847,3 +847,42 @@ Status:
 - Readable config copies: `config/gdrive_wl_normalization_v2_figure4_npl_svi_supplementary_backup_20260710_155241.log` and `config/FIT_BACKUP_LEDGER_20260710.md`.
 - A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### WL normalization v2 curated PDF collection created 2026-07-10
+
+Artifact family:
+- Publication-facing copies of the final Figure 2 v2, Figure 4 v2, Figure 6
+  v2, and direct-NPL supplementary Figure 4 PDFs.
+- Files were copied server-side from their existing verified
+  `WL_normalization_v2` reproduction folders and given short stable names.
+
+Source machine:
+- lavos initiated the Drive-side copies.
+
+Drive folder:
+- `raga:WL_normalization_v2/PDFs/`
+
+Source-to-destination mapping:
+- `figure 2/figure2_v2/figure2_v2_ipl_svi_condition_delay.pdf` ->
+  `PDFs/Figure_2_v2.pdf`.
+- `figure 4/figure4_v2/figure4_v2_mse_gamma_omega_npl_alpha_with_upper_corner.pdf`
+  -> `PDFs/Figure_4_v2.pdf`.
+- `figure 6/supplementary_lapses_v2/outputs/svi_lapses_supp_v2_2x4.pdf`
+  -> `PDFs/Figure_6_v2.pdf`.
+- `figure 4/figure4_npl_svi_supplementary/figure4_supplementary_npl_svi_patience12.pdf`
+  -> `PDFs/Supplementary_Figure_4_NPL_SVI_v2.pdf`.
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_wl_normalization_v2_pdfs_20260710_160414.log`
+
+Status:
+- Drive-side copies completed on 2026-07-10 16:04 WEST.
+- Observed curated folder: 4 PDF files, 299.413 KiB.
+- MD5 checksums matched between every source and destination PDF.
+- Observed remote `WL_normalization_v2` total after the copies: 69 objects,
+  16.601 MiB.
+- Readable config copies: `config/gdrive_wl_normalization_v2_pdfs_20260710_160414.log`
+  and the refreshed `config/FIT_BACKUP_LEDGER_20260710.md`.
+- A central Drive copy of this ledger was refreshed at
+  `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Copies used `rclone copyto`, not `rclone sync`.
