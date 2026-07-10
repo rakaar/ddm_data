@@ -806,3 +806,44 @@ Status:
 - Readable config copies: `config/gdrive_wl_normalization_v2_figure4_backup_20260709_123216.log` and `config/FIT_BACKUP_LEDGER_20260709.md`.
 - A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### WL normalization v2 direct NPL SVI supplementary Figure 4 backup completed 2026-07-10
+
+Artifact family:
+- Compact supplementary Figure 4 reproduction using the direct patience12
+  37-parameter NPL+alpha condition-delay SVI fit.
+- Psychometric, RT-quantile, Gamma, Omega, and slope predictions use the direct
+  NPL SVI parameters; Gamma/Omega scatter targets remain the patience12
+  92-parameter descriptive condition-fit posterior means.
+- Includes the builder and plotting scripts, compact posterior/panel-data
+  bundle, rendered PNG/PDF, and local README.
+- Does not include the full upstream all-animal NPL SVI output root.
+
+Source machine:
+- lavos.
+
+Local source path:
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/figure4_npl_svi_supplementary/`
+
+Drive folder:
+- `raga:WL_normalization_v2/figure 4/figure4_npl_svi_supplementary/`
+
+Drive config folder:
+- `raga:WL_normalization_v2/config/`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_wl_normalization_v2_figure4_npl_svi_supplementary_backup_20260710_155241.log`
+
+Expected local counts and sizes:
+- Supplementary Figure 4 compact reproducibility folder: 6 intended artifacts,
+  2.6M locally; generated `__pycache__` files were excluded from the final
+  remote folder.
+
+Status:
+- Google Drive upload completed on 2026-07-10 15:52 WEST.
+- Observed remote supplementary Figure 4 folder: 6 files, 2.471 MiB.
+- Observed remote `WL_normalization_v2` total after upload: 63 objects,
+  16.266 MiB.
+- Readable config copies: `config/gdrive_wl_normalization_v2_figure4_npl_svi_supplementary_backup_20260710_155241.log` and `config/FIT_BACKUP_LEDGER_20260710.md`.
+- A central Drive copy of this ledger was refreshed at `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
