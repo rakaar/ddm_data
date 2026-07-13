@@ -52,6 +52,7 @@ plt.rcParams.update(
         ],
         "pdf.use14corefonts": True,
         "ps.useafm": True,
+        "axes.unicode_minus": False,
     }
 )
 
@@ -84,7 +85,7 @@ PARAM_TICKS = {
     "T_0": [0.1, 0.2],
     "theta_E": [2.0, 3.0],
     "rate_norm_l": [0.8, 0.9, 1.0],
-    "alpha": [0.5, 1.0],
+    "alpha": [0.5, 1.5],
 }
 CORNER_COLOR = "#2b6cb0"
 ELLIPSE_QUANTILE = 0.95

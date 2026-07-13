@@ -915,3 +915,47 @@ Status:
 - A central Drive copy of this ledger was refreshed at
   `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Replacements used `rclone copyto`, not `rclone sync`.
+
+### Figure 4 v2 alpha corner-tick update completed 2026-07-13
+
+Artifact family:
+- Regenerated Figure 4 v2 Gamma+Omega-MSE diagnostic and direct-NPL SVI
+  supplementary diagnostic.
+- In both upper-triangular corner blocks, the explicit alpha ticks changed from
+  `0.5, 1.0` to `0.5, 1.5`; all data, fit parameters, and panel geometry remain
+  unchanged.
+- Both scripts also use PDF-safe ASCII minus tick labels so negative ILD and
+  Gamma ticks render correctly with the configured Helvetica core fonts.
+
+Updated local scripts:
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/figure4_v2/plot_mse_gamma_omega_fig4_v2_with_upper_corner.py`
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/figure4_npl_svi_supplementary/plot_npl_svi_fig4_supplementary.py`
+
+Updated Drive reproduction folders:
+- `raga:WL_normalization_v2/figure 4/figure4_v2/`
+- `raga:WL_normalization_v2/figure 4/figure4_npl_svi_supplementary/`
+
+Updated curated PDFs:
+- `raga:WL_normalization_v2/PDFs/Figure_4_v2.pdf`
+- `raga:WL_normalization_v2/PDFs/Supplementary_Figure_4_NPL_SVI_v2.pdf`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_wl_normalization_v2_figure4_alpha_tick_update_20260713_105704.log`
+
+Status:
+- Figures regenerated and visually checked from PDF rasters on
+  2026-07-13 10:57 WEST; both alpha axes show `0.5` and `1.5`.
+- Figure 4 v2 local, reproduction-folder, and curated-PDF MD5:
+  `eec87c841eed82d19f98b6733c5c5c36`.
+- Direct-NPL supplementary local, reproduction-folder, and curated-PDF MD5:
+  `2a0ec5a2579fa1a82acc4e2c17feca3d`.
+- Observed remote reproduction folders: 13 files / 4.755 MiB for Figure 4 v2
+  and 6 files / 2.474 MiB for the direct-NPL supplementary figure.
+- Observed curated `PDFs` folder: 4 files, 309.156 KiB.
+- Observed remote `WL_normalization_v2` total after the dated log copy:
+  72 objects, 16.632 MiB.
+- Readable config copies: `config/gdrive_wl_normalization_v2_figure4_alpha_tick_update_20260713_105704.log`
+  and `config/FIT_BACKUP_LEDGER_20260713.md`.
+- A central Drive copy of this ledger was refreshed at
+  `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Updates used `rclone copy` / `rclone copyto`, not `rclone sync`.
