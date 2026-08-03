@@ -313,3 +313,6 @@ These scripts compare theoretical RT quantiles (from model fits) against empiric
 - `plot_ild2_accuracy_change_vs_params.py` - Compares NPL+alpha+ILD2 accuracy changes against fitted parameter means and parameter deltas, saving scatter diagnostics and a CSV summary.
 - `permutation_test_model_vs_data_accuracy.py` - Paired label-swap test of model-vs-data accuracy differences for IPL, NPL, and NPL+alpha+ILD2, with paired t-test and Wilcoxon checks.
 - `plot_fig4_quantile_sd_ild_mismatch_check.py` - Diagnostic side-by-side Figure 4 quantile comparison using all 30 animals: saved NPL theory with SD contributing through `|ILD|=16` vs matched-grid theory with SD theory included only through `|ILD|=8`.
+
+# Uniform evidence-delay feasibility
+- `npl_alpha_uniform_delay/validate_integrated_reactive_cdf.py` - Tests a spectral analytic integral of the current bound-specific reactive CDF for uniform `t_E_aff`; compares `K=5/10/20` with numerical integration, JAX derivatives, direct delay convolution, the zero-width limit, and representative posterior-mean cases from all 30 NPL+alpha SVI fits. The tested finite series is not yet accurate enough to replace the production likelihood.
