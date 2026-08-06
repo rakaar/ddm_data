@@ -959,3 +959,46 @@ Status:
 - A central Drive copy of this ledger was refreshed at
   `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Updates used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### NPL+alpha Uniform-delay SVI backup completed 2026-08-06
+
+Artifact family:
+- NumPyro SVI NPL+alpha RT+choice model with seven global parameters and a
+  condition-wise Uniform evidence-delay center and width, for 67 fitted
+  parameters per animal.
+- Includes all six completed LED7 animals (`92`, `93`, `98`, `99`, `100`, and
+  `103`) and the cross-batch LED8/105 fit.
+- Includes posterior samples and variational-posterior bundles, condition and
+  global summaries, convergence/loss records, run metadata, per-animal RTD and
+  delay diagnostics, batch logs, and the across-LED7 summary diagnostics.
+
+Source machine:
+- lavos.
+
+Local source path:
+- `/home/rlab/raghavendra/ddm_data/fit_animal_by_animal/npl_alpha_uniform_delay/numpyro_svi_npl_alpha_uniform_delay_rt_choice_patience12_min50k_restore_best_outputs/`
+
+Drive folder:
+- `raga:ddm_fit_backups_20260806_npl_alpha_uniform_delay_LED7_LED8_105_lavos/numpyro_svi_npl_alpha_uniform_delay_rt_choice_patience12_min50k_restore_best_outputs/`
+
+Drive config folder:
+- `raga:ddm_fit_backups_20260806_npl_alpha_uniform_delay_LED7_LED8_105_lavos/config/`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_npl_alpha_uniform_delay_backup_20260806_185903.log`
+
+Expected local counts and sizes:
+- Uniform-delay fit output root: 147 files, 235,600,341 bytes
+  (224.686 MiB transferred; 226M by `du -sh`).
+- Top-level fit folders: six LED7 animal folders, one LED8/105 folder,
+  `_batch_logs`, `_run_logs`, and `summary_figures`.
+
+Status:
+- Google Drive upload completed on 2026-08-06 19:00 WEST.
+- Observed remote fit root: 147 files, 235,600,341 bytes.
+- `rclone check --one-way` reported zero differences and 147 matching files.
+- Readable config copies: `config/gdrive_npl_alpha_uniform_delay_backup_20260806_185903.log`
+  and `config/FIT_BACKUP_LEDGER_20260806.md`.
+- The central Drive ledger was refreshed at
+  `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
+- Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.

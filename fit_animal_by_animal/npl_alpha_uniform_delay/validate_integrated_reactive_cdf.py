@@ -1225,9 +1225,9 @@ delay_low_s = UNIFORM_DELAY_CENTER_S - delay_width_s / 2.0
 delay_high_s = UNIFORM_DELAY_CENTER_S + delay_width_s / 2.0
 observed_time_s = np.linspace(0.060, 0.300, 2401)
 
-visual_spectral_terms = (20,)
+visual_spectral_terms = (100,)
 line_styles = {
-    20: {"color": "tab:green", "ls": "--", "lw": 2.5, "zorder": 6},
+    100: {"color": "tab:green", "ls": "--", "lw": 2.5, "zorder": 6},
 }
 
 fig_visual, axes_visual = plt.subplots(2, 3, figsize=(13.0, 7.0), sharex="row")

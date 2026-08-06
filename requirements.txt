@@ -134,6 +134,7 @@ Pygments==2.18.0
 pyknos==0.16.0
 pymc==5.18.2
 PyMuPDF==1.25.5
+pymdown-extensions==11.0.1
 pyparsing==3.2.0
 PyPDF2==3.0.1
 pyro-api==0.1.2
