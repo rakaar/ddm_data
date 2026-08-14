@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "recommended_quadrature_nodes": 64,
+  "quadrature_candidates": [
+    64,
+    96
+  ],
+  "node_pass": {
+    "64": true,
+    "96": true
+  },
+  "pdf_pass": true,
+  "pdf_atol": 1e-10,
+  "pdf_rtol": 1e-06,
+  "cdf_atol": 1e-07,
+  "cdf_rtol": 1e-05,
+  "loglike_mean_abs_tolerance": 1e-05,
+  "n_trials_led7_93": 12316,
+  "n_led_on_trials_led7_93": 1805,
+  "n_led_off_trials_led7_93": 10511,
+  "comparison_csv": "/home/rlab/raghavendra/ddm_data/fitting_aborts/proactive_led_step_jump_svi_validation/proactive_led_step_jump_pdf_cdf_validation.csv",
+  "full_loglike_csv": "/home/rlab/raghavendra/ddm_data/fitting_aborts/proactive_led_step_jump_svi_validation/proactive_led_step_jump_full_loglike_validation.csv",
+  "figure": "/home/rlab/raghavendra/ddm_data/fitting_aborts/proactive_led_step_jump_svi_validation/proactive_led_step_jump_pdf_cdf_validation.png",
+  "reference_note": "Pass/fail uses the stable intended step-jump CDF. The historical 1 ms trapz CDF is retained in the comparison CSV as an audit column only."
+}

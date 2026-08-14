@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "model": "proactive_led_step_jump_all_on_no_trunc_exp_lapse",
+  "recommended_quadrature_nodes": 64,
+  "reference_quadrature_nodes": 256,
+  "function_validation_pass": true,
+  "full_loglike_pass": true,
+  "gradient_finite": true,
+  "full_loglike_mean_abs_tolerance": 1e-05,
+  "full_loglike_mean_abs_difference_per_trial": 2.2067079989637952e-16,
+  "n_trials_led7_93": 16486,
+  "n_led_on_trials_led7_93": 5595,
+  "n_led_off_trials_led7_93": 10891,
+  "n_early_aborts_below_300ms_led7_93": 664,
+  "truncation": "none",
+  "function_comparison_csv": "/home/rlab/raghavendra/ddm_data/fitting_aborts/proactive_led_step_jump_no_trunc_exp_lapse_svi_validation/no_trunc_exp_lapse_function_validation.csv",
+  "full_loglike_csv": "/home/rlab/raghavendra/ddm_data/fitting_aborts/proactive_led_step_jump_no_trunc_exp_lapse_svi_validation/no_trunc_exp_lapse_full_loglike_validation.csv",
+  "figure": "/home/rlab/raghavendra/ddm_data/fitting_aborts/proactive_led_step_jump_no_trunc_exp_lapse_svi_validation/no_trunc_exp_lapse_pdf_cdf_validation.png"
+}

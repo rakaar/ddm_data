@@ -4,6 +4,7 @@ Schematic plot: RT wrt LED (theory vs data), using saved VBMC results.
 
 # %%
 from pathlib import Path
+import os
 import pickle
 import sys
 
@@ -38,6 +39,18 @@ HIST_X_RANGE = (-3.0, 3.0)
 
 RNG_SEED = 42
 SHOW_PLOT = True
+
+# The original aggregate VP is no longer available locally.  These rounded
+# posterior means were recorded from its summary image in
+# fitting_aborts/sim_proactive_LED_bound_drop_fixed_params.py.  The opt-in
+# environment flag lets the historical RT-wrt-LED calculation remain runnable
+# without changing the default saved-VP workflow.
+USE_RECORDED_FCT_MEANS = os.environ.get("FCT_USE_RECORDED_MEANS", "0") == "1"
+ONLY_RTWRTLED = os.environ.get("FCT_ONLY_RTWRTLED", "0") == "1"
+RECORDED_FCT_PARAM_MEANS = np.array(
+    [1.4730, 3.0935, 2.1600, -0.0661, 0.0260, 0.0420, 4.1832],
+    dtype=float,
+)
 
 # %%
 # =============================================================================
@@ -97,16 +110,21 @@ if not LOAD_SAVED_RESULTS:
     raise ValueError("This schematic script supports only LOAD_SAVED_RESULTS=True.")
 
 vp_pkl_path = ROOT / "fitting_aborts" / f"vbmc_real_{file_tag}_fit_NO_TRUNC_with_lapse.pkl"
-if not vp_pkl_path.exists():
-    raise FileNotFoundError(f"Saved fit not found: {vp_pkl_path}")
+if USE_RECORDED_FCT_MEANS:
+    param_means = RECORDED_FCT_PARAM_MEANS.copy()
+    vp_samples = None
+    print("Using recorded rounded aggregate FCT posterior means.")
+else:
+    if not vp_pkl_path.exists():
+        raise FileNotFoundError(f"Saved fit not found: {vp_pkl_path}")
 
-with open(vp_pkl_path, "rb") as f:
-    vp = pickle.load(f)
+    with open(vp_pkl_path, "rb") as f:
+        vp = pickle.load(f)
 
-vp_samples = vp.sample(N_POSTERIOR_SAMPLES)[0]
-param_means = np.mean(vp_samples, axis=0)
+    vp_samples = vp.sample(N_POSTERIOR_SAMPLES)[0]
+    param_means = np.mean(vp_samples, axis=0)
+    print(f"Loaded VP: {vp_pkl_path}")
 
-print(f"Loaded VP: {vp_pkl_path}")
 print(f"Posterior means: {np.round(param_means, 4)}")
 
 # %%
@@ -317,6 +335,10 @@ save_plot_payload(
 
 if SHOW_PLOT:
     plt.show()
+
+if ONLY_RTWRTLED:
+    print("Stopped after the historical RT-wrt-LED data/theory panel.")
+    raise SystemExit(0)
 
 # =============================================================================
 # Schematic: single-bound trajectory with drift change at LED onset + delay
