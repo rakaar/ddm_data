@@ -1,6 +1,6 @@
 # Fit Backup Ledger
 
-Last updated: 2026-07-07 10:54 WEST
+Last updated: 2026-08-14 10:35 WEST
 
 ## Current Fit Campaign
 
@@ -1002,3 +1002,53 @@ Status:
 - The central Drive ledger was refreshed at
   `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md`.
 - Upload used `rclone copy` / `rclone copyto`, not `rclone sync`.
+
+### Proactive LED no-truncation lapse SVI backup completed 2026-08-14
+
+Artifact family:
+- Seven-parameter proactive LED step-jump SVI with shared `V_A_base`,
+  `V_A_post_LED`, `theta_A`, `del_a_minus_del_LED`,
+  `del_m_plus_del_LED`, exponential `lapse_prob`, and `beta_lapse`.
+- Fits use every selected LED-ON and LED-OFF trial, retain aborts below 300 ms,
+  and apply no truncation renormalization or LED-ON likelihood upweighting.
+- Includes the six original animal-wise patience-12/min50k fits, the min150k
+  audits for animals `92`, `99`, `100`, and `103`, and one shared aggregate
+  fit to all 94,433 trials.
+- The aggregate folder also contains the reusable payload and rendered `2 x 8`
+  RT-relative-to-LED comparison between the six-fit mixture and aggregate fit.
+
+Source machine:
+- lavos.
+
+Local source paths:
+- `/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_proactive_led_step_jump_all_on_no_trunc_exp_lapse_patience12_min50k_restore_best_outputs/`
+- `/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_proactive_led_step_jump_all_on_no_trunc_exp_lapse_patience12_min150k_restore_best_audit_outputs/`
+- `/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_proactive_led_step_jump_all_on_no_trunc_exp_lapse_aggregate_patience12_min150k_restore_best_outputs/`
+
+Drive parent folder:
+- `raga:ddm_fit_backups_20260814_proactive_led_no_trunc_lapse_svi_lavos/`
+
+Drive subfolders:
+- `raga:ddm_fit_backups_20260814_proactive_led_no_trunc_lapse_svi_lavos/animal_wise_patience12_min50k_restore_best_outputs/`
+- `raga:ddm_fit_backups_20260814_proactive_led_no_trunc_lapse_svi_lavos/animal_wise_patience12_min150k_restore_best_audits/`
+- `raga:ddm_fit_backups_20260814_proactive_led_no_trunc_lapse_svi_lavos/aggregate_patience12_min150k_restore_best_outputs/`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_proactive_led_no_trunc_lapse_svi_backup_20260814_102644.log`
+
+Observed local and remote counts/sizes:
+- Animal-wise min50k root: 59 files, 21,188,783 bytes.
+- Animal-wise min150k audit root: 38 files, 29,394,206 bytes.
+- Aggregate min150k root: 11 files, 9,423,358 bytes.
+- Total remote backup: 108 files, 60,006,347 bytes.
+
+Status:
+- Google Drive upload completed on 2026-08-14 10:34 WEST.
+- `rclone check --one-way` reported zero differences and 59, 38, and 11
+  matching files for the three respective roots.
+- Aggregate SVI status is complete: 150k checked steps, restored-best checkpoint
+  at 101k, zero non-finite losses, and finite posterior samples.
+- Upload used `rclone copy`, not `rclone sync`.
+- This local ledger records the verified backup. Drive copies of the ledger and
+  upload log remain pending because they contain private local paths and
+  research metadata and require separate explicit upload authorization.
