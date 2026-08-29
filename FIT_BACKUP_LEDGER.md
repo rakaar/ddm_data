@@ -1,6 +1,6 @@
 # Fit Backup Ledger
 
-Last updated: 2026-08-29 14:15 WEST
+Last updated: 2026-08-29 18:20 WEST
 
 ## Current Fit Campaign
 
@@ -1106,3 +1106,57 @@ Status:
   `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md` remains pending separate
   explicit authorization for that metadata upload.
 - Upload used `rclone copyto`, not `rclone sync`.
+
+### LED7 proactive-lapse + NPL+alpha valid-trial SVI backup completed 2026-08-29
+
+Artifact family:
+- Independent LED7/98 LED-OFF and bilateral LED-ON valid-trial RT+choice SVI
+  fits. Each fit holds the proactive step-jump and exponential-lapse parameters
+  fixed and fits seven shared NPL+alpha parameters plus 30 condition-specific
+  `t_E_aff` values.
+- Trial-pooled LED7 super-animal LED-OFF and bilateral LED-ON fits across
+  animals `92`, `93`, `98`, `99`, `100`, and `103`. The backup includes warm
+  and deliberately displaced branches, selection records, posterior samples,
+  guide parameters, loss traces, convergence checks, and diagnostics.
+
+Source machine:
+- lavos.
+
+Local source paths:
+- `/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_proactive_led_step_jump_npl_alpha_valid_led7_98_pilot_outputs/`
+- `/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_proactive_led_step_jump_npl_alpha_valid_led7_aggregate_patience12_min50k_restore_best_outputs/`
+
+Drive parent folder:
+- `raga:ddm_fit_backups_20260829_proactive_lapse_npl_alpha_valid_svi_lavos/`
+
+Drive subfolders:
+- `raga:ddm_fit_backups_20260829_proactive_lapse_npl_alpha_valid_svi_lavos/led7_98_off_on_pilot_outputs/`
+- `raga:ddm_fit_backups_20260829_proactive_lapse_npl_alpha_valid_svi_lavos/led7_super_animal_off_on_outputs/`
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_led7_valid_npl_alpha_svi_backup_20260829_181638.log`
+
+Observed local and remote counts/sizes:
+- LED7/98 OFF/ON pilot root: 28 files, 17,449,225 bytes locally and remotely.
+- LED7 super-animal OFF/ON root: 59 files, 34,386,122 bytes locally and
+  remotely.
+- Combined Drive parent: 87 files, 51,835,347 bytes.
+
+Fit status:
+- LED7/98 OFF and bilateral-ON branches both patience-converged after 50k
+  checked steps, restoring 1k and 15k respectively; both posterior archives
+  are finite.
+- All four super-animal warm/displaced branches patience-converged with finite
+  posteriors. The saved selection records currently select displaced OFF and
+  warm bilateral ON; all branches are present in the backup.
+- The separate LED7/98 displaced-initialization recovery root was not included
+  because it is a diagnostic sensitivity run rather than the selected OFF/ON
+  pilot source.
+
+Status:
+- Google Drive upload and exact count/byte verification completed on
+  2026-08-29 18:20 WEST.
+- Upload used `rclone copy`, not `rclone sync`.
+- This local ledger records the verified backup. The central Drive ledger was
+  not modified because approval covered the two fit roots and their dated
+  destination, not upload of the ledger's private local-path metadata.
