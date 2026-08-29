@@ -1,6 +1,6 @@
 # Fit Backup Ledger
 
-Last updated: 2026-08-14 10:35 WEST
+Last updated: 2026-08-29 14:15 WEST
 
 ## Current Fit Campaign
 
@@ -1052,3 +1052,57 @@ Status:
 - This local ledger records the verified backup. Drive copies of the ledger and
   upload log remain pending because they contain private local paths and
   research metadata and require separate explicit upload authorization.
+
+### LED7/93 corrected truncated proactive VBMC canonical replacement completed 2026-08-29
+
+Artifact family:
+- Paper-era three-parameter LED-OFF proactive VBMC fit with `V_A`, `theta_A`,
+  and scalar `t_A_aff`, using the historical 300 ms left-truncated
+  abort-density/censored-survival likelihood.
+- The LED7/93 refit used the corrected `t_A_aff` hard bounds of
+  `-0.5..0.1 s`, converged to a stable variational solution, and supplied a
+  canonical-size posterior sample of 1,000,000 draws.
+
+Local canonical path:
+- `/home/rlab/raghavendra/ddm_data/aborts_ipl_npl_time_fit_results/results_LED7_animal_93.pkl`
+
+Local refit and replacement provenance:
+- `/home/rlab/raghavendra/ddm_data/fitting_aborts/vbmc_old_truncated_proactive_led7_93_more_evals/`
+- `/home/rlab/raghavendra/ddm_data/fitting_aborts/vbmc_old_truncated_proactive_led7_93_more_evals/canonical_replacement/replacement_provenance.json`
+- The former canonical pickle is preserved locally as
+  `canonical_replacement/results_LED7_animal_93_before_corrected_proactive_refit.pkl`.
+
+Drive canonical backup updated in place:
+- `raga:aborts_ipl_npl_time_fit_results_20260603_184315/results_LED7_animal_93.pkl`
+
+Replacement details:
+- Only the top-level `vbmc_aborts_results` block was replaced.
+- `vbmc_vanilla_tied_results`, `vbmc_norm_tied_results`, and
+  `vbmc_time_vary_norm_tied_results` passed exact content-hash checks and were
+  left unchanged.
+- Former posterior means: `V_A = 1.978902`, `theta_A = 6.674099`,
+  `t_A_aff = -1619.335 ms`.
+- Corrected posterior means: `V_A = 1.352390`, `theta_A = 1.820492`,
+  `t_A_aff = 28.356 ms`.
+- Corrected VBMC termination: stable/probable, `ELBO = -47682.962912 +/-
+  0.002269`, posterior-mean log likelihood `-47672.044229`.
+
+Integrity:
+- Former canonical SHA256:
+  `1a38888c20612e9ed54abe8d56f88f02b0a42b9660eb730c923d09243c047860`.
+- Updated canonical SHA256:
+  `68003d7f6d861ab3fd9d6ddf639858f51ca78cb28b85bb401dd98f30b2e01cef`.
+- Updated local and Drive MD5:
+  `c1923dd85645763ea2a127826e0b9d89`.
+
+Upload log:
+- `/home/rlab/raghavendra/ddm_data/logs/gdrive_led7_93_corrected_proactive_vbmc_backup_20260829_141343.log`
+
+Status:
+- Existing Drive file replaced and hash-verified on 2026-08-29 14:14 WEST.
+- The existing Drive fit folder still contains 30 objects totaling
+  1,296,064,605 bytes.
+- The local fit ledger was updated. Refreshing the central Drive ledger at
+  `raga:ddm_fit_backup_ledgers/FIT_BACKUP_LEDGER.md` remains pending separate
+  explicit authorization for that metadata upload.
+- Upload used `rclone copyto`, not `rclone sync`.

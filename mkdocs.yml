@@ -37,6 +37,9 @@ nav:
       - "2026-08-12": results/2026-08-12.md
       - "2026-08-13": results/2026-08-13.md
       - "2026-08-14": results/2026-08-14.md
+      - "2026-08-25": results/2026-08-25.md
+      - "2026-08-28": results/2026-08-28.md
+      - "2026-08-29": results/2026-08-29.md
 markdown_extensions:
   - toc:
       permalink: true

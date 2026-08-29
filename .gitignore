@@ -1,5 +1,7 @@
 __pycache__/*
 *.pyc
+*.nbc
+*.nbi
 *.csv
 *.npz
 venv/*

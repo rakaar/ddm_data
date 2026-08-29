@@ -71,7 +71,12 @@ BATCH_T_TRUNC = {"LED34_even": 0.15}
 DEFAULT_T_TRUNC = 0.3
 
 BATCH_CSV = REPO_DIR / "raw_data" / "batch_csvs" / f"batch_{BATCH_NAME}_valid_and_aborts.csv"
-ABORT_RESULT_PKL = REPO_DIR / "aborts_ipl_npl_time_fit_results" / f"results_{BATCH_NAME}_animal_{ANIMAL}.pkl"
+ABORT_RESULT_PKL = Path(
+    os.environ.get(
+        "NUMPYRO_SVI_ABORT_RESULT_PKL",
+        str(REPO_DIR / "aborts_ipl_npl_time_fit_results" / f"results_{BATCH_NAME}_animal_{ANIMAL}.pkl"),
+    )
+).expanduser()
 FIXED_DELAY_RESULT_PKL = (
     SCRIPT_DIR
     / "NPL_alpha_condition_t_E_aff_fixed_delay_fit_results_all_30"
