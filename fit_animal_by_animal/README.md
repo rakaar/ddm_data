@@ -9,6 +9,9 @@
 - `proactive_plus_lapse_plus_reactive_uitls.py` - Shared likelihood helpers for proactive + lapse + reactive fitting, including right-truncated valid-trial logpdfs and the newer choice-collapsed RT-density helper used by the LED-OFF no-choice ABL-delay fits.
 - `check_fig_8G.py`: Exploratory firing-rate/gain calculation for a Figure 8G-style binaural interaction panel across ABL and ILD grids.
 - `plot_intended_fix_distributions.py`: Plots LED7 and LED8 `intended_fix` histograms from `batch_csvs` with shifted-exponential fits and saves one PNG per batch.
+- `plot_led7_led8_intended_fix_by_session_type.py`: Filters LED7 and LED8 to `training_level == 16` first, then plots the requested session-type `intended_fix` distributions in a 1 x 4 grid with 20 ms bins.
+- `save_LED7_s9.py`: Reproducibly exports all 52 original columns from `totalout_stGtACRII` to the ignored `raw_data/LED7_s9.csv` after the session-9, training-16, repeat-trial, and LED-trial filters, with exact read-back audits. It uses an installed `matio` reader or an isolated reader supplied through `MATIO_SITE_PACKAGES`.
+- `plot_led7_session9_training16_intended_fix_theory.py`: Compares pooled LED7 session-9 `intended_fix` counts for LED OFF and ON against the fixed two-stage truncated-exponential timing law at 1 ms theory resolution.
 - `print_LED8_session_types_and_LED_trial_values.py`: Prints LED8 `session_type` groups and their unique `LED_trial` values from `outLED8.csv`.
 - `save_LED8_filtered_valid_and_aborts_rtwrtstim_le_1.py`: Scratch/export helper for filtering LED8 rows by session/training/repeat/LED/trial outcome and checking `RTwrtStim <= 1` criteria.
 - `plot_gamma_omega_alpha_sweep.py`: Exploratory plot of Gamma/Omega curves over ILD and ABL while sweeping the alpha interaction parameter in the binaural firing-rate expression.
