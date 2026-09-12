@@ -3,10 +3,14 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-import networkx as nx
 import numpy as np
 import pandas as pd
 from scipy.stats import ks_2samp, wasserstein_distance
+
+from led7_scheduled_timing_matching_utils import (
+    largest_remainder_counts,
+    select_rows_matching_two_margins,
+)
 
 try:
     from matio import load_from_mat
@@ -140,244 +144,6 @@ def scaled_abort_histogram(values, bin_edges, denominator):
     heights = counts.astype(float) / (denominator * BIN_WIDTH_S)
     area = float(np.sum(heights * np.diff(bin_edges)))
     return counts, heights, area
-
-
-def bin_indices(values, bin_edges):
-    values = np.asarray(values, dtype=float)
-    indices = np.searchsorted(bin_edges, values, side="right") - 1
-    on_last_edge = np.isclose(values, bin_edges[-1], atol=1e-12, rtol=0)
-    indices[on_last_edge] = len(bin_edges) - 2
-    in_range = (
-        np.isfinite(values)
-        & (values >= bin_edges[0])
-        & (values <= bin_edges[-1])
-        & (indices >= 0)
-        & (indices < len(bin_edges) - 1)
-    )
-    return indices, in_range
-
-
-def largest_remainder_counts(reference_counts, output_total):
-    reference_counts = np.asarray(reference_counts, dtype=int)
-    if reference_counts.sum() <= 0:
-        raise ValueError("Reference histogram is empty.")
-
-    expected = output_total * reference_counts / reference_counts.sum()
-    allocated = np.floor(expected).astype(int)
-    remainder = int(output_total - allocated.sum())
-    if remainder:
-        order = np.argsort(-(expected - allocated), kind="stable")
-        allocated[order[:remainder]] += 1
-
-    if int(allocated.sum()) != output_total:
-        raise RuntimeError("Largest-remainder allocation has the wrong total.")
-    return allocated
-
-
-def select_rows_matching_two_margins(
-    timing_frame,
-    target_intended_counts,
-    target_onset_counts,
-    rng,
-):
-    # This function deliberately receives only the source index and the two
-    # pre-stimulus schedule fields named in MATCHING_COLUMNS.
-    if list(timing_frame.columns) != MATCHING_COLUMNS:
-        raise ValueError(
-            f"Matcher expected only {MATCHING_COLUMNS}, found "
-            f"{list(timing_frame.columns)}."
-        )
-    if not timing_frame.index.is_unique:
-        raise RuntimeError("Candidate source-row indices are not unique.")
-
-    intended_indices, intended_in_range = bin_indices(
-        timing_frame["intended_fix"], MATCH_INTENDED_BINS
-    )
-    onset_indices, onset_in_range = bin_indices(
-        timing_frame["effective_scheduled_onset"], MATCH_ONSET_BINS
-    )
-    in_matching_support = intended_in_range & onset_in_range
-
-    work = timing_frame.loc[in_matching_support].copy()
-    work["_intended_bin"] = intended_indices[in_matching_support]
-    work["_onset_bin"] = onset_indices[in_matching_support]
-    if len(work) < MATCH_SAMPLE_SIZE:
-        raise RuntimeError(
-            f"Only {len(work):,} candidate rows are in matching support; "
-            f"need {MATCH_SAMPLE_SIZE:,}."
-        )
-
-    cell_counts = (
-        work.groupby(["_intended_bin", "_onset_bin"], observed=True)
-        .size()
-        .astype(int)
-    )
-    actual_intended_bins = sorted(
-        work["_intended_bin"].astype(int).unique().tolist()
-    )
-    actual_onset_bins = sorted(
-        work["_onset_bin"].astype(int).unique().tolist()
-    )
-
-    # Send the target intended-fix marginal through the observed candidate
-    # timing cells and into the target onset marginal. Edge weights are the
-    # number of 20 ms bins moved. The resulting integer flow minimizes the
-    # combined binned Wasserstein distance of the two requested marginals.
-    graph = nx.DiGraph()
-    for target_intended_bin, target_count in enumerate(
-        target_intended_counts
-    ):
-        if target_count > 0:
-            target_node = f"target_intended_{target_intended_bin}"
-            graph.add_node(target_node, demand=-int(target_count))
-
-    for actual_intended_bin in actual_intended_bins:
-        graph.add_node(f"actual_intended_{actual_intended_bin}", demand=0)
-    for actual_onset_bin in actual_onset_bins:
-        graph.add_node(f"actual_onset_{actual_onset_bin}", demand=0)
-
-    for target_onset_bin, target_count in enumerate(target_onset_counts):
-        if target_count > 0:
-            graph.add_node(
-                f"target_onset_{target_onset_bin}",
-                demand=int(target_count),
-            )
-
-    for target_intended_bin, target_count in enumerate(
-        target_intended_counts
-    ):
-        if target_count == 0:
-            continue
-        for actual_intended_bin in actual_intended_bins:
-            graph.add_edge(
-                f"target_intended_{target_intended_bin}",
-                f"actual_intended_{actual_intended_bin}",
-                capacity=int(target_count),
-                weight=abs(target_intended_bin - actual_intended_bin),
-            )
-
-    for (intended_bin, onset_bin), capacity in cell_counts.items():
-        graph.add_edge(
-            f"actual_intended_{int(intended_bin)}",
-            f"actual_onset_{int(onset_bin)}",
-            capacity=int(capacity),
-            weight=0,
-        )
-
-    for actual_onset_bin in actual_onset_bins:
-        for target_onset_bin, target_count in enumerate(target_onset_counts):
-            if target_count == 0:
-                continue
-            graph.add_edge(
-                f"actual_onset_{actual_onset_bin}",
-                f"target_onset_{target_onset_bin}",
-                capacity=int(target_count),
-                weight=abs(actual_onset_bin - target_onset_bin),
-            )
-
-    flow_cost, flow = nx.network_simplex(graph)
-    selected_per_cell = {}
-    for (intended_bin, onset_bin), capacity in cell_counts.items():
-        selected_count = int(
-            flow[f"actual_intended_{int(intended_bin)}"].get(
-                f"actual_onset_{int(onset_bin)}", 0
-            )
-        )
-        if selected_count < 0 or selected_count > int(capacity):
-            raise RuntimeError("Network-flow selection exceeds a cell capacity.")
-        if selected_count:
-            selected_per_cell[(int(intended_bin), int(onset_bin))] = (
-                selected_count
-            )
-
-    if sum(selected_per_cell.values()) != MATCH_SAMPLE_SIZE:
-        raise RuntimeError("Network-flow selection has the wrong total.")
-
-    selected_indices = []
-    for (intended_bin, onset_bin), selected_count in sorted(
-        selected_per_cell.items()
-    ):
-        cell_source_indices = work.index[
-            work["_intended_bin"].eq(intended_bin)
-            & work["_onset_bin"].eq(onset_bin)
-        ].to_numpy()
-        chosen = rng.choice(
-            cell_source_indices,
-            size=selected_count,
-            replace=False,
-        )
-        selected_indices.extend(chosen.tolist())
-
-    selected_indices = np.asarray(selected_indices)
-    rng.shuffle(selected_indices)
-    if len(selected_indices) != MATCH_SAMPLE_SIZE:
-        raise RuntimeError("Sampled source-index count is incorrect.")
-    if len(np.unique(selected_indices)) != MATCH_SAMPLE_SIZE:
-        raise RuntimeError("Matched selection contains repeated source rows.")
-    if not np.isin(selected_indices, timing_frame.index.to_numpy()).all():
-        raise RuntimeError("Matched selection contains a non-candidate row.")
-
-    selected_timing = timing_frame.loc[selected_indices]
-    selected_intended_counts, _ = np.histogram(
-        selected_timing["intended_fix"], bins=MATCH_INTENDED_BINS
-    )
-    selected_onset_counts, _ = np.histogram(
-        selected_timing["effective_scheduled_onset"],
-        bins=MATCH_ONSET_BINS,
-    )
-    intended_l1 = int(
-        np.abs(selected_intended_counts - target_intended_counts).sum()
-    )
-    onset_l1 = int(
-        np.abs(selected_onset_counts - target_onset_counts).sum()
-    )
-    intended_centers = 0.5 * (
-        MATCH_INTENDED_BINS[:-1] + MATCH_INTENDED_BINS[1:]
-    )
-    onset_centers = 0.5 * (
-        MATCH_ONSET_BINS[:-1] + MATCH_ONSET_BINS[1:]
-    )
-    intended_binned_wasserstein_ms = float(
-        1000
-        * wasserstein_distance(
-            intended_centers,
-            intended_centers,
-            u_weights=selected_intended_counts,
-            v_weights=target_intended_counts,
-        )
-    )
-    onset_binned_wasserstein_ms = float(
-        1000
-        * wasserstein_distance(
-            onset_centers,
-            onset_centers,
-            u_weights=selected_onset_counts,
-            v_weights=target_onset_counts,
-        )
-    )
-    expected_flow_cost_ms = (
-        1000 * BIN_WIDTH_S * flow_cost / MATCH_SAMPLE_SIZE
-    )
-    if not np.isclose(
-        intended_binned_wasserstein_ms + onset_binned_wasserstein_ms,
-        expected_flow_cost_ms,
-        atol=1e-10,
-        rtol=0,
-    ):
-        raise RuntimeError(
-            "Network-flow cost does not match the two binned marginal "
-            "Wasserstein distances."
-        )
-
-    return selected_indices, {
-        "candidate_rows": len(timing_frame),
-        "candidate_rows_in_matching_support": len(work),
-        "flow_bin_distance_cost": int(flow_cost),
-        "intended_binned_W_ms": intended_binned_wasserstein_ms,
-        "onset_binned_W_ms": onset_binned_wasserstein_ms,
-        "intended_bin_l1": intended_l1,
-        "onset_bin_l1": onset_l1,
-    }
 
 
 # %%
@@ -581,6 +347,11 @@ for session_type in COMPARISON_SESSION_TYPES:
             target_intended_counts=target_intended_counts,
             target_onset_counts=target_onset_counts,
             rng=matching_rng,
+            matching_columns=MATCHING_COLUMNS,
+            intended_bins=MATCH_INTENDED_BINS,
+            onset_bins=MATCH_ONSET_BINS,
+            sample_size=MATCH_SAMPLE_SIZE,
+            bin_width_s=BIN_WIDTH_S,
         )
         matched_df = candidate_df.loc[selected_indices].copy()
 
