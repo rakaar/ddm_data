@@ -170,3 +170,25 @@
 ## Proactive Process Model Documentation
 
 See [PROACTIVE_MODEL_DOCUMENTATION.md](PROACTIVE_MODEL_DOCUMENTATION.md) for detailed explanation of the proactive process model, theoretical functions, truncation, censoring, and likelihood calculations used for model fitting.
+
+## LED7 session-type-7/8/9 pooled abort comparison (2026-09-23)
+
+- `numpyro_svi_proactive_led_step_jump_no_trunc_exp_lapse_led7_s8_s9_aggregate.py` fits independent session-type-8 and session-type-9 joint OFF/ON seven-parameter proactive-step-jump plus exponential-lapse models. It pools animals 90, 92, 93, 98, 99, 100, 102, and 103 from `raw_data/outMatrix_LED7_latest.mat::totalout_stGtACRII`, retaining training level 16, repeat trials 0/2/NaN, and LED trials 0/1. Scheduled onset is `intended_fix - LED_onset_time` for s8 and `LED_onset_time` for s9. The likelihood uses finite event-3 aborts and successful/incorrect completed trials censored at `intended_fix`, without truncation or timing matching.
+- `plot_led7_s7_s8_s9_aggregate_no_trunc_exp_lapse_svi_diagnostics.py` compares the new fits with the unchanged `numpyro_svi_led7_s7_all_vs_s9_timing_matched_no_trunc_exp_lapse_outputs/s7_all/` fit. It saves convergence, scheduled-onset data/theory, and posterior parameter figures plus numerical audit CSVs. Theory uses unsmoothed 1 ms evaluation and every eligible condition-specific timing pair. The derived delay is labeled `del_a + del_m`: it is the sample-wise sum of the two fitted delay combinations, not an eighth parameter.
+- New outputs live in `numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/`, with `session_type_8/`, `session_type_9/`, and `summary_figures/` subdirectories. Per-fit run summaries record provenance, counts, configuration, and stopping checks; posterior samples, guide state, manifests, losses, and other large/ignored artifacts remain local. Published PNGs and captions are in the [2026-09-23 result page](../docs/results/2026-09-23.md).
+
+Both new fits use seed 0, the same deterministic initialization as s7, full-rank SVI, 64-node quadrature, clipped Adam at `2e-4`, at least 150,000 steps, and patience-12 restore-best stopping. The s8 restored-best/final-checked steps are 139,000/151,000; s9 uses 131,000/150,000. These are optimizer stopping results, not proof of a global optimum or model adequacy: the data/theory diagnostics show remaining shape discrepancies.
+
+Run the validation-only pass with the isolated MAT loader available on `PYTHONPATH`:
+
+```bash
+env PYTHONPATH=/tmp/codex_mat_io_led789 LED7_S8_S9_AGG_SVI_VALIDATE_ONLY=1 .venv/bin/python fitting_aborts/numpyro_svi_proactive_led_step_jump_no_trunc_exp_lapse_led7_s8_s9_aggregate.py
+```
+
+The temporary loader must already exist; project dependencies are not changed. Omit `LED7_S8_S9_AGG_SVI_VALIDATE_ONLY=1` to fit (existing outputs are protected unless overwrite is explicitly enabled). Regenerate diagnostics from saved fit artifacts with:
+
+```bash
+.venv/bin/python fitting_aborts/plot_led7_s7_s8_s9_aggregate_no_trunc_exp_lapse_svi_diagnostics.py
+```
+
+The scheduled-onset figure uses 10 ms data bins above and 5 ms below. Top display ranges are `-0.3..0.4 s` for s7 and `-0.3..0.7 s` for s8/s9; bottom ranges are `-0.2..0.2`, `-0.2..0.3`, and `-0.2..0.4 s`, respectively. Histogram denominators include all event-or-censored likelihood trials. OFF zero denotes scheduled/counterfactual onset.

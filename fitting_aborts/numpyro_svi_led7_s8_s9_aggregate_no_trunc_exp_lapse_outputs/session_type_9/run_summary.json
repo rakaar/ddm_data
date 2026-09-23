@@ -1,0 +1,123 @@
+{
+  "status": "complete",
+  "stop_reason": "patience12_restore_best",
+  "session_type": 9,
+  "animals": [
+    90,
+    92,
+    93,
+    98,
+    99,
+    100,
+    102,
+    103
+  ],
+  "fit_elapsed_seconds": 889.0756707771216,
+  "fit_elapsed_minutes": 14.81792784628536,
+  "completed_steps": 150000,
+  "restored_best_step": 131000,
+  "extended_after_main": false,
+  "n_nonfinite_losses": 0,
+  "all_posterior_samples_finite": true,
+  "guide_state_finite": true,
+  "initial_log_joint": -32776.5615849866,
+  "initial_log_likelihood": -32771.47048571731,
+  "posterior_mean_log_likelihood": -26771.422683444558,
+  "log_likelihood_improvement": 6000.047802272755,
+  "trial_counts": {
+    "pre_likelihood_total": 100788,
+    "likelihood_total": 93381,
+    "animal_session_pairs": 191,
+    "by_led": {
+      "0": {
+        "pre_likelihood_rows": 61408,
+        "finite_event3_aborts": 10107,
+        "finite_success_censored": 48599,
+        "likelihood_rows": 58706,
+        "missing_event3_timing": 1,
+        "excluded_rows": 2702,
+        "early_aborts_below_300ms": 2978
+      },
+      "1": {
+        "pre_likelihood_rows": 39380,
+        "finite_event3_aborts": 8747,
+        "finite_success_censored": 25928,
+        "likelihood_rows": 34675,
+        "missing_event3_timing": 5,
+        "excluded_rows": 4705,
+        "early_aborts_below_300ms": 1969
+      }
+    },
+    "by_animal_likelihood_rows": {
+      "90": 11555,
+      "92": 9782,
+      "93": 11929,
+      "98": 10752,
+      "99": 12895,
+      "100": 10122,
+      "102": 12850,
+      "103": 13496
+    }
+  },
+  "config": {
+    "model_name": "proactive_led_step_jump_no_trunc_exp_lapse_svi",
+    "source_mat": "/home/rlab/raghavendra/ddm_data/raw_data/outMatrix_LED7_latest.mat",
+    "source_table": "totalout_stGtACRII",
+    "source_sha256": "9844c0e940db52f68365612f7baf934f5fbce6d7e96f5ba3570bc73ae593941b",
+    "animals": [
+      90,
+      92,
+      93,
+      98,
+      99,
+      100,
+      102,
+      103
+    ],
+    "training_level": 16,
+    "session_type": 9,
+    "repeat_trial": [
+      0,
+      2,
+      "NaN"
+    ],
+    "led_trial": [
+      0,
+      1
+    ],
+    "scheduled_onset_definition": "LED_onset_time",
+    "pooling": "trial_weighted",
+    "truncation": "none",
+    "quadrature_nodes": 64,
+    "main_steps_initial_max": 150000,
+    "safety_max_steps": 400000,
+    "min_steps": 150000,
+    "check_every": 1000,
+    "min_improvement_rel": 0.001,
+    "patience_windows": 12,
+    "relative_stability_tolerance": 0.001,
+    "learning_rate": 0.0002,
+    "clip_norm": 1.0,
+    "guide": "AutoMultivariateNormal",
+    "guide_init_scale": 0.1,
+    "posterior_n_samples": 10000,
+    "rng_seed": 0,
+    "led_on_weight": 1.0,
+    "led_off_weight": 1.0,
+    "led_on_scope": "all LED_trial == 1 rows",
+    "lapse_process": "exponential in fixation time",
+    "likelihood_population": "finite abort_event == 3 plus finite success in {-1,+1} censored at intended_fix"
+  },
+  "artifacts": {
+    "posterior_samples_npz": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9/main_fullrank_posterior_samples.npz",
+    "guide_params_pkl": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9/main_fullrank_guide_params.pkl",
+    "posterior_summary_csv": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9/main_fullrank_posterior_summary.csv",
+    "derived_posterior_summary_csv": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9/main_fullrank_derived_posterior_summary.csv",
+    "loss_csv": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9/main_fullrank_loss.csv",
+    "convergence_csv": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9/main_fullrank_convergence_checks.csv",
+    "loss_png": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9/main_fullrank_loss.png",
+    "variational_posterior_bundle_pkl": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9/main_fullrank_variational_posterior_bundle.pkl",
+    "source_row_manifest_csv": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9/source_row_manifest.csv",
+    "likelihood_audit_csv": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9/likelihood_audit.csv"
+  }
+}
