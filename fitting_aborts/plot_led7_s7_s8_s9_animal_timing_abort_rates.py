@@ -23,7 +23,8 @@ RAW_DATA_DIR = REPO_ROOT / "raw_data"
 
 SESSION_TYPES = (7, 8, 9)
 ANIMALS = (90, 92, 93, 98, 99, 100, 102, 103)
-COHORTS = (*ANIMALS, "aggregate")
+EXPERIMENTAL_ANIMALS = (92, 93, 98, 99, 100, 103)
+COHORTS = (*ANIMALS, "aggregate", "aggregate_no_controls")
 TRAINING_LEVEL = 16
 ALLOWED_REPEAT_TRIALS = (0, 2)
 ALLOWED_LED_TRIALS = (0, 1)
@@ -41,6 +42,14 @@ EXPECTED_ABORT_LED_COUNTS = {
     7: {0: 14_218, 1: 8_276},
     8: {0: 12_570, 1: 10_356},
     9: {0: 10_108, 1: 8_752},
+}
+EXPECTED_NO_CONTROL_ALL_ROWS = {7: 100_251, 8: 113_941, 9: 74_745}
+EXPECTED_NO_CONTROL_ABORT_ROWS = {7: 16_389, 8: 17_725, 9: 14_001}
+EXPECTED_NO_CONTROL_MISSING_TIMED_FIX = {7: 2, 8: 2, 9: 5}
+EXPECTED_NO_CONTROL_LED_COUNTS = {
+    7: {0: 66_226, 1: 34_025},
+    8: {0: 70_892, 1: 43_049},
+    9: {0: 45_124, 1: 29_621},
 }
 
 BIN_WIDTH_S = 0.020
@@ -178,17 +187,20 @@ for session_type in SESSION_TYPES:
 
 
 # %%
-############ Plot three session types for each animal and the trial-pooled aggregate ############
+############ Plot each animal and both trial-pooled aggregates ############
 audit_rows = []
 for cohort in COHORTS:
-    is_aggregate = cohort == "aggregate"
+    is_aggregate = cohort in ("aggregate", "aggregate_no_controls")
     fig, axes = plt.subplots(3, 4, figsize=(19, 11), sharex="col")
     column_y_max = np.zeros(3, dtype=float)
 
     for row_index, session_type in enumerate(SESSION_TYPES):
         all_animal = datasets[session_type]["all"]
         abort_animal = datasets[session_type]["abort"]
-        if not is_aggregate:
+        if cohort == "aggregate_no_controls":
+            all_animal = all_animal.loc[all_animal["animal"].isin(EXPERIMENTAL_ANIMALS)]
+            abort_animal = abort_animal.loc[abort_animal["animal"].isin(EXPERIMENTAL_ANIMALS)]
+        elif not is_aggregate:
             all_animal = all_animal.loc[all_animal["animal"].eq(cohort)]
             abort_animal = abort_animal.loc[abort_animal["animal"].eq(cohort)]
         if all_animal.empty or abort_animal.empty:
@@ -351,8 +363,10 @@ for cohort in COHORTS:
         fontsize=9.5,
     )
     title = (
-        "LED7 trial-pooled aggregate: session types 7, 8, and 9"
-        if is_aggregate
+        "LED7 trial-pooled aggregate (no controls): session types 7, 8, and 9"
+        if cohort == "aggregate_no_controls"
+        else "LED7 trial-pooled aggregate: session types 7, 8, and 9"
+        if cohort == "aggregate"
         else f"LED7 animal {cohort}: session types 7, 8, and 9"
     )
     fig.suptitle(title, fontsize=15)
@@ -367,8 +381,10 @@ for cohort in COHORTS:
     )
     fig.tight_layout(rect=(0.025, 0.045, 1, 0.91), w_pad=1.15, h_pad=1.2)
     output_name = (
-        "led7_aggregate_s7_s8_s9_timing_abort_rate_3x4.png"
-        if is_aggregate
+        "led7_aggregate_no_controls_s7_s8_s9_timing_abort_rate_3x4.png"
+        if cohort == "aggregate_no_controls"
+        else "led7_aggregate_s7_s8_s9_timing_abort_rate_3x4.png"
+        if cohort == "aggregate"
         else f"led7_animal_{cohort}_s7_s8_s9_timing_abort_rate_3x4.png"
     )
     output_path = SCRIPT_DIR / output_name
@@ -387,7 +403,7 @@ if audit_df.duplicated(["animal", "session_type", "LED_trial"]).any():
 for session_type in SESSION_TYPES:
     session_audit = audit_df.loc[
         audit_df["session_type"].eq(session_type)
-        & audit_df["animal"].ne("aggregate")
+        & audit_df["animal"].isin(ANIMALS)
     ]
     if int(session_audit["all_condition_trials"].sum()) != EXPECTED_ALL_ROWS[session_type]:
         raise RuntimeError(f"s{session_type}: per-animal all-trial counts do not sum.")
@@ -412,6 +428,34 @@ for session_type in SESSION_TYPES:
                 raise RuntimeError(
                     f"s{session_type} LED {led_trial}: pooled {count_column} "
                     "does not equal the animal sum."
+                )
+
+    no_control = audit_df.loc[
+        audit_df["session_type"].eq(session_type)
+        & audit_df["animal"].eq("aggregate_no_controls")
+    ]
+    if int(no_control["all_condition_trials"].sum()) != EXPECTED_NO_CONTROL_ALL_ROWS[session_type]:
+        raise RuntimeError(f"s{session_type}: no-control trial count changed.")
+    if int(no_control["coded_event3_aborts"].sum()) != EXPECTED_NO_CONTROL_ABORT_ROWS[session_type]:
+        raise RuntimeError(f"s{session_type}: no-control abort count changed.")
+    if int(no_control["missing_timed_fix"].sum()) != EXPECTED_NO_CONTROL_MISSING_TIMED_FIX[session_type]:
+        raise RuntimeError(f"s{session_type}: no-control missing-timing count changed.")
+    for led_trial in ALLOWED_LED_TRIALS:
+        group = no_control.loc[no_control["LED_trial"].eq(led_trial)].iloc[0]
+        if int(group["all_condition_trials"]) != EXPECTED_NO_CONTROL_LED_COUNTS[session_type][led_trial]:
+            raise RuntimeError(f"s{session_type} LED {led_trial}: no-control count changed.")
+        animal_groups = session_audit.loc[
+            session_audit["animal"].isin(EXPERIMENTAL_ANIMALS)
+            & session_audit["LED_trial"].eq(led_trial)
+        ]
+        for count_column in (
+            "all_condition_trials", "coded_event3_aborts",
+            "finite_plotted_aborts", "missing_timed_fix",
+        ):
+            if int(animal_groups[count_column].sum()) != int(group[count_column]):
+                raise RuntimeError(
+                    f"s{session_type} LED {led_trial}: no-control {count_column} "
+                    "does not equal the six-animal sum."
                 )
 
 audit_df.to_csv(AUDIT_CSV, index=False)
