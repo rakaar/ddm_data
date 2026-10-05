@@ -204,3 +204,5 @@ The temporary loader must already exist; project dependencies are not changed. O
 ```
 
 The scheduled-onset figure uses 10 ms data bins above and 5 ms below. Top display ranges are `-0.3..0.4 s` for s7 and `-0.3..0.7 s` for s8/s9; bottom ranges are `-0.2..0.2`, `-0.2..0.3`, and `-0.2..0.4 s`, respectively. Histogram denominators include all event-or-censored likelihood trials. OFF zero denotes scheduled/counterfactual onset.
+
+`plot_led7_s7_s8_sequence_abort_conditional_denominators.py` renders a focused four-row view from the validated conditional sequence analysis: s7/s8 AA/(AA+AV), then s7/s8 VAV/(VAV+VVV). It checks the saved original and matched identities against the standardized CSVs, reconstructs the 40 ms timing densities and 20 ms onset-aligned rates, and verifies the per-animal matching tolerances and equal-animal mean/SEM. The figure and count/area audit use the `led7_s7_s8_sequence_abort_conditional_denominators` prefix and are documented on the [2026-10-05 result page](../docs/results/2026-10-05.md).
