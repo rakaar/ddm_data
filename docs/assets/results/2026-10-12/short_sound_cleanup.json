@@ -1,0 +1,61 @@
+{
+  "status": "passed",
+  "rule": "session_type == 1 AND is_short_sound == 1",
+  "input_csv": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+  "archive_csv": "asd_analysis/session_type_csvs/archive/pre_short_sound_cleanup/ASD_session_type_1.csv",
+  "removed_rows_csv": "asd_analysis/session_type_csvs/archive/pre_short_sound_cleanup/removed_rows.csv",
+  "before": {
+    "sha256": "6ef00c31d995d70435cc7cfec1e9468a4daa58bae1618d0c7aae26dda97c8c1c",
+    "bytes": 498629332,
+    "mtime_ns": 1791813657076969070
+  },
+  "after": {
+    "sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+    "bytes": 498000546,
+    "mtime_ns": 1791821268317619444
+  },
+  "before_rows": 643177,
+  "removed_rows": 807,
+  "after_rows": 642370,
+  "removed_by_animal": {
+    "ASD0045": 477,
+    "ASD0026": 330
+  },
+  "animals_retained": 53,
+  "columns": 109,
+  "every_retained_cell_and_row_order_verified": true,
+  "retained_cells_sha256": "4e5f6c79c9ec79c0a84c7616450d80797501875099f93acb983590f6117938c4",
+  "protected_files": {
+    "SHANK3_cohort1.csv": {
+      "sha256": "22e3e26dc9358a2b55164639e9907651f2a230798034aea7c9cc2f52e753d146",
+      "bytes": 823715001,
+      "mtime_ns": 1791512858000000000
+    },
+    "SHANK3_cohort2.csv": {
+      "sha256": "9975cb4e89b4775aae44c17a0d6745d211d1c1a7e185ac14aba0571d52f0e544",
+      "bytes": 66782373,
+      "mtime_ns": 1791537066000000000
+    },
+    "CNTNAP2_cohort3.csv": {
+      "sha256": "6d8635b97ffed2ad02e3423148dba699d87df0a40d92abe6a6f1af865c48c81e",
+      "bytes": 388162234,
+      "mtime_ns": 1791544074000000000
+    },
+    "CNTNAP2_cohort4.csv": {
+      "sha256": "2f2d8450de17b596d555b1440bc47e869b311fda227cbd68158c1f1e3ca2f516",
+      "bytes": 443626713,
+      "mtime_ns": 1791512162000000000
+    },
+    "asd_analysis/session_type_csvs/ASD_session_type_2.csv": {
+      "sha256": "d42712ce3a32f0b91733a2b013546e94535f8c220f5dde0b92988444fc72a8d0",
+      "bytes": 426995542,
+      "mtime_ns": 1791813657076969070
+    },
+    "asd_analysis/session_type_csvs/ASD_session_type_23.csv": {
+      "sha256": "71dc19176e8131a78db4381af0126e86511e54330dcb62f9bdb5f4f109c7ae1b",
+      "bytes": 521340928,
+      "mtime_ns": 1791813657076969070
+    }
+  },
+  "protected_hashes_sizes_mtimes_unchanged": true
+}

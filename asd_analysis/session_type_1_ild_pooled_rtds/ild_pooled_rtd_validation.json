@@ -1,0 +1,225 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/plot_session_type_1_ild_pooled_rtds.py",
+  "source_script_sha256": "568fb17b90fea497844033be92d7638f64d7491fe209192bd6e85361950fea33",
+  "input_csv": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "input_file_size_and_mtime_ns": [
+    498000546,
+    1791821268317619444
+  ],
+  "prepared_rows": 642370,
+  "selection": "session_type=1, training_level=16, prepared chronological next-trial repeat rule with CNP/Fixation exceptions; success in {1,-1}; finite timed_rt in inclusive [0,1] s",
+  "short_sound_cleanup": {
+    "rule": "session_type == 1 AND is_short_sound == 1",
+    "removed_prepared_rows": 807,
+    "additional_plot_exclusions": 0
+  },
+  "all_animals_included": true,
+  "observed_counts_per_view": {
+    "animals": 53,
+    "eligible_choice_trials": 471416,
+    "window_trials": 466978
+  },
+  "nonfinite_choice_rt_trials": 2188,
+  "finite_choice_rt_outside_window": 2250,
+  "ABL_mapping": {
+    "59": 60
+  },
+  "ABLs": [
+    20,
+    40,
+    60
+  ],
+  "signed_ILDS": [
+    -16,
+    -8,
+    -4,
+    -2,
+    -1,
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "pooling": "Pool raw trials across all ten signed ILDs and sessions within each ABL and group; animals with more window trials contribute more weight",
+  "groupings": {
+    "filename_genotype": {
+      "groups": [
+        "SHANK3_cohort1.csv",
+        "SHANK3_cohort2.csv",
+        "CNTNAP2_cohort3.csv",
+        "CNTNAP2_cohort4.csv"
+      ],
+      "panels": 12
+    },
+    "genotype": {
+      "groups": [
+        "all_cohorts"
+      ],
+      "panels": 3
+    },
+    "family_genotype": {
+      "groups": [
+        "SHANK3",
+        "CNTNAP2"
+      ],
+      "panels": 6
+    }
+  },
+  "genotype_order": [
+    "wt",
+    "het",
+    "hom"
+  ],
+  "timing": "Recorded timed_rt in seconds relative to stimulus onset; no timing recomputation",
+  "normalization": "bin_count / (curve window_trials \u00d7 0.020 s); each curve area 1 over [0,1] s",
+  "bin_width_s": 0.02,
+  "bin_edges_s": [
+    0.0,
+    0.02,
+    0.04,
+    0.06,
+    0.08,
+    0.1,
+    0.12,
+    0.14,
+    0.16,
+    0.18,
+    0.2,
+    0.22,
+    0.24,
+    0.26,
+    0.28,
+    0.3,
+    0.32,
+    0.34,
+    0.36,
+    0.38,
+    0.4,
+    0.42,
+    0.44,
+    0.46,
+    0.48,
+    0.5,
+    0.52,
+    0.54,
+    0.56,
+    0.58,
+    0.6,
+    0.62,
+    0.64,
+    0.66,
+    0.68,
+    0.7000000000000001,
+    0.72,
+    0.74,
+    0.76,
+    0.78,
+    0.8,
+    0.8200000000000001,
+    0.84,
+    0.86,
+    0.88,
+    0.9,
+    0.92,
+    0.9400000000000001,
+    0.96,
+    0.98,
+    1.0
+  ],
+  "bin_boundary_rule": "Left-inclusive/right-exclusive; final bin includes RT=1",
+  "display_xlim_s": [
+    0.0,
+    0.6
+  ],
+  "shared_ylim_all_panels_and_views": [
+    0,
+    22.0
+  ],
+  "ABL_colors": {
+    "20": "#1f77b4",
+    "40": "#ff7f0e",
+    "60": "#2ca02c"
+  },
+  "unfilled_solid_steps": true,
+  "curve_count": 63,
+  "histogram_bins_checked": 3150,
+  "all_bins_match_summed_existing_animal_ILD_counts": true,
+  "all_coarser_views_match_summed_filename_genotype_counts": true,
+  "max_unit_area_error": 2.220446049250313e-16,
+  "existing_artifact_hashes_unchanged": {
+    "asd_analysis/session_type_1_rtds/animal_counts.csv": "d34c153c3f6ee33a53edbbb177e7c77c30c763aa3c8d4c0b10f31729cb0f5fb2",
+    "asd_analysis/session_type_1_rtds/histogram_bins.csv": "f966efdf7a8b640caaa22b8ee976fba37bc394a07160332dd145103e5565c944",
+    "asd_analysis/session_type_1_rtds/pages.csv": "3d79b2bce190532322f5394f6bb80eac7ea4bafdffa9d672fff6d357d2c54d53",
+    "asd_analysis/session_type_1_rtds/CNTNAP2_cohort4_rtds_page_01.png": "148ce74def41fe022817d3d8dc3697520f1cbdd82758efaa852069309f5edf00",
+    "asd_analysis/session_type_1_rtds/excluded_prepared_short_sound_rows.csv": "8ae8f8b4fb523496d121e07f4c84ce9eac08c6d2f46588ac06b2f4c961daa684",
+    "asd_analysis/session_type_1_rtds/validation.json": "8c9d3da4b14943cbd3e0b07d6d5c511c059d5b98ae83339d036199c05ed5208b",
+    "asd_analysis/session_type_1_rtds/flagged_row_summary.csv": "1750a2f5ec92b2ef7b9e40ff00c11244cf76a053398d54380af771793ccc001d",
+    "asd_analysis/session_type_1_rtds/CNTNAP2_cohort3_rtds_page_01.png": "6fda1810999a7a4fb01caa1098b2574ee5d0a2606d6aae76737b964d84fcf4dc",
+    "asd_analysis/session_type_1_rtds/curve_counts.csv": "4549585550bd40a7b33aab1c10fcbd69d63e73d649e9e8fcb0a24955f49936f7",
+    "asd_analysis/session_type_1_rtds/independent_validation.json": "35555d0af0db33bcfa7213a8a104bad2191ed9bce367a59607068b4bd0133f5b",
+    "asd_analysis/session_type_1_rtds/CNTNAP2_cohort4_rtds_page_03.png": "ced477c2d3c83056abd82357b068f6cf67d5fec1a341746564c498135dd4e9cf",
+    "asd_analysis/session_type_1_rtds/SHANK3_cohort2_rtds_page_01.png": "fb5afd61eb4feccb659a268add568eb4f83d601a52555bd99c08f727b090e581",
+    "asd_analysis/session_type_1_rtds/CNTNAP2_cohort3_rtds_page_02.png": "2ee2a11460bc07ec9528fda7edcc8f8e6c5b25a5e9996288c53d116388059e3c",
+    "asd_analysis/session_type_1_rtds/SHANK3_cohort1_rtds_page_01.png": "0cecc5d9476b56e5b97175a5012e793ac0e2fec54bf11dc7623d02e29f8d3854",
+    "asd_analysis/session_type_1_rtds/CNTNAP2_cohort4_rtds_page_02.png": "17eb5559619fb38a68f9b3c2b68a8e1e05fc1e9f439ff08e0d4f4de2fe52e139",
+    "asd_analysis/session_type_1_rtds/SHANK3_cohort1_rtds_page_02.png": "3fe59d8d71b24ee25bf1af375e32a608692140436fa2cf6af9c9a471803d7e09",
+    "asd_analysis/session_type_1_rtds/flagged_row_locations.csv": "4932ecb5427ef73fddebd631b8116ecf58b894c31e004cc1f48130966d3a4a2a",
+    "asd_analysis/session_type_1_rtds/ASD_session_type_1_rtds.pdf": "3d067c1d7da6038cd620d2126ae57d57c5bc60ba3c11046604a2631e763d9bff",
+    "asd_analysis/session_type_1_psychometrics/psychometric_points.csv": "b85e031df0b776605e930158fa4139d5b6142d0b7c20e2c2878abca0820fffef",
+    "asd_analysis/session_type_1_psychometrics/psychometric_independent_validation.json": "127d856b571bee3cb68ae167796346b581cb4bfda5f81db7596ad2c11fa320e9",
+    "asd_analysis/session_type_1_psychometrics/psychometric_group_counts.csv": "78e3b4afcac484b2298f7b82d86caddd65eeeadb2f8b830204fbb1df9bdd4e06",
+    "asd_analysis/session_type_1_psychometrics/family_psychometric_validation.json": "621f173c961f2f3757df91a2a3b7ab0ee7c02ca22a6649f157d4c8155e194395",
+    "asd_analysis/session_type_1_psychometrics/family_psychometric_independent_validation.json": "161ec9dfd7df3a88af9cbfa1c0ef040532e07f9b4719baf24db1ff60d9aefd96",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_genotype_psychometrics.pdf": "5cb43f01dfbafad245ec6d7f3369c4feefccaa2b7ee127948207f3d6d88c36ea",
+    "asd_analysis/session_type_1_psychometrics/family_psychometric_points.csv": "ad77b3ca767daf2ff6163089ff2c77397c9bbeb8c91887310177ba05ce0c8684",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_filename_genotype_psychometrics.png": "8ba17dc8e77eb3e6ecd14f77d436b31398d28f161ac79397563ca90e292feb97",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_family_genotype_psychometrics.pdf": "d67e6ae057e706984e3867d7ce4cbbc1d4abd1c7050496fe561d4853bbf15313",
+    "asd_analysis/session_type_1_psychometrics/family_psychometric_group_membership.csv": "072849b8c3b60163e2fb48ed3bd42a9991bdcb99f3c2113bd283739e9b2cde2d",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_family_genotype_psychometrics.png": "dcc658f7840384e32771a37a9e472696d4a62ebad1c7fb6b3325cd3a1f8080ad",
+    "asd_analysis/session_type_1_psychometrics/psychometric_validation.json": "d034476a6b2c4632e0d41a40d3eaf32ef622901d179320d171348f6384c472ba",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_genotype_psychometrics.png": "b1ee71d6ccac1a358ad9b4a9cf509f3ffcb888f6bc405141b00df452e68e1e3f",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_filename_genotype_psychometrics.pdf": "cd4a8b340c44d23aa4fbf62c8df1a8914f9ad39b46bf29050c28a2746ace4d60",
+    "asd_analysis/session_type_1_psychometrics/family_psychometric_group_counts.csv": "2ef0f6d16fc7fd433a1517a24bf3e6a3b201e23bcb12ed8a24b241a1c15c6879",
+    "asd_analysis/session_type_1_psychometrics/psychometric_group_membership.csv": "164528a6669796696c75546b038a47f427ad50580ae64651118093e55577ec62",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_independent_validation.json": "a0166f2bdc415c64ad657160e442ff2d140ecfa0c804c824ed9600356b15140a",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_group_membership.csv": "779f8f55d7918a3fc3e394b656bba2bba694bab5611b07f9e485aa95328bfb37",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_family_genotype_rtds_page_01.png": "775e463475633d9c7ade4f4b93291cb827952570f074b7adec58b12ca7167369",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_group_counts.csv": "7faa5e4438fe3641dbd42910665a763582314b31618c754c9e662c11e0c942d1",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_pages.csv": "6eed60cef1d125427e0e52b59f9e2d0e3edf501f12c744bf55c6bf20c40d15e9",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_filename_genotype_rtds_validation.json": "baa612d6ce597204b221f96d314221c3b85ff22f79b6c3b4b50b202c2f7b430e",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_filename_genotype_rtds_page_02.png": "3f72bdc1d75790610652abcfcb5d32244d2d74b20c7200f1faa31058e936c759",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_family_genotype_rtds.pdf": "d943def688bd8beca6ece5fd64d20a739d57a3a40ac2acc07bde69d89b87ff4b",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_filename_genotype_rtds_page_01.png": "27b3629a7dbb5aacb3a4f0ac21a40bb2caf6b593230a12f3197235646171c101",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_filename_genotype_rtds.pdf": "2aa5de62a2fb4980b6295db1964a1661e86939fe2dda4218116ce23f0164433b",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_validation.json": "c1001705585eaeb940f902d4eb06d83a941e873f7254155e7090694ce4f9038a",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_family_genotype_rtds_validation.json": "45fb1cc47b7569c2e933ce7f7492aac02d99d60ba2660b3da2dd6a2adf0a3f26",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_histogram_bins.csv": "8f5dc78a03e4deee86265fa6e0915cec890610be44040985b40f15609b0b56b7",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_curve_counts.csv": "e5dfd2b2c72663942439c517b7db548aca924c3599cae3258606a42ba65007a8"
+  },
+  "pages": [
+    {
+      "view": "filename_genotype",
+      "panels": 12,
+      "pdf_pages": 1,
+      "pdf": "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_filename_genotype_ild_pooled_rtds.pdf",
+      "png": "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_filename_genotype_ild_pooled_rtds.png"
+    },
+    {
+      "view": "genotype",
+      "panels": 3,
+      "pdf_pages": 1,
+      "pdf": "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_genotype_ild_pooled_rtds.pdf",
+      "png": "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_genotype_ild_pooled_rtds.png"
+    },
+    {
+      "view": "family_genotype",
+      "panels": 6,
+      "pdf_pages": 1,
+      "pdf": "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_family_genotype_ild_pooled_rtds.pdf",
+      "png": "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_family_genotype_ild_pooled_rtds.png"
+    }
+  ]
+}

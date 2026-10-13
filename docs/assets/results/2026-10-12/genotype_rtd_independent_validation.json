@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "animals_per_view": 53,
+  "filename_groups": 12,
+  "family_groups": 6,
+  "counts_per_view": {
+    "animals": 53,
+    "selected_rows": 610234,
+    "finite_selected_rows": 607207,
+    "nonfinite_selected_rows": 3027,
+    "valid_window_trials": 466978,
+    "pooled_window_trials": 598864
+  },
+  "rows_removed_during_preparation": 807,
+  "additional_plot_exclusions": 0,
+  "all_5100_family_bins_equal_summed_cohort_bins": true,
+  "all_15300_pooled_bins_match_animal_bins": true,
+  "all_18_pooled_group_counts_and_histograms_unchanged_after_csv_cleanup": true,
+  "all_11_rtd_pngs_identical_to_previously_visually_inspected_figures": true,
+  "all_11_pdf_page_renders_unchanged_after_cleanup": true,
+  "pdf_page_counts": [
+    8,
+    2,
+    1
+  ],
+  "max_density_area_error": 2.220446049250313e-16,
+  "animal_artifact_hashes_unchanged_by_pooled_analysis": true,
+  "historical_flagged_locations_refer_to_archived_prepared_csv": true
+}

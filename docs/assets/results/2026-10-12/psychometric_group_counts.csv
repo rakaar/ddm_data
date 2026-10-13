@@ -1,0 +1,16 @@
+view,group,genotype,trials,right_trials,correct_trials,animals,left_trials,error_trials
+filename_genotype,CNTNAP2_cohort3.csv,het,15652,9313,11653,2,6339,3999
+filename_genotype,CNTNAP2_cohort3.csv,hom,74687,38781,57666,7,35906,17021
+filename_genotype,CNTNAP2_cohort3.csv,wt,52495,25244,40056,7,27251,12439
+filename_genotype,CNTNAP2_cohort4.csv,het,56509,30959,42564,9,25550,13945
+filename_genotype,CNTNAP2_cohort4.csv,hom,38259,16394,29248,5,21865,9011
+filename_genotype,CNTNAP2_cohort4.csv,wt,23570,12142,18542,3,11428,5028
+filename_genotype,SHANK3_cohort1.csv,het,49011,23458,38401,3,25553,10610
+filename_genotype,SHANK3_cohort1.csv,hom,68072,35567,50208,6,32505,17864
+filename_genotype,SHANK3_cohort1.csv,wt,68557,37579,54045,5,30978,14512
+filename_genotype,SHANK3_cohort2.csv,het,16241,8093,12814,4,8148,3427
+filename_genotype,SHANK3_cohort2.csv,hom,4184,2097,3307,1,2087,877
+filename_genotype,SHANK3_cohort2.csv,wt,4179,1912,3082,1,2267,1097
+genotype,all_cohorts,het,137413,71823,105432,18,65590,31981
+genotype,all_cohorts,hom,185202,92839,140429,19,92363,44773
+genotype,all_cohorts,wt,148801,76877,115725,16,71924,33076

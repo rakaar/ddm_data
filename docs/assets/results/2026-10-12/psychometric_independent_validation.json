@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "parser": "standard-library CSV parser independent of plotting aggregation",
+  "points_checked": 450,
+  "filename_genotype_points": 360,
+  "genotype_points": 90,
+  "trials_per_view": {
+    "trials": 471416,
+    "right": 241539,
+    "left": 229877
+  },
+  "all_point_right_left_denominators_and_probabilities_match": true,
+  "group_animal_memberships_verified": true,
+  "all_choices_match_signed_ILD_and_success": true,
+  "no_remaining_short_sound_flags": true
+}

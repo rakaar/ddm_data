@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "parser": "Independent standard-library CSV reader and bisect bin assignment on the cleaned input",
+  "prepared_rows_checked": 642370,
+  "eligible_choice_trials_per_view": 471416,
+  "window_trials_per_view": 466978,
+  "missing_or_nonfinite_rt": 2188,
+  "finite_rt_outside_window": 2250,
+  "animals_per_view": 53,
+  "groups_per_view": {
+    "filename_genotype": 12,
+    "genotype": 3,
+    "family_genotype": 6
+  },
+  "bins_independently_checked": 3150,
+  "curve_count": 63,
+  "all_counts_densities_bin_widths_and_colors_match": true,
+  "all_memberships_and_eligibility_counts_match": true,
+  "existing_figures_and_audits_unchanged": true,
+  "pdf_page_counts": [
+    1,
+    1,
+    1
+  ],
+  "visual_inspection": "All three refreshed images inspected; 0\u20130.6 s display, unchanged 0\u20131 s normalization and sample counts; clear titles, legends, curves and footer without overlap",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "source_script_sha256": "568fb17b90fea497844033be92d7638f64d7491fe209192bd6e85361950fea33",
+  "source_script_sha256_before_display_zoom": "f8485417d51af33ce4f38ebcb8cfea72b9cb6878723ccc9a0df9d9296a1d3daa",
+  "display_xlim_s": [
+    0,
+    0.6
+  ],
+  "normalization_window_s": [
+    0,
+    1
+  ],
+  "display_only_update_verified_against_previous_audits": true,
+  "unchanged_numeric_audit_sha256": {
+    "ild_pooled_rtd_histogram_bins.csv": "c61e22f35d5e7708d8c997f9899144c038636d96aedae9d3b43650ee97e20997",
+    "ild_pooled_rtd_group_counts.csv": "8d84486047080790dc7e2b9c6063966f802be94303adb066eac24a1105c740eb",
+    "ild_pooled_rtd_group_membership.csv": "44e983ee5cef9b2c5d2c218bbc60c74d30d06208521f4bcbaf932799ac00e175",
+    "ild_pooled_rtd_curve_counts.csv": "c30d2b042c40746383a12535eb3fc800c9b96d0cf8256fc09a8ef1a2af5dbe42"
+  }
+}

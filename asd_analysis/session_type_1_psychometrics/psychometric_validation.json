@@ -1,0 +1,121 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/plot_session_type_1_psychometrics.py",
+  "source_script_sha256": "a5f4188a365161601ddf7879c695117e8f54b49785a5e8224ea96cad133d6cdf",
+  "input_csv": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "input_file_size_and_mtime_ns": [
+    498000546,
+    1791821268317619444
+  ],
+  "prepared_rows": 642370,
+  "selection": "session_type=1; training_level=16; prepared next-trial repeat rule with CNP/Fixation exceptions; success in {1,-1}; no RT restriction",
+  "short_sound_cleanup": {
+    "rule": "session_type == 1 AND is_short_sound == 1",
+    "removed_prepared_rows": 807,
+    "additional_plot_exclusions": 0
+  },
+  "ABL_mapping": {
+    "59": 60
+  },
+  "ABLs": [
+    20,
+    40,
+    60
+  ],
+  "signed_ILDS": [
+    -16,
+    -8,
+    -4,
+    -2,
+    -1,
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "right_choice": "response_poke == 1",
+  "left_choice": "response_poke == -1",
+  "denominator": "All recorded left/right correct/error choices at the group's signed ILD and mapped ABL",
+  "weighting": "Pool raw trials; animals with more eligible trials contribute more weight. No equal-animal averages or deduplication.",
+  "genotype_only_pooling": "Both gene families, SHANK3 and CNTNAP2, across all four cohorts",
+  "genotype_order": [
+    "wt",
+    "het",
+    "hom"
+  ],
+  "source_order": [
+    "SHANK3_cohort1.csv",
+    "SHANK3_cohort2.csv",
+    "CNTNAP2_cohort3.csv",
+    "CNTNAP2_cohort4.csv"
+  ],
+  "observed_counts_per_view": {
+    "animals": 53,
+    "trials": 471416,
+    "right": 241539,
+    "left": 229877
+  },
+  "genotype_animal_counts": {
+    "wt": 16,
+    "het": 18,
+    "hom": 19
+  },
+  "included_trials_missing_or_nonfinite_timed_rt": 2188,
+  "ABL_colors": {
+    "20": "#1f77b4",
+    "40": "#ff7f0e",
+    "60": "#2ca02c"
+  },
+  "ABL_markers": {
+    "20": "o",
+    "40": "s",
+    "60": "^"
+  },
+  "xlim": [
+    -18,
+    18
+  ],
+  "ylim": [
+    0,
+    1
+  ],
+  "scatter_only": true,
+  "points_checked": 450,
+  "pages": [
+    {
+      "view": "filename_genotype",
+      "panels": 12,
+      "points": 360,
+      "pdf": "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_filename_genotype_psychometrics.pdf",
+      "png": "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_filename_genotype_psychometrics.png",
+      "pdf_pages": 1
+    },
+    {
+      "view": "genotype",
+      "panels": 3,
+      "points": 90,
+      "pdf": "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_genotype_psychometrics.pdf",
+      "png": "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_genotype_psychometrics.png",
+      "pdf_pages": 1
+    }
+  ],
+  "checks": [
+    "prepared filters and zero remaining short-sound flags",
+    "exact animal/trial/right/left totals",
+    "recorded choices agree with signed ILD and success",
+    "all condition denominators positive; P(right) in [0,1]",
+    "genotype-only condition counts equal summed filename/genotype counts",
+    "plotted point coordinates equal audits",
+    "colors, limits, scatter-only series and sample labels",
+    "two single-page PDFs",
+    "input CSV unchanged during analysis"
+  ],
+  "visually_inspected_png_pages": [
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_filename_genotype_psychometrics.png",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_genotype_psychometrics.png"
+  ],
+  "visual_checks": "Both figures: readable titles, counts and legends; correct scatter colors and signed ILDs; no clipping, connecting lines, or fitted curves.",
+  "independent_validation": "asd_analysis/session_type_1_psychometrics/psychometric_independent_validation.json"
+}

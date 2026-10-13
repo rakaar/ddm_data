@@ -1,0 +1,873 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/plot_session_type_1_slope_jnd.py",
+  "source_script_sha256": "b82abf042baa0ab546b982cf76255ab1e596e24e53cdd6ea99db07a94b647b2d",
+  "input_csv": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "prepared_rows": 642370,
+  "selection": "session_type=1; training_level=16; prepared next-trial repeat rule with CNP/Fixation exceptions; success in {1,-1}; no RT restriction",
+  "short_sound_cleanup": {
+    "rule": "session_type == 1 AND is_short_sound == 1",
+    "removed_prepared_rows": 807,
+    "additional_plot_exclusions": 0
+  },
+  "observed_counts_per_view": {
+    "animals": 53,
+    "trials": 471416,
+    "right": 241539,
+    "left": 229877
+  },
+  "included_nonfinite_timed_rt_trials": 2188,
+  "ABLs": [
+    20,
+    40,
+    60
+  ],
+  "ABL_mapping": {
+    "59": 60
+  },
+  "signed_ILDS": [
+    -16,
+    -8,
+    -4,
+    -2,
+    -1,
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "genotype_order": [
+    "wt",
+    "het",
+    "hom"
+  ],
+  "source_file_order": [
+    "SHANK3_cohort1.csv",
+    "SHANK3_cohort2.csv",
+    "CNTNAP2_cohort3.csv",
+    "CNTNAP2_cohort4.csv"
+  ],
+  "pooling": "Raw right/left counts pooled by signed ILD and ABL before fitting; no animal parameter/probability averages",
+  "fit_weighting": "Unweighted least squares: equal weight for each of the ten signed-ILD P(right) points; sigma=None",
+  "sigmoid": "lower + (upper-lower)/(1+exp(-k*(ILD-x0)))",
+  "parameter_order": [
+    "upper",
+    "lower",
+    "x0",
+    "k"
+  ],
+  "fit_bounds": {
+    "upper": [
+      0,
+      1
+    ],
+    "lower": [
+      0,
+      1
+    ],
+    "x0": "unrestricted",
+    "k": [
+      0,
+      "infinity"
+    ]
+  },
+  "initial_guess": "[max(Pright), min(Pright), median(signed ILDs), 0.1]",
+  "maxfev": 10000,
+  "slope_definition": "fitted k, not midpoint derivative",
+  "jnd_definition": "(inverse(0.75*upper)-inverse(0.25*(1-lower)))/2",
+  "jnd_threshold_policy": "Require lower < y_low < y_high < upper and finite positive crossing spacing; retain valid k if JND is unavailable",
+  "fits_attempted": 222,
+  "condition_points": 2220,
+  "groups_per_view": {
+    "animal": 53,
+    "family_genotype": 6,
+    "filename_genotype": 12,
+    "genotype": 3
+  },
+  "fits_per_view": {
+    "animal": 159,
+    "family_genotype": 18,
+    "filename_genotype": 36,
+    "genotype": 9
+  },
+  "fit_status_counts": [
+    {
+      "view": "animal",
+      "fit_status": "ok",
+      "jnd_status": "ok",
+      "count": 155
+    },
+    {
+      "view": "animal",
+      "fit_status": "ok",
+      "jnd_status": "thresholds_outside_asymptotes_or_reversed",
+      "count": 4
+    },
+    {
+      "view": "family_genotype",
+      "fit_status": "ok",
+      "jnd_status": "ok",
+      "count": 18
+    },
+    {
+      "view": "filename_genotype",
+      "fit_status": "ok",
+      "jnd_status": "ok",
+      "count": 36
+    },
+    {
+      "view": "genotype",
+      "fit_status": "ok",
+      "jnd_status": "ok",
+      "count": 9
+    }
+  ],
+  "ABL_colors": {
+    "20": "#1f77b4",
+    "40": "#ff7f0e",
+    "60": "#2ca02c"
+  },
+  "ABL_markers": {
+    "20": "o",
+    "40": "s",
+    "60": "^"
+  },
+  "animal_group_order": [
+    "SHANK3_cohort1.csv/ASD0040",
+    "SHANK3_cohort1.csv/ASD0042",
+    "SHANK3_cohort1.csv/ASD0044",
+    "SHANK3_cohort1.csv/ASD0047",
+    "SHANK3_cohort1.csv/ASD0049",
+    "SHANK3_cohort1.csv/ASD0038",
+    "SHANK3_cohort1.csv/ASD0039",
+    "SHANK3_cohort1.csv/ASD0041",
+    "SHANK3_cohort1.csv/ASD0023",
+    "SHANK3_cohort1.csv/ASD0024",
+    "SHANK3_cohort1.csv/ASD0043",
+    "SHANK3_cohort1.csv/ASD0045",
+    "SHANK3_cohort1.csv/ASD0046",
+    "SHANK3_cohort1.csv/ASD0048",
+    "SHANK3_cohort2.csv/ASD0077",
+    "SHANK3_cohort2.csv/ASD0073",
+    "SHANK3_cohort2.csv/ASD0074",
+    "SHANK3_cohort2.csv/ASD0075",
+    "SHANK3_cohort2.csv/ASD0076",
+    "SHANK3_cohort2.csv/ASD0072",
+    "CNTNAP2_cohort3.csv/ASD0026",
+    "CNTNAP2_cohort3.csv/ASD0027",
+    "CNTNAP2_cohort3.csv/ASD0028",
+    "CNTNAP2_cohort3.csv/ASD0032",
+    "CNTNAP2_cohort3.csv/ASD0033",
+    "CNTNAP2_cohort3.csv/ASD0050",
+    "CNTNAP2_cohort3.csv/ASD0051",
+    "CNTNAP2_cohort3.csv/ASD0025",
+    "CNTNAP2_cohort3.csv/ASD0035",
+    "CNTNAP2_cohort3.csv/ASD0022",
+    "CNTNAP2_cohort3.csv/ASD0029",
+    "CNTNAP2_cohort3.csv/ASD0030",
+    "CNTNAP2_cohort3.csv/ASD0031",
+    "CNTNAP2_cohort3.csv/ASD0034",
+    "CNTNAP2_cohort3.csv/ASD0036",
+    "CNTNAP2_cohort3.csv/ASD0037",
+    "CNTNAP2_cohort4.csv/ASD0053",
+    "CNTNAP2_cohort4.csv/ASD0055",
+    "CNTNAP2_cohort4.csv/ASD0062",
+    "CNTNAP2_cohort4.csv/ASD0056",
+    "CNTNAP2_cohort4.csv/ASD0057",
+    "CNTNAP2_cohort4.csv/ASD0058",
+    "CNTNAP2_cohort4.csv/ASD0059",
+    "CNTNAP2_cohort4.csv/ASD0061",
+    "CNTNAP2_cohort4.csv/ASD0063",
+    "CNTNAP2_cohort4.csv/ASD0066",
+    "CNTNAP2_cohort4.csv/ASD0068",
+    "CNTNAP2_cohort4.csv/ASD0071",
+    "CNTNAP2_cohort4.csv/ASD0052",
+    "CNTNAP2_cohort4.csv/ASD0054",
+    "CNTNAP2_cohort4.csv/ASD0060",
+    "CNTNAP2_cohort4.csv/ASD0064",
+    "CNTNAP2_cohort4.csv/ASD0065"
+  ],
+  "animal_dot_offsets": {
+    "20": -0.22,
+    "40": 0,
+    "60": 0.22
+  },
+  "scatter_only": true,
+  "no_error_bars_or_mean_markers": true,
+  "pages": [
+    {
+      "view": "animal",
+      "metric": "slope_k",
+      "panels": 1,
+      "available_estimates": 159,
+      "unavailable_estimates": 0,
+      "ylim": [
+        0,
+        0.6995546498712992
+      ],
+      "pdf_pages": 1,
+      "categorical_groups": [],
+      "label_rotation": 90,
+      "category_spacing": 1,
+      "pdf": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_animal_slope.pdf",
+      "png": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_animal_slope.png"
+    },
+    {
+      "view": "filename_genotype",
+      "metric": "slope_k",
+      "panels": 1,
+      "available_estimates": 36,
+      "unavailable_estimates": 0,
+      "ylim": [
+        0,
+        0.5115243911697769
+      ],
+      "pdf_pages": 1,
+      "categorical_groups": [
+        {
+          "group": "SHANK3_cohort1.csv",
+          "genotype": "wt",
+          "x": 0.0,
+          "label": "SHANK3_cohort1 | WT\n5 animals | n=68,557",
+          "animals": 5,
+          "trials": 68557,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3_cohort1.csv",
+          "genotype": "het",
+          "x": 1.7,
+          "label": "SHANK3_cohort1 | Heterozygous\n3 animals | n=49,011",
+          "animals": 3,
+          "trials": 49011,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3_cohort1.csv",
+          "genotype": "hom",
+          "x": 3.4,
+          "label": "SHANK3_cohort1 | Homozygous\n6 animals | n=68,072",
+          "animals": 6,
+          "trials": 68072,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3_cohort2.csv",
+          "genotype": "wt",
+          "x": 5.1,
+          "label": "SHANK3_cohort2 | WT\n1 animal | n=4,179",
+          "animals": 1,
+          "trials": 4179,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3_cohort2.csv",
+          "genotype": "het",
+          "x": 6.8,
+          "label": "SHANK3_cohort2 | Heterozygous\n4 animals | n=16,241",
+          "animals": 4,
+          "trials": 16241,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3_cohort2.csv",
+          "genotype": "hom",
+          "x": 8.5,
+          "label": "SHANK3_cohort2 | Homozygous\n1 animal | n=4,184",
+          "animals": 1,
+          "trials": 4184,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort3.csv",
+          "genotype": "wt",
+          "x": 10.2,
+          "label": "CNTNAP2_cohort3 | WT\n7 animals | n=52,495",
+          "animals": 7,
+          "trials": 52495,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort3.csv",
+          "genotype": "het",
+          "x": 11.9,
+          "label": "CNTNAP2_cohort3 | Heterozygous\n2 animals | n=15,652",
+          "animals": 2,
+          "trials": 15652,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort3.csv",
+          "genotype": "hom",
+          "x": 13.6,
+          "label": "CNTNAP2_cohort3 | Homozygous\n7 animals | n=74,687",
+          "animals": 7,
+          "trials": 74687,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort4.csv",
+          "genotype": "wt",
+          "x": 15.299999999999999,
+          "label": "CNTNAP2_cohort4 | WT\n3 animals | n=23,570",
+          "animals": 3,
+          "trials": 23570,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort4.csv",
+          "genotype": "het",
+          "x": 17.0,
+          "label": "CNTNAP2_cohort4 | Heterozygous\n9 animals | n=56,509",
+          "animals": 9,
+          "trials": 56509,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort4.csv",
+          "genotype": "hom",
+          "x": 18.7,
+          "label": "CNTNAP2_cohort4 | Homozygous\n5 animals | n=38,259",
+          "animals": 5,
+          "trials": 38259,
+          "unavailable_estimates": 0
+        }
+      ],
+      "label_rotation": 45,
+      "category_spacing": 1.7,
+      "pdf": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_filename_genotype_slope.pdf",
+      "png": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_filename_genotype_slope.png"
+    },
+    {
+      "view": "family_genotype",
+      "metric": "slope_k",
+      "panels": 1,
+      "available_estimates": 18,
+      "unavailable_estimates": 0,
+      "ylim": [
+        0,
+        0.49049646589447876
+      ],
+      "pdf_pages": 1,
+      "categorical_groups": [
+        {
+          "group": "SHANK3",
+          "genotype": "wt",
+          "x": 0.0,
+          "label": "SHANK3 | WT\n6 animals | n=72,736",
+          "animals": 6,
+          "trials": 72736,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3",
+          "genotype": "het",
+          "x": 1.7,
+          "label": "SHANK3 | Heterozygous\n7 animals | n=65,252",
+          "animals": 7,
+          "trials": 65252,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3",
+          "genotype": "hom",
+          "x": 3.4,
+          "label": "SHANK3 | Homozygous\n7 animals | n=72,256",
+          "animals": 7,
+          "trials": 72256,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2",
+          "genotype": "wt",
+          "x": 5.1,
+          "label": "CNTNAP2 | WT\n10 animals | n=76,065",
+          "animals": 10,
+          "trials": 76065,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2",
+          "genotype": "het",
+          "x": 6.8,
+          "label": "CNTNAP2 | Heterozygous\n11 animals | n=72,161",
+          "animals": 11,
+          "trials": 72161,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2",
+          "genotype": "hom",
+          "x": 8.5,
+          "label": "CNTNAP2 | Homozygous\n12 animals | n=112,946",
+          "animals": 12,
+          "trials": 112946,
+          "unavailable_estimates": 0
+        }
+      ],
+      "label_rotation": 45,
+      "category_spacing": 1.7,
+      "pdf": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_family_genotype_slope.pdf",
+      "png": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_family_genotype_slope.png"
+    },
+    {
+      "view": "genotype",
+      "metric": "slope_k",
+      "panels": 1,
+      "available_estimates": 9,
+      "unavailable_estimates": 0,
+      "ylim": [
+        0,
+        0.4554990373657183
+      ],
+      "pdf_pages": 1,
+      "categorical_groups": [
+        {
+          "group": "all_cohorts",
+          "genotype": "wt",
+          "x": 0.0,
+          "label": "WT\n16 animals | n=148,801",
+          "animals": 16,
+          "trials": 148801,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "all_cohorts",
+          "genotype": "het",
+          "x": 1.7,
+          "label": "Heterozygous\n18 animals | n=137,413",
+          "animals": 18,
+          "trials": 137413,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "all_cohorts",
+          "genotype": "hom",
+          "x": 3.4,
+          "label": "Homozygous\n19 animals | n=185,202",
+          "animals": 19,
+          "trials": 185202,
+          "unavailable_estimates": 0
+        }
+      ],
+      "label_rotation": 45,
+      "category_spacing": 1.7,
+      "pdf": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_genotype_slope.pdf",
+      "png": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_genotype_slope.png"
+    },
+    {
+      "view": "animal",
+      "metric": "jnd",
+      "panels": 1,
+      "available_estimates": 155,
+      "unavailable_estimates": 4,
+      "ylim": [
+        0,
+        14.451638805728795
+      ],
+      "pdf_pages": 1,
+      "categorical_groups": [],
+      "label_rotation": 90,
+      "category_spacing": 1,
+      "pdf": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_animal_jnd.pdf",
+      "png": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_animal_jnd.png"
+    },
+    {
+      "view": "filename_genotype",
+      "metric": "jnd",
+      "panels": 1,
+      "available_estimates": 36,
+      "unavailable_estimates": 0,
+      "ylim": [
+        0,
+        5.994654945225059
+      ],
+      "pdf_pages": 1,
+      "categorical_groups": [
+        {
+          "group": "SHANK3_cohort1.csv",
+          "genotype": "wt",
+          "x": 0.0,
+          "label": "SHANK3_cohort1 | WT\n5 animals | n=68,557",
+          "animals": 5,
+          "trials": 68557,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3_cohort1.csv",
+          "genotype": "het",
+          "x": 1.7,
+          "label": "SHANK3_cohort1 | Heterozygous\n3 animals | n=49,011",
+          "animals": 3,
+          "trials": 49011,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3_cohort1.csv",
+          "genotype": "hom",
+          "x": 3.4,
+          "label": "SHANK3_cohort1 | Homozygous\n6 animals | n=68,072",
+          "animals": 6,
+          "trials": 68072,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3_cohort2.csv",
+          "genotype": "wt",
+          "x": 5.1,
+          "label": "SHANK3_cohort2 | WT\n1 animal | n=4,179",
+          "animals": 1,
+          "trials": 4179,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3_cohort2.csv",
+          "genotype": "het",
+          "x": 6.8,
+          "label": "SHANK3_cohort2 | Heterozygous\n4 animals | n=16,241",
+          "animals": 4,
+          "trials": 16241,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3_cohort2.csv",
+          "genotype": "hom",
+          "x": 8.5,
+          "label": "SHANK3_cohort2 | Homozygous\n1 animal | n=4,184",
+          "animals": 1,
+          "trials": 4184,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort3.csv",
+          "genotype": "wt",
+          "x": 10.2,
+          "label": "CNTNAP2_cohort3 | WT\n7 animals | n=52,495",
+          "animals": 7,
+          "trials": 52495,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort3.csv",
+          "genotype": "het",
+          "x": 11.9,
+          "label": "CNTNAP2_cohort3 | Heterozygous\n2 animals | n=15,652",
+          "animals": 2,
+          "trials": 15652,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort3.csv",
+          "genotype": "hom",
+          "x": 13.6,
+          "label": "CNTNAP2_cohort3 | Homozygous\n7 animals | n=74,687",
+          "animals": 7,
+          "trials": 74687,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort4.csv",
+          "genotype": "wt",
+          "x": 15.299999999999999,
+          "label": "CNTNAP2_cohort4 | WT\n3 animals | n=23,570",
+          "animals": 3,
+          "trials": 23570,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort4.csv",
+          "genotype": "het",
+          "x": 17.0,
+          "label": "CNTNAP2_cohort4 | Heterozygous\n9 animals | n=56,509",
+          "animals": 9,
+          "trials": 56509,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2_cohort4.csv",
+          "genotype": "hom",
+          "x": 18.7,
+          "label": "CNTNAP2_cohort4 | Homozygous\n5 animals | n=38,259",
+          "animals": 5,
+          "trials": 38259,
+          "unavailable_estimates": 0
+        }
+      ],
+      "label_rotation": 45,
+      "category_spacing": 1.7,
+      "pdf": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_filename_genotype_jnd.pdf",
+      "png": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_filename_genotype_jnd.png"
+    },
+    {
+      "view": "family_genotype",
+      "metric": "jnd",
+      "panels": 1,
+      "available_estimates": 18,
+      "unavailable_estimates": 0,
+      "ylim": [
+        0,
+        5.742019948008778
+      ],
+      "pdf_pages": 1,
+      "categorical_groups": [
+        {
+          "group": "SHANK3",
+          "genotype": "wt",
+          "x": 0.0,
+          "label": "SHANK3 | WT\n6 animals | n=72,736",
+          "animals": 6,
+          "trials": 72736,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3",
+          "genotype": "het",
+          "x": 1.7,
+          "label": "SHANK3 | Heterozygous\n7 animals | n=65,252",
+          "animals": 7,
+          "trials": 65252,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "SHANK3",
+          "genotype": "hom",
+          "x": 3.4,
+          "label": "SHANK3 | Homozygous\n7 animals | n=72,256",
+          "animals": 7,
+          "trials": 72256,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2",
+          "genotype": "wt",
+          "x": 5.1,
+          "label": "CNTNAP2 | WT\n10 animals | n=76,065",
+          "animals": 10,
+          "trials": 76065,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2",
+          "genotype": "het",
+          "x": 6.8,
+          "label": "CNTNAP2 | Heterozygous\n11 animals | n=72,161",
+          "animals": 11,
+          "trials": 72161,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "CNTNAP2",
+          "genotype": "hom",
+          "x": 8.5,
+          "label": "CNTNAP2 | Homozygous\n12 animals | n=112,946",
+          "animals": 12,
+          "trials": 112946,
+          "unavailable_estimates": 0
+        }
+      ],
+      "label_rotation": 45,
+      "category_spacing": 1.7,
+      "pdf": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_family_genotype_jnd.pdf",
+      "png": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_family_genotype_jnd.png"
+    },
+    {
+      "view": "genotype",
+      "metric": "jnd",
+      "panels": 1,
+      "available_estimates": 9,
+      "unavailable_estimates": 0,
+      "ylim": [
+        0,
+        4.564899402233869
+      ],
+      "pdf_pages": 1,
+      "categorical_groups": [
+        {
+          "group": "all_cohorts",
+          "genotype": "wt",
+          "x": 0.0,
+          "label": "WT\n16 animals | n=148,801",
+          "animals": 16,
+          "trials": 148801,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "all_cohorts",
+          "genotype": "het",
+          "x": 1.7,
+          "label": "Heterozygous\n18 animals | n=137,413",
+          "animals": 18,
+          "trials": 137413,
+          "unavailable_estimates": 0
+        },
+        {
+          "group": "all_cohorts",
+          "genotype": "hom",
+          "x": 3.4,
+          "label": "Homozygous\n19 animals | n=185,202",
+          "animals": 19,
+          "trials": 185202,
+          "unavailable_estimates": 0
+        }
+      ],
+      "label_rotation": 45,
+      "category_spacing": 1.7,
+      "pdf": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_genotype_jnd.pdf",
+      "png": "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_genotype_jnd.png"
+    }
+  ],
+  "synthetic_checks": [
+    "recover known four parameters",
+    "slope exactly k",
+    "zero-lapse JND=ln(3)/k",
+    "sigmoid crossings match thresholds",
+    "valid k retained when JND undefined",
+    "zero-k/non-increasing fits rejected",
+    "optimizer failure leaves both metrics unavailable"
+  ],
+  "all_pooled_conditions_match_existing_psychometric_audits": true,
+  "all_animal_condition_counts_sum_to_filename_genotype_counts": true,
+  "protected_file_sha256_unchanged": {
+    "SHANK3_cohort1.csv": "22e3e26dc9358a2b55164639e9907651f2a230798034aea7c9cc2f52e753d146",
+    "SHANK3_cohort2.csv": "9975cb4e89b4775aae44c17a0d6745d211d1c1a7e185ac14aba0571d52f0e544",
+    "CNTNAP2_cohort3.csv": "6d8635b97ffed2ad02e3423148dba699d87df0a40d92abe6a6f1af865c48c81e",
+    "CNTNAP2_cohort4.csv": "2f2d8450de17b596d555b1440bc47e869b311fda227cbd68158c1f1e3ca2f516",
+    "asd_analysis/session_type_csvs/ASD_session_type_1.csv": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+    "asd_analysis/session_type_csvs/ASD_session_type_2.csv": "d42712ce3a32f0b91733a2b013546e94535f8c220f5dde0b92988444fc72a8d0",
+    "asd_analysis/session_type_csvs/ASD_session_type_23.csv": "71dc19176e8131a78db4381af0126e86511e54330dcb62f9bdb5f4f109c7ae1b",
+    "asd_analysis/session_type_1_psychometrics/psychometric_points.csv": "b85e031df0b776605e930158fa4139d5b6142d0b7c20e2c2878abca0820fffef",
+    "asd_analysis/session_type_1_psychometrics/psychometric_independent_validation.json": "127d856b571bee3cb68ae167796346b581cb4bfda5f81db7596ad2c11fa320e9",
+    "asd_analysis/session_type_1_psychometrics/psychometric_group_counts.csv": "78e3b4afcac484b2298f7b82d86caddd65eeeadb2f8b830204fbb1df9bdd4e06",
+    "asd_analysis/session_type_1_psychometrics/family_psychometric_validation.json": "621f173c961f2f3757df91a2a3b7ab0ee7c02ca22a6649f157d4c8155e194395",
+    "asd_analysis/session_type_1_psychometrics/family_psychometric_independent_validation.json": "161ec9dfd7df3a88af9cbfa1c0ef040532e07f9b4719baf24db1ff60d9aefd96",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_genotype_psychometrics.pdf": "5cb43f01dfbafad245ec6d7f3369c4feefccaa2b7ee127948207f3d6d88c36ea",
+    "asd_analysis/session_type_1_psychometrics/family_psychometric_points.csv": "ad77b3ca767daf2ff6163089ff2c77397c9bbeb8c91887310177ba05ce0c8684",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_filename_genotype_psychometrics.png": "8ba17dc8e77eb3e6ecd14f77d436b31398d28f161ac79397563ca90e292feb97",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_family_genotype_psychometrics.pdf": "d67e6ae057e706984e3867d7ce4cbbc1d4abd1c7050496fe561d4853bbf15313",
+    "asd_analysis/session_type_1_psychometrics/family_psychometric_group_membership.csv": "072849b8c3b60163e2fb48ed3bd42a9991bdcb99f3c2113bd283739e9b2cde2d",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_family_genotype_psychometrics.png": "dcc658f7840384e32771a37a9e472696d4a62ebad1c7fb6b3325cd3a1f8080ad",
+    "asd_analysis/session_type_1_psychometrics/psychometric_validation.json": "d034476a6b2c4632e0d41a40d3eaf32ef622901d179320d171348f6384c472ba",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_genotype_psychometrics.png": "b1ee71d6ccac1a358ad9b4a9cf509f3ffcb888f6bc405141b00df452e68e1e3f",
+    "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_filename_genotype_psychometrics.pdf": "cd4a8b340c44d23aa4fbf62c8df1a8914f9ad39b46bf29050c28a2746ace4d60",
+    "asd_analysis/session_type_1_psychometrics/family_psychometric_group_counts.csv": "2ef0f6d16fc7fd433a1517a24bf3e6a3b201e23bcb12ed8a24b241a1c15c6879",
+    "asd_analysis/session_type_1_psychometrics/psychometric_group_membership.csv": "164528a6669796696c75546b038a47f427ad50580ae64651118093e55577ec62",
+    "asd_analysis/session_type_1_rtds/animal_counts.csv": "d34c153c3f6ee33a53edbbb177e7c77c30c763aa3c8d4c0b10f31729cb0f5fb2",
+    "asd_analysis/session_type_1_rtds/histogram_bins.csv": "f966efdf7a8b640caaa22b8ee976fba37bc394a07160332dd145103e5565c944",
+    "asd_analysis/session_type_1_rtds/pages.csv": "3d79b2bce190532322f5394f6bb80eac7ea4bafdffa9d672fff6d357d2c54d53",
+    "asd_analysis/session_type_1_rtds/CNTNAP2_cohort4_rtds_page_01.png": "148ce74def41fe022817d3d8dc3697520f1cbdd82758efaa852069309f5edf00",
+    "asd_analysis/session_type_1_rtds/excluded_prepared_short_sound_rows.csv": "8ae8f8b4fb523496d121e07f4c84ce9eac08c6d2f46588ac06b2f4c961daa684",
+    "asd_analysis/session_type_1_rtds/validation.json": "8c9d3da4b14943cbd3e0b07d6d5c511c059d5b98ae83339d036199c05ed5208b",
+    "asd_analysis/session_type_1_rtds/flagged_row_summary.csv": "1750a2f5ec92b2ef7b9e40ff00c11244cf76a053398d54380af771793ccc001d",
+    "asd_analysis/session_type_1_rtds/CNTNAP2_cohort3_rtds_page_01.png": "6fda1810999a7a4fb01caa1098b2574ee5d0a2606d6aae76737b964d84fcf4dc",
+    "asd_analysis/session_type_1_rtds/curve_counts.csv": "4549585550bd40a7b33aab1c10fcbd69d63e73d649e9e8fcb0a24955f49936f7",
+    "asd_analysis/session_type_1_rtds/independent_validation.json": "35555d0af0db33bcfa7213a8a104bad2191ed9bce367a59607068b4bd0133f5b",
+    "asd_analysis/session_type_1_rtds/CNTNAP2_cohort4_rtds_page_03.png": "ced477c2d3c83056abd82357b068f6cf67d5fec1a341746564c498135dd4e9cf",
+    "asd_analysis/session_type_1_rtds/SHANK3_cohort2_rtds_page_01.png": "fb5afd61eb4feccb659a268add568eb4f83d601a52555bd99c08f727b090e581",
+    "asd_analysis/session_type_1_rtds/CNTNAP2_cohort3_rtds_page_02.png": "2ee2a11460bc07ec9528fda7edcc8f8e6c5b25a5e9996288c53d116388059e3c",
+    "asd_analysis/session_type_1_rtds/SHANK3_cohort1_rtds_page_01.png": "0cecc5d9476b56e5b97175a5012e793ac0e2fec54bf11dc7623d02e29f8d3854",
+    "asd_analysis/session_type_1_rtds/CNTNAP2_cohort4_rtds_page_02.png": "17eb5559619fb38a68f9b3c2b68a8e1e05fc1e9f439ff08e0d4f4de2fe52e139",
+    "asd_analysis/session_type_1_rtds/SHANK3_cohort1_rtds_page_02.png": "3fe59d8d71b24ee25bf1af375e32a608692140436fa2cf6af9c9a471803d7e09",
+    "asd_analysis/session_type_1_rtds/flagged_row_locations.csv": "4932ecb5427ef73fddebd631b8116ecf58b894c31e004cc1f48130966d3a4a2a",
+    "asd_analysis/session_type_1_rtds/ASD_session_type_1_rtds.pdf": "3d067c1d7da6038cd620d2126ae57d57c5bc60ba3c11046604a2631e763d9bff",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_independent_validation.json": "a0166f2bdc415c64ad657160e442ff2d140ecfa0c804c824ed9600356b15140a",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_group_membership.csv": "779f8f55d7918a3fc3e394b656bba2bba694bab5611b07f9e485aa95328bfb37",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_family_genotype_rtds_page_01.png": "775e463475633d9c7ade4f4b93291cb827952570f074b7adec58b12ca7167369",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_group_counts.csv": "7faa5e4438fe3641dbd42910665a763582314b31618c754c9e662c11e0c942d1",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_pages.csv": "6eed60cef1d125427e0e52b59f9e2d0e3edf501f12c744bf55c6bf20c40d15e9",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_filename_genotype_rtds_validation.json": "baa612d6ce597204b221f96d314221c3b85ff22f79b6c3b4b50b202c2f7b430e",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_filename_genotype_rtds_page_02.png": "3f72bdc1d75790610652abcfcb5d32244d2d74b20c7200f1faa31058e936c759",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_family_genotype_rtds.pdf": "d943def688bd8beca6ece5fd64d20a739d57a3a40ac2acc07bde69d89b87ff4b",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_filename_genotype_rtds_page_01.png": "27b3629a7dbb5aacb3a4f0ac21a40bb2caf6b593230a12f3197235646171c101",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_filename_genotype_rtds.pdf": "2aa5de62a2fb4980b6295db1964a1661e86939fe2dda4218116ce23f0164433b",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_validation.json": "c1001705585eaeb940f902d4eb06d83a941e873f7254155e7090694ce4f9038a",
+    "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_family_genotype_rtds_validation.json": "45fb1cc47b7569c2e933ce7f7492aac02d99d60ba2660b3da2dd6a2adf0a3f26",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_histogram_bins.csv": "8f5dc78a03e4deee86265fa6e0915cec890610be44040985b40f15609b0b56b7",
+    "asd_analysis/session_type_1_genotype_rtds/genotype_rtd_curve_counts.csv": "e5dfd2b2c72663942439c517b7db548aca924c3599cae3258606a42ba65007a8",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_genotype_ild_pooled_rtds.png": "a1810ca5be05fe95e5fb0c1cab22ad396fa130647a6a5859cec9ff4c726d26ff",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ild_pooled_rtd_histogram_bins.csv": "c61e22f35d5e7708d8c997f9899144c038636d96aedae9d3b43650ee97e20997",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_genotype_ild_pooled_rtds.pdf": "88706c64271c81d66107d1e8c05c9040b2db51122de80a5ae487a1aeeebef6d2",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ild_pooled_rtd_group_counts.csv": "8d84486047080790dc7e2b9c6063966f802be94303adb066eac24a1105c740eb",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ild_pooled_rtd_group_membership.csv": "44e983ee5cef9b2c5d2c218bbc60c74d30d06208521f4bcbaf932799ac00e175",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_family_genotype_ild_pooled_rtds.png": "3dcca6129d9a09f81bb59de0c8160ff7862b1824a271ad25ab5e7ff10454734f",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ild_pooled_rtd_validation.json": "abff431e105efbf39ba5d9d798b55dc20cc1c6249dbb12e7965df0fbbc698f30",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ild_pooled_rtd_curve_counts.csv": "c30d2b042c40746383a12535eb3fc800c9b96d0cf8256fc09a8ef1a2af5dbe42",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ild_pooled_rtd_independent_validation.json": "3228093f017d4124e1587360f9a728f800e3c6a7949d0036f6fd0de53e40fca6",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_family_genotype_ild_pooled_rtds.pdf": "12e2d31b7defbf6e99186a3b71862f9ad210fd23e8c423aa252458d2faabca9e",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_filename_genotype_ild_pooled_rtds.pdf": "7ca06f421a0d4973a8b9fabf97948463551344468a8814820c9374c0d750bcc4",
+    "asd_analysis/session_type_1_ild_pooled_rtds/ASD_session_type_1_filename_genotype_ild_pooled_rtds.png": "4e8ccad7744f0b00f71b18fca2dc70c4d25eab61ae72bdd1ee0af917e3328318",
+    "docs/assets/results/2026-10-12/genotype_rtd_independent_validation.json": "a0166f2bdc415c64ad657160e442ff2d140ecfa0c804c824ed9600356b15140a",
+    "docs/assets/results/2026-10-12/genotype_rtd_group_membership.csv": "779f8f55d7918a3fc3e394b656bba2bba694bab5611b07f9e485aa95328bfb37",
+    "docs/assets/results/2026-10-12/psychometric_points.csv": "b85e031df0b776605e930158fa4139d5b6142d0b7c20e2c2878abca0820fffef",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_genotype_ild_pooled_rtds.png": "a1810ca5be05fe95e5fb0c1cab22ad396fa130647a6a5859cec9ff4c726d26ff",
+    "docs/assets/results/2026-10-12/animal_counts.csv": "d34c153c3f6ee33a53edbbb177e7c77c30c763aa3c8d4c0b10f31729cb0f5fb2",
+    "docs/assets/results/2026-10-12/psychometric_independent_validation.json": "127d856b571bee3cb68ae167796346b581cb4bfda5f81db7596ad2c11fa320e9",
+    "docs/assets/results/2026-10-12/ild_pooled_rtd_histogram_bins.csv": "c61e22f35d5e7708d8c997f9899144c038636d96aedae9d3b43650ee97e20997",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_family_genotype_rtds_page_01.png": "775e463475633d9c7ade4f4b93291cb827952570f074b7adec58b12ca7167369",
+    "docs/assets/results/2026-10-12/genotype_rtd_group_counts.csv": "7faa5e4438fe3641dbd42910665a763582314b31618c754c9e662c11e0c942d1",
+    "docs/assets/results/2026-10-12/psychometric_group_counts.csv": "78e3b4afcac484b2298f7b82d86caddd65eeeadb2f8b830204fbb1df9bdd4e06",
+    "docs/assets/results/2026-10-12/histogram_bins.csv": "f966efdf7a8b640caaa22b8ee976fba37bc394a07160332dd145103e5565c944",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_genotype_ild_pooled_rtds.pdf": "88706c64271c81d66107d1e8c05c9040b2db51122de80a5ae487a1aeeebef6d2",
+    "docs/assets/results/2026-10-12/plot_session_type_1_genotype_rtds.py": "26d8342ef9edb7474449c52593639aabc587f49e1dfc0423cc6a79d269bb6aaf",
+    "docs/assets/results/2026-10-12/genotype_rtd_pages.csv": "6eed60cef1d125427e0e52b59f9e2d0e3edf501f12c744bf55c6bf20c40d15e9",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_filename_genotype_rtds_validation.json": "baa612d6ce597204b221f96d314221c3b85ff22f79b6c3b4b50b202c2f7b430e",
+    "docs/assets/results/2026-10-12/pages.csv": "3d79b2bce190532322f5394f6bb80eac7ea4bafdffa9d672fff6d357d2c54d53",
+    "docs/assets/results/2026-10-12/ild_pooled_rtd_group_counts.csv": "8d84486047080790dc7e2b9c6063966f802be94303adb066eac24a1105c740eb",
+    "docs/assets/results/2026-10-12/CNTNAP2_cohort4_rtds_page_01.png": "148ce74def41fe022817d3d8dc3697520f1cbdd82758efaa852069309f5edf00",
+    "docs/assets/results/2026-10-12/build_session_type_csvs.py": "7f63dd815ce1bb4440639a77f3696bede814d15194e2bb1b9b2ba64c5b6b8579",
+    "docs/assets/results/2026-10-12/excluded_prepared_short_sound_rows.csv": "8ae8f8b4fb523496d121e07f4c84ce9eac08c6d2f46588ac06b2f4c961daa684",
+    "docs/assets/results/2026-10-12/session_type_csv_verification.json": "2b82526207f4de480accf5f8038cc83e0991f479c6ea359afc9cfbecd156582a",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_filename_genotype_rtds_page_02.png": "3f72bdc1d75790610652abcfcb5d32244d2d74b20c7200f1faa31058e936c759",
+    "docs/assets/results/2026-10-12/clean_session_type_1_csv.py": "de2964f83638cf8ceab4342930baa1bb234caef8976756482cbe108b955f929c",
+    "docs/assets/results/2026-10-12/family_psychometric_validation.json": "621f173c961f2f3757df91a2a3b7ab0ee7c02ca22a6649f157d4c8155e194395",
+    "docs/assets/results/2026-10-12/filter_manifest.json": "9a41dd2626023c4834d6e9ffe9466dde8b0c72aac0d039f8d82807edd8cdf683",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_family_genotype_rtds.pdf": "d943def688bd8beca6ece5fd64d20a739d57a3a40ac2acc07bde69d89b87ff4b",
+    "docs/assets/results/2026-10-12/family_psychometric_independent_validation.json": "161ec9dfd7df3a88af9cbfa1c0ef040532e07f9b4719baf24db1ff60d9aefd96",
+    "docs/assets/results/2026-10-12/validation.json": "8c9d3da4b14943cbd3e0b07d6d5c511c059d5b98ae83339d036199c05ed5208b",
+    "docs/assets/results/2026-10-12/flagged_row_summary.csv": "1750a2f5ec92b2ef7b9e40ff00c11244cf76a053398d54380af771793ccc001d",
+    "docs/assets/results/2026-10-12/ild_pooled_rtd_group_membership.csv": "44e983ee5cef9b2c5d2c218bbc60c74d30d06208521f4bcbaf932799ac00e175",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_genotype_psychometrics.pdf": "5cb43f01dfbafad245ec6d7f3369c4feefccaa2b7ee127948207f3d6d88c36ea",
+    "docs/assets/results/2026-10-12/verify_session_type_csvs.py": "db63b1b1f87e64eb8f1bfa74be2a50700833cca2bf89fd80cecaa5cfe6564f70",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_filename_genotype_rtds_page_01.png": "27b3629a7dbb5aacb3a4f0ac21a40bb2caf6b593230a12f3197235646171c101",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_filename_genotype_rtds.pdf": "2aa5de62a2fb4980b6295db1964a1661e86939fe2dda4218116ce23f0164433b",
+    "docs/assets/results/2026-10-12/CNTNAP2_cohort3_rtds_page_01.png": "6fda1810999a7a4fb01caa1098b2574ee5d0a2606d6aae76737b964d84fcf4dc",
+    "docs/assets/results/2026-10-12/plot_session_type_1_psychometrics.py": "a5f4188a365161601ddf7879c695117e8f54b49785a5e8224ea96cad133d6cdf",
+    "docs/assets/results/2026-10-12/curve_counts.csv": "4549585550bd40a7b33aab1c10fcbd69d63e73d649e9e8fcb0a24955f49936f7",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_family_genotype_ild_pooled_rtds.png": "3dcca6129d9a09f81bb59de0c8160ff7862b1824a271ad25ab5e7ff10454734f",
+    "docs/assets/results/2026-10-12/family_psychometric_points.csv": "ad77b3ca767daf2ff6163089ff2c77397c9bbeb8c91887310177ba05ce0c8684",
+    "docs/assets/results/2026-10-12/plot_session_type_1_family_psychometrics.py": "e8d75ee2b455d0f3db82c4bb178402fcd330dc8dca38afefcb343864dd118eab",
+    "docs/assets/results/2026-10-12/ild_pooled_rtd_validation.json": "abff431e105efbf39ba5d9d798b55dc20cc1c6249dbb12e7965df0fbbc698f30",
+    "docs/assets/results/2026-10-12/genotype_rtd_validation.json": "c1001705585eaeb940f902d4eb06d83a941e873f7254155e7090694ce4f9038a",
+    "docs/assets/results/2026-10-12/independent_validation.json": "35555d0af0db33bcfa7213a8a104bad2191ed9bce367a59607068b4bd0133f5b",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_filename_genotype_psychometrics.png": "8ba17dc8e77eb3e6ecd14f77d436b31398d28f161ac79397563ca90e292feb97",
+    "docs/assets/results/2026-10-12/ild_pooled_rtd_curve_counts.csv": "c30d2b042c40746383a12535eb3fc800c9b96d0cf8256fc09a8ef1a2af5dbe42",
+    "docs/assets/results/2026-10-12/CNTNAP2_cohort4_rtds_page_03.png": "ced477c2d3c83056abd82357b068f6cf67d5fec1a341746564c498135dd4e9cf",
+    "docs/assets/results/2026-10-12/SHANK3_cohort2_rtds_page_01.png": "fb5afd61eb4feccb659a268add568eb4f83d601a52555bd99c08f727b090e581",
+    "docs/assets/results/2026-10-12/CNTNAP2_cohort3_rtds_page_02.png": "2ee2a11460bc07ec9528fda7edcc8f8e6c5b25a5e9996288c53d116388059e3c",
+    "docs/assets/results/2026-10-12/SHANK3_cohort1_rtds_page_01.png": "0cecc5d9476b56e5b97175a5012e793ac0e2fec54bf11dc7623d02e29f8d3854",
+    "docs/assets/results/2026-10-12/CNTNAP2_cohort4_rtds_page_02.png": "17eb5559619fb38a68f9b3c2b68a8e1e05fc1e9f439ff08e0d4f4de2fe52e139",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_family_genotype_rtds_validation.json": "45fb1cc47b7569c2e933ce7f7492aac02d99d60ba2660b3da2dd6a2adf0a3f26",
+    "docs/assets/results/2026-10-12/genotype_rtd_histogram_bins.csv": "8f5dc78a03e4deee86265fa6e0915cec890610be44040985b40f15609b0b56b7",
+    "docs/assets/results/2026-10-12/ild_pooled_rtd_independent_validation.json": "3228093f017d4124e1587360f9a728f800e3c6a7949d0036f6fd0de53e40fca6",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_family_genotype_ild_pooled_rtds.pdf": "12e2d31b7defbf6e99186a3b71862f9ad210fd23e8c423aa252458d2faabca9e",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_family_genotype_psychometrics.pdf": "d67e6ae057e706984e3867d7ce4cbbc1d4abd1c7050496fe561d4853bbf15313",
+    "docs/assets/results/2026-10-12/plot_session_type_1_ild_pooled_rtds.py": "568fb17b90fea497844033be92d7638f64d7491fe209192bd6e85361950fea33",
+    "docs/assets/results/2026-10-12/family_psychometric_group_membership.csv": "072849b8c3b60163e2fb48ed3bd42a9991bdcb99f3c2113bd283739e9b2cde2d",
+    "docs/assets/results/2026-10-12/short_sound_cleanup.json": "043749b09abc189944211ee2f14aed9ff25b80ea8c6bd28de1eab01e912125fc",
+    "docs/assets/results/2026-10-12/SHANK3_cohort1_rtds_page_02.png": "3fe59d8d71b24ee25bf1af375e32a608692140436fa2cf6af9c9a471803d7e09",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_family_genotype_psychometrics.png": "dcc658f7840384e32771a37a9e472696d4a62ebad1c7fb6b3325cd3a1f8080ad",
+    "docs/assets/results/2026-10-12/psychometric_validation.json": "d034476a6b2c4632e0d41a40d3eaf32ef622901d179320d171348f6384c472ba",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_filename_genotype_ild_pooled_rtds.pdf": "7ca06f421a0d4973a8b9fabf97948463551344468a8814820c9374c0d750bcc4",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_genotype_psychometrics.png": "b1ee71d6ccac1a358ad9b4a9cf509f3ffcb888f6bc405141b00df452e68e1e3f",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_filename_genotype_psychometrics.pdf": "cd4a8b340c44d23aa4fbf62c8df1a8914f9ad39b46bf29050c28a2746ace4d60",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_filename_genotype_ild_pooled_rtds.png": "4e8ccad7744f0b00f71b18fca2dc70c4d25eab61ae72bdd1ee0af917e3328318",
+    "docs/assets/results/2026-10-12/plot_session_type_1_rtds.py": "43a85c8db1c22eb1e1cbc804f9c0f768157f3639cc318dd14d915fb66ebd70bb",
+    "docs/assets/results/2026-10-12/family_psychometric_group_counts.csv": "2ef0f6d16fc7fd433a1517a24bf3e6a3b201e23bcb12ed8a24b241a1c15c6879",
+    "docs/assets/results/2026-10-12/flagged_row_locations.csv": "4932ecb5427ef73fddebd631b8116ecf58b894c31e004cc1f48130966d3a4a2a",
+    "docs/assets/results/2026-10-12/ASD_session_type_1_rtds.pdf": "3d067c1d7da6038cd620d2126ae57d57c5bc60ba3c11046604a2631e763d9bff",
+    "docs/assets/results/2026-10-12/genotype_rtd_curve_counts.csv": "e5dfd2b2c72663942439c517b7db548aca924c3599cae3258606a42ba65007a8",
+    "docs/assets/results/2026-10-12/psychometric_group_membership.csv": "164528a6669796696c75546b038a47f427ad50580ae64651118093e55577ec62",
+    "docs/results/2026-10-12.md": "16e2e097f17e35f4348de443a3e09304ab0e382b6f479a4169203ef510f133f4"
+  }
+}

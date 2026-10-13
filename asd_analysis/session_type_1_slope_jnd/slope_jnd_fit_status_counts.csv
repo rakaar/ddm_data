@@ -1,0 +1,6 @@
+view,fit_status,jnd_status,count
+animal,ok,ok,155
+animal,ok,thresholds_outside_asymptotes_or_reversed,4
+family_genotype,ok,ok,18
+filename_genotype,ok,ok,36
+genotype,ok,ok,9

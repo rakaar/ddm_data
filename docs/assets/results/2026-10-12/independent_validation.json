@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "groups": 53,
+  "selected_rows": 610234,
+  "valid_window_trials": 466978,
+  "pooled_window_trials": 598864,
+  "removed_during_preparation": 807,
+  "additional_plot_exclusions": 0,
+  "every_animal_count_curve_count_and_histogram_bin_unchanged": true,
+  "curves_checked": 848,
+  "histogram_bins_checked": 45050,
+  "max_area_error": 2.220446049250313e-16,
+  "historical_row_locations_match_archived_csv": true,
+  "flagged_original_rows": 836,
+  "flagged_archived_prepared_rows": 807,
+  "flagged_cleaned_prepared_rows": 0,
+  "cleaned_input_verified_against_original_sources": "asd_analysis/session_type_csvs/verification.json",
+  "before_after_cell_and_order_verification": "asd_analysis/session_type_csvs/short_sound_cleanup.json",
+  "comparison_reference": "/tmp/asd_before_csv_cleanup_rtds/session_type_1_rtds",
+  "checks": [
+    "All 53 animal counts and all 45,050 bins exactly equal preceding validated RTDs",
+    "All 848 curve denominators, densities, window counts and display limits unchanged",
+    "Historical row locations point to archived prepared CSV, with original row numbers preserved",
+    "New input hash and counts recorded; no remaining short-sound rows"
+  ]
+}

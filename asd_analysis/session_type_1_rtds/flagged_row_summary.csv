@@ -1,0 +1,5 @@
+csv_kind,csv_filename,animal,csv_path,flagged_rows,first_csv_row,last_csv_row,displayed_condition_rows,source_dates
+original,SHANK3_cohort1.csv,ASD0045,SHANK3_cohort1.csv,482,795362,796126,456,['2026-04-29']
+original,CNTNAP2_cohort3.csv,ASD0026,CNTNAP2_cohort3.csv,354,117123,117710,333,['2026-04-29']
+archived_prepared,ASD_session_type_1.csv,ASD0045,asd_analysis/session_type_csvs/archive/pre_short_sound_cleanup/ASD_session_type_1.csv,477,175231,175987,451,['2026-04-29']
+archived_prepared,ASD_session_type_1.csv,ASD0026,asd_analysis/session_type_csvs/archive/pre_short_sound_cleanup/ASD_session_type_1.csv,330,302942,303496,312,['2026-04-29']

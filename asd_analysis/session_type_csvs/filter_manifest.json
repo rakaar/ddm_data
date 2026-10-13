@@ -1,0 +1,380 @@
+{
+  "filters": {
+    "training_level": 16,
+    "repeat_rule": "Exclude a trial if the previous chronological trial has repeated_trial=True, except after abort_type CNP or Fixation. Compute before all other filters.",
+    "repeat_session_keys": [
+      "animal",
+      "source_file",
+      "session"
+    ],
+    "repeat_order": "numeric trial_start within each animal/source_file/session",
+    "duplicate_trials": "Records with the same session keys and trial_start share repeat status; all original records are preserved unless excluded by a requested filter.",
+    "outcome": "abort_type == 'Fixation' OR success in {1, -1}",
+    "session_types": [
+      1,
+      2,
+      23
+    ],
+    "excluded_short_sound_rule": "session_type == 1 AND is_short_sound == 1; apply after deriving repeats on all source trials"
+  },
+  "filename": "basename of the input cohort CSV; source_file retains the daily CSV name",
+  "genotype": "metadata.csv genotype matched by animal; wt/hom/het",
+  "trial_is_repeat": "derived current-trial repeat status; retained output rows are False",
+  "columns": [
+    "animal",
+    "batch",
+    "experimenter",
+    "version",
+    "bias",
+    "repeated_trial",
+    "trial",
+    "trial_start",
+    "tared_trial_start",
+    "trial_end",
+    "trial_duration",
+    "block",
+    "training_level",
+    "trials_per_block",
+    "session",
+    "session_type",
+    "box",
+    "ABL",
+    "ILD",
+    "sound_index",
+    "left_amp",
+    "right_amp",
+    "is_short_sound",
+    "short_duration",
+    "sound_ramp_time",
+    "intended_iti",
+    "iti_start",
+    "iti_end",
+    "iti_duration",
+    "cnp_start",
+    "cnp_time",
+    "max_cnp",
+    "base_ft",
+    "ft_exp_mean",
+    "intended_fix_time",
+    "fix_time",
+    "total_fix_time",
+    "catch_trial",
+    "base_rt",
+    "max_rt",
+    "rt_start",
+    "timed_rt",
+    "max_mt",
+    "mt_start",
+    "timed_mt",
+    "intended_lnp",
+    "lnp_start",
+    "lnp_end",
+    "timed_lnp",
+    "response_poke",
+    "success",
+    "abort_type",
+    "block_perf",
+    "block_abort_ratio",
+    "incorrect_penalty",
+    "abort_penalty",
+    "ft_abort_penalty",
+    "reward_left",
+    "reward_right",
+    "reward_delivered",
+    "opto_trial",
+    "intended_opto_onset_time",
+    "timed_opto_onset_time",
+    "opto_duration",
+    "opto_mode",
+    "ramp_mode",
+    "ramp_time",
+    "opto_onset",
+    "opto_delay",
+    "led0_voltage",
+    "led0_power",
+    "led0_pulses",
+    "led0_frequency",
+    "led0_duty_cycle",
+    "led1_voltage",
+    "led1_power",
+    "led1_pulses",
+    "led1_frequency",
+    "led1_duty_cycle",
+    "trial_start_frame",
+    "trial_end_frame",
+    "cnp_start_frame",
+    "rt_start_frame",
+    "mt_start_frame",
+    "lnp_start_frame",
+    "lnp_end_frame",
+    "base_ft_oot",
+    "ft_oot_exp",
+    "intended_ft_oot",
+    "timed_ft_oot",
+    "base_ft_sot",
+    "ft_sot_exp",
+    "intended_ft_sot",
+    "duration_ft_sot",
+    "trial_frame_start",
+    "trial_frame_cnp",
+    "trial_frame_rt",
+    "trial_frame_mt",
+    "mt_end_frame",
+    "timed_ft_sot",
+    "stim_dur",
+    "stim_dur_label",
+    "source_file",
+    "source_date",
+    "rt_value_valid",
+    "rt_value_note",
+    "filename",
+    "genotype",
+    "trial_is_repeat"
+  ],
+  "sources": {
+    "SHANK3_cohort1.csv": {
+      "input_rows": 1113626,
+      "repeated_trial_true": 291310,
+      "repeated_trial_false": 822316,
+      "repeated_trial_missing": 0,
+      "source_sessions": 1802,
+      "distinct_timestamped_trials": 1113021,
+      "duplicate_records_beyond_first": 605,
+      "derived_repeat_rows": 12154,
+      "session_types": {
+        "1": {
+          "input_rows": 332196,
+          "after_training": 246637,
+          "after_repeat": 244451,
+          "repeat_rows_removed_at_level16": 2186,
+          "output_rows": 237010,
+          "fixation_abort_rows": 41639,
+          "success_1_rows": 151857,
+          "success_minus1_rows": 43514,
+          "genotype_counts": {
+            "hom": 85968,
+            "het": 62772,
+            "wt": 88270
+          },
+          "output_rows_before_short_sound_exclusion": 237487,
+          "short_sound_rows_removed": 477
+        },
+        "2": {
+          "input_rows": 234479,
+          "after_training": 234479,
+          "after_repeat": 232330,
+          "repeat_rows_removed_at_level16": 2149,
+          "output_rows": 223247,
+          "fixation_abort_rows": 46280,
+          "success_1_rows": 134107,
+          "success_minus1_rows": 42860,
+          "genotype_counts": {
+            "hom": 120933,
+            "het": 39889,
+            "wt": 62425
+          }
+        },
+        "23": {
+          "input_rows": 546951,
+          "after_training": 543513,
+          "after_repeat": 538642,
+          "repeat_rows_removed_at_level16": 4871,
+          "output_rows": 526573,
+          "fixation_abort_rows": 136911,
+          "success_1_rows": 308103,
+          "success_minus1_rows": 81559,
+          "genotype_counts": {
+            "hom": 209561,
+            "het": 143949,
+            "wt": 173063
+          }
+        }
+      }
+    },
+    "SHANK3_cohort2.csv": {
+      "input_rows": 95889,
+      "repeated_trial_true": 34232,
+      "repeated_trial_false": 61657,
+      "repeated_trial_missing": 0,
+      "source_sessions": 263,
+      "distinct_timestamped_trials": 94914,
+      "duplicate_records_beyond_first": 975,
+      "derived_repeat_rows": 1682,
+      "session_types": {
+        "1": {
+          "input_rows": 91369,
+          "after_training": 37811,
+          "after_repeat": 37398,
+          "repeat_rows_removed_at_level16": 413,
+          "output_rows": 35389,
+          "fixation_abort_rows": 9528,
+          "success_1_rows": 20417,
+          "success_minus1_rows": 5444,
+          "genotype_counts": {
+            "het": 22930,
+            "hom": 6723,
+            "wt": 5736
+          },
+          "output_rows_before_short_sound_exclusion": 35389,
+          "short_sound_rows_removed": 0
+        },
+        "2": {
+          "input_rows": 4520,
+          "after_training": 4520,
+          "after_repeat": 4482,
+          "repeat_rows_removed_at_level16": 38,
+          "output_rows": 4170,
+          "fixation_abort_rows": 1007,
+          "success_1_rows": 2426,
+          "success_minus1_rows": 737,
+          "genotype_counts": {
+            "het": 4170
+          }
+        },
+        "23": {
+          "input_rows": 0,
+          "after_training": 0,
+          "after_repeat": 0,
+          "repeat_rows_removed_at_level16": 0,
+          "output_rows": 0,
+          "fixation_abort_rows": 0,
+          "success_1_rows": 0,
+          "success_minus1_rows": 0,
+          "genotype_counts": {}
+        }
+      }
+    },
+    "CNTNAP2_cohort3.csv": {
+      "input_rows": 531047,
+      "repeated_trial_true": 173176,
+      "repeated_trial_false": 357871,
+      "repeated_trial_missing": 0,
+      "source_sessions": 888,
+      "distinct_timestamped_trials": 530586,
+      "duplicate_records_beyond_first": 461,
+      "derived_repeat_rows": 8884,
+      "session_types": {
+        "1": {
+          "input_rows": 311720,
+          "after_training": 213846,
+          "after_repeat": 211085,
+          "repeat_rows_removed_at_level16": 2761,
+          "output_rows": 195069,
+          "fixation_abort_rows": 44705,
+          "success_1_rows": 116471,
+          "success_minus1_rows": 33893,
+          "genotype_counts": {
+            "hom": 96569,
+            "het": 21128,
+            "wt": 77372
+          },
+          "output_rows_before_short_sound_exclusion": 195399,
+          "short_sound_rows_removed": 330
+        },
+        "2": {
+          "input_rows": 219327,
+          "after_training": 219327,
+          "after_repeat": 215984,
+          "repeat_rows_removed_at_level16": 3343,
+          "output_rows": 206006,
+          "fixation_abort_rows": 56173,
+          "success_1_rows": 108412,
+          "success_minus1_rows": 41421,
+          "genotype_counts": {
+            "hom": 121784,
+            "het": 33015,
+            "wt": 51207
+          }
+        },
+        "23": {
+          "input_rows": 0,
+          "after_training": 0,
+          "after_repeat": 0,
+          "repeat_rows_removed_at_level16": 0,
+          "output_rows": 0,
+          "fixation_abort_rows": 0,
+          "success_1_rows": 0,
+          "success_minus1_rows": 0,
+          "genotype_counts": {}
+        }
+      }
+    },
+    "CNTNAP2_cohort4.csv": {
+      "input_rows": 618712,
+      "repeated_trial_true": 212776,
+      "repeated_trial_false": 405936,
+      "repeated_trial_missing": 0,
+      "source_sessions": 1404,
+      "distinct_timestamped_trials": 616023,
+      "duplicate_records_beyond_first": 2689,
+      "derived_repeat_rows": 10579,
+      "session_types": {
+        "1": {
+          "input_rows": 336691,
+          "after_training": 182468,
+          "after_repeat": 180258,
+          "repeat_rows_removed_at_level16": 2210,
+          "output_rows": 174902,
+          "fixation_abort_rows": 50187,
+          "success_1_rows": 96333,
+          "success_minus1_rows": 28382,
+          "genotype_counts": {
+            "hom": 54170,
+            "wt": 36478,
+            "het": 84254
+          },
+          "output_rows_before_short_sound_exclusion": 174902,
+          "short_sound_rows_removed": 0
+        },
+        "2": {
+          "input_rows": 118138,
+          "after_training": 118138,
+          "after_repeat": 116317,
+          "repeat_rows_removed_at_level16": 1821,
+          "output_rows": 114297,
+          "fixation_abort_rows": 35953,
+          "success_1_rows": 57036,
+          "success_minus1_rows": 21308,
+          "genotype_counts": {
+            "hom": 36747,
+            "wt": 21669,
+            "het": 55881
+          }
+        },
+        "23": {
+          "input_rows": 163883,
+          "after_training": 163881,
+          "after_repeat": 162235,
+          "repeat_rows_removed_at_level16": 1646,
+          "output_rows": 158490,
+          "fixation_abort_rows": 53298,
+          "success_1_rows": 80160,
+          "success_minus1_rows": 25032,
+          "genotype_counts": {
+            "hom": 42747,
+            "wt": 30699,
+            "het": 85044
+          }
+        }
+      }
+    }
+  },
+  "outputs": {
+    "1": {
+      "path": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+      "rows": 642370,
+      "bytes": 498000546
+    },
+    "2": {
+      "path": "asd_analysis/session_type_csvs/ASD_session_type_2.csv",
+      "rows": 547720,
+      "bytes": 426995542
+    },
+    "23": {
+      "path": "asd_analysis/session_type_csvs/ASD_session_type_23.csv",
+      "rows": 685063,
+      "bytes": 521340928
+    }
+  },
+  "cleanup_manifest": "asd_analysis/session_type_csvs/short_sound_cleanup.json"
+}

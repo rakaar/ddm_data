@@ -1,0 +1,47 @@
+{
+  "status": "passed",
+  "rows_checked": 1875960,
+  "columns_checked": 109,
+  "checks": [
+    "next chronological trial exclusion with CNP/Fixation exceptions",
+    "session boundaries and duplicate trial status",
+    "training/session/outcome filters",
+    "source filename and genotype",
+    "source row counts and order",
+    "every preserved cell value"
+  ],
+  "fixation_abort_rows": {
+    "1": 146238,
+    "2": 139413,
+    "23": 190209
+  },
+  "genotype_counts": {
+    "1": {
+      "hom": 243907,
+      "het": 191084,
+      "wt": 208186
+    },
+    "2": {
+      "hom": 279464,
+      "het": 132955,
+      "wt": 135301
+    },
+    "23": {
+      "hom": 252308,
+      "het": 228993,
+      "wt": 203762
+    }
+  },
+  "counts_by_session_and_source": {
+    "1/CNTNAP2_cohort3.csv": 195399,
+    "1/CNTNAP2_cohort4.csv": 174902,
+    "1/SHANK3_cohort1.csv": 237487,
+    "1/SHANK3_cohort2.csv": 35389,
+    "2/CNTNAP2_cohort3.csv": 206006,
+    "2/CNTNAP2_cohort4.csv": 114297,
+    "2/SHANK3_cohort1.csv": 223247,
+    "2/SHANK3_cohort2.csv": 4170,
+    "23/CNTNAP2_cohort4.csv": 158490,
+    "23/SHANK3_cohort1.csv": 526573
+  }
+}

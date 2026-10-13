@@ -1,0 +1,157 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/plot_session_type_1_family_psychometrics.py",
+  "source_script_sha256": "e8d75ee2b455d0f3db82c4bb178402fcd330dc8dca38afefcb343864dd118eab",
+  "input_csv": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "input_file_size_and_mtime_ns": [
+    498000546,
+    1791821268317619444
+  ],
+  "prepared_rows": 642370,
+  "selection": "session_type=1; training_level=16; prepared next-trial repeat rule with CNP/Fixation exceptions; success in {1,-1}; no RT restriction",
+  "short_sound_cleanup": {
+    "rule": "session_type == 1 AND is_short_sound == 1",
+    "removed_prepared_rows": 807,
+    "additional_plot_exclusions": 0
+  },
+  "pooling": "Raw trials pooled across cohorts within each gene family and genotype; SHANK3 and CNTNAP2 remain separate",
+  "weighting": "Pool raw trials; animals with more eligible trials contribute more weight. No equal-animal averages or deduplication.",
+  "denominator": "All recorded left/right correct/error choices at the group's signed ILD and mapped ABL",
+  "right_choice": "response_poke == 1",
+  "left_choice": "response_poke == -1",
+  "family_order": [
+    "SHANK3",
+    "CNTNAP2"
+  ],
+  "genotype_order": [
+    "wt",
+    "het",
+    "hom"
+  ],
+  "ABL_mapping": {
+    "59": 60
+  },
+  "ABLs": [
+    20,
+    40,
+    60
+  ],
+  "signed_ILDS": [
+    -16,
+    -8,
+    -4,
+    -2,
+    -1,
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "ABL_colors": {
+    "20": "#1f77b4",
+    "40": "#ff7f0e",
+    "60": "#2ca02c"
+  },
+  "ABL_markers": {
+    "20": "o",
+    "40": "s",
+    "60": "^"
+  },
+  "xlim": [
+    -18,
+    18
+  ],
+  "ylim": [
+    0,
+    1
+  ],
+  "scatter_only": true,
+  "observed_counts": {
+    "animals": 53,
+    "trials": 471416,
+    "right": 241539,
+    "left": 229877
+  },
+  "groups": 6,
+  "points_checked": 180,
+  "group_counts": [
+    {
+      "family": "CNTNAP2",
+      "genotype": "het",
+      "trials": 72161,
+      "right_trials": 40272,
+      "correct_trials": 54217,
+      "animals": 11,
+      "left_trials": 31889,
+      "error_trials": 17944
+    },
+    {
+      "family": "CNTNAP2",
+      "genotype": "hom",
+      "trials": 112946,
+      "right_trials": 55175,
+      "correct_trials": 86914,
+      "animals": 12,
+      "left_trials": 57771,
+      "error_trials": 26032
+    },
+    {
+      "family": "CNTNAP2",
+      "genotype": "wt",
+      "trials": 76065,
+      "right_trials": 37386,
+      "correct_trials": 58598,
+      "animals": 10,
+      "left_trials": 38679,
+      "error_trials": 17467
+    },
+    {
+      "family": "SHANK3",
+      "genotype": "het",
+      "trials": 65252,
+      "right_trials": 31551,
+      "correct_trials": 51215,
+      "animals": 7,
+      "left_trials": 33701,
+      "error_trials": 14037
+    },
+    {
+      "family": "SHANK3",
+      "genotype": "hom",
+      "trials": 72256,
+      "right_trials": 37664,
+      "correct_trials": 53515,
+      "animals": 7,
+      "left_trials": 34592,
+      "error_trials": 18741
+    },
+    {
+      "family": "SHANK3",
+      "genotype": "wt",
+      "trials": 72736,
+      "right_trials": 39491,
+      "correct_trials": 57127,
+      "animals": 6,
+      "left_trials": 33245,
+      "error_trials": 15609
+    }
+  ],
+  "included_trials_missing_or_nonfinite_timed_rt": 2188,
+  "all_condition_counts_match_summed_existing_cohort_counts": true,
+  "family_condition_counts_sum_to_existing_combined_genotype_counts": true,
+  "independent_reference": "asd_analysis/session_type_1_psychometrics/psychometric_points.csv",
+  "pdf": "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_family_genotype_psychometrics.pdf",
+  "png": "asd_analysis/session_type_1_psychometrics/ASD_session_type_1_family_genotype_psychometrics.png",
+  "pdf_pages": 1,
+  "checks": [
+    "same verified input and choice trials",
+    "six family/genotype groups, 53 animals, 471416 trials",
+    "all 180 points equal summed independently verified cohort counts",
+    "family counts sum to preserved combined view",
+    "plotted coordinates, colors, scatter-only series and display limits",
+    "one-page PDF with six sample labels",
+    "input CSV unchanged during analysis"
+  ]
+}

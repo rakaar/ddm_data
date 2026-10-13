@@ -1,0 +1,34 @@
+{
+  "status": "passed",
+  "parser": "standard-library CSV parser checking new aggregates against independently verified original cohort counts",
+  "reference": "psychometric_independent_validation.json",
+  "points_checked": 180,
+  "family_genotype_groups": 6,
+  "animals": 53,
+  "trials": 471416,
+  "right_choices": 241539,
+  "left_choices": 229877,
+  "all_condition_counts_and_probabilities_match": true,
+  "all_family_counts_sum_to_preserved_combined_view": true,
+  "animal_memberships_and_group_counts_match": true,
+  "existing_psychometric_outputs_and_result_book_copies_unchanged": {
+    "psychometric_points.csv": "b85e031df0b776605e930158fa4139d5b6142d0b7c20e2c2878abca0820fffef",
+    "psychometric_independent_validation.json": "127d856b571bee3cb68ae167796346b581cb4bfda5f81db7596ad2c11fa320e9",
+    "psychometric_group_counts.csv": "78e3b4afcac484b2298f7b82d86caddd65eeeadb2f8b830204fbb1df9bdd4e06",
+    "ASD_session_type_1_genotype_psychometrics.pdf": "5cb43f01dfbafad245ec6d7f3369c4feefccaa2b7ee127948207f3d6d88c36ea",
+    "ASD_session_type_1_filename_genotype_psychometrics.png": "8ba17dc8e77eb3e6ecd14f77d436b31398d28f161ac79397563ca90e292feb97",
+    "psychometric_validation.json": "d034476a6b2c4632e0d41a40d3eaf32ef622901d179320d171348f6384c472ba",
+    "ASD_session_type_1_genotype_psychometrics.png": "b1ee71d6ccac1a358ad9b4a9cf509f3ffcb888f6bc405141b00df452e68e1e3f",
+    "ASD_session_type_1_filename_genotype_psychometrics.pdf": "cd4a8b340c44d23aa4fbf62c8df1a8914f9ad39b46bf29050c28a2746ace4d60",
+    "psychometric_group_membership.csv": "164528a6669796696c75546b038a47f427ad50580ae64651118093e55577ec62"
+  },
+  "existing_plotting_script_unchanged": true,
+  "input_csv_unchanged_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "source_script_sha256": "e8d75ee2b455d0f3db82c4bb178402fcd330dc8dca38afefcb343864dd118eab",
+  "png_pixels": [
+    3060,
+    1440
+  ],
+  "pdf_pages": 1,
+  "visual_inspection": "Six readable panels; SHANK3 above CNTNAP2; ordered genotype columns; ABL legend, scatter points, sample labels and footer visible without overlap"
+}

@@ -1,0 +1,9 @@
+pdf_page,filename,cohort_page,cohort_pages,animal_count,animals,png
+1,SHANK3_cohort1.csv,1,2,8,"['ASD0023', 'ASD0024', 'ASD0038', 'ASD0039', 'ASD0040', 'ASD0041', 'ASD0042', 'ASD0043']",asd_analysis/session_type_1_rtds/SHANK3_cohort1_rtds_page_01.png
+2,SHANK3_cohort1.csv,2,2,6,"['ASD0044', 'ASD0045', 'ASD0046', 'ASD0047', 'ASD0048', 'ASD0049']",asd_analysis/session_type_1_rtds/SHANK3_cohort1_rtds_page_02.png
+3,SHANK3_cohort2.csv,1,1,6,"['ASD0072', 'ASD0073', 'ASD0074', 'ASD0075', 'ASD0076', 'ASD0077']",asd_analysis/session_type_1_rtds/SHANK3_cohort2_rtds_page_01.png
+4,CNTNAP2_cohort3.csv,1,2,8,"['ASD0022', 'ASD0025', 'ASD0026', 'ASD0027', 'ASD0028', 'ASD0029', 'ASD0030', 'ASD0031']",asd_analysis/session_type_1_rtds/CNTNAP2_cohort3_rtds_page_01.png
+5,CNTNAP2_cohort3.csv,2,2,8,"['ASD0032', 'ASD0033', 'ASD0034', 'ASD0035', 'ASD0036', 'ASD0037', 'ASD0050', 'ASD0051']",asd_analysis/session_type_1_rtds/CNTNAP2_cohort3_rtds_page_02.png
+6,CNTNAP2_cohort4.csv,1,3,8,"['ASD0052', 'ASD0053', 'ASD0054', 'ASD0055', 'ASD0056', 'ASD0057', 'ASD0058', 'ASD0059']",asd_analysis/session_type_1_rtds/CNTNAP2_cohort4_rtds_page_01.png
+7,CNTNAP2_cohort4.csv,2,3,8,"['ASD0060', 'ASD0061', 'ASD0062', 'ASD0063', 'ASD0064', 'ASD0065', 'ASD0066', 'ASD0068']",asd_analysis/session_type_1_rtds/CNTNAP2_cohort4_rtds_page_02.png
+8,CNTNAP2_cohort4.csv,3,3,1,['ASD0071'],asd_analysis/session_type_1_rtds/CNTNAP2_cohort4_rtds_page_03.png

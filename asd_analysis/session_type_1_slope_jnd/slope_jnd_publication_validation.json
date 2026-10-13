@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "result_book_page": "docs/results/2026-10-13.md",
+  "direct_image_embeds": 8,
+  "images_wrapped_in_links": 0,
+  "pdf_downloads": 8,
+  "verified_asset_urls": 25,
+  "layout_revision": "Six pooled images now use a single categorical axis with offset ABL dots, wider spacing, and 45-degree labels",
+  "all_views_use_one_axis": true,
+  "pooled_groups_per_view": {
+    "filename_genotype": 12,
+    "family_genotype": 6,
+    "genotype": 3
+  },
+  "numerical_audits_and_individual_figures_sha256_unchanged": {
+    "slope_jnd_fits.csv": "515e8f825ab14ece5e216599162168e3a7fd3eab441e34c5057f7cf52d26ad26",
+    "slope_jnd_group_membership.csv": "39b2d07a1c2badb7994fb9a15780cba9e2ea9edcd73c7ca39c0e9a1e7f79f174",
+    "slope_jnd_fit_status_counts.csv": "08784989816568bd3ef9d61294c53d2a257da4885ad74f6ac3450160fb716faf",
+    "slope_jnd_condition_counts.csv": "f698adf08a05e3f65910a5728abd80c3484725199556a6edfbdc890c7a690b52",
+    "slope_jnd_group_counts.csv": "6b115a3ebb1a29cc2c1b6c9344e925a888a1b790b6a4dfe9b82e2f438f6d0ba5",
+    "ASD_session_type_1_animal_slope.png": "0cca316c222dfa3892c73964e0b4102155b8cd197fb62e72a566694a00d128e0",
+    "ASD_session_type_1_animal_jnd.png": "caf19637c1d87d42b2d615dc95a41fda093b6fdd1aaf9ac66c31fbca86f328d2",
+    "ASD_session_type_1_animal_jnd.pdf": "aafd798c57fcbf84bdb14c105aa9c3e5ada1e916774447f6516445fa959ab70a",
+    "ASD_session_type_1_animal_slope.pdf": "0450c6d838d61d650b86edefaf779f88cebbf5357745c3807228b41fc5c8c7a5"
+  },
+  "six_revised_images_visually_inspected": [
+    "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_filename_genotype_slope.png",
+    "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_family_genotype_slope.png",
+    "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_genotype_slope.png",
+    "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_filename_genotype_jnd.png",
+    "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_family_genotype_jnd.png",
+    "asd_analysis/session_type_1_slope_jnd/ASD_session_type_1_genotype_jnd.png"
+  ],
+  "strict_mkdocs_build": "passed",
+  "git_diff_check": "passed",
+  "page_sha256": "17479f3b3326e24f6ca99b2e20b6a75ab7a577f757bdebd1d897f2cdda095199"
+}

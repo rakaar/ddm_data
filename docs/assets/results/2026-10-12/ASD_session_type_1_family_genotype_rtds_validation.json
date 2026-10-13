@@ -1,0 +1,203 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/plot_session_type_1_genotype_rtds.py",
+  "source_script_sha256": "26d8342ef9edb7474449c52593639aabc587f49e1dfc0423cc6a79d269bb6aaf",
+  "input_csv": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "input_file_size_and_mtime_ns": {
+    "asd_analysis/session_type_csvs/ASD_session_type_1.csv": [
+      498000546,
+      1791821268317619444
+    ],
+    "SHANK3_cohort1.csv": [
+      823715001,
+      1791512858000000000
+    ],
+    "SHANK3_cohort2.csv": [
+      66782373,
+      1791537066000000000
+    ],
+    "CNTNAP2_cohort3.csv": [
+      388162234,
+      1791544074000000000
+    ],
+    "CNTNAP2_cohort4.csv": [
+      443626713,
+      1791512162000000000
+    ]
+  },
+  "prepared_input_rows": 642370,
+  "selection": {
+    "prepared_rules": "session_type=1; training_level=16; not derived trial_is_repeat; success in {1,-1} OR abort_type='Fixation'",
+    "repeat_rule": "Exclude the next distinct chronological trial within animal/source_file/session after repeated_trial=True, except after CNP/Fixation. Use the already prepared CSV without reapplying this rule.",
+    "excluded_animals_entirely": [],
+    "excluded_row_rule": "session_type == 1 AND is_short_sound == 1",
+    "requested_flag_name": "is_short_duration; actual source field is is_short_sound",
+    "excluded_prepared_rows": 0,
+    "rows_removed_during_preparation": 807,
+    "removed_during_preparation_by_animal": {
+      "ASD0045": 477,
+      "ASD0026": 330
+    },
+    "additional_plot_short_sound_exclusions": 0,
+    "cleanup_manifest": "asd_analysis/session_type_csvs/short_sound_cleanup.json",
+    "archived_prepared_csv": "asd_analysis/session_type_csvs/archive/pre_short_sound_cleanup/ASD_session_type_1.csv",
+    "excluded_rows_audit": "asd_analysis/session_type_1_rtds/excluded_prepared_short_sound_rows.csv",
+    "excluded_displayed_condition_rows": 0,
+    "removed_during_preparation_displayed_condition_rows": 763,
+    "animals_retained_after_row_exclusion": [
+      "ASD0026",
+      "ASD0045"
+    ],
+    "rows_after_short_sound_exclusion_before_stimulus_selection": 642370,
+    "excluded_rows_by_animal": [],
+    "plot_ABL_mapping": {
+      "59": 60
+    },
+    "plot_ABLs": [
+      20,
+      40,
+      60
+    ],
+    "abs_ILDs": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "mapped_ABL59_selected_rows": 10256,
+    "first_five": "success in {1,-1}; finite recorded timed_rt; inclusive [0,1] s",
+    "sixth": "success in {1,-1} OR abort_type='Fixation'; finite recorded timed_rt; inclusive [-1,1] s; displayed stimulus domain only",
+    "genotypes": "all wt, hom, het; no genotype exclusion",
+    "timing": "Recorded timed_rt in seconds relative to stimulus onset; negative fixation aborts refer to scheduled stimulus onset. No recomputation.",
+    "weighting": "Raw trials combined across animals, signed ILDs, and sessions within filename+genotype or family+genotype. Animals with more eligible trials contribute more weight. The sixth panel combines all displayed conditions directly by trial. No equal-animal or equal-condition density averaging; no deduplication."
+  },
+  "histogram": {
+    "bin_width_s": 0.02,
+    "valid_window_s": [
+      0.0,
+      1.0
+    ],
+    "pooled_window_s": [
+      -1.0,
+      1.0
+    ],
+    "valid_display_xlim_s": [
+      0.0,
+      0.6
+    ],
+    "pooled_display_xlim_s": [
+      -0.6,
+      0.6
+    ],
+    "display_zoom": "Display [0,0.6] / [-0.6,0.6] s; printed n and density normalization retain [0,1] / [-1,1] s windows. The visible area is not renormalized.",
+    "edge_rule": "left-inclusive/right-exclusive bins; final bin includes right endpoint",
+    "normalization": "bin_count / (window_trials * 0.020 s)",
+    "nonempty_curve_area": 1,
+    "empty_curve_behavior": "n=0; zero density; no curve",
+    "ABL_colors": {
+      "20": "#1f77b4",
+      "40": "#ff7f0e",
+      "60": "#2ca02c"
+    },
+    "pooled_color": "#000000",
+    "line_style": "solid, unfilled steps",
+    "first_five_y_scale": "shared within each pooled group row"
+  },
+  "genotype_order": [
+    "wt",
+    "het",
+    "hom"
+  ],
+  "source_order": [
+    "SHANK3_cohort1.csv",
+    "SHANK3_cohort2.csv",
+    "CNTNAP2_cohort3.csv",
+    "CNTNAP2_cohort4.csv"
+  ],
+  "family_order": [
+    "SHANK3",
+    "CNTNAP2"
+  ],
+  "row_animal_count": "Distinct selected animals in the group; curve audits also report animals in each normalization window",
+  "expected_totals_per_view": {
+    "animals": 53,
+    "selected_rows": 610234,
+    "finite_selected_rows": 607207,
+    "nonfinite_selected_rows": 3027,
+    "valid_window_trials": 466978,
+    "pooled_window_trials": 598864
+  },
+  "existing_animal_artifacts_sha256": {
+    "animal_counts.csv": "d34c153c3f6ee33a53edbbb177e7c77c30c763aa3c8d4c0b10f31729cb0f5fb2",
+    "histogram_bins.csv": "f966efdf7a8b640caaa22b8ee976fba37bc394a07160332dd145103e5565c944",
+    "pages.csv": "3d79b2bce190532322f5394f6bb80eac7ea4bafdffa9d672fff6d357d2c54d53",
+    "CNTNAP2_cohort4_rtds_page_01.png": "148ce74def41fe022817d3d8dc3697520f1cbdd82758efaa852069309f5edf00",
+    "excluded_prepared_short_sound_rows.csv": "8ae8f8b4fb523496d121e07f4c84ce9eac08c6d2f46588ac06b2f4c961daa684",
+    "validation.json": "8c9d3da4b14943cbd3e0b07d6d5c511c059d5b98ae83339d036199c05ed5208b",
+    "flagged_row_summary.csv": "1750a2f5ec92b2ef7b9e40ff00c11244cf76a053398d54380af771793ccc001d",
+    "CNTNAP2_cohort3_rtds_page_01.png": "6fda1810999a7a4fb01caa1098b2574ee5d0a2606d6aae76737b964d84fcf4dc",
+    "curve_counts.csv": "4549585550bd40a7b33aab1c10fcbd69d63e73d649e9e8fcb0a24955f49936f7",
+    "independent_validation.json": "35555d0af0db33bcfa7213a8a104bad2191ed9bce367a59607068b4bd0133f5b",
+    "CNTNAP2_cohort4_rtds_page_03.png": "ced477c2d3c83056abd82357b068f6cf67d5fec1a341746564c498135dd4e9cf",
+    "SHANK3_cohort2_rtds_page_01.png": "fb5afd61eb4feccb659a268add568eb4f83d601a52555bd99c08f727b090e581",
+    "CNTNAP2_cohort3_rtds_page_02.png": "2ee2a11460bc07ec9528fda7edcc8f8e6c5b25a5e9996288c53d116388059e3c",
+    "SHANK3_cohort1_rtds_page_01.png": "0cecc5d9476b56e5b97175a5012e793ac0e2fec54bf11dc7623d02e29f8d3854",
+    "CNTNAP2_cohort4_rtds_page_02.png": "17eb5559619fb38a68f9b3c2b68a8e1e05fc1e9f439ff08e0d4f4de2fe52e139",
+    "SHANK3_cohort1_rtds_page_02.png": "3fe59d8d71b24ee25bf1af375e32a608692140436fa2cf6af9c9a471803d7e09",
+    "flagged_row_locations.csv": "4932ecb5427ef73fddebd631b8116ecf58b894c31e004cc1f48130966d3a4a2a",
+    "ASD_session_type_1_rtds.pdf": "3d067c1d7da6038cd620d2126ae57d57c5bc60ba3c11046604a2631e763d9bff"
+  },
+  "independent_reference": "asd_analysis/session_type_1_rtds",
+  "checks": [
+    "prepared input SHA256 matches existing verified animal analysis",
+    "confirmed prepared filters and short-sound row exclusions; both animals restored",
+    "same 53 animal memberships and per-animal counts as updated animal analysis",
+    "12 filename/genotype groups and 6 family/genotype groups",
+    "exact selected, finite, and normalization-window counts in each view",
+    "every pooled bin equals the sum of existing animal bin counts",
+    "all outcome and eligibility counts equal sums of animal curve audits",
+    "20 ms bins; density divides pooled counts by pooled window n times 0.020 s",
+    "unit areas over original windows; display zoom is not renormalized",
+    "solid unfilled step curves and requested colors",
+    "shared first-five-panel y scales and requested display limits",
+    "PDF page counts 2 and 1; endpoint ticks and 16 sample labels per row",
+    "group/sample labels fit inside page; footer below axis labels",
+    "input CSV size/mtime and all existing animal artifact hashes unchanged"
+  ],
+  "view": "family_genotype",
+  "observed_counts": {
+    "animals": 53,
+    "selected_rows": 610234,
+    "finite_selected_rows": 607207,
+    "nonfinite_selected_rows": 3027,
+    "valid_window_trials": 466978,
+    "pooled_window_trials": 598864,
+    "groups": 6,
+    "curves_checked": 96,
+    "histogram_bins_checked": 5100,
+    "all_bins_match_summed_animal_counts": true,
+    "all_curve_counts_match_summed_animal_counts": true,
+    "max_nonempty_area_error": 8.881784197001252e-16,
+    "pdf_pages": 1,
+    "png_pages": 1
+  },
+  "pages": [
+    {
+      "view": "family_genotype",
+      "pdf_page": 1,
+      "row_count": 6,
+      "groups_and_genotypes": [
+        "SHANK3/wt",
+        "SHANK3/het",
+        "SHANK3/hom",
+        "CNTNAP2/wt",
+        "CNTNAP2/het",
+        "CNTNAP2/hom"
+      ],
+      "pdf": "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_family_genotype_rtds.pdf",
+      "png": "asd_analysis/session_type_1_genotype_rtds/ASD_session_type_1_family_genotype_rtds_page_01.png"
+    }
+  ]
+}
