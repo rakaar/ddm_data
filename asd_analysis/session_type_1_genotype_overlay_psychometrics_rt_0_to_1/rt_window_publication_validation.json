@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "new_direct_image_embeds": 3,
+  "new_pdf_downloads": 3,
+  "total_images": 9,
+  "verified_asset_urls": 38,
+  "previous_October_14_entry_preserved_as_unchanged_prefix": true,
+  "prior_entry_sha256": "48d228c4cef2a6483c305c0c80664b234c327c0140c817c44f9d68a7bdc6dfeb",
+  "current_entry_sha256": "fbe9fead5a311e630d364850942c72cea6485d2e2ccd0d81e112e0f19f2b3aca",
+  "three_RT_restricted_images_visually_inspected": [
+    "../../assets/results/2026-10-14/ASD_session_type_1_filename_genotype_trial_pooled_rt_0_to_1_genotype_overlay_psychometrics.png",
+    "../../assets/results/2026-10-14/ASD_session_type_1_family_genotype_trial_pooled_rt_0_to_1_genotype_overlay_psychometrics.png",
+    "../../assets/results/2026-10-14/ASD_session_type_1_genotype_trial_pooled_rt_0_to_1_genotype_overlay_psychometrics.png"
+  ],
+  "strict_mkdocs_build": "passed",
+  "git_diff_check": "passed"
+}

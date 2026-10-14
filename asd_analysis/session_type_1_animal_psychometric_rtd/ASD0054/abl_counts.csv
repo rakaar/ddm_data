@@ -1,0 +1,4 @@
+animal,filename,genotype,plot_ABL,choice_trials,right_trials,left_trials,finite_rt_trials,nonfinite_rt_trials,rt_above_1_s,rt_in_display,rt_min_s,rt_max_s,histogram_trials,full_density_area,color
+ASD0054,CNTNAP2_cohort4.csv,hom,20,1982,712,1270,1982,0,36,1868,0.0169277191162109,2.032032012939453,1982,1.0,#1f77b4
+ASD0054,CNTNAP2_cohort4.csv,hom,40,2073,679,1394,2073,0,9,2058,0.0116481781005859,2.1296639442443848,2073,1.0,#ff7f0e
+ASD0054,CNTNAP2_cohort4.csv,hom,60,2044,785,1259,2044,0,5,2036,0.0114879608154296,6.325727939605713,2044,0.9999999999999999,#2ca02c

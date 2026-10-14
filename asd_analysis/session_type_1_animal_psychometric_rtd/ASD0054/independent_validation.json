@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "animal": "ASD0054",
+  "valid_choices": 6099,
+  "right": 2176,
+  "left": 3923,
+  "rt_above_1_s_retained": 50,
+  "checks": [
+    "independent 30 condition counts and probabilities",
+    "all-RT histogram counts match independently read trials",
+    "20 ms widths and full-range unit areas",
+    "all three fitted predictions match existing animal fit audit",
+    "single-page PDF and 11 colored markers per ABL",
+    "source CSV SHA256 unchanged",
+    "PNG visually inspected"
+  ],
+  "pdf_marker_counts": {
+    "20": 11,
+    "40": 11,
+    "60": 11
+  }
+}

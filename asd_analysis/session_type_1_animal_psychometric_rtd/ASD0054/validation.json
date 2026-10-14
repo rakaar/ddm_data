@@ -1,0 +1,143 @@
+{
+  "status": "passed",
+  "animal": "ASD0054",
+  "filename": "CNTNAP2_cohort4.csv",
+  "genotype": "hom",
+  "input": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "source_script": "asd_analysis/plot_animal_psychometric_and_rtd.py",
+  "selection": "Cleaned session-type-1 CSV; training_level 16 and repeat eligibility already applied; success in {1,-1}; no RT restriction",
+  "repeat_filter_reapplied": false,
+  "abl_mapping": "59 to 60",
+  "abls": [
+    20,
+    40,
+    60
+  ],
+  "signed_ilds": [
+    -16,
+    -8,
+    -4,
+    -2,
+    -1,
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "prepared_animal_rows": 9015,
+  "choice_trials": 6099,
+  "right_trials": 2176,
+  "left_trials": 3923,
+  "finite_rt_trials": 6099,
+  "psychometric_points": 30,
+  "fit_status_counts": {
+    "ok": 3
+  },
+  "sigmoid": "lower + (upper - lower) / (1 + exp(-k * (ILD - x0)))",
+  "fit_parameter_order": [
+    "upper",
+    "lower",
+    "x0",
+    "k"
+  ],
+  "fit_initial_guess": "[max(P), min(P), median(ILD), 0.1]",
+  "fit_bounds": {
+    "upper": [
+      0,
+      1
+    ],
+    "lower": [
+      0,
+      1
+    ],
+    "x0": "unrestricted",
+    "k": [
+      0,
+      "infinity"
+    ]
+  },
+  "fit_weighting": "Unweighted curve_fit on ten measured ILD probability points per ABL",
+  "fit_maxfev": 10000,
+  "rtd_bin_width_s": 0.02,
+  "rtd_normalization": "bin_count / (all finite correct/error RTs at that ABL * 0.020 s)",
+  "rtd_upper_rt_cutoff": null,
+  "rtd_display_xlim_s": [
+    0.0,
+    0.6
+  ],
+  "rtd_histogram_range_s": [
+    0.0,
+    6.34
+  ],
+  "pooling": "Pool raw observed trials across source sessions and all selected signed ILDs within each ABL",
+  "counts": [
+    {
+      "animal": "ASD0054",
+      "filename": "CNTNAP2_cohort4.csv",
+      "genotype": "hom",
+      "plot_ABL": 20,
+      "choice_trials": 1982,
+      "right_trials": 712,
+      "left_trials": 1270,
+      "finite_rt_trials": 1982,
+      "nonfinite_rt_trials": 0,
+      "rt_above_1_s": 36,
+      "rt_in_display": 1868,
+      "rt_min_s": 0.0169277191162109,
+      "rt_max_s": 2.032032012939453,
+      "histogram_trials": 1982,
+      "full_density_area": 1.0,
+      "color": "#1f77b4"
+    },
+    {
+      "animal": "ASD0054",
+      "filename": "CNTNAP2_cohort4.csv",
+      "genotype": "hom",
+      "plot_ABL": 40,
+      "choice_trials": 2073,
+      "right_trials": 679,
+      "left_trials": 1394,
+      "finite_rt_trials": 2073,
+      "nonfinite_rt_trials": 0,
+      "rt_above_1_s": 9,
+      "rt_in_display": 2058,
+      "rt_min_s": 0.0116481781005859,
+      "rt_max_s": 2.1296639442443848,
+      "histogram_trials": 2073,
+      "full_density_area": 1.0,
+      "color": "#ff7f0e"
+    },
+    {
+      "animal": "ASD0054",
+      "filename": "CNTNAP2_cohort4.csv",
+      "genotype": "hom",
+      "plot_ABL": 60,
+      "choice_trials": 2044,
+      "right_trials": 785,
+      "left_trials": 1259,
+      "finite_rt_trials": 2044,
+      "nonfinite_rt_trials": 0,
+      "rt_above_1_s": 5,
+      "rt_in_display": 2036,
+      "rt_min_s": 0.0114879608154296,
+      "rt_max_s": 6.325727939605713,
+      "histogram_trials": 2044,
+      "full_density_area": 0.9999999999999999,
+      "color": "#2ca02c"
+    }
+  ],
+  "pdf_pages": 1,
+  "png": "asd_analysis/session_type_1_animal_psychometric_rtd/ASD0054/ASD0054_session_type_1_psychometric_and_full_rt_rtd.png",
+  "pdf": "asd_analysis/session_type_1_animal_psychometric_rtd/ASD0054/ASD0054_session_type_1_psychometric_and_full_rt_rtd.pdf",
+  "checks": [
+    "existing psychometric membership counts",
+    "30 measured probability points",
+    "all finite RTs histogrammed",
+    "20 ms bins",
+    "unit areas over full RT range",
+    "single-page PDF",
+    "input size and modification time unchanged"
+  ]
+}

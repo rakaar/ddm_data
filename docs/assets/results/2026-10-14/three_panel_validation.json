@@ -1,0 +1,445 @@
+{
+  "status": "passed",
+  "input": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "source_script": "asd_analysis/plot_all_animals_psychometric_rtd_chronometric.py",
+  "reference_output": "asd_analysis/session_type_1_all_animals_psychometric_rtd",
+  "reference_rt_means": "asd_analysis/session_type_1_animal_rt_summary/rt_statistics.csv",
+  "observed": {
+    "animals": 53,
+    "choices": 471416,
+    "right": 241539,
+    "left": 229877,
+    "finite_rt": 469228,
+    "nonfinite_rt": 2188,
+    "rt_above_1": 2250
+  },
+  "selection": "Cleaned session-type-1 CSV; training level 16; success in {1,-1}; ABL 20/40/60 after 59 to 60; signed ILDs +/-1/2/4/8/16; no RT restriction",
+  "repeat_filter_reapplied": false,
+  "psychometric_points": 1590,
+  "reused_psychometric_fits": 159,
+  "rtd_curves": 159,
+  "chronometric_points": 795,
+  "chronometric_minimum_condition_n": 29,
+  "chronometric_formula": "Arithmetic mean of all finite valid-trial RTs after pooling +ILD and -ILD within animal/ABL/abs_ILD; SEM = sample SD(ddof=1) / sqrt(n)",
+  "chronometric_pooling": "Observed raw trial counts across signed ILDs and sessions; no average of sign-specific or session means",
+  "chronometric_rt_cutoff": null,
+  "chronometric_marker": "o",
+  "chronometric_connecting_lines": false,
+  "chronometric_x_spacing": "Equal-spaced categories at 0/1/2/3/4, labeled 1/2/4/8/16 dB",
+  "abs_ilds": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "chronometric_offsets": {
+    "20": -0.1,
+    "40": 0,
+    "60": 0.1
+  },
+  "chronometric_ylim_s": [
+    0,
+    0.45
+  ],
+  "rtd_bin_width_s": 0.02,
+  "rtd_normalization": "bin_count / (all finite correct/error RTs at this animal and ABL * 0.020 s)",
+  "rtd_display_xlim_s": [
+    0,
+    0.6
+  ],
+  "colors": {
+    "20": "#1f77b4",
+    "40": "#ff7f0e",
+    "60": "#2ca02c"
+  },
+  "copied_reference_audits": [
+    "animal_pages.csv",
+    "psychometric_points.csv",
+    "psychometric_fits.csv",
+    "rtd_histogram_bins.csv",
+    "abl_counts.csv"
+  ],
+  "protected_file_sha256": {
+    "asd_analysis/session_type_csvs/ASD_session_type_1.csv": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+    "asd_analysis/session_type_1_animal_rt_summary/rt_statistics.csv": "debea9557808a11bd4c947204517f1eb770d0ba773a8e92578f1713196c25dfd",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_01.png": "9d7f7f847e2fe2b39e0af53894596f02d760e28c6485a07834ebbb21fa7a7c6e",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_02.png": "ce70791a85362b4c5149259303033dd8dd8dd381b5611a5b47ab91f6cd02f2dc",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_03.png": "3c7063a3d6ff28ca0d38335ed093f5ee79826b7af51f590b7836ee6b9b8b21ba",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_04.png": "260f9927d17cf1927de126ba967a5b016d2ea31ad708f49f1a6f8e8b25a96bda",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_05.png": "62803a8a223a8d7991b36c7270a8ae7bf69d1f7c0375af482362f8b664600d3a",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_06.png": "19252792159030e5f60821b14f440d1656e91c9660b6661904d3d13be7e5dfc6",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_07.png": "b7bcaa97ccaefd955f2f701486a56e1ccc78d009166860352d53ef0ea035f3cc",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_08.png": "71874e5360917ddb8194431d5f5126f0c7668ddfe55c0819a7779b61184f2fbb",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_09.png": "5c40ec8514e40ca41ef2156aa0d9a7d27264d50a91fa8a3e8cc6be1b24cb2212",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_10.png": "bf760bef1fd124a17af93d15164c6194eb154342c145561638e5843b11b0425c",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_11.png": "803d321abca9ce3cf51a87ba90de12bf48d0c0d6a05bab53c137648b6fe2a3c2",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_session_type_1_all_animals_psychometric_and_full_rt_rtd.pdf": "97eccddf2fbad31114ff3fdc78d2f0edb47b9cf0263f161a1e16e42e3a13c01c",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/abl_counts.csv": "73b7c68fa8e242b8ed036212082117563831d8701c60f39700717649948957d1",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/animal_pages.csv": "ea5d5619a6c5e29d5674c32f5f3e44d9c49a4d2b4f57581fe0693123e3ec60fc",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/independent_validation.json": "481c36c04a03d06028c92eb7a24aa63b6faceeb5d15cb3bcc3105ab979f0e513",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/psychometric_fits.csv": "d9754ec66ede57d589c6219df36dcb44f16795c134784f581f2771b89d66a2d7",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/psychometric_points.csv": "efd77df06f947d0445cb496bb6638b381b79cc40ebb2c5793eb4000972f1aa50",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/publication_validation.json": "0a0483311e448f1bf2b271788d7f55a20a47ee7165d034b46780ab9123f09548",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/rtd_histogram_bins.csv": "d4f1584f444ceaa8fa89ed4af7fcd0d3c8491f06a4ed17888e98fd7658844d56",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/validation.json": "2c61d9647c403dac7a9de6ce615f3f59997eb6da6017d835d6f736beb23fa68a",
+    "docs/assets/results/2026-10-14/ASD_all_animals_psychometric_full_rt_rtd_page_01.png": "9d7f7f847e2fe2b39e0af53894596f02d760e28c6485a07834ebbb21fa7a7c6e",
+    "docs/assets/results/2026-10-14/ASD_all_animals_psychometric_full_rt_rtd_page_02.png": "ce70791a85362b4c5149259303033dd8dd8dd381b5611a5b47ab91f6cd02f2dc",
+    "docs/assets/results/2026-10-14/ASD_all_animals_psychometric_full_rt_rtd_page_03.png": "3c7063a3d6ff28ca0d38335ed093f5ee79826b7af51f590b7836ee6b9b8b21ba",
+    "docs/assets/results/2026-10-14/ASD_all_animals_psychometric_full_rt_rtd_page_04.png": "260f9927d17cf1927de126ba967a5b016d2ea31ad708f49f1a6f8e8b25a96bda",
+    "docs/assets/results/2026-10-14/ASD_all_animals_psychometric_full_rt_rtd_page_05.png": "62803a8a223a8d7991b36c7270a8ae7bf69d1f7c0375af482362f8b664600d3a",
+    "docs/assets/results/2026-10-14/ASD_all_animals_psychometric_full_rt_rtd_page_06.png": "19252792159030e5f60821b14f440d1656e91c9660b6661904d3d13be7e5dfc6",
+    "docs/assets/results/2026-10-14/ASD_all_animals_psychometric_full_rt_rtd_page_07.png": "b7bcaa97ccaefd955f2f701486a56e1ccc78d009166860352d53ef0ea035f3cc",
+    "docs/assets/results/2026-10-14/ASD_all_animals_psychometric_full_rt_rtd_page_08.png": "71874e5360917ddb8194431d5f5126f0c7668ddfe55c0819a7779b61184f2fbb",
+    "docs/assets/results/2026-10-14/ASD_all_animals_psychometric_full_rt_rtd_page_09.png": "5c40ec8514e40ca41ef2156aa0d9a7d27264d50a91fa8a3e8cc6be1b24cb2212",
+    "docs/assets/results/2026-10-14/ASD_all_animals_psychometric_full_rt_rtd_page_10.png": "bf760bef1fd124a17af93d15164c6194eb154342c145561638e5843b11b0425c",
+    "docs/assets/results/2026-10-14/ASD_all_animals_psychometric_full_rt_rtd_page_11.png": "803d321abca9ce3cf51a87ba90de12bf48d0c0d6a05bab53c137648b6fe2a3c2",
+    "docs/assets/results/2026-10-14/ASD_session_type_1_all_animals_psychometric_and_full_rt_rtd.pdf": "97eccddf2fbad31114ff3fdc78d2f0edb47b9cf0263f161a1e16e42e3a13c01c"
+  },
+  "animal_order": [
+    "ASD0040",
+    "ASD0042",
+    "ASD0044",
+    "ASD0047",
+    "ASD0049",
+    "ASD0038",
+    "ASD0039",
+    "ASD0041",
+    "ASD0023",
+    "ASD0024",
+    "ASD0043",
+    "ASD0045",
+    "ASD0046",
+    "ASD0048",
+    "ASD0077",
+    "ASD0073",
+    "ASD0074",
+    "ASD0075",
+    "ASD0076",
+    "ASD0072",
+    "ASD0026",
+    "ASD0027",
+    "ASD0028",
+    "ASD0032",
+    "ASD0033",
+    "ASD0050",
+    "ASD0051",
+    "ASD0025",
+    "ASD0035",
+    "ASD0022",
+    "ASD0029",
+    "ASD0030",
+    "ASD0031",
+    "ASD0034",
+    "ASD0036",
+    "ASD0037",
+    "ASD0053",
+    "ASD0055",
+    "ASD0062",
+    "ASD0056",
+    "ASD0057",
+    "ASD0058",
+    "ASD0059",
+    "ASD0061",
+    "ASD0063",
+    "ASD0066",
+    "ASD0068",
+    "ASD0071",
+    "ASD0052",
+    "ASD0054",
+    "ASD0060",
+    "ASD0064",
+    "ASD0065"
+  ],
+  "animals_per_page": 5,
+  "columns": [
+    "psychometric",
+    "RTD",
+    "chronometric"
+  ],
+  "column_width_ratios": [
+    1,
+    1,
+    0.28
+  ],
+  "chronometric_box_aspect": 1,
+  "chronometric_legend": "Shared page ABL colors; finite-RT totals in adjacent RTD legend",
+  "pdf": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_session_type_1_all_animals_psychometric_rtd_chronometric.pdf",
+  "pdf_pages": 11,
+  "pages": [
+    {
+      "page": 1,
+      "animals": [
+        "ASD0040",
+        "ASD0042",
+        "ASD0044",
+        "ASD0047",
+        "ASD0049"
+      ],
+      "rows": 5,
+      "png": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_all_animals_psychometric_rtd_chronometric_page_01.png",
+      "page_width_in": 18.24,
+      "panel_widths_in": [
+        6.281564245810053,
+        6.2815642458100545,
+        1.7588379888268153
+      ],
+      "panel_heights_in": [
+        2.2014248704663224,
+        2.2014248704663224,
+        1.7588379888268146
+      ],
+      "page_height_in": 20.6
+    },
+    {
+      "page": 2,
+      "animals": [
+        "ASD0038",
+        "ASD0039",
+        "ASD0041",
+        "ASD0023",
+        "ASD0024"
+      ],
+      "rows": 5,
+      "png": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_all_animals_psychometric_rtd_chronometric_page_02.png",
+      "page_width_in": 18.24,
+      "panel_widths_in": [
+        6.281564245810053,
+        6.2815642458100545,
+        1.7588379888268153
+      ],
+      "panel_heights_in": [
+        2.2014248704663224,
+        2.2014248704663224,
+        1.7588379888268146
+      ],
+      "page_height_in": 20.6
+    },
+    {
+      "page": 3,
+      "animals": [
+        "ASD0043",
+        "ASD0045",
+        "ASD0046",
+        "ASD0048",
+        "ASD0077"
+      ],
+      "rows": 5,
+      "png": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_all_animals_psychometric_rtd_chronometric_page_03.png",
+      "page_width_in": 18.24,
+      "panel_widths_in": [
+        6.281564245810053,
+        6.2815642458100545,
+        1.7588379888268153
+      ],
+      "panel_heights_in": [
+        2.2014248704663224,
+        2.2014248704663224,
+        1.7588379888268146
+      ],
+      "page_height_in": 20.6
+    },
+    {
+      "page": 4,
+      "animals": [
+        "ASD0073",
+        "ASD0074",
+        "ASD0075",
+        "ASD0076",
+        "ASD0072"
+      ],
+      "rows": 5,
+      "png": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_all_animals_psychometric_rtd_chronometric_page_04.png",
+      "page_width_in": 18.24,
+      "panel_widths_in": [
+        6.281564245810053,
+        6.2815642458100545,
+        1.7588379888268153
+      ],
+      "panel_heights_in": [
+        2.2014248704663224,
+        2.2014248704663224,
+        1.7588379888268146
+      ],
+      "page_height_in": 20.6
+    },
+    {
+      "page": 5,
+      "animals": [
+        "ASD0026",
+        "ASD0027",
+        "ASD0028",
+        "ASD0032",
+        "ASD0033"
+      ],
+      "rows": 5,
+      "png": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_all_animals_psychometric_rtd_chronometric_page_05.png",
+      "page_width_in": 18.24,
+      "panel_widths_in": [
+        6.281564245810053,
+        6.2815642458100545,
+        1.7588379888268153
+      ],
+      "panel_heights_in": [
+        2.2014248704663224,
+        2.2014248704663224,
+        1.7588379888268146
+      ],
+      "page_height_in": 20.6
+    },
+    {
+      "page": 6,
+      "animals": [
+        "ASD0050",
+        "ASD0051",
+        "ASD0025",
+        "ASD0035",
+        "ASD0022"
+      ],
+      "rows": 5,
+      "png": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_all_animals_psychometric_rtd_chronometric_page_06.png",
+      "page_width_in": 18.24,
+      "panel_widths_in": [
+        6.281564245810053,
+        6.2815642458100545,
+        1.7588379888268153
+      ],
+      "panel_heights_in": [
+        2.2014248704663224,
+        2.2014248704663224,
+        1.7588379888268146
+      ],
+      "page_height_in": 20.6
+    },
+    {
+      "page": 7,
+      "animals": [
+        "ASD0029",
+        "ASD0030",
+        "ASD0031",
+        "ASD0034",
+        "ASD0036"
+      ],
+      "rows": 5,
+      "png": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_all_animals_psychometric_rtd_chronometric_page_07.png",
+      "page_width_in": 18.24,
+      "panel_widths_in": [
+        6.281564245810053,
+        6.2815642458100545,
+        1.7588379888268153
+      ],
+      "panel_heights_in": [
+        2.2014248704663224,
+        2.2014248704663224,
+        1.7588379888268146
+      ],
+      "page_height_in": 20.6
+    },
+    {
+      "page": 8,
+      "animals": [
+        "ASD0037",
+        "ASD0053",
+        "ASD0055",
+        "ASD0062",
+        "ASD0056"
+      ],
+      "rows": 5,
+      "png": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_all_animals_psychometric_rtd_chronometric_page_08.png",
+      "page_width_in": 18.24,
+      "panel_widths_in": [
+        6.281564245810053,
+        6.2815642458100545,
+        1.7588379888268153
+      ],
+      "panel_heights_in": [
+        2.2014248704663224,
+        2.2014248704663224,
+        1.7588379888268146
+      ],
+      "page_height_in": 20.6
+    },
+    {
+      "page": 9,
+      "animals": [
+        "ASD0057",
+        "ASD0058",
+        "ASD0059",
+        "ASD0061",
+        "ASD0063"
+      ],
+      "rows": 5,
+      "png": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_all_animals_psychometric_rtd_chronometric_page_09.png",
+      "page_width_in": 18.24,
+      "panel_widths_in": [
+        6.281564245810053,
+        6.2815642458100545,
+        1.7588379888268153
+      ],
+      "panel_heights_in": [
+        2.2014248704663224,
+        2.2014248704663224,
+        1.7588379888268146
+      ],
+      "page_height_in": 20.6
+    },
+    {
+      "page": 10,
+      "animals": [
+        "ASD0066",
+        "ASD0068",
+        "ASD0071",
+        "ASD0052",
+        "ASD0054"
+      ],
+      "rows": 5,
+      "png": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_all_animals_psychometric_rtd_chronometric_page_10.png",
+      "page_width_in": 18.24,
+      "panel_widths_in": [
+        6.281564245810053,
+        6.2815642458100545,
+        1.7588379888268153
+      ],
+      "panel_heights_in": [
+        2.2014248704663224,
+        2.2014248704663224,
+        1.7588379888268146
+      ],
+      "page_height_in": 20.6
+    },
+    {
+      "page": 11,
+      "animals": [
+        "ASD0060",
+        "ASD0064",
+        "ASD0065"
+      ],
+      "rows": 3,
+      "png": "asd_analysis/session_type_1_all_animals_psychometric_rtd_chronometric/ASD_all_animals_psychometric_rtd_chronometric_page_11.png",
+      "page_width_in": 18.24,
+      "panel_widths_in": [
+        6.281564245810053,
+        6.2815642458100545,
+        1.7588379888268153
+      ],
+      "panel_heights_in": [
+        2.4598623853210997,
+        2.4598623853210997,
+        1.7588379888268155
+      ],
+      "page_height_in": 12.999999999999998
+    }
+  ],
+  "checks": [
+    "unchanged psychometric/RTD reference audits copied byte-for-byte",
+    "all 53 animals; original page order/bookmarks",
+    "795 mean/SEM points use all 469228 finite RTs",
+    "signed trial counts sum to condition totals",
+    "weighted condition means equal existing animal/ABL means",
+    "all plotted offsets, dots and SEM segments",
+    "0-0.45 s chronometric bounds cover all error bars",
+    "11 18.24-inch-wide PDF pages; square chronometric panels at 28% of other column widths; matching PNGs",
+    "input size and modification time unchanged"
+  ]
+}

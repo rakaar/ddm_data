@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "pdf_pages": 11,
+  "animal_count": 53,
+  "visual_inspection": "All 11 PNG pages inspected",
+  "built_html": "site/results/2026-10-14/index.html",
+  "direct_image_embeds": 11,
+  "image_embeds_wrapped_in_links": false,
+  "pdf_downloads_resolve": true,
+  "strict_mkdocs_build": "passed",
+  "previous_result_book_sections_unchanged": true,
+  "native_and_published_assets_sha256_match": true
+}

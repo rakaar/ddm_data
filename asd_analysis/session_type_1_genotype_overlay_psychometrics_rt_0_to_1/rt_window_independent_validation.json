@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/verify_session_type_1_genotype_overlay_psychometrics_rt_0_to_1.py",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "prepared_rows": 642370,
+  "base_choices": 471416,
+  "selected_choices_per_view": 466978,
+  "right_choices": 239331,
+  "left_choices": 227647,
+  "animals_per_view": 53,
+  "RT_exclusions": {
+    "nonfinite": 2188,
+    "below_0": 0,
+    "above_1": 2250
+  },
+  "condition_points_checked": 210,
+  "ABL_cells_checked": 630,
+  "memberships_checked": 159,
+  "fits_checked": 21,
+  "valid_fits": 21,
+  "all_six_SHANK3_cohort2_animals_retained": true,
+  "checks": [
+    "independent CSV selection/counts",
+    "observed timed_rt window, not max_rt setting",
+    "pooled right/all choice probabilities",
+    "all 53 animals retained",
+    "unweighted fit residuals",
+    "saved PDF colors/marker/curve counts",
+    "previous exports and CSVs unchanged"
+  ],
+  "artifact_checks": [
+    {
+      "view": "filename_genotype",
+      "panels": 4,
+      "pdf_pages": 1,
+      "PNG_pixels": [
+        2520,
+        1800
+      ]
+    },
+    {
+      "view": "family_genotype",
+      "panels": 2,
+      "pdf_pages": 1,
+      "PNG_pixels": [
+        2880,
+        1080
+      ]
+    },
+    {
+      "view": "genotype",
+      "panels": 1,
+      "pdf_pages": 1,
+      "PNG_pixels": [
+        2160,
+        1260
+      ]
+    }
+  ]
+}

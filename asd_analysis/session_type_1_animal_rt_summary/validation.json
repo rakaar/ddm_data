@@ -1,0 +1,162 @@
+{
+  "status": "passed",
+  "input": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "source_script": "asd_analysis/plot_session_type_1_animal_rt_summary.py",
+  "observed": {
+    "animals": 53,
+    "choice_trials": 471416,
+    "finite_rt_trials": 469228,
+    "nonfinite_rt_trials": 2188,
+    "rt_above_1_s": 2250
+  },
+  "selection": "Cleaned session-type-1 CSV; training level 16; success in {1,-1}; ABL 20/40/60 after 59 to 60; signed ILDs +/-1/2/4/8/16; all finite timed_rt values, no RT cutoff",
+  "repeat_filter_reapplied": false,
+  "rt_units": "seconds",
+  "pooling": "Observed raw trials across signed ILDs and sessions within each animal/ABL",
+  "sample_sd_ddof": 1,
+  "sem_formula": "sample SD / sqrt(finite_rt_trials)",
+  "median_ci_level": 0.95,
+  "median_ci_method": "Non-interpolated binomial/order-statistic interval; r=Binomial(n,0.5).ppf(0.025); [X_(r), X_(n-r+1)] with 1-based ranks",
+  "median_ci_coverage_formula": "1 - 2*Binomial(n,0.5).cdf(r-1)",
+  "median_ci_coverage_min": 0.950002583290579,
+  "median_ci_coverage_max": 0.9586043807160268,
+  "median_ci_assumptions": "Pointwise trial-level inference under independent sampling; no session/animal bootstrap",
+  "median_ci_reference": "https://itl.nist.gov/div898/software/dataplot/refman1/auxillar/mediancl.htm",
+  "negative_mean_minus_sd_cells": 19,
+  "figures": [
+    {
+      "metric": "mean_sd",
+      "png": "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_mean_sd.png",
+      "pdf": "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_mean_sd.pdf",
+      "pdf_pages": 1,
+      "points": 159,
+      "error_bars": 159,
+      "ylim_s": [
+        -0.2741158926384226,
+        0.6745722604390446
+      ]
+    },
+    {
+      "metric": "mean_sem",
+      "png": "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_mean_sem.png",
+      "pdf": "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_mean_sem.pdf",
+      "pdf_pages": 1,
+      "points": 159,
+      "error_bars": 159,
+      "ylim_s": [
+        0.0,
+        0.338461357415359
+      ]
+    },
+    {
+      "metric": "median_ci95",
+      "png": "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_median_ci95.png",
+      "pdf": "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_median_ci95.pdf",
+      "pdf_pages": 1,
+      "points": 159,
+      "error_bars": 159,
+      "ylim_s": [
+        0.0,
+        0.27519285202026367
+      ]
+    }
+  ],
+  "animal_order": [
+    "ASD0040",
+    "ASD0042",
+    "ASD0044",
+    "ASD0047",
+    "ASD0049",
+    "ASD0038",
+    "ASD0039",
+    "ASD0041",
+    "ASD0023",
+    "ASD0024",
+    "ASD0043",
+    "ASD0045",
+    "ASD0046",
+    "ASD0048",
+    "ASD0077",
+    "ASD0073",
+    "ASD0074",
+    "ASD0075",
+    "ASD0076",
+    "ASD0072",
+    "ASD0026",
+    "ASD0027",
+    "ASD0028",
+    "ASD0032",
+    "ASD0033",
+    "ASD0050",
+    "ASD0051",
+    "ASD0025",
+    "ASD0035",
+    "ASD0022",
+    "ASD0029",
+    "ASD0030",
+    "ASD0031",
+    "ASD0034",
+    "ASD0036",
+    "ASD0037",
+    "ASD0053",
+    "ASD0055",
+    "ASD0062",
+    "ASD0056",
+    "ASD0057",
+    "ASD0058",
+    "ASD0059",
+    "ASD0061",
+    "ASD0063",
+    "ASD0066",
+    "ASD0068",
+    "ASD0071",
+    "ASD0052",
+    "ASD0054",
+    "ASD0060",
+    "ASD0064",
+    "ASD0065"
+  ],
+  "abl_colors": {
+    "20": "#1f77b4",
+    "40": "#ff7f0e",
+    "60": "#2ca02c"
+  },
+  "abl_markers": {
+    "20": "o",
+    "40": "s",
+    "60": "^"
+  },
+  "abl_offsets": {
+    "20": -0.22,
+    "40": 0,
+    "60": 0.22
+  },
+  "protected_file_sha256": {
+    "asd_analysis/session_type_csvs/ASD_session_type_1.csv": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/abl_counts.csv": "73b7c68fa8e242b8ed036212082117563831d8701c60f39700717649948957d1",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/animal_pages.csv": "ea5d5619a6c5e29d5674c32f5f3e44d9c49a4d2b4f57581fe0693123e3ec60fc",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_session_type_1_all_animals_psychometric_and_full_rt_rtd.pdf": "97eccddf2fbad31114ff3fdc78d2f0edb47b9cf0263f161a1e16e42e3a13c01c",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_01.png": "9d7f7f847e2fe2b39e0af53894596f02d760e28c6485a07834ebbb21fa7a7c6e",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_02.png": "ce70791a85362b4c5149259303033dd8dd8dd381b5611a5b47ab91f6cd02f2dc",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_03.png": "3c7063a3d6ff28ca0d38335ed093f5ee79826b7af51f590b7836ee6b9b8b21ba",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_04.png": "260f9927d17cf1927de126ba967a5b016d2ea31ad708f49f1a6f8e8b25a96bda",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_05.png": "62803a8a223a8d7991b36c7270a8ae7bf69d1f7c0375af482362f8b664600d3a",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_06.png": "19252792159030e5f60821b14f440d1656e91c9660b6661904d3d13be7e5dfc6",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_07.png": "b7bcaa97ccaefd955f2f701486a56e1ccc78d009166860352d53ef0ea035f3cc",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_08.png": "71874e5360917ddb8194431d5f5126f0c7668ddfe55c0819a7779b61184f2fbb",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_09.png": "5c40ec8514e40ca41ef2156aa0d9a7d27264d50a91fa8a3e8cc6be1b24cb2212",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_10.png": "bf760bef1fd124a17af93d15164c6194eb154342c145561638e5843b11b0425c",
+    "asd_analysis/session_type_1_all_animals_psychometric_rtd/ASD_all_animals_psychometric_full_rt_rtd_page_11.png": "803d321abca9ce3cf51a87ba90de12bf48d0c0d6a05bab53c137648b6fe2a3c2"
+  },
+  "checks": [
+    "53 animals and 159 animal/ABL conditions",
+    "counts agree with all-RT RTD audit",
+    "means, sample SDs, SEMs and medians use all finite RTs",
+    "median CI contains median; binomial coverage >=95%",
+    "477 plotted estimates and error bars match statistic records",
+    "all error bounds displayed without clipping",
+    "3 single-page PDFs",
+    "input size and modification time unchanged"
+  ]
+}

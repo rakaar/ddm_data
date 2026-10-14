@@ -1,0 +1,140 @@
+{
+  "status": "passed",
+  "animals": 53,
+  "pdf_pages": 11,
+  "chronometric_points": 795,
+  "finite_rt_trials": 469228,
+  "rt_above_1_s_retained": 2250,
+  "pages": [
+    {
+      "page": 1,
+      "animals": [
+        "ASD0040",
+        "ASD0042",
+        "ASD0044",
+        "ASD0047",
+        "ASD0049"
+      ],
+      "chronometric_dots_and_sem_bars_checked": 75
+    },
+    {
+      "page": 2,
+      "animals": [
+        "ASD0038",
+        "ASD0039",
+        "ASD0041",
+        "ASD0023",
+        "ASD0024"
+      ],
+      "chronometric_dots_and_sem_bars_checked": 75
+    },
+    {
+      "page": 3,
+      "animals": [
+        "ASD0043",
+        "ASD0045",
+        "ASD0046",
+        "ASD0048",
+        "ASD0077"
+      ],
+      "chronometric_dots_and_sem_bars_checked": 75
+    },
+    {
+      "page": 4,
+      "animals": [
+        "ASD0073",
+        "ASD0074",
+        "ASD0075",
+        "ASD0076",
+        "ASD0072"
+      ],
+      "chronometric_dots_and_sem_bars_checked": 75
+    },
+    {
+      "page": 5,
+      "animals": [
+        "ASD0026",
+        "ASD0027",
+        "ASD0028",
+        "ASD0032",
+        "ASD0033"
+      ],
+      "chronometric_dots_and_sem_bars_checked": 75
+    },
+    {
+      "page": 6,
+      "animals": [
+        "ASD0050",
+        "ASD0051",
+        "ASD0025",
+        "ASD0035",
+        "ASD0022"
+      ],
+      "chronometric_dots_and_sem_bars_checked": 75
+    },
+    {
+      "page": 7,
+      "animals": [
+        "ASD0029",
+        "ASD0030",
+        "ASD0031",
+        "ASD0034",
+        "ASD0036"
+      ],
+      "chronometric_dots_and_sem_bars_checked": 75
+    },
+    {
+      "page": 8,
+      "animals": [
+        "ASD0037",
+        "ASD0053",
+        "ASD0055",
+        "ASD0062",
+        "ASD0056"
+      ],
+      "chronometric_dots_and_sem_bars_checked": 75
+    },
+    {
+      "page": 9,
+      "animals": [
+        "ASD0057",
+        "ASD0058",
+        "ASD0059",
+        "ASD0061",
+        "ASD0063"
+      ],
+      "chronometric_dots_and_sem_bars_checked": 75
+    },
+    {
+      "page": 10,
+      "animals": [
+        "ASD0066",
+        "ASD0068",
+        "ASD0071",
+        "ASD0052",
+        "ASD0054"
+      ],
+      "chronometric_dots_and_sem_bars_checked": 75
+    },
+    {
+      "page": 11,
+      "animals": [
+        "ASD0060",
+        "ASD0064",
+        "ASD0065"
+      ],
+      "chronometric_dots_and_sem_bars_checked": 45
+    }
+  ],
+  "checks": [
+    "independent standard-library CSV selection; both signs and sessions pooled by observed trials",
+    "Python fmean/stdev/SEM for all 795 conditions",
+    "condition counts and weighted means reproduce animal/ABL means",
+    "all psychometric fits, points, RTD bins/densities, and memberships unchanged byte-for-byte",
+    "RTD counts/densities checked against raw finite RTs",
+    "all 795 colored dots and both SEM endpoints found in saved PDF",
+    "shared axes cover every error bound; categorical offsets checked",
+    "53 original animal bookmarks; 11 widened pages",
+    "prepared CSV and original native/published two-column exports preserved by SHA256"
+  ]
+}

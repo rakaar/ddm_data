@@ -1,0 +1,166 @@
+{
+  "status": "passed",
+  "input": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "source_script": "asd_analysis/plot_session_type_1_accuracy_vs_mean_rt.py",
+  "animals": 53,
+  "animal_abl_points": 159,
+  "valid_choice_trials": 471416,
+  "correct_trials": 361586,
+  "error_trials": 109830,
+  "finite_rt_trials": 469228,
+  "nonfinite_rt_trials": 2188,
+  "rt_above_1_s": 2250,
+  "selection": "Cleaned session-type-1 CSV; training 16; success in {1,-1}; ABL 20/40/60 after 59 to 60; signed ILDs +/-1/2/4/8/16; no RT cutoff",
+  "repeat_filter_reapplied": false,
+  "accuracy_formula": "correct valid choices / all valid choices; include missing RTs",
+  "mean_rt_formula": "Arithmetic mean of all finite valid-trial timed_rt values (seconds)",
+  "pooling": "Observed raw trials across signed ILDs and sessions, within animal and ABL",
+  "x_axis": "mean_rt_s",
+  "y_axis": "accuracy_percent",
+  "abl_colors": {
+    "20": "#1f77b4",
+    "40": "#ff7f0e",
+    "60": "#2ca02c"
+  },
+  "genotype_markers": {
+    "wt": "o",
+    "het": "s",
+    "hom": "^"
+  },
+  "family_fill_styles": {
+    "SHANK3": "hollow",
+    "CNTNAP2": "filled"
+  },
+  "points_by_family_and_abl": [
+    {
+      "family": "CNTNAP2",
+      "plot_ABL": 20,
+      "points": 33
+    },
+    {
+      "family": "CNTNAP2",
+      "plot_ABL": 40,
+      "points": 33
+    },
+    {
+      "family": "CNTNAP2",
+      "plot_ABL": 60,
+      "points": 33
+    },
+    {
+      "family": "SHANK3",
+      "plot_ABL": 20,
+      "points": 20
+    },
+    {
+      "family": "SHANK3",
+      "plot_ABL": 40,
+      "points": 20
+    },
+    {
+      "family": "SHANK3",
+      "plot_ABL": 60,
+      "points": 20
+    }
+  ],
+  "points_by_genotype_and_abl": [
+    {
+      "genotype": "het",
+      "plot_ABL": 20,
+      "points": 18
+    },
+    {
+      "genotype": "het",
+      "plot_ABL": 40,
+      "points": 18
+    },
+    {
+      "genotype": "het",
+      "plot_ABL": 60,
+      "points": 18
+    },
+    {
+      "genotype": "hom",
+      "plot_ABL": 20,
+      "points": 19
+    },
+    {
+      "genotype": "hom",
+      "plot_ABL": 40,
+      "points": 19
+    },
+    {
+      "genotype": "hom",
+      "plot_ABL": 60,
+      "points": 19
+    },
+    {
+      "genotype": "wt",
+      "plot_ABL": 20,
+      "points": 16
+    },
+    {
+      "genotype": "wt",
+      "plot_ABL": 40,
+      "points": 16
+    },
+    {
+      "genotype": "wt",
+      "plot_ABL": 60,
+      "points": 16
+    }
+  ],
+  "different_denominator_points": [
+    {
+      "animal": "ASD0053",
+      "plot_ABL": 20,
+      "valid_choice_trials": 4787,
+      "finite_rt_trials": 4090,
+      "nonfinite_rt_trials": 697,
+      "accuracy": 0.7722999791100899,
+      "accuracy_finite_rt_only": 0.7723716381418093
+    },
+    {
+      "animal": "ASD0053",
+      "plot_ABL": 40,
+      "valid_choice_trials": 4727,
+      "finite_rt_trials": 4005,
+      "nonfinite_rt_trials": 722,
+      "accuracy": 0.7850645229532474,
+      "accuracy_finite_rt_only": 0.7845193508114856
+    },
+    {
+      "animal": "ASD0053",
+      "plot_ABL": 60,
+      "valid_choice_trials": 4793,
+      "finite_rt_trials": 4024,
+      "nonfinite_rt_trials": 769,
+      "accuracy": 0.7967869810139787,
+      "accuracy_finite_rt_only": 0.7954771371769384
+    }
+  ],
+  "png": "asd_analysis/session_type_1_accuracy_vs_mean_rt/ASD_session_type_1_accuracy_vs_mean_rt.png",
+  "pdf": "asd_analysis/session_type_1_accuracy_vs_mean_rt/ASD_session_type_1_accuracy_vs_mean_rt.pdf",
+  "pdf_pages": 1,
+  "protected_file_sha256": {
+    "asd_analysis/session_type_csvs/ASD_session_type_1.csv": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+    "asd_analysis/session_type_1_slope_jnd/slope_jnd_condition_counts.csv": "f698adf08a05e3f65910a5728abd80c3484725199556a6edfbdc890c7a690b52",
+    "asd_analysis/session_type_1_animal_rt_summary/rt_statistics.csv": "debea9557808a11bd4c947204517f1eb770d0ba773a8e92578f1713196c25dfd",
+    "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_mean_sd.png": "b655271e6a7bcf879b2aa4f4ff3f1183aea58dcbd3c419ef7c424afa3a09ed37",
+    "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_mean_sem.png": "aade2cadf8fa3efc59ec79365f9e157079457cb40c54585ed7e23fde9f595279",
+    "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_median_ci95.png": "65474b5e524d6f48888adee794ea8022b35e9037709c76d7b713105525d370c8",
+    "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_mean_sd.pdf": "bbd425b4b3cc9157a9b94f037016905f0664982955a99becd4a771088732bb40",
+    "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_mean_sem.pdf": "72af7c0015f7fb8aa9b1c0148bc8df785bfdc0e1191ef86a8392796616803896",
+    "asd_analysis/session_type_1_animal_rt_summary/ASD_session_type_1_all_animals_rt_median_ci95.pdf": "6392fc15de4b42d8cfa466c5adcc859657129ed6292d3d63e6b51f5bf6e5fc7c"
+  },
+  "checks": [
+    "159 animal/ABL dots; 53 animals at each ABL",
+    "accuracy counts match existing psychometric audits",
+    "RT means/counts match existing all-finite-RT summaries",
+    "plotted coordinates and ABL colors",
+    "SHANK3 hollow; CNTNAP2 filled; WT circle, HET square, HOM triangle",
+    "single-page PDF with 33 filled and 20 hollow data markers per ABL",
+    "input size and modification time unchanged"
+  ]
+}

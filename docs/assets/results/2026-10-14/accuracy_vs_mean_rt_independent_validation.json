@@ -1,0 +1,42 @@
+{
+  "status": "passed",
+  "success_values_included": [
+    1,
+    -1
+  ],
+  "valid_choice_trials": 471416,
+  "correct_trials": 361586,
+  "error_trials": 109830,
+  "finite_rt_trials": 469228,
+  "animals": 53,
+  "animal_abl_points": 159,
+  "checks": [
+    "independent CSV parser explicitly excludes every success outside {1,-1}",
+    "every accuracy numerator/denominator",
+    "every RT mean against Python fmean",
+    "all 159 point counts including missing RTs and >1 s RTs",
+    "source CSV and previous summaries unchanged by SHA256",
+    "all numerical coordinates and trial counts exactly unchanged",
+    "33 filled CNTNAP2 and 20 hollow SHANK3 points per ABL",
+    "16 WT circles, 18 HET squares, and 19 HOM triangles per ABL",
+    "saved PDF filled/hollow counts and separate legends checked",
+    "PNG visually inspected"
+  ],
+  "numerical_points_unchanged_from_previous_plot": true,
+  "visual_encoding": {
+    "family": {
+      "SHANK3": "hollow",
+      "CNTNAP2": "filled"
+    },
+    "genotype": {
+      "WT": "circle",
+      "HET": "square",
+      "HOM": "triangle"
+    },
+    "ABL": {
+      "20": "blue",
+      "40": "orange",
+      "60": "green"
+    }
+  }
+}

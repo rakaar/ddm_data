@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "animals": 53,
+  "pdf_pages": 11,
+  "chronometric_points": 795,
+  "finite_rt_trials": 469228,
+  "direct_png_embeds": 11,
+  "pngs_wrapped_in_links": false,
+  "three_column_pdf_download_resolves": true,
+  "original_two_column_pdf_retained": true,
+  "all_11_png_pages_visually_inspected": true,
+  "strict_mkdocs_build": "passed",
+  "book_sections_outside_replaced_section_unchanged": true,
+  "original_native_and_published_two_column_exports_and_csv_unchanged_by_sha256": true,
+  "page_width_in": 18.24,
+  "column_width_ratios": [
+    1,
+    1,
+    0.28
+  ],
+  "chronometric_panel_width_in": 1.7588379888268153,
+  "numerical_audits_byte_identical_to_previous_layout": true,
+  "only_physical_coordinates_changed_in_plotted_point_audit": true,
+  "narrowing_relative_to_previous_layout": 0.2,
+  "chronometric_panel_height_in": 1.7588379888268146,
+  "chronometric_box_aspect": 1,
+  "chronometric_legend": "Shared page colors and adjacent RTD trial counts"
+}

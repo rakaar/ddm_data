@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/verify_session_type_1_low_delta_psychometrics.py",
+  "animals_audited": 53,
+  "common_eligible_animals": 50,
+  "eligible_choices": 444718,
+  "top_animals": {
+    "jnd": [
+      "ASD0061",
+      "ASD0055",
+      "ASD0042",
+      "ASD0063",
+      "ASD0027"
+    ],
+    "k": [
+      "ASD0050",
+      "ASD0055",
+      "ASD0051",
+      "ASD0064",
+      "ASD0039"
+    ]
+  },
+  "selected_row_choices": {
+    "jnd": 43490,
+    "k": 41474
+  },
+  "rankings_checked": 2,
+  "panels": 10,
+  "measured_points_checked": 300,
+  "saved_fits_checked": 30,
+  "smooth_curve_points_checked": 15030,
+  "pdf_pages": 1,
+  "png_pixels": [
+    3600,
+    1440
+  ],
+  "artifact_counts": {
+    "20": {
+      "measured_points": 100,
+      "fitted_curves": 10,
+      "legend_markers": 11
+    },
+    "40": {
+      "measured_points": 100,
+      "fitted_curves": 10,
+      "legend_markers": 11
+    },
+    "60": {
+      "measured_points": 100,
+      "fitted_curves": 10,
+      "legend_markers": 11
+    }
+  },
+  "protected_files_checked": 395,
+  "checks": [
+    "stdlib CSV parsing of source fits/counts",
+    "all pairwise differences and two-thirds-range identity",
+    "missing JNDs stay unavailable; common eligibility for both rankings",
+    "ascending scores with animal-ID tie break",
+    "all 300 measured probabilities/counts match source",
+    "all 30 fits and smooth curves match source parameters",
+    "saved PDF markers/curves/colors and identities",
+    "one 20-by-8-inch PDF and matching PNG",
+    "protected hashes unchanged"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "status": "passed",
+  "observed": {
+    "animals": 53,
+    "choice_trials": 471416,
+    "finite_rt_trials": 469228,
+    "nonfinite_rt_trials": 2188,
+    "rt_above_1_s": 2250
+  },
+  "animal_abl_groups": 159,
+  "plotted_points": 477,
+  "plotted_error_bars": 477,
+  "figures": [
+    {
+      "metric": "mean_sd",
+      "pdf_pages": 1,
+      "colored_data_points": 159,
+      "vertical_error_bars": 159
+    },
+    {
+      "metric": "mean_sem",
+      "pdf_pages": 1,
+      "colored_data_points": 159,
+      "vertical_error_bars": 159
+    },
+    {
+      "metric": "median_ci95",
+      "pdf_pages": 1,
+      "colored_data_points": 159,
+      "vertical_error_bars": 159
+    }
+  ],
+  "checks": [
+    "independent standard-library CSV selection",
+    "Python mean/stdev/median and SEM",
+    "exact median order-statistic endpoints; coverage >=95% and next narrower interval <95%",
+    "all animal memberships and plotted values/bounds",
+    "saved PDF colors, dot/error-bar counts and animal IDs",
+    "error bounds are fully displayed",
+    "source CSV and existing RTD exports unchanged by SHA256"
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/verify_session_type_1_genotype_overlay_psychometrics.py",
+  "input_sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+  "prepared_rows": 642370,
+  "animals_per_view_and_method": 53,
+  "choices_per_view_and_method": 471416,
+  "right_choices": 241539,
+  "left_choices": 229877,
+  "included_nonfinite_RT_choices": 2188,
+  "abl_condition_points_checked": 630,
+  "combined_points_checked": 420,
+  "membership_records_checked": 159,
+  "fits_checked": 42,
+  "valid_fits": 42,
+  "maximum_pooled_vs_equal_ABL_probability_difference": 0.010847791074580004,
+  "checks": [
+    "independent raw CSV counts",
+    "memberships and group totals",
+    "pooled trial fractions",
+    "equal means of measured ABL probabilities",
+    "all ABL weights",
+    "ten ILDs per fit",
+    "initial guesses and bounds",
+    "unweighted residuals",
+    "saved PDF marker/fit-line colors and counts",
+    "single-page PDFs and PNG sizes",
+    "unchanged inputs and all previous analyses"
+  ],
+  "artifact_checks": [
+    {
+      "method": "trial_pooled",
+      "view": "filename_genotype",
+      "pdf_pages": 1,
+      "panels": 4,
+      "png_pixels": [
+        2520,
+        1800
+      ],
+      "observed_marker_counts": {
+        "wt": 40,
+        "het": 40,
+        "hom": 40
+      },
+      "saved_fit_curve_counts": {
+        "wt": 4,
+        "het": 4,
+        "hom": 4
+      }
+    },
+    {
+      "method": "trial_pooled",
+      "view": "family_genotype",
+      "pdf_pages": 1,
+      "panels": 2,
+      "png_pixels": [
+        2880,
+        1080
+      ],
+      "observed_marker_counts": {
+        "wt": 20,
+        "het": 20,
+        "hom": 20
+      },
+      "saved_fit_curve_counts": {
+        "wt": 2,
+        "het": 2,
+        "hom": 2
+      }
+    },
+    {
+      "method": "trial_pooled",
+      "view": "genotype",
+      "pdf_pages": 1,
+      "panels": 1,
+      "png_pixels": [
+        2160,
+        1260
+      ],
+      "observed_marker_counts": {
+        "wt": 10,
+        "het": 10,
+        "hom": 10
+      },
+      "saved_fit_curve_counts": {
+        "wt": 1,
+        "het": 1,
+        "hom": 1
+      }
+    },
+    {
+      "method": "equal_abl_average",
+      "view": "filename_genotype",
+      "pdf_pages": 1,
+      "panels": 4,
+      "png_pixels": [
+        2520,
+        1800
+      ],
+      "observed_marker_counts": {
+        "wt": 40,
+        "het": 40,
+        "hom": 40
+      },
+      "saved_fit_curve_counts": {
+        "wt": 4,
+        "het": 4,
+        "hom": 4
+      }
+    },
+    {
+      "method": "equal_abl_average",
+      "view": "family_genotype",
+      "pdf_pages": 1,
+      "panels": 2,
+      "png_pixels": [
+        2880,
+        1080
+      ],
+      "observed_marker_counts": {
+        "wt": 20,
+        "het": 20,
+        "hom": 20
+      },
+      "saved_fit_curve_counts": {
+        "wt": 2,
+        "het": 2,
+        "hom": 2
+      }
+    },
+    {
+      "method": "equal_abl_average",
+      "view": "genotype",
+      "pdf_pages": 1,
+      "panels": 1,
+      "png_pixels": [
+        2160,
+        1260
+      ],
+      "observed_marker_counts": {
+        "wt": 10,
+        "het": 10,
+        "hom": 10
+      },
+      "saved_fit_curve_counts": {
+        "wt": 1,
+        "het": 1,
+        "hom": 1
+      }
+    }
+  ]
+}

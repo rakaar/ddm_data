@@ -1,0 +1,159 @@
+{
+  "status": "passed",
+  "observed": {
+    "animals": 53,
+    "choices": 471416,
+    "right": 241539,
+    "left": 229877,
+    "finite_rt": 469228,
+    "nonfinite_rt": 2188,
+    "rt_above_1": 2250
+  },
+  "psychometric_points": 1590,
+  "fit_status_counts": {
+    "ok": 159
+  },
+  "rtd_curves": 159,
+  "pdf_pages": 11,
+  "pages": [
+    {
+      "page": 1,
+      "animals": [
+        "ASD0040",
+        "ASD0042",
+        "ASD0044",
+        "ASD0047",
+        "ASD0049"
+      ],
+      "rows": 5,
+      "colors_markers_and_fit_curves": "passed"
+    },
+    {
+      "page": 2,
+      "animals": [
+        "ASD0038",
+        "ASD0039",
+        "ASD0041",
+        "ASD0023",
+        "ASD0024"
+      ],
+      "rows": 5,
+      "colors_markers_and_fit_curves": "passed"
+    },
+    {
+      "page": 3,
+      "animals": [
+        "ASD0043",
+        "ASD0045",
+        "ASD0046",
+        "ASD0048",
+        "ASD0077"
+      ],
+      "rows": 5,
+      "colors_markers_and_fit_curves": "passed"
+    },
+    {
+      "page": 4,
+      "animals": [
+        "ASD0073",
+        "ASD0074",
+        "ASD0075",
+        "ASD0076",
+        "ASD0072"
+      ],
+      "rows": 5,
+      "colors_markers_and_fit_curves": "passed"
+    },
+    {
+      "page": 5,
+      "animals": [
+        "ASD0026",
+        "ASD0027",
+        "ASD0028",
+        "ASD0032",
+        "ASD0033"
+      ],
+      "rows": 5,
+      "colors_markers_and_fit_curves": "passed"
+    },
+    {
+      "page": 6,
+      "animals": [
+        "ASD0050",
+        "ASD0051",
+        "ASD0025",
+        "ASD0035",
+        "ASD0022"
+      ],
+      "rows": 5,
+      "colors_markers_and_fit_curves": "passed"
+    },
+    {
+      "page": 7,
+      "animals": [
+        "ASD0029",
+        "ASD0030",
+        "ASD0031",
+        "ASD0034",
+        "ASD0036"
+      ],
+      "rows": 5,
+      "colors_markers_and_fit_curves": "passed"
+    },
+    {
+      "page": 8,
+      "animals": [
+        "ASD0037",
+        "ASD0053",
+        "ASD0055",
+        "ASD0062",
+        "ASD0056"
+      ],
+      "rows": 5,
+      "colors_markers_and_fit_curves": "passed"
+    },
+    {
+      "page": 9,
+      "animals": [
+        "ASD0057",
+        "ASD0058",
+        "ASD0059",
+        "ASD0061",
+        "ASD0063"
+      ],
+      "rows": 5,
+      "colors_markers_and_fit_curves": "passed"
+    },
+    {
+      "page": 10,
+      "animals": [
+        "ASD0066",
+        "ASD0068",
+        "ASD0071",
+        "ASD0052",
+        "ASD0054"
+      ],
+      "rows": 5,
+      "colors_markers_and_fit_curves": "passed"
+    },
+    {
+      "page": 11,
+      "animals": [
+        "ASD0060",
+        "ASD0064",
+        "ASD0065"
+      ],
+      "rows": 3,
+      "colors_markers_and_fit_curves": "passed"
+    }
+  ],
+  "checks": [
+    "independent CSV parsing, all memberships and point counts",
+    "reused fit parameters and predictions",
+    "every full-RT histogram against raw finite values",
+    "20 ms bin widths and full-range unit density areas",
+    "ASD0054 histogram unchanged",
+    "53 animal bookmarks, page identities, PDF colors, scatter counts and fit paths",
+    "source CSV and previous ASD0054 artifacts unchanged by SHA256"
+  ]
+}

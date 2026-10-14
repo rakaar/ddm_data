@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "direct_image_embed": true,
+  "image_wrapped_in_link": false,
+  "pdf_download_resolves": true,
+  "audit_and_source_links_resolve": true,
+  "navigation_updated": true,
+  "strict_mkdocs_build": "passed",
+  "figure_visually_inspected": true,
+  "native_and_published_exports_identical": true,
+  "all_previous_protected_files_unchanged": true,
+  "animals_audited": 53,
+  "common_eligible_animals": 50,
+  "panels": 10,
+  "curves": 30,
+  "measured_points": 300
+}

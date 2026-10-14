@@ -1,0 +1,7 @@
+method,view,fit_status,count
+equal_abl_average,family_genotype,ok,6
+equal_abl_average,filename_genotype,ok,12
+equal_abl_average,genotype,ok,3
+trial_pooled,family_genotype,ok,6
+trial_pooled,filename_genotype,ok,12
+trial_pooled,genotype,ok,3

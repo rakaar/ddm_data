@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "animals": 53,
+  "finite_rt_trials": 469228,
+  "direct_image_embeds": 3,
+  "pdf_downloads": 3,
+  "visual_inspection": "all three PNGs inspected",
+  "strict_mkdocs_build": "passed",
+  "built_assets_resolve": true,
+  "images_wrapped_in_links": false,
+  "published_files_match_native_sha256": true,
+  "previous_result_book_sections_preserved": true
+}

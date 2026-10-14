@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "success_values": [
+    1,
+    -1
+  ],
+  "animals": 53,
+  "animal_abl_points": 159,
+  "direct_image_embeds": 1,
+  "pdf_downloads": 1,
+  "strict_mkdocs_build": "passed",
+  "png_visually_inspected": true,
+  "previous_result_book_entries_preserved": true,
+  "numerical_coordinates_unchanged": true,
+  "family_fill": {
+    "SHANK3": "hollow",
+    "CNTNAP2": "filled"
+  },
+  "genotype_markers": {
+    "WT": "circle",
+    "HET": "square",
+    "HOM": "triangle"
+  },
+  "color_by": "ABL",
+  "published_png_sha256": "627ad9948bd63a9f990e56174dad161f661112d97bcee1b04baaf62dc8d88a5b"
+}
