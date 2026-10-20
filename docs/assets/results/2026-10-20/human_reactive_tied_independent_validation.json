@@ -1,0 +1,98 @@
+{
+  "status": "passed",
+  "original_mat_rows": 28880,
+  "selected_source_rows": 11400,
+  "groups": {
+    "Control": {
+      "n_trials": 6600,
+      "n_participants": 11,
+      "source_rows_verified": 6600,
+      "source_row_id_bytes_sha256": "db431ca2117d40fecc63311052f0410bd4ac27dae739150f0775f6436b9a5b2f",
+      "five_free_parameters": [
+        "rate_lambda",
+        "T_0",
+        "theta_E",
+        "w",
+        "t_E_aff"
+      ],
+      "delay_support_upper_s": 0.11118879984894389,
+      "parameter_points_checked": 15,
+      "numerics": {
+        "K40_K80_max_density_abs": 1.1102230246251565e-15,
+        "K40_K80_max_mass_abs": 0.0,
+        "scipy_max_density_abs": 2.220446049250313e-15,
+        "scipy_max_cdf_abs": 9.2148511043888e-15,
+        "unit_mass_max_abs": 6.017408793468348e-14,
+        "cdf_derivative_max_abs": 6.550805120575376e-09
+      },
+      "independent_joint_log_likelihood": -2696.28537693404,
+      "convergence": {
+        "stop_reason": "maximum_steps",
+        "completed_steps": 150000,
+        "restored_best_step": 150000,
+        "best_window_mean_negative_elbo": 2721.641881852568,
+        "terminal_parameter_stable": false,
+        "restored_checkpoint_parameter_stable": false,
+        "flagged": true,
+        "wall_seconds": 394.6462998781353,
+        "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+        "warning": "Pooled-trial uncertainty does not represent participant-to-participant variability"
+      }
+    },
+    "ASD": {
+      "n_trials": 4800,
+      "n_participants": 8,
+      "source_rows_verified": 4800,
+      "source_row_id_bytes_sha256": "eaa73b3f1d18c1407d2f5c85c9b717b597613bb7dca35fc4e0afc5ebcca3bcea",
+      "five_free_parameters": [
+        "rate_lambda",
+        "T_0",
+        "theta_E",
+        "w",
+        "t_E_aff"
+      ],
+      "delay_support_upper_s": 0.1816100000945627,
+      "parameter_points_checked": 15,
+      "numerics": {
+        "K40_K80_max_density_abs": 1.1102230246251565e-15,
+        "K40_K80_max_mass_abs": 0.0,
+        "scipy_max_density_abs": 3.9968028886505635e-15,
+        "scipy_max_cdf_abs": 5.551115123125783e-15,
+        "unit_mass_max_abs": 7.327471962526033e-14,
+        "cdf_derivative_max_abs": 6.52846843252064e-09
+      },
+      "independent_joint_log_likelihood": -2145.4335371532607,
+      "convergence": {
+        "stop_reason": "patience12_and_parameter_stability",
+        "completed_steps": 127000,
+        "restored_best_step": 127000,
+        "best_window_mean_negative_elbo": 2170.012697177974,
+        "terminal_parameter_stable": true,
+        "restored_checkpoint_parameter_stable": true,
+        "flagged": false,
+        "wall_seconds": 298.02433969499543,
+        "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+        "warning": "Pooled-trial uncertainty does not represent participant-to-participant variability"
+      }
+    }
+  },
+  "probability_cells_verified": 40,
+  "histogram_bins_verified": 3600,
+  "smooth_psychometric_points_verified": 1764,
+  "condition_cdf_comparisons_verified": 40,
+  "figures": {
+    "asd/convergence.png": "35d83f210195738891c4ef80b0f690d1ba733f189025ffd0e2067676f3235270",
+    "asd/parameter_corner.png": "bc9211be00c9c2a1fc26fd157a39c5b4e2b5778c57a7e8f93fc0b8ede2addb2c",
+    "control/convergence.png": "05206a6146594699afa0372293edbbe3b1f482f4e1337e863ff470fd0f9a0d8c",
+    "control/parameter_corner.png": "6872b3b3435731456ccbca8fbb11ce2abfd9b861c3c612b3d600770318011816",
+    "human_reactive_tied_psychometric_rtd_full_0_3s.png": "1947acd09287e51601866c6595a11f04d537abea9c6006308ddd3f3a7509329f",
+    "human_reactive_tied_psychometric_rtd_zoom_0_1p5s.png": "bd39b18f120d7d1d80e307b301821eae77925584c536eb9233a7e1ab68b0389a",
+    "human_reactive_tied_rtd_by_delta_full_0_3s.png": "824070b7cc1db2aa1d53bef01986c2a1838cf414489292174c9a94d1f0364fb6",
+    "human_reactive_tied_rtd_by_delta_zoom_0_1p5s.png": "0151b154647e9818c4e6e6a0ca8386ca4d22f31bd4e41be2a49a4ca8d6aeb733"
+  },
+  "prior_artifacts_hash_verified": 244,
+  "source_sha256": "4d83b8024d3927eb4e57daffbba7a4ff8bb32b8db50c7b94e3cf098f62095961",
+  "csv_sha256": "d5042c4fc4bb7b47b1ac0267938a21150c096827c11f9a81ec90fd0064b63967",
+  "verifier_sha256": "c4161c82c80a511f2a355f53cca3eba59c5f282e43736f3006b13246d59fe190",
+  "note": "Numerical, row and PDF bounds checks; visual inspection recorded separately"
+}

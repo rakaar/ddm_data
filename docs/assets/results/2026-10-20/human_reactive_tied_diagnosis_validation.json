@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "original_fit_artifacts_hash_checked": 65,
+  "original_fit_artifacts_changed": 0,
+  "posterior_draws_checked": 20000,
+  "finite_support_edge_draw_count": 0,
+  "pdf_text_bounds": "passed",
+  "visual_inspection": "passed"
+}

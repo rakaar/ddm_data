@@ -1,0 +1,13 @@
+{
+  "source_guide": "/home/rlab/raghavendra/ddm_data/ASD_Human_Data/reactive_tied_rt_only_svi_0p2_1p5s_delay200ms/control/guide_parameters.npz",
+  "source_guide_sha256": "f973d00918462acbf680b7aa13c02f352888a472d9ebcdb1cd6529a8101421c4",
+  "optimizer_iteration": 0,
+  "fresh_loss_history": true,
+  "delay_upper_s": 0.25,
+  "seed": 0,
+  "source_delay_upper_s": 0.2,
+  "source_delay_center_s": 0.19988120643073168,
+  "mapped_delay_center_s": 0.19988120643073168,
+  "delay_unconstrained_jacobian": 0.0029627999999679725,
+  "transfer": "Identity for first four latent coordinates; center/Jacobian map for delay"
+}

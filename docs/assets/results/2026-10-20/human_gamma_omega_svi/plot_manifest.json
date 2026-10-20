@@ -1,0 +1,34 @@
+{
+  "figures": [
+    "human_control_gamma_omega_rtd_psychometric.png",
+    "human_control_gamma_omega_rtd_psychometric.pdf",
+    "human_asd_gamma_omega_rtd_psychometric.png",
+    "human_asd_gamma_omega_rtd_psychometric.pdf",
+    "human_gamma_omega_parameter_comparison.png",
+    "human_gamma_omega_parameter_comparison.pdf",
+    "human_gamma_omega_convergence_correlations.png",
+    "human_gamma_omega_convergence_correlations.pdf"
+  ],
+  "rt_bin_s": 0.02,
+  "curve_step_s": 0.001,
+  "rt_window_s": [
+    0,
+    1.8
+  ],
+  "curves": "arithmetic posterior means of physical Gamma, Omega, delay and bias",
+  "empirical_pooling": "raw trials; signs pooled only for displayed RTD mixtures",
+  "interval": "equal-tailed 95% variational credible",
+  "source_sha256": "973859a143a5d81529168c5db01de57c8a0d787a1e0288088626a6f923ddd31f",
+  "tables": [
+    "parameter_summary.csv",
+    "fit_quality.csv",
+    "benchmark_comparison.csv",
+    "condition_fit_quality.csv",
+    "psychometric_comparison.csv",
+    "rtd_histograms.csv",
+    "rtd_model_curves.csv",
+    "condition_model_curves.csv",
+    "posterior_boundary_audit.csv",
+    "strongest_correlations.csv"
+  ]
+}

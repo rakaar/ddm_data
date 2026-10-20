@@ -1,0 +1,22 @@
+{
+  "source_rows": 28880,
+  "all_RT_rows_verified": 11400,
+  "retained_rows": 11344,
+  "excluded_rows": 56,
+  "groups": {
+    "Control": {
+      "trials": 6574,
+      "participants": 11,
+      "conditions": 20,
+      "unit_mass_max_error": 2.923217223838037e-13,
+      "prior_log_density": -79.39858642003306
+    },
+    "ASD": {
+      "trials": 4770,
+      "participants": 8,
+      "conditions": 20,
+      "unit_mass_max_error": 1.63682623011141e-09,
+      "prior_log_density": -79.7757548706722
+    }
+  }
+}

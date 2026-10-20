@@ -1,0 +1,17 @@
+{
+  "stop_reason": "confirmed_minimum_25_windows_and_parameter_stability",
+  "completed_steps": 53000,
+  "restored_best_step": 27000,
+  "best_window_mean_negative_elbo": -2049.6849842833867,
+  "terminal_parameter_stable": true,
+  "restored_checkpoint_parameter_stable": true,
+  "minimum_followup_confirmed": true,
+  "confirmation_windows": 26,
+  "required_confirmation_windows": 25,
+  "updates_after_restored_best": 26000,
+  "flagged": false,
+  "wall_seconds": 204.61179657373577,
+  "new_updates": 53000,
+  "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+  "warning": "Observed-window confirmation does not prove a global optimum; pooled-trial uncertainty excludes participant variability"
+}

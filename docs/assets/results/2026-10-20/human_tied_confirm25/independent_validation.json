@@ -1,0 +1,113 @@
+{
+  "status": "passed",
+  "original_mat_rows": 28880,
+  "selected_source_rows": 11400,
+  "groups": {
+    "Control": {
+      "n_trials": 6600,
+      "n_participants": 11,
+      "source_rows_verified": 6600,
+      "source_row_id_bytes_sha256": "db431ca2117d40fecc63311052f0410bd4ac27dae739150f0775f6436b9a5b2f",
+      "five_free_parameters": [
+        "rate_lambda",
+        "T_0",
+        "theta_E",
+        "w",
+        "t_E_aff"
+      ],
+      "delay_support_upper_s": 0.11118879984894389,
+      "parameter_points_checked": 15,
+      "numerics": {
+        "K40_K80_max_density_abs": 1.1102230246251565e-15,
+        "K40_K80_max_mass_abs": 0.0,
+        "scipy_max_density_abs": 2.6645352591003757e-15,
+        "scipy_max_cdf_abs": 6.8833827526759706e-15,
+        "unit_mass_max_abs": 4.2194026050879074e-12,
+        "cdf_derivative_max_abs": 6.699030441481568e-09
+      },
+      "independent_joint_log_likelihood": -2687.1998277828043,
+      "convergence": {
+        "stop_reason": "confirmed_minimum_25_windows_and_parameter_stability",
+        "completed_steps": 539000,
+        "restored_best_step": 514000,
+        "best_window_mean_negative_elbo": 2707.0077233318566,
+        "terminal_parameter_stable": true,
+        "restored_checkpoint_parameter_stable": true,
+        "minimum_followup_confirmed": true,
+        "confirmation_windows": 25,
+        "required_confirmation_windows": 25,
+        "updates_after_restored_best": 25000,
+        "flagged": false,
+        "wall_seconds": 1435.7209448632784,
+        "source_step": 150000,
+        "new_updates": 389000,
+        "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+        "warning": "Observed-window confirmation is not proof of a global optimum; pooled-trial uncertainty excludes participant variability"
+      }
+    },
+    "ASD": {
+      "n_trials": 4800,
+      "n_participants": 8,
+      "source_rows_verified": 4800,
+      "source_row_id_bytes_sha256": "eaa73b3f1d18c1407d2f5c85c9b717b597613bb7dca35fc4e0afc5ebcca3bcea",
+      "five_free_parameters": [
+        "rate_lambda",
+        "T_0",
+        "theta_E",
+        "w",
+        "t_E_aff"
+      ],
+      "delay_support_upper_s": 0.1816100000945627,
+      "parameter_points_checked": 15,
+      "numerics": {
+        "K40_K80_max_density_abs": 1.1102230246251565e-15,
+        "K40_K80_max_mass_abs": 0.0,
+        "scipy_max_density_abs": 3.1086244689504383e-15,
+        "scipy_max_cdf_abs": 6.994405055138486e-15,
+        "unit_mass_max_abs": 6.137645947035253e-12,
+        "cdf_derivative_max_abs": 6.345034997412569e-09
+      },
+      "independent_joint_log_likelihood": -2144.8577775652257,
+      "convergence": {
+        "stop_reason": "confirmed_minimum_25_windows_and_parameter_stability",
+        "completed_steps": 539000,
+        "restored_best_step": 514000,
+        "best_window_mean_negative_elbo": 2161.0812431104723,
+        "terminal_parameter_stable": true,
+        "restored_checkpoint_parameter_stable": true,
+        "minimum_followup_confirmed": true,
+        "confirmation_windows": 25,
+        "required_confirmation_windows": 25,
+        "updates_after_restored_best": 25000,
+        "flagged": false,
+        "wall_seconds": 1050.4325186181813,
+        "source_step": 127000,
+        "new_updates": 412000,
+        "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+        "warning": "Observed-window confirmation is not proof of a global optimum; pooled-trial uncertainty excludes participant variability"
+      }
+    }
+  },
+  "probability_cells_verified": 40,
+  "histogram_bins_verified": 3600,
+  "smooth_psychometric_points_verified": 1764,
+  "condition_cdf_comparisons_verified": 40,
+  "figures": {
+    "asd/convergence.png": "c4121f15cc260cb0d8e14c2da8cde532182b82642c03bc54a0886de2b3245156",
+    "asd/parameter_corner.png": "7986ebdc9cdbd926f7bc7c0685ed2d358c2e80b01d9d683a8c366c7cd72fbe75",
+    "comparison/human_tied_continuation_confirmation.png": "9777b775bd0220471d2271d59be2ec4f72b4f05a96d22dab38229480b25a14ef",
+    "comparison/human_tied_original_vs_continued_full_0_3s.png": "7eed501f6bcf97eab267b9377f987e42050e5eef02ba51a3500a36b813d199fd",
+    "comparison/human_tied_original_vs_continued_zoom_0_1p5s.png": "080f31f5323f7c20088b722cd4450e5dc825775bd7059ce647c7dc4f495a7674",
+    "control/convergence.png": "2b667007867861dfb5c5aa8d6308289330a438c86aaa3ddd053fdf2cfe788969",
+    "control/parameter_corner.png": "db1ee2d7cde82bf16fa8e042d08727a6bd019c781f204a867070efa281d8a44e",
+    "human_reactive_tied_psychometric_rtd_full_0_3s.png": "805859c3586e43f8a61e8f92f7871b45ed220534fa7e685770810edb9d09f725",
+    "human_reactive_tied_psychometric_rtd_zoom_0_1p5s.png": "dc6719731390501a4ee2e8de4cc3659b756346b4735c95eef58644097357bb22",
+    "human_reactive_tied_rtd_by_delta_full_0_3s.png": "c3d5c3d32d8600b69c363992c9e721c6f71ea1686c2845edb5af5f6f07d5d237",
+    "human_reactive_tied_rtd_by_delta_zoom_0_1p5s.png": "aa89ca27ffa739d818ab69e66ad7f806127375848afcad20d75370205c378024"
+  },
+  "prior_artifacts_hash_verified": 0,
+  "source_sha256": "4d83b8024d3927eb4e57daffbba7a4ff8bb32b8db50c7b94e3cf098f62095961",
+  "csv_sha256": "d5042c4fc4bb7b47b1ac0267938a21150c096827c11f9a81ec90fd0064b63967",
+  "verifier_sha256": "c4161c82c80a511f2a355f53cca3eba59c5f282e43736f3006b13246d59fe190",
+  "note": "Numerical, row and PDF bounds checks; visual inspection recorded separately"
+}

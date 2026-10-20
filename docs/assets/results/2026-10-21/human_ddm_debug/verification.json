@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "source_mat_rows": 28880,
+  "selected_trials": 11344,
+  "sub200ms_retained": 4,
+  "source_hashes": {
+    "mat": "4d83b8024d3927eb4e57daffbba7a4ff8bb32b8db50c7b94e3cf098f62095961",
+    "csv": "d5042c4fc4bb7b47b1ac0267938a21150c096827c11f9a81ec90fd0064b63967"
+  },
+  "groups": {
+    "Control": {
+      "scipy_pdf": 2.1316282072803006e-14,
+      "scipy_cdf": 8.215650382226158e-15,
+      "K40_K80_pdf": 6.661338147750939e-16,
+      "K40_K80_cdf": 0.0,
+      "legacy_gamma_omega_pdf": 2.1316282072803006e-14,
+      "legacy_gamma_omega_cdf": 1.6542323066914832e-14,
+      "conditional_mass": 2.6825208720993032e-12,
+      "finite_difference_gradient": 2.3725099430271125e-08,
+      "cdf_derivative": 8.772518433897147e-09,
+      "likelihood_reconstruction": 5.684341886080802e-14,
+      "paper_pdf": 5.995204332975845e-15,
+      "paper_cdf": 7.993605777301127e-15
+    },
+    "ASD": {
+      "scipy_pdf": 3.774758283725532e-15,
+      "scipy_cdf": 8.215650382226158e-15,
+      "K40_K80_pdf": 6.661338147750939e-16,
+      "K40_K80_cdf": 0.0,
+      "legacy_gamma_omega_pdf": 3.552713678800501e-15,
+      "legacy_gamma_omega_cdf": 7.993605777301127e-15,
+      "conditional_mass": 1.565292340188762e-11,
+      "finite_difference_gradient": 7.134746252204808e-09,
+      "cdf_derivative": 1.022852408327779e-08,
+      "likelihood_reconstruction": 2.2737367544323206e-13,
+      "paper_pdf": 3.1086244689504383e-15,
+      "paper_cdf": 8.104628079763643e-15
+    }
+  },
+  "lambda_lower_bound_sensitivity": [
+    {
+      "Group": "Control",
+      "original_lambda": 0.00010000000000000009,
+      "smaller_lambda": 1e-06,
+      "log_likelihood_change": 0.003604317759368314,
+      "max_cdf_change": 1.94912714294726e-05
+    }
+  ],
+  "figures": {
+    "human_ddm_parameter_constraints_debug.png": "7b831d7ac66596a1fd37ccea49fc912e7efe0a884caa5fd89b2014dde18fa5c9",
+    "human_joint_ddm_debug.png": "b74a94f2917d6a448ff62cea20181883a82692a1275a82ea84e2305ea6312165",
+    "human_svi_predictive_ddm_debug.png": "c1359a391e281ab96b0f0f61cccab190cd32aeed57cc28e29873278a2eb0e020",
+    "human_ddm_choice_debug.png": "2aa28a143941800b53fc202ab14091e1508fd6237a92b7165f24602deeb5834c",
+    "human_ddm_rt_by_delta_debug.png": "28bb9cbd8cc60233385901fca29f5736eeb961e38277c3c6f30c544cf9335b48",
+    "human_rt_only_ddm_debug.png": "a40c77f34153dfa441b6f152a93bfb962fd13ccfb6a042a62f79fe58bcc86566"
+  },
+  "comparison": "Same trial identities, RT window, conditioning and mixture weights; MLE diagnostics have no priors",
+  "meaning": "Improved free-DDM training fit is a representational diagnostic, not evidence of predictive model superiority or a likelihood bug",
+  "verifier_sha256": "c07568aae0725c573aba748124d1cd7dd86b7afec49ae5eccd34b805daafeb7c"
+}

@@ -1,0 +1,15 @@
+{
+  "python": "3.12.13",
+  "packages": {
+    "jax": "0.4.38",
+    "jaxlib": "0.4.38",
+    "numpyro": "0.15.3",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scipy": "1.12.0",
+    "matplotlib": "3.9.2"
+  },
+  "platform": "CPU",
+  "dtype": "float64",
+  "seed": 0
+}

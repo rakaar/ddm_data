@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "images": {
+    "human_control_gamma_omega_rtd_psychometric.png": "1696496987f2c11d4c3f4865337742cbdd44235e415c01b01bbf0ceb87a9a3dc",
+    "human_asd_gamma_omega_rtd_psychometric.png": "75b8c54af83293d00a685cedb08fdaafdc00eba0582e06391d2d62da0cdda0d7",
+    "human_gamma_omega_parameter_comparison.png": "fae6dfca6d60ff0212f4337f78a4b653f86bda0e9ad40c0dd53ad94242c8ca97",
+    "human_gamma_omega_convergence_correlations.png": "36c7182ca138355da6f0bdfb6550d5ceb2b5a9698389121196604849641e0c8c"
+  },
+  "checks": [
+    "All four PNGs visually inspected",
+    "Control and ASD pages have 2x5 RTDs and right-side psychometric",
+    "Shared axes cover 0--1.8 s without clipped RTD peaks",
+    "ASL 20/40 blue/orange; Control blue circles and ASD red stars in parameter comparisons",
+    "All 95% interval bars, bias labels, legends, titles and captions readable",
+    "Parameter plot uses three rows and a compact bias panel",
+    "Convergence and correlation diagnostics readable"
+  ],
+  "observation": "RTD agreement improves; sharp data peaks remain underestimated in several conditions",
+  "pdf_geometry": "Independently checked by verify_human_gamma_omega_svi.py"
+}

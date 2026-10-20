@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "inspected_at_utc": "2026-10-20T16:51:01.782482+00:00",
+  "figures": {
+    "human_RT_only_rtd_by_delta_full_0p2_1p5s.png": "6f0ba725c78225803b13868658bfc417c615354334219c8d5ba03896fad5674f",
+    "human_RT_only_rtd_cdf_comparison_full_0p2_1p5s.png": "70f9dd1de1c3ba247c97c9f5b5634080793c2482d0dd5a5721ca3340ef6ec293",
+    "human_RT_only_rtd_by_delta_zoom_0p2_1s.png": "5435a25165bceba8cb7333ecdd530c185adfff8c43e3e416255a8daf2f66a158",
+    "human_RT_only_rtd_cdf_comparison_zoom_0p2_1s.png": "5a65e95cab0ceb53524e76acb11844db61a08411da509a46bf4e1906fe9c1e6e",
+    "asd/parameter_corner.png": "9809d01176fdef2e6d60b0e7cfb7a432cd0091bb875997e1e815da6fbd954de0",
+    "asd/convergence.png": "c8dbe9bf388c2876bcee50df888f7080f5a9f51117ef5d57df3f98a34d41e9aa",
+    "control/parameter_corner.png": "1ea41eff80fa03594691ee68287d196a82f7d0f7efc97971577dd747803b7397",
+    "control/convergence.png": "a52c20935bca2cf9ebfc718584c5e640bf895ee67ea6af52f26eb2c3e357c1dd"
+  },
+  "checks": [
+    "All eight final PNGs inspected: full/zoom RTD-CDF and 2x5 comparisons, both corners and traces",
+    "Control above ASD; ASL20/40 blue/orange; data steps, solid RT-only, dotted previous joint model",
+    "Labels specify RT only, 0.2--1.5 s selection/normalization and 0--200 ms delay prior",
+    "No clipped data/model peaks or labels; matching axes include all peaks",
+    "Posterior mass against the 200 ms cap is visible and marked",
+    "Local stability labels agree with the selected and terminal checkpoint reports",
+    "Broad fitted RTDs and sharper empirical peaks remain visible; no psychometric score included"
+  ]
+}

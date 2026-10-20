@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "method": "Viewed all eight final PNGs, including both full and zoom comparisons, both posterior corners and both convergence traces",
+  "fit_assessment": "The 250-ms-cap curves improve common-window likelihoods and condition-wise CDF gaps in both groups, but their peaks remain too low and tails too heavy. Control passes the specified window/local-stability checks. ASD reaches the 1,000,000-step cap and remains provisional; its delay posterior is concentrated close to 250 ms.",
+  "checks": [
+    "Control above ASD; blue/orange ASL 20/40 labels",
+    "Full and zoomed curves keep 0.25--1.5 s normalization",
+    "Actual retained stimulus frequencies and visible empirical/model peaks",
+    "Standalone plots display ASD unconfirmed status",
+    "Posterior corners show the 250-ms cap and strong lambda/T0/theta correlations",
+    "Readable titles/axes/legends/footers without overlap; PDF bounds checked independently"
+  ],
+  "inspected_figures_sha256": {
+    "asd/convergence.png": "a2c51d2f01060c9e1c0482de90139e126ab2576bee42f4e994a8da90e740bb85",
+    "asd/parameter_corner.png": "b5bf7eac0d0ca8054918e414fb671406cdd9c0116ba01efb098e811d07312d30",
+    "control/convergence.png": "2bacdb0eca5841c99e86304cc9ec00f3e28cd2d870279269b5683d8e9fdc1868",
+    "control/parameter_corner.png": "b1597657bb646954f2e50064897627d4d8fac224ab31f58f24d0d939307d4655",
+    "human_RT_only_rtd_by_delta_full_0p25_1p5s.png": "d7dca83a208e931e13e2f362e030f75f45afa3193447c7b613151ab5519dce85",
+    "human_RT_only_rtd_by_delta_zoom_0p25_1s.png": "b73a51ba15ed85cf8e23d83446bdf7db975193bc82dcf56155073e463fe4539b",
+    "human_RT_only_rtd_cdf_comparison_full_0p25_1p5s.png": "0373b81d9bd25fe6ef0d1819f9e6a59f3cefb84df3ec164b45f645ea399cd723",
+    "human_RT_only_rtd_cdf_comparison_zoom_0p25_1s.png": "8a46d556b521fa894c2bbeab15eafcbb2ff9c73a3d3ee4ba5e1e21dc0d4a328a"
+  }
+}

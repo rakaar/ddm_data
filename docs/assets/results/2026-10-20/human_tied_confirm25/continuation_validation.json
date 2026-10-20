@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "groups": {
+    "Control": {
+      "source_step": 150000,
+      "source_optimizer_iteration": 150000,
+      "final_step": 539000,
+      "best_step": 514000,
+      "post_best_windows": 25,
+      "small_new_minima_that_correctly_reset_patience": 236,
+      "minimum_followup_confirmed": true,
+      "original_loss_prefix_bit_identical": true,
+      "selected_trial_files_identical": true,
+      "posterior_covariance_checked": true
+    },
+    "ASD": {
+      "source_step": 127000,
+      "source_optimizer_iteration": 127000,
+      "final_step": 539000,
+      "best_step": 514000,
+      "post_best_windows": 25,
+      "small_new_minima_that_correctly_reset_patience": 166,
+      "minimum_followup_confirmed": true,
+      "original_loss_prefix_bit_identical": true,
+      "selected_trial_files_identical": true,
+      "posterior_covariance_checked": true
+    }
+  },
+  "original_fit_artifacts_preserved": 66,
+  "same_data_and_model": true,
+  "strict_patience_replayed": true,
+  "raw_updates_in_confirmation_window": 1000,
+  "required_windows": 25,
+  "comparison_values_verified": true,
+  "source_sha256": "6ccbbac0fe229cfaef5d4946be0389a8742c0be8e096dc8bcda842b479c14586"
+}

@@ -1,0 +1,83 @@
+{
+  "source": {
+    "source": "table_visualTask_15nov2026.mat",
+    "source_sha256": "4d83b8024d3927eb4e57daffbba7a4ff8bb32b8db50c7b94e3cf098f62095961",
+    "source_rows": 28880,
+    "source_columns": [
+      "Participant",
+      "GroupID",
+      "Group",
+      "Trial",
+      "Condition",
+      "Session",
+      "Block",
+      "FirstSide",
+      "ASL_cd",
+      "Stim_left_dB",
+      "Stim_right_dB",
+      "Delta_dB",
+      "Stim_left_cdm2",
+      "Stim_right_cdm2",
+      "Delta_cdm2",
+      "Stim_duration_s",
+      "Choice",
+      "ChoseRight",
+      "Correct",
+      "RT_s",
+      "Valid",
+      "Stim_first_dB",
+      "Stim_second_dB",
+      "Delta_SecondMinusFirst_dB",
+      "Stim_first_cdm2",
+      "Stim_second_cdm2",
+      "ChoseSecond"
+    ],
+    "condition_counts": {
+      "RT": 11400,
+      "CB": 11400,
+      "SD": 6080
+    },
+    "selection": "Condition == \"RT\" and 0 < RT_s <= 1.5; all valid recorded choices",
+    "selected_rows": 11400,
+    "selected_participants": 19,
+    "mean_brightness": "Mean_dB = (Stim_left_dB + Stim_right_dB) / 2",
+    "difference": "Delta_dB is the stored Stim_right_dB - Stim_left_dB",
+    "observed_luminance_mapping": "Stim_side_cdm2 = offset + 10^(Stim_side_dB / 10)",
+    "observed_luminance_offset_cdm2": 7.719999999999999,
+    "conversion_max_abs_error_cdm2": 7.105427357601002e-15,
+    "output": "simultaneous_rt_trials.csv",
+    "output_sha256": "d5042c4fc4bb7b47b1ac0267938a21150c096827c11f9a81ec90fd0064b63967",
+    "rt_s_min": 0.11118979984894395,
+    "rt_s_max": 2.499536400020588,
+    "rt_ge_2_49_s": 1,
+    "rt_ge_2_4999_s": 0,
+    "rt_ge_2_5_s": 0,
+    "csv_sha256": "d5042c4fc4bb7b47b1ac0267938a21150c096827c11f9a81ec90fd0064b63967",
+    "selected_source_rows_sha256": "f9bfb2ceb017ec3a131359bf5acedd1d5def1d64df40cb906093446f594427f3",
+    "retention_window_s": [
+      0.0,
+      1.5
+    ],
+    "original_trials": 11400,
+    "selected_trials": 11235,
+    "removed_trials": 165,
+    "excluded_source_rows_sha256": "073f571436a98d3163ac49da7b28e644b1cc7ced60111d1e58b08b4522d4791e"
+  },
+  "data_bins_s": 0.02,
+  "model_grid_s": 0.001,
+  "normalization_window_s": [
+    0,
+    1.5
+  ],
+  "prediction_parameters": "arithmetic means of 10000 physical constrained posterior draws",
+  "psychometric_error_bars": "binomial SEM of pooled choices",
+  "mixture_weights": "observed condition n / total n within plotted cell",
+  "figure_hashes": {
+    "human_tied_rt_cutoff_comparison.png": "2f2b611edf11801b81278041b8d72c347bf1f01ca132a19068bcbf0e96e9bd54",
+    "human_reactive_tied_psychometric_rtd_zoom_0_1s.png": "71c7a4310822be4bd9fd6f9fd146868545788decedbb08fdb118ec5ba41d882e",
+    "human_reactive_tied_rtd_by_delta_full_0_1p5s.png": "cb555757a751c517b8a3e5dbf589bef7d0867f2efb82acd51c6e8c3d96dd75b4",
+    "human_reactive_tied_rtd_by_delta_zoom_0_1s.png": "1028b37d2c725a6c8a06390251ca35a2e07dba12401cb9bafe550fcaefc80261",
+    "human_reactive_tied_psychometric_rtd_full_0_1p5s.png": "745ac41a9dc1e9f27689ab790a1a16c0a270455271234e4d2a2594cc56cc0261"
+  },
+  "source_hash": "989462a56d215684749d7d750500a4acdba832642116511d7fc2eff258bc3c12"
+}

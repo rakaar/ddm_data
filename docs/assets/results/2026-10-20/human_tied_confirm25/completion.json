@@ -1,0 +1,30 @@
+{
+  "workflow_status": "complete",
+  "completed_at_utc": "2026-10-20T14:40:27.758451+00:00",
+  "n_rt_trials": 11400,
+  "groups": {
+    "Control": {
+      "completed_steps": 539000,
+      "restored_best_step": 514000,
+      "confirmation_windows": 25,
+      "minimum_followup_confirmed": true,
+      "terminal_parameter_stable": true,
+      "restored_checkpoint_parameter_stable": true
+    },
+    "ASD": {
+      "completed_steps": 539000,
+      "restored_best_step": 514000,
+      "confirmation_windows": 25,
+      "minimum_followup_confirmed": true,
+      "terminal_parameter_stable": true,
+      "restored_checkpoint_parameter_stable": true
+    }
+  },
+  "strict_mkdocs_exit_code": 0,
+  "git_diff_check_exit_code": 0,
+  "independent_numerics": "passed",
+  "strict_patience_replay": "passed",
+  "visual_inspection": "11 PNG/PDF pairs passed",
+  "original_fit_artifacts_preserved": 66,
+  "conclusion": "Lower variational losses and changed parameters; modest mixed curve improvements; substantial RTD mismatch remains"
+}

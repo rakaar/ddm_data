@@ -1,0 +1,13 @@
+{
+  "group": "ASD",
+  "source_checkpoint": "/home/rlab/raghavendra/ddm_data/ASD_Human_Data/reactive_tied_rt_svi/asd/latest_checkpoint.pkl",
+  "source_checkpoint_sha256": "b561459155f4de950775527f033e0df8d04fa070ab50e60071f9568c685c578e",
+  "source_best_checkpoint_sha256": "b561459155f4de950775527f033e0df8d04fa070ab50e60071f9568c685c578e",
+  "source_convergence_sha256": "b563577443bf8603dffd8cae3854bcd80518a72423c3d1df1412d2e430e03f9c",
+  "source_loss_sha256": "730b6a8b8b47b25195eb736c3e5bc358718b938c3e8e92172f35ecb2c07be478",
+  "source_step": 127000,
+  "optimizer_iteration": 127000,
+  "delay_upper_s": 0.1816100000945627,
+  "rng_state_preserved": true,
+  "guide_parameters_exactly_restored": true
+}

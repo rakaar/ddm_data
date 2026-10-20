@@ -1,0 +1,505 @@
+--- human_gamma_omega_svi_utils.py
++++ human_gamma_omega_delay500_svi_utils.py
+@@ -3,7 +3,7 @@
+ 
+ Gamma is dimensionless, Omega has units s^-1, and w is the fractional starting
+ position between the lower and upper boundaries. There is no proactive race.
+-The fitted delay prior is always 0--300 ms. A separate guide prototype confines
++The fitted delay prior is always 0--500 ms. A separate guide prototype confines
+ each delay to its likelihood-implied causal interval, without replacing that
+ prior or its trapezoidal density.
+ """
+@@ -29,16 +29,17 @@
+ from svi_gamma_omega_likelihood_utils import CDF_E_gamma_omega_with_w_jax
+ 
+ # %% Analysis settings: independent priors in the physical coordinates.
+-OUTPUT = ROOT / 'ASD_Human_Data/gamma_omega_rt_choice_svi_0_1p8s_delay300ms'
++OUTPUT = ROOT / 'ASD_Human_Data/gamma_omega_rt_choice_svi_0_1p8s_delay500ms'
+ INITIAL_ROOT = ROOT / 'ASD_Human_Data/reactive_ddm_debug_0_1p8s_delay300ms'
+ RT_WINDOW = (0., 1.8)
++DELAY_UPPER_S = .5
+ PARAMETER_BLOCKS = ('gamma', 'omega', 't_E_aff', 'w')
+ PARAMETER_NAMES = ([f'{name}_{i:02d}' for name in PARAMETER_BLOCKS[:3] for i in range(20)] + ['w'])
+ PRIORS = {
+     'gamma_positive': dict(hard=[-1., 20.], plausible=[0., 12.]),
+     'gamma_negative': dict(hard=[-20., 1.], plausible=[-12., 0.]),
+     'omega': dict(hard=[.01, 15.], plausible=[.1, 12.]),
+-    't_E_aff': dict(hard=[0., .3], plausible=[.01, .2]),
++    't_E_aff': dict(hard=[0., DELAY_UPPER_S], plausible=[.01, .2]),
+     'w': dict(hard=[0., 1.], plausible=[.4, .6]),
+ }
+ 
+@@ -65,8 +66,8 @@
+     assert (len(sub), sub.Participant.nunique()) == expected
+     minima = sub.groupby('condition_index').RT_s.min().reindex(range(20)).to_numpy()
+     conditions['minimum_RT_s'] = minima
+-    conditions['delay_prior_upper_s'] = .3
+-    conditions['guide_delay_upper_s'] = np.minimum(.3, minima - 1e-6)
++    conditions['delay_prior_upper_s'] = DELAY_UPPER_S
++    conditions['guide_delay_upper_s'] = np.minimum(DELAY_UPPER_S, minima - 1e-6)
+     positive = conditions.signed_delta.to_numpy() > 0
+     bounds = {}
+     for field in ['hard', 'plausible']:
+--- fit_human_gamma_omega_svi.py
++++ fit_human_gamma_omega_delay500_svi.py
+@@ -22,7 +22,7 @@
+ from numpyro.infer.autoguide import AutoMultivariateNormal
+ from numpyro.infer.initialization import init_to_value
+ from numpyro.optim import ClippedAdam
+-from human_gamma_omega_svi_utils import (
++from human_gamma_omega_delay500_svi_utils import (
+     ROOT, OUTPUT, INITIAL_ROOT, PRIORS, PARAMETER_NAMES, PARAMETER_BLOCKS, RT_WINDOW,
+     sha256, load_data, prepare_group, gamma_omega_model, guide_support_model,
+     sample_matrix, vector_params, numerical_check,
+@@ -45,7 +45,7 @@
+ assert args.confirmation_windows >= 1
+ out = args.output_dir
+ out.mkdir(parents=True, exist_ok=True)
+-sources = ['ASD_Human_Data/human_gamma_omega_svi_utils.py', 'ASD_Human_Data/fit_human_gamma_omega_svi.py',
++sources = ['ASD_Human_Data/human_gamma_omega_delay500_svi_utils.py', 'ASD_Human_Data/fit_human_gamma_omega_delay500_svi.py',
+            'ASD_Human_Data/human_plain_ddm_diagnostics_utils.py',
+            'ASD_Human_Data/human_reactive_tied_svi_utils.py',
+            'fit_each_condn/svi_gamma_omega_likelihood_utils.py',
+@@ -58,7 +58,7 @@
+     for root in [ROOT/'ASD_Human_Data', ROOT/'docs/assets/results/2026-10-20', ROOT/'docs/assets/results/2026-10-21']:
+         for path in root.rglob('*'):
+             if path.is_file() and out.resolve() not in path.resolve().parents and '__pycache__' not in path.parts:
+-                if path.name in ['README.md', 'human_gamma_omega_svi_utils.py', 'fit_human_gamma_omega_svi.py']:
++                if 'gamma_omega_delay500' in path.name or path.name in ['README.md', 'human_gamma_omega_delay500_svi_utils.py', 'fit_human_gamma_omega_delay500_svi.py']:
+                     continue
+                 frozen[str(path.relative_to(ROOT))] = sha256(path)
+     preservation.write_text(json.dumps(frozen, indent=2))
+@@ -109,7 +109,7 @@
+         selected_trials_sha256=sha256(folder/'selected_trials.csv'),
+         condition_table_sha256=sha256(folder/'conditions.csv'),
+         initialization_source=str(initial_source.relative_to(ROOT)), initialization_sha256=sha256(initial_source),
+-        causal_delay_upper_s=conditions.guide_delay_upper_s.tolist(), true_prior_delay_upper_s=.3), indent=2))
++        causal_delay_upper_s=conditions.guide_delay_upper_s.tolist(), true_prior_delay_upper_s=PRIORS['t_E_aff']['hard'][1]), indent=2))
+     (folder/'initialization.json').write_text(json.dumps({n: np.asarray(v).tolist() for n,v in initial.items()}, indent=2))
+     check = numerical_check(initial, data)
+     trace = handlers.trace(handlers.seed(handlers.substitute(gamma_omega_model, data=initial), rng_seed=args.seed)).get_trace(data)
+--- plot_human_gamma_omega_svi.py
++++ plot_human_gamma_omega_delay500_svi.py
+@@ -6,6 +6,7 @@
+ from pathlib import Path
+ import argparse
+ import json
++import sys
+ 
+ import numpy as np
+ import pandas as pd
+@@ -14,7 +15,7 @@
+ import matplotlib.pyplot as plt
+ from matplotlib.lines import Line2D
+ import jax.numpy as jnp
+-from human_gamma_omega_svi_utils import (
++from human_gamma_omega_delay500_svi_utils import (
+     ROOT, OUTPUT, INITIAL_ROOT, PRIORS, PARAMETER_BLOCKS, PARAMETER_NAMES, RT_WINDOW,
+     sha256, load_data, prepare_group, sample_matrix, vector_params, log_likelihood,
+     ddm_log_density, ddm_log_cdf, CDF_E_gamma_omega_with_w_jax,
+@@ -51,12 +52,14 @@
+ # %% Configuration, exact posterior draws and analytic predictions.
+ parser=argparse.ArgumentParser(description=__doc__)
+ parser.add_argument('--output-dir',type=Path,default=OUTPUT)
++parser.add_argument('--group-figures-only',action='store_true',help='Update the Control/ASD pages while preserving parameter and convergence figures')
+ args=parser.parse_args()
+ out=args.output_dir
+ config=json.loads((out/'run_config.json').read_text())
+ for path,digest in config['source_hashes'].items(): assert sha256(ROOT/path)==digest
+ _,selected,_,_=load_data()
+ groups=['Control','ASD']; levels=[20.,40.]; absolute=[.1,.3,.65,1.3,2.]
++baseline=ROOT/'ASD_Human_Data/gamma_omega_rt_choice_svi_0_1p8s_delay300ms'
+ level_colors={20.:'#1f77b4',40.:'#ff7f0e'}
+ group_colors={'Control':'#1976d2','ASD':'#d62728'}
+ times=np.linspace(0,1.8,1801)
+@@ -78,10 +81,17 @@
+     summary['condition_index']=list(range(20))*3+[np.nan]
+     summary=summary.merge(conditions[['condition_index','ASL_cd','signed_delta']],on='condition_index',how='left',validate='many_to_one')
+     summaries.append(summary)
+-    fitted,score=assess(params,data,sub,conditions,'Gamma/Omega/delay SVI means',group)
++    fitted,score=assess(params,data,sub,conditions,'Gamma/Omega/delay SVI means — 500 ms prior',group)
+     score['free_parameters']=61
+     quality.append(score); condition_quality.append(fitted)
+     report=json.loads((folder/'convergence_summary.json').read_text())
++    previous_samples=dict(np.load(baseline/group.lower()/'posterior_samples.npz'))
++    previous_params=vector_params(sample_matrix(previous_samples).mean(0))
++    _,previous_score=assess(previous_params,data,sub,conditions,'Gamma/Omega/delay SVI means — 300 ms prior',group)
++    previous_quality=pd.read_csv(baseline/'fit_quality.csv')
++    np.testing.assert_allclose(previous_score['joint_log_likelihood'],
++        previous_quality.loc[previous_quality.Group.eq(group),'joint_log_likelihood'].iloc[0],rtol=0,atol=1e-7)
++    benchmarks.append(dict(previous_score,free_parameters=61,source=str(baseline/group.lower()/'posterior_samples.npz')))
+     for old_name,old_file,old_key,n_parameters in [
+         ('TIED joint MLE','joint_fits.json','tied',5),
+         ('Shared-scale DDM joint MLE','shared_scale_fits.json','joint',23),
+@@ -181,18 +191,17 @@
+             else: ax.tick_params(labelleft=False)
+             if r==1: ax.set_xlabel('RT (s)')
+     ax=fig.add_subplot(grid[:,5])
+-    for level,marker in [(20.,'o'),(40.,'s')]:
++    for level in levels:
+         p=fit.loc[fit.ASL_cd.eq(level)].sort_values('signed_delta')
+-        se=np.sqrt(p.empirical_p_right*(1-p.empirical_p_right)/p.n)
+-        ax.errorbar(p.signed_delta,p.empirical_p_right,yerr=se,fmt=marker,color=level_colors[level],ms=5,capsize=2,linestyle='none')
++        ax.scatter(p.signed_delta,p.empirical_p_right,color=level_colors[level],s=25,zorder=3)
+         ax.plot(p.signed_delta,p.model_p_right,color=level_colors[level],lw=2,label=f'ASL {level:g} cd/m²')
+     ax.set(title='Psychometric',xlabel='Signed ΔdB (right − left)',ylabel='P(right)',xlim=(-2.15,2.15),ylim=(-.015,1.015),xticks=[-2,-1,0,1,2])
+     ax.grid(alpha=.18); ax.legend(loc='lower right',fontsize=9)
+     n_people=info['sub'].Participant.nunique()
+     fig.suptitle(f'{group} | human simultaneous RT | {len(info["sub"]):,} trials from {n_people} participants pooled',
+                  color=group_colors[group],fontsize=18,fontweight='bold',y=.97)
+-    fig.text(.5,.915,'Reactive-only, joint RT + choice | 20 independent Gamma–Omega–delay triples + shared bias (61 parameters)',ha='center',fontsize=11)
+-    fig.legend(handles=[Line2D([],[],color='.5',lw=1.5,alpha=.65,drawstyle='steps-mid',label='Data: 20 ms bins / choice points ± binomial SE'),
++    fig.text(.5,.915,'Reactive-only, joint RT + choice | 20 independent Gamma–Omega–delay triples + shared bias (61 parameters) | delay prior 0–500 ms',ha='center',fontsize=11)
++    fig.legend(handles=[Line2D([],[],color='.5',lw=1.5,alpha=.65,drawstyle='steps-mid',label='Data: 20 ms bins / choice dots'),
+                         Line2D([],[],color='.2',lw=2.1,label='Analytic model at arithmetic posterior means')],loc='upper center',bbox_to_anchor=(.5,.89),ncol=2,frameon=False)
+     status='Convergence checks passed' if not info['report']['flagged'] else 'PROVISIONAL: convergence checks not satisfied'
+     fig.text(.5,.103,'Condition = RT; 0–1.8 s retained, both choices; raw-trial pooling across participants and sessions; no further exclusion',ha='center',fontsize=10)
+@@ -202,6 +211,15 @@
+     for suffix in ['png','pdf']:
+         target=out/f'{stem}.{suffix}';fig.savefig(target,dpi=180);figure_paths.append(target.name)
+     plt.close(fig)
++
++# %% A display-only revision can preserve the other published figures byte for byte.
++if args.group_figures_only:
++    manifest=json.loads((out/'plot_manifest.json').read_text())
++    manifest.update(source_sha256=sha256(Path(__file__)),psychometric_data='Dots at observed P(right); no error bars',
++                    psychometric_model='Existing conditional probabilities at measured stimuli, joined as visual guides')
++    (out/'plot_manifest.json').write_text(json.dumps(manifest,indent=2))
++    print('Updated Control and ASD figures; empirical dots without error bars; fitted curves unchanged')
++    sys.exit(0)
+ 
+ # %% Gamma, Omega and delay by signed difference, plus the one shared bias.
+ fig=plt.figure(figsize=(16.7,13.2))
+@@ -221,7 +239,10 @@
+         ax.grid(alpha=.18)
+         if block=='gamma': ax.axhline(0,color='.4',lw=.8);ax.set_title(f'ASL {level:g} cd/m²',fontsize=14)
+         if block=='omega': ax.set_ylim(bottom=0)
+-        if block=='t_E_aff': ax.set_ylim(0,310);ax.set_xlabel('Signed ΔdB (right − left)')
++        if block=='t_E_aff':
++            ax.set_ylim(0,510);ax.set_xlabel('Signed ΔdB (right − left)')
++            ax.axhline(300,color='.55',ls=':',lw=.9)
++            ax.text(.98,306/510,'Old 300 ms cap',transform=ax.transAxes,ha='right',va='bottom',fontsize=8,color='.4')
+     if r==0: axes[0].legend(frameon=False)
+ ax=fig.add_subplot(grid[0,2])
+ bias_low=[];bias_high=[]
+@@ -235,7 +256,7 @@
+ ax.set(title='Shared bias w',xticks=[0,1],xticklabels=groups,
+        ylim=(min(.4,min(bias_low)-.02),max(.52,max(bias_high)+.04)),xlim=(-.6,1.6),ylabel='Fractional starting position')
+ ax.tick_params(axis='x',rotation=70);ax.grid(axis='y',alpha=.18)
+-fig.suptitle('Human RT | condition-wise Gamma–Omega posterior comparison',y=.97,fontsize=20)
++fig.suptitle('Human RT | Gamma–Omega posterior comparison | delay prior 0–500 ms',y=.97,fontsize=20)
+ fig.text(.5,.925,'Control blue; ASD red | means and equal-tailed 95% variational credible intervals | 61 parameters per group',ha='center',fontsize=11)
+ fig.text(.5,.064,'Gamma, Omega and delay vary independently across all 20 signed stimuli; w is shared across stimuli within each group',ha='center',fontsize=10)
+ fig.text(.5,.036,'Small horizontal offsets separate groups. Pooled-trial variational uncertainty does not represent participant-to-participant variability.',ha='center',fontsize=10)
+--- verify_human_gamma_omega_svi.py
++++ verify_human_gamma_omega_delay500_svi.py
+@@ -21,7 +21,7 @@
+ from numpyro.infer.initialization import init_to_value
+ from PIL import Image
+ import fitz
+-from human_gamma_omega_svi_utils import (
++from human_gamma_omega_delay500_svi_utils import (
+     ROOT, OUTPUT, PRIORS, PARAMETER_NAMES, PARAMETER_BLOCKS, sha256, load_data, prepare_group,
+     sample_matrix, vector_params, numerical_check, gamma_omega_model, guide_support_model,
+     trapezoidal_logpdf_jax, log_likelihood, ddm_log_density, ddm_log_cdf,
+@@ -124,14 +124,14 @@
+     assert np.all(matrix[:,:20]>np.asarray(data['gamma_hard'][0])) and np.all(matrix[:,:20]<np.asarray(data['gamma_hard'][1]))
+     params=vector_params(matrix.mean(0))
+     numerical=numerical_check(params,data)
+-    # Model trace must keep delay prior high=.3, while only the guide prototype narrows it.
++    # Model trace must keep delay prior high=.5, while only the guide prototype narrows it.
+     actual=handlers.trace(handlers.seed(handlers.substitute(gamma_omega_model,data=params),rng_seed=0)).get_trace(data)
+     guide_trace=handlers.trace(handlers.seed(handlers.substitute(guide_support_model,data=params),rng_seed=0)).get_trace(data)
+     assert sum(np.size(site['value']) for site in actual.values() if site['type']=='sample' and not site.get('is_observed',False))==61
+     actual_delay_distribution=actual['t_E_aff']['fn']
+     while hasattr(actual_delay_distribution,'base_dist'):
+         actual_delay_distribution=actual_delay_distribution.base_dist
+-    np.testing.assert_allclose(actual_delay_distribution.high,.3,rtol=0,atol=0)
++    np.testing.assert_allclose(actual_delay_distribution.high,.5,rtol=0,atol=0)
+     np.testing.assert_allclose(guide_trace['t_E_aff']['fn'].base_dist.high,conditions.guide_delay_upper_s,rtol=0,atol=1e-15)
+     prior_log=0.
+     for block in PARAMETER_BLOCKS:
+@@ -199,6 +199,33 @@
+         independent_joint_log_likelihood=independent_ll,unit_conditional_mass_max_error=max(area_errors),
+         scipy_cdf_max_error=max(cdf_errors),convergence=report)
+ 
++# %% Reconstruct the extra prior-sensitivity mixtures directly from signed conditions.
++comparison=json.loads((out/'delay_bound_comparison_manifest.json').read_text())
++pooled=pd.read_csv(out/'delay_bound_pooled_rtd_model_curves.csv',float_precision='round_trip')
++pooled_hist=pd.read_csv(out/'delay_bound_pooled_rtd_histograms.csv',float_precision='round_trip')
++baseline_dir=ROOT/'ASD_Human_Data/gamma_omega_rt_choice_svi_0_1p8s_delay300ms'
++assert (baseline_dir/'selected_trials.csv').read_bytes()==(out/'selected_trials.csv').read_bytes()
++assert (baseline_dir/'excluded_trials.csv').read_bytes()==(out/'excluded_trials.csv').read_bytes()
++for group in ['Control','ASD']:
++    sub=selected.loc[selected.Group.eq(group)]
++    conditions=pd.read_csv(out/group.lower()/'conditions.csv',float_precision='round_trip')
++    for level in [20,40]:
++        obs=sub.loc[sub.ASL_cd.eq(level)]
++        h=pooled_hist.loc[pooled_hist.Group.eq(group)&pooled_hist.ASL_cd.eq(level)]
++        counts,_=np.histogram(obs.RT_s,bins=np.linspace(0,1.8,91))
++        np.testing.assert_array_equal(h['count'],counts)
++        np.testing.assert_allclose(h.density,counts/(len(obs)*.02),rtol=1e-12,atol=1e-12)
++        cond=conditions.loc[conditions.ASL_cd.eq(level)]
++        ix=cond.condition_index.to_numpy()
++        weights=np.array([int(obs.signed_delta.eq(d).sum()) for d in cond.signed_delta])/len(obs)
++        for limit,directory in [(300,baseline_dir),(500,out)]:
++            samples=dict(np.load(directory/group.lower()/'posterior_samples.npz'))
++            p=vector_params(sample_matrix(samples).mean(0))
++            c=pooled.loc[pooled.Group.eq(group)&pooled.ASL_cd.eq(level)&pooled.delay_upper_prior_ms.eq(limit)].iloc[::17]
++            mass=scipy_ddm(1.8,p['gamma'][ix],p['omega'][ix],p['w'],p['t_E_aff'][ix],cumulative=True)
++            f=scipy_ddm(c.time_s.to_numpy()[:,None],p['gamma'][ix],p['omega'][ix],p['w'],p['t_E_aff'][ix])/mass
++            np.testing.assert_allclose(c.density,f@weights,rtol=1e-7,atol=1e-8)
++
+ # %% Preservation and exported figure geometry, alongside manual PNG inspection.
+ baseline=json.loads((out/'preservation_baseline.json').read_text())
+ for path,digest in baseline.items(): assert sha256(ROOT/path)==digest,path
+@@ -206,7 +233,7 @@
+ for path,digest in unrelated.items(): assert sha256(ROOT/path)==digest,path
+ plot_manifest=json.loads((out/'plot_manifest.json').read_text())
+ figure_checks=[]
+-for name in plot_manifest['figures']:
++for name in plot_manifest['figures']+comparison['figures']:
+     path=out/name
+     if path.suffix=='.png':
+         with Image.open(path) as im:
+@@ -223,7 +250,8 @@
+ result=dict(status='passed',source_rows=n_rows,original_RT_rows=11400,retained_rows=11344,excluded_rows=56,
+     retained_below_200ms=4,priors_integrate_to_one=prior_integrals,groups=reports,
+     probabilities_reconstructed=40,histograms_reconstructed=20,signed_curves_reconstructed=40,
+-    mixture_curves_reconstructed=20,posterior_parameters_reconstructed=122,
++    mixture_curves_reconstructed=20,prior_comparison_pooled_mixtures_reconstructed=8,
++    prior_comparison_histograms_reconstructed=4,posterior_parameters_reconstructed=122,
+     prior_artifacts_preserved=len(baseline),unrelated_modified_tracked_files_preserved=len(unrelated),
+     figures=figure_checks,verifier_sha256=sha256(Path(__file__)))
+ (out/'independent_validation.json').write_text(json.dumps(result,indent=2))
+--- publish_human_gamma_omega_svi.py
++++ publish_human_gamma_omega_delay500_svi.py
+@@ -1,32 +1,44 @@
+ # %%
+-"""Publish the requested human Gamma/Omega analysis on 20 October 2026."""
++"""Publish the requested human Gamma/Omega analysis on 21 October 2026."""
+ from pathlib import Path
+ import argparse
+ import json
++import re
+ import shutil
+ import zipfile
+ import numpy as np
+ import pandas as pd
+-from human_gamma_omega_svi_utils import ROOT, OUTPUT, PRIORS, sha256
++from human_gamma_omega_delay500_svi_utils import ROOT, OUTPUT, PRIORS, sha256
+ 
+-# %% Requested date is explicit; do not replace it with the run's local date.
++# %% New sensitivity result uses the client's local date, 21 October 2026.
+ parser=argparse.ArgumentParser(description=__doc__)
+ parser.add_argument('--output-dir',type=Path,default=OUTPUT)
++parser.add_argument('--update-existing',action='store_true',help='Replace only this result section and its published assets')
+ args=parser.parse_args();out=args.output_dir
+-date='2026-10-20'
++date='2026-10-21'
+ page=ROOT/f'docs/results/{date}.md'
+-assets=ROOT/f'docs/assets/results/{date}/human_gamma_omega_svi'
++assets=ROOT/f'docs/assets/results/{date}/human_gamma_omega_delay500_svi'
+ assets.mkdir(parents=True,exist_ok=True)
+ validation=json.loads((out/'independent_validation.json').read_text())
+ assert validation['status']=='passed'
+ assert json.loads((out/'visual_inspection.json').read_text())['status']=='passed'
+-heading='## Human RT: condition-wise Gamma–Omega–delay SVI, pooled Control and ASD'
+-old_page=page.read_text()
+-assert heading not in old_page,'This result is already published'
+-(out/'result_book_page_before.md').write_text(old_page)
++heading='## Human RT: Gamma–Omega SVI with delay prior widened to 500 ms'
++current_page=page.read_text();suffix=''
++if heading in current_page:
++    assert args.update_existing,'This result is already published; use --update-existing for a display revision'
++    start=current_page.index(heading)
++    following=re.search(r'\n## ',current_page[start+len(heading):])
++    end=start+len(heading)+following.start() if following else len(current_page)
++    old_page=current_page[:start];suffix=current_page[end:]
++else:
++    old_page=current_page
++    (out/'result_book_page_before.md').write_text(old_page)
+ plot=json.loads((out/'plot_manifest.json').read_text())
+-copy_names=plot['figures']+plot['tables']+['run_config.json','environment.json','independent_validation.json',
+-    'initial_independent_validation.json','visual_inspection.json','selection_counts.csv','plot_manifest.json','execution_schedule.json']
++comparison=json.loads((out/'delay_bound_comparison_manifest.json').read_text())
++copy_names=plot['figures']+plot['tables']+comparison['figures']+comparison['tables']+[
++    'run_config.json','environment.json','independent_validation.json','delay300_boundary_diagnosis.json',
++    'delay_bound_comparison_manifest.json','source_variant_changes.diff',
++    'visual_inspection.json','selection_counts.csv','plot_manifest.json','execution_schedule.json']
+ for name in copy_names: shutil.copy2(out/name,assets/name)
+ for group in ['control','asd']:
+     dest=assets/group;dest.mkdir(exist_ok=True)
+@@ -34,9 +46,10 @@
+                  'data_manifest.json','initialization.json']:
+         shutil.copy2(out/group/name,dest/name)
+ source_files=[
+-    'ASD_Human_Data/fit_human_gamma_omega_svi.py','ASD_Human_Data/human_gamma_omega_svi_utils.py',
+-    'ASD_Human_Data/plot_human_gamma_omega_svi.py','ASD_Human_Data/verify_human_gamma_omega_svi.py',
+-    'ASD_Human_Data/publish_human_gamma_omega_svi.py','ASD_Human_Data/human_plain_ddm_diagnostics_utils.py',
++    'ASD_Human_Data/fit_human_gamma_omega_delay500_svi.py','ASD_Human_Data/human_gamma_omega_delay500_svi_utils.py',
++    'ASD_Human_Data/plot_human_gamma_omega_delay500_svi.py','ASD_Human_Data/verify_human_gamma_omega_delay500_svi.py',
++    'ASD_Human_Data/publish_human_gamma_omega_delay500_svi.py','ASD_Human_Data/human_plain_ddm_diagnostics_utils.py',
++    'ASD_Human_Data/compare_human_gamma_omega_delay_bounds.py',
+     'ASD_Human_Data/human_reactive_tied_svi_utils.py','ASD_Human_Data/prepare_simultaneous_rt_trials.py',
+     'fit_each_condn/svi_gamma_omega_likelihood_utils.py',
+     'fit_animal_by_animal/numpyro_vanilla_condition_delay_svi_utils.py',
+@@ -47,13 +60,21 @@
+ with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED) as z:
+     for path in sorted(out.rglob('*')):
+         if path.is_file() and '__pycache__' not in path.parts and path.name!='result_book_page_before.md':
++            if path.parent==out and path.name in ['publication.json','completion_audit.json']:
++                continue
+             z.write(path,'analysis/'+str(path.relative_to(out)))
+     for name in source_files:z.write(ROOT/name,'source/'+name)
+     for group in ['control','asd']:
+         for name in ['joint_fits.json','shared_scale_fits.json','fits.json']:
+             z.write(Path(json.loads((out/'run_config.json').read_text())['initial_root'])/group/name,
+                     f'initialization/{group}/{name}')
+-base=f'../assets/results/{date}/human_gamma_omega_svi'
++    previous=ROOT/'ASD_Human_Data/gamma_omega_rt_choice_svi_0_1p8s_delay300ms'
++    for name in ['run_config.json','parameter_summary.csv','fit_quality.csv','rtd_model_curves.csv','selected_trials.csv','excluded_trials.csv']:
++        z.write(previous/name,f'comparison_baseline_300ms/{name}')
++    for group in ['control','asd']:
++        for name in ['posterior_samples.npz','conditions.csv','initialization.json','convergence_summary.json']:
++            z.write(previous/group/name,f'comparison_baseline_300ms/{group}/{name}')
++base=f'../assets/results/{date}/human_gamma_omega_delay500_svi'
+ lines=['',heading,'',
+     '**Selection:** `Condition == "RT"`, `Valid == 1`, and **0 ≤ RT_s ≤ 1.8 s**. '
+     '**Control: 6,574 trials from 11 participants; ASD: 4,770 trials from 8 participants.** '
+@@ -61,19 +82,57 @@
+     'The four RTs below 200 ms are retained; 56 RTs above 1.8 s are excluded. SD and sequential CB are excluded.','',
+     '**Model:** a reactive-only, descriptive two-bound DDM with **20 independent Gamma, 20 Omega, '
+     '20 effective nondecision delays, and one shared fractional starting bias `w` per group (61 parameters)**. '
+-    'This replaces the earlier shared-bound/shared-delay restriction with condition-specific time scales and delays. '
++    'The model and all fit settings match the 300 ms fit; only the delay hard upper prior changes to 500 ms. '
+     'There is no proactive process or `del_go`. Gamma is dimensionless, Omega is in s⁻¹. '
+     '`Choice=1/-1` is right/left; `Delta_dB` is right minus left visual dB. ASL labels are 20/40 cd/m².','',
+     'The likelihood is the observed bound-specific RT density divided by the probability of reaching **either** bound '
+     'within 0–1.8 s. Predictions use the same normalization. Fits keep all signed conditions distinct; only displayed '
+     'RTDs pool ±Δ using actual retained-trial frequencies. This is not an equal-participant average.','',
+-    '### Data and mean-parameter fits','']
++    '### Why widen the bound?','',
++    'The 300 ms posteriors show upper 95% endpoints above 295 ms in **2 Control and 8 ASD conditions**, '
++    'reaching 298.95 and 298.87 ms. The largest posterior means were 292.26 and 290.05 ms. '
++    'This is pressure near the old prior cap; the continuous prior does not put point mass exactly at 300 ms. '
++    'The flat part of the trapezoid remains **10–200 ms**.','',
++    'With all trials retained, each delay must remain below its own condition’s fastest RT. '
++    'Widening creates additional causal support for **5 Control and 16 ASD conditions**. '
++    'The largest new effective limits are **347.71 ms Control and 391.00 ms ASD**; the 500 ms prior '
++    'does not override these data-implied limits. No RT selection or response coding changes.','',
++    f'[Original boundary audit]({base}/delay300_boundary_audit.csv) · '
++    f'[Configuration and initialization comparison]({base}/delay300_boundary_diagnosis.json)','',
++    '### Direct comparison with the 300 ms fits','',
++    f'![Delay and RTD comparisons for 300 versus 500 ms priors]({base}/human_gamma_omega_delay_prior_comparison.png)','',
++    '*Rows are Control and ASD. The left two columns compare delay posterior means and 95% variational intervals '
++    'at ASL 20/40; gray open circles are the 300 ms fit, group-colored marks the 500 ms fit. '
++    'Short gray marks give the condition-specific causal limits. The right panels pool all stimulus differences '
++    'using actual trial counts: blue/orange are ASL 20/40, dashed curves use the 300 ms prior and solid curves '
++    'the 500 ms prior. Each signed density is normalized on 0–1.8 s before mixing.*','',
++    f'[Full-size comparison]({base}/human_gamma_omega_delay_prior_comparison.png) · '
++    f'[PDF]({base}/human_gamma_omega_delay_prior_comparison.pdf) · '
++    f'[All parameter changes]({base}/delay_bound_parameter_comparison.csv) · '
++    f'[Delay shifts and probability above 300 ms]({base}/delay_bound_delay_comparison.csv)','',
++    'Comparison source: `ASD_Human_Data/compare_human_gamma_omega_delay_bounds.py` '
++    f'([source]({base}/source/compare_human_gamma_omega_delay_bounds.py)).','',
++    '### Delay posteriors after widening','',
++    '| Group | Delay means above 300 ms | Largest delay mean | Largest upper 95% endpoint | Closest sampled delay to a causal cap |',
++    '|---|---:|---:|---:|---:|']
++for group in ['Control','ASD']:
++    samples=np.load(out/group.lower()/'posterior_samples.npz')['t_E_aff']
++    conditions=pd.read_csv(out/group.lower()/'conditions.csv',float_precision='round_trip')
++    lines.append(f'| {group} | {int((samples.mean(0)>.3).sum())} / 20 | {samples.mean(0).max()*1000:.2f} ms | '
++                 f'{np.quantile(samples,.975,axis=0).max()*1000:.2f} ms | '
++                 f'{np.min(conditions.guide_delay_upper_s.to_numpy()-samples)*1000:.2f} ms below |')
++lines += ['',
++    'No new posterior sample is within 5 ms of its condition’s causal limit. The 500 ms hard prior '
++    'is above every condition’s causal support. For ASD at ASL 40, ΔdB = +0.3, the delay moves '
++    'from a 290.05 ms mean to **348.27 ms [320.10, 367.53]**, with 99.93% of draws above 300 ms. '
++    'These are equal-tailed variational credible intervals.','',
++    '### Data and mean-parameter fits with the 500 ms prior','']
+ for group in ['Control','ASD']:
+     stem=f'human_{group.lower()}_gamma_omega_rtd_psychometric'
+     lines += [f'![{group} RTDs by ASL and absolute difference, with fitted psychometric]({base}/{stem}.png)','',
+         f'*{group}: ASL 20/40 occupy the two RTD rows; columns are |ΔdB| = 0.1, 0.3, 0.65, 1.3, 2. '
+         'Steps are data in 20 ms bins; curves use arithmetic posterior means of physical Gamma, Omega, delay, and bias. '
+-        'Each RTD has unit area on the full 0–1.8 s window. The right panel shows empirical P(right) ± binomial SE '
++        'Each RTD has unit area on the full 0–1.8 s window. The right panel shows empirical P(right) as dots without error bars '
+         'and conditional fitted probabilities at the ten observed signed differences; connecting segments are visual guides.*','',
+         f'[Full-size PNG]({base}/{stem}.png) · [PDF]({base}/{stem}.pdf)','']
+ lines += ['### Parameter comparison','',
+@@ -93,32 +152,35 @@
+                  f'{row.psychometric_rmse:.4f} | {row.mean_condition_cdf_gap:.4f} | {row.max_condition_cdf_gap:.4f} |')
+ changes=[]
+ for group in ['Control','ASD']:
+-    old=bench.loc[bench.Group.eq(group)&bench.free_parameters.eq(42)].iloc[0]
+-    new=bench.loc[bench.Group.eq(group)&bench.free_parameters.eq(61)].iloc[0]
++    old=bench.loc[bench.Group.eq(group)&bench.model.str.contains('300 ms prior')].iloc[0]
++    new=bench.loc[bench.Group.eq(group)&bench.model.str.contains('500 ms prior')].iloc[0]
+     changes.append(f'**{group}: {old.mean_condition_cdf_gap:.4f} → {new.mean_condition_cdf_gap:.4f}**')
+-lines += ['', 'Allowing condition-specific delays changes the mean signed-condition RT CDF gap: '+ '; '.join(changes)+'. '
+-          'RTD agreement improves, but some fitted curves still underestimate the sharp empirical peaks. '
+-          'The remaining discrepancies are visible in the plots and maximum-gap column.']
++lines += ['', 'Widening the delay prior changes the mean signed-condition RT CDF gap: '+ '; '.join(changes)+'. '
++          'Control RTDs are essentially unchanged; ASD improves modestly on this average CDF metric, '
++          'and its psychometric RMSE decreases. Maximum CDF gaps do not improve. '
++          'The sharp empirical RTD peaks remain underfit: relaxing the delay prior does not resolve the main shape mismatch.']
+ lines += ['',
+     'Likelihoods use the same rows and normalization. More flexible fits have more parameters; these in-sample '
+-    'scores do not establish predictive superiority. The earlier rows are maximum-likelihood diagnostics; '
+-    'the new SVI row is evaluated at arithmetic physical posterior means.','',
++    'scores do not establish predictive superiority. The 5/23/42-parameter rows are maximum-likelihood diagnostics; '
++    'both 61-parameter SVI rows are evaluated at arithmetic physical posterior means.','',
+     f'[Fit-quality table]({base}/fit_quality.csv) · [Benchmark comparisons]({base}/benchmark_comparison.csv) · '
+-    f'[All signed-condition CDF gaps and probabilities]({base}/condition_fit_quality.csv)','',
++    f'[All signed-condition CDF gaps and probabilities]({base}/condition_fit_quality.csv) · '
++    f'[300 versus 500 ms fit metrics]({base}/delay_bound_fit_comparison.csv)','',
+     '### Priors, initialization and convergence','',
+     '| Parameter | Hard interval | Flat interval of trapezoidal prior |','|---|---:|---:|']
+ for name,p in PRIORS.items():lines.append(f'| `{name}` | {p["hard"]} | {p["plausible"]} |')
+ lines += ['',
+     'Linear tails connect each flat region to its hard limits. Gamma favors the stimulus-consistent sign but permits '
+-    'small reversals. The true delay prior remains 0–300 ms; each guide transform alone is confined below its '
++    'small reversals. The true delay prior remains 0–500 ms; each guide transform alone is confined below its '
+     'condition’s earliest RT. All 40 causal limits are exported. Initialization uses the same-trial joint '
+     'Gamma/Omega MLE with its shared delay copied into all conditions (Control 102.8 ms, ASD 173.4 ms).','',
+     'NumPyro AutoMultivariateNormal; float64 CPU, full batch, one ELBO particle, seed 0, one initialization per group. '
+     'ClippedAdam learning rate 0.0002, gradient clip 1, guide initial scale 0.1. Minimum 50,000 and maximum '
+     '1,000,000 updates. Any lower 1,000-update window mean resets patience; stopping requires 25 later windows '
+     'and posterior-mean ranges below 0.1 posterior SD over the last three checkpoints for all 61 parameters. '
++    'Fresh optimizer/RNG runs use the same physical initialization as the 300 ms fit. '
+     'The selected best checkpoint is restored; 10,000 joint posterior samples are retained. '
+-    'ASD ran in parallel with Control’s continuation using separate CPU processes and checkpoints.','',
++    'Control and ASD ran in parallel using separate CPU processes and checkpoints.','',
+     '| Group | Final updates | Restored best | Later windows | Terminal max shift (SD) | Best checkpoint locally stable | Status |',
+     '|---|---:|---:|---:|---:|---|---|']
+ for group in ['Control','ASD']:
+@@ -166,20 +228,21 @@
+     'It checks true trapezoidal prior normalization, guide-only causal restrictions, finite gradients, '
+     'K=40 versus K=80 accuracy, conditional unit mass, covariance/correlation matrices, and the stopping rule. '
+     'Earlier human artifacts and unrelated modified tracked files are preserved.','']
+-page.write_text(old_page+'\n'.join(lines))
++page.write_text(old_page+'\n'.join(lines)+suffix)
+ assert page.read_text().startswith(old_page)
+ index=ROOT/'docs/results/index.md'
+ old_index=index.read_text();new_index=[]
+ for line in old_index.splitlines():
+-    if line.startswith('- [2026-10-20]'):
+-        line+='; human condition-wise Gamma–Omega–delay RT + choice SVI'
++    if line.startswith('- [2026-10-21]'):
++        if 'human Gamma–Omega delay-prior sensitivity: 300 versus 500 ms' not in line:
++            line+='; human Gamma–Omega delay-prior sensitivity: 300 versus 500 ms'
+     new_index.append(line)
+ index.write_text('\n'.join(new_index)+'\n')
+-assert 'results/2026-10-20.md' in (ROOT/'mkdocs.yml').read_text()
++assert 'results/2026-10-21.md' in (ROOT/'mkdocs.yml').read_text()
+ manifest=dict(result_page=str(page.relative_to(ROOT)),assets=str(assets.relative_to(ROOT)),
+-    requested_result_date=date,page_sha256=sha256(page),previous_page_sha256=sha256(out/'result_book_page_before.md'),
+-    prior_page_preserved_as_prefix=True,navigation='Existing 2026-10-20 entry verified',
++    result_date=date,page_sha256=sha256(page),previous_page_sha256=sha256(out/'result_book_page_before.md'),
++    prior_page_preserved_as_prefix=True,navigation='Existing 2026-10-21 entry verified',
+     sources={p:sha256(ROOT/p) for p in source_files},archive_sha256=sha256(archive),
+-    figures={name:sha256(assets/name) for name in plot['figures']})
++    figures={name:sha256(assets/name) for name in plot['figures']+comparison['figures']})
+ (out/'publication.json').write_text(json.dumps(manifest,indent=2))
+ print('Published',page)

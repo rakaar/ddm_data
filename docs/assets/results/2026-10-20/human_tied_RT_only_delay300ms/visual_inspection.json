@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "method": "Viewed all eight figure types; re-inspected restored Control convergence, final full/zoom RTD grids and pooled comparison after checkpoint repair and tick-spacing adjustment",
+  "fit_assessment": "At arithmetic physical posterior means, both model RTDs remain substantially broader than the data, with peaks that are too low and tails too heavy. The delay means are 102.04 ms Control and 170.65 ms ASD; neither posterior is near the requested 300-ms ceiling. The retained earliest RTs impose separate causal limits. Both groups pass the specified post-minimum and terminal-stability checks; movement at the selected minimum remains a diagnostic.",
+  "checks": [
+    "Control above ASD; ASL 20/40 blue/orange throughout",
+    "All 0--1.8 s RTs included without additional lower filter",
+    "Requested 300-ms prior and causal bounds labeled separately",
+    "Full and zoom views retain 0--1.8 s conditional normalization",
+    "Posterior curves use arithmetic physical means",
+    "Restored Control trace ends at accepted 81k step",
+    "Posterior corners and convergence labels readable; full/zoom RTD peaks visible; PDF bounds independently checked"
+  ],
+  "inspected_figures_sha256": {
+    "asd/convergence.png": "21e451d83280f32f2e39e837eb989d3241547434ae3f1cf473b9ed81afc52188",
+    "asd/parameter_corner.png": "86bf25ce1b750f88c47c45344ca14a7ce618d0ddd430bfa511413365d81caadd",
+    "control/convergence.png": "f7a028c6774d1867200ea46d0480300dfe6a5a1fe024942888335d3bebcb01a9",
+    "control/parameter_corner.png": "1e76d74583560b6cf8cbc89e38256600c084f7765fc07e2d596e4fdbbac2a850",
+    "human_RT_only_rtd_by_delta_full_0_1p8s.png": "b8f3e7244dc2f302a7cc2dcda6705cfb034a0be1bda3e3155a9f2836bdb2dff5",
+    "human_RT_only_rtd_by_delta_zoom_0_1p5s.png": "af5391b6d48545b065669f707572f47870e3696f915008e4aec6e5161b1460c8",
+    "human_RT_only_rtd_cdf_comparison_full_0_1p8s.png": "6e330b20764218703a3a997dc3d4a745b79b1ed69ba80a857ce827634276c735",
+    "human_RT_only_rtd_cdf_comparison_zoom_0_1p5s.png": "ff746dca59d90fa3bca0b8e7ff7b0d6db04eadb83feeded8c49d1c055e618ebf"
+  }
+}

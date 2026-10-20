@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "original_mat_rows": 28880,
+  "original_RT_rows": 11400,
+  "retained_rows": 11231,
+  "excluded_rows": 169,
+  "early_excluded": 4,
+  "late_excluded": 165,
+  "selected_source_row_hash": "a59b24eea862210d18039bbf08784ce94f541e144766f1cef4fcaa917ac10c6d",
+  "counts": {
+    "ASD": 4703,
+    "Control": 6528
+  },
+  "participants": {
+    "ASD": 8,
+    "Control": 11
+  },
+  "minimum_RT_s": {
+    "ASD": 0.2778402999974787,
+    "Control": 0.2262464000377804
+  },
+  "window_s": [
+    0.2,
+    1.5
+  ],
+  "delay_prior_upper_s": 0.2
+}

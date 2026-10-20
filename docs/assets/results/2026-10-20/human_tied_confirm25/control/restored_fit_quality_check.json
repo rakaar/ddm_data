@@ -1,0 +1,10 @@
+{
+  "Group": "Control",
+  "joint_log_likelihood": -2687.199827782802,
+  "psychometric_rmse": 0.03053528040569693,
+  "mean_condition_cdf_gap": 0.32028695046324507,
+  "max_condition_cdf_gap": 0.4366580311047153,
+  "finite_gradients": true,
+  "max_density_K40_K80_abs": 6.661338147750939e-16,
+  "prediction_parameters": "arithmetic means of the 10000 posterior draws from restored step 514000"
+}

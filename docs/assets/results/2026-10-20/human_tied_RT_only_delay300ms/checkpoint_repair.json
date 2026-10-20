@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "completed_at_utc": "2026-10-20T18:51:24.493756+00:00",
+  "stopped_leftover_worker_pid": 1609457,
+  "accepted_final_step": 81000,
+  "accepted_best_step": 40000,
+  "discarded_iterations_archived": 92000,
+  "replay": "Exact original initialization, optimizer, seed and RNG trajectory; checked every loss and checkpoint mean through accepted stop",
+  "maximum_loss_absolute_error": 0.0,
+  "maximum_checkpoint_mean_absolute_error": 5.684341886080802e-14,
+  "all_10000_posterior_draws_reproduced": true,
+  "posterior_samples_byte_unchanged": true,
+  "guide_parameters_byte_unchanged": true,
+  "posterior_samples_sha256": "159eda0ec927167a9e58dd47292428f0eeddbdabcd8549a0e6b78785d768aefa",
+  "guide_parameters_sha256": "cdd6edef8f7c38d7330dfa8806b08a26294617c9784e949b65a6c19dbf8b741b",
+  "actual_prior_upper_s": 0.3,
+  "rt_window_s": [
+    0.0,
+    1.8
+  ],
+  "source_sha256": "aa21769946f168bebcbe36c909ffd92b98af63bb72ec56be7984824018033033"
+}

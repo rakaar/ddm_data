@@ -1,0 +1,22 @@
+{
+  "group": "Control",
+  "n_trials": 6600,
+  "participants": [
+    34,
+    35,
+    36,
+    38,
+    39,
+    42,
+    47,
+    48,
+    49,
+    53,
+    55
+  ],
+  "min_rt_s": 0.1111897998489439,
+  "max_rt_s": 2.499536400020588,
+  "delay_support_lower_s": 0.0,
+  "delay_support_upper_s": 0.11118879984894389,
+  "source_rows_sha256": "dcc0fdbaca32292e4e8eded1a06152ed56dd66511cf1f446db81592d30c4d394"
+}

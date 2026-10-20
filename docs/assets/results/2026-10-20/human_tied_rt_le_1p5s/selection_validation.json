@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "original_mat_rows": 28880,
+  "original_RT_rows": 11400,
+  "selected_rows": 11235,
+  "excluded_rows": 165,
+  "all_selected_and_excluded_source_identities_verified": true,
+  "conditions": [
+    "RT"
+  ],
+  "max_selected_rt_s": 1.4988076998852191,
+  "selected_source_row_id_hash": "f9bfb2ceb017ec3a131359bf5acedd1d5def1d64df40cb906093446f594427f3",
+  "counts": {
+    "ASD": 4704,
+    "Control": 6531
+  },
+  "participants": {
+    "ASD": 8,
+    "Control": 11
+  }
+}

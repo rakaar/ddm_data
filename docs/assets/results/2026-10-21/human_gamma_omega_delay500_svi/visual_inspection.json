@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "method": "All five full PNG exports visually inspected with image viewer; PDF text geometry independently checked",
+  "figures": [
+    {
+      "file": "human_control_gamma_omega_rtd_psychometric.png",
+      "sha256": "084d98a7d26df7a98df021628550a38b3d6216b73df4a6e71c3a1f6c96e36cd0",
+      "observations": "Visually inspected updated export: empirical psychometric dots have no error bars; existing fitted segments retained. RTD rows unchanged and fully visible; no clipping."
+    },
+    {
+      "file": "human_asd_gamma_omega_rtd_psychometric.png",
+      "sha256": "18ce358a0821c42a931411b43a170c28f43f54c9d26239a96cf8c13b63a5b138",
+      "observations": "Visually inspected updated export: empirical psychometric dots have no error bars; existing fitted segments retained. RTD rows unchanged and fully visible; no clipping."
+    },
+    {
+      "file": "human_gamma_omega_parameter_comparison.png",
+      "sha256": "611e405289f8e5978dc859f03683fb58f7f1a3b24772bc12698a09f441b5295c",
+      "observations": "Three parameter rows, two ASLs and shared bias readable; Control blue circles and ASD red stars; all credible intervals visible; 500 ms delay scale and old300 reference shown."
+    },
+    {
+      "file": "human_gamma_omega_convergence_correlations.png",
+      "sha256": "3823e10579a0469e1dd218dff2b5625237281dd9d14bc083ffb909b55a0a1087",
+      "observations": "Both loss traces, restored-best marks, follow-up counts and correlation matrices visible without overlap or clipping."
+    },
+    {
+      "file": "human_gamma_omega_delay_prior_comparison.png",
+      "sha256": "181d5edb218655bbad23dae3c45846743917bc44015a6ee2e071d86f38158d88",
+      "observations": "Old/new delay intervals, condition causal caps and pooled RTD overlays readable; dashed300 and solid500 curves, blue/orange ASLs distinguishable; RTD y scales match across groups."
+    }
+  ]
+}

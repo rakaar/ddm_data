@@ -1,0 +1,81 @@
+{
+  "execution": "Control and ASD launched as separate simultaneous CPU processes",
+  "groups": [
+    "Control",
+    "ASD"
+  ],
+  "parallel": true,
+  "group_owners": {
+    "Control": "root agent",
+    "ASD": "asd_fit agent"
+  },
+  "seed": 0,
+  "statistical_initializations_per_group": 1,
+  "initial_physical_parameters": "Identical to the 300 ms baseline; original same-trial 42-parameter joint MLE",
+  "optimizer_state": "Fresh for each 500 ms group run",
+  "group_launch_options": [
+    "--group Control --resume-existing",
+    "--group ASD --resume-existing"
+  ],
+  "logs": {
+    "Control": "control/fit.log",
+    "ASD": "asd/fit.log"
+  },
+  "confirmation": "25 windows after the latest lower 1000-update mean plus terminal parameter stability",
+  "cpu_thread_environment": {
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1"
+  },
+  "active_overlap_evidence": {
+    "Control": "Control 83,000: loss=591.096, best=63,000, follow-up=20/25, max parameter change=0.128 SD, elapsed=613.2s",
+    "ASD": "ASD 100,000: loss=1061.094, best=83,000, follow-up=17/25, max parameter change=0.147 SD, elapsed=592.6s"
+  },
+  "run_config_sha256": "d3b8fc1a5cfaf6026bcbe177a4bb800a20becbf2dd6c55d5df61c6d40670d0ce",
+  "completed": true,
+  "convergence": {
+    "Control": {
+      "stop_reason": "confirmed_minimum_and_terminal_parameter_stability",
+      "completed_steps": 92000,
+      "restored_best_step": 63000,
+      "best_window_mean_negative_elbo": 590.521614463082,
+      "terminal_parameter_stable": true,
+      "restored_checkpoint_parameter_stable": false,
+      "confirmation_windows": 29,
+      "required_confirmation_windows": 25,
+      "updates_after_restored_best": 29000,
+      "flagged": false,
+      "maximum_terminal_mean_change_sd": 0.09114848862765455,
+      "wall_seconds": 688.0350896939635,
+      "numerical_check_at_posterior_means": {
+        "joint_log_likelihood_K40": -334.24228416499875,
+        "joint_log_likelihood_K80": -334.24228416499875,
+        "absolute_series_difference": 0.0,
+        "finite_gradients": true
+      },
+      "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+      "warning": "Confirmation does not prove a global optimum; pooled-trial posterior uncertainty excludes participant variability"
+    },
+    "ASD": {
+      "stop_reason": "confirmed_minimum_and_terminal_parameter_stability",
+      "completed_steps": 109000,
+      "restored_best_step": 83000,
+      "best_window_mean_negative_elbo": 1060.1321627514442,
+      "terminal_parameter_stable": true,
+      "restored_checkpoint_parameter_stable": false,
+      "confirmation_windows": 26,
+      "required_confirmation_windows": 25,
+      "updates_after_restored_best": 26000,
+      "flagged": false,
+      "maximum_terminal_mean_change_sd": 0.0994818743306298,
+      "wall_seconds": 647.0508238770999,
+      "numerical_check_at_posterior_means": {
+        "joint_log_likelihood_K40": -818.0645278114833,
+        "joint_log_likelihood_K80": -818.0645278114833,
+        "absolute_series_difference": 0.0,
+        "finite_gradients": true
+      },
+      "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+      "warning": "Confirmation does not prove a global optimum; pooled-trial posterior uncertainty excludes participant variability"
+    }
+  }
+}

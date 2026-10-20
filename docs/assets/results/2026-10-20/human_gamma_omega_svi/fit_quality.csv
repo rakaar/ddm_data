@@ -1,0 +1,3 @@
+Group,model,n_trials,joint_log_likelihood,psychometric_mae,psychometric_rmse,mean_condition_cdf_gap,max_condition_cdf_gap,free_parameters
+Control,Gamma/Omega/delay SVI means,6574,-341.35588537109516,0.02175846834474545,0.024164531365193052,0.13771533743086084,0.18326268371051518,61
+ASD,Gamma/Omega/delay SVI means,4770,-869.01111156157572,0.01977268254868499,0.022328041683802365,0.11401148966837611,0.16101107268720627,61

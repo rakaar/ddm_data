@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "groups": {
+    "Control": {
+      "trials": 6574,
+      "actual_prior_upper_s": 0.3,
+      "guide_upper_s": 0.1111897998489439,
+      "model_vs_prototype_log_density_offset": -0.9925438250240859,
+      "expected_offset": -0.9925438250241104,
+      "noncausal_delay_log_likelihood": "-inf",
+      "guide_draws_checked": 1000
+    },
+    "ASD": {
+      "trials": 4770,
+      "actual_prior_upper_s": 0.3,
+      "guide_upper_s": 0.1816110000945627,
+      "model_vs_prototype_log_density_offset": -0.5019154371154855,
+      "expected_offset": -0.5019154371155463,
+      "noncausal_delay_log_likelihood": "-inf",
+      "guide_draws_checked": 1000
+    }
+  }
+}

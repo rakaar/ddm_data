@@ -1,0 +1,30 @@
+{
+  "condition": "RT",
+  "rt_selection_s": [
+    0.0,
+    1.8
+  ],
+  "requested_delay_prior_s": [
+    0.0,
+    0.3
+  ],
+  "group_counts": {
+    "Control": 6574,
+    "ASD": 4770
+  },
+  "excluded_above_1p8s": {
+    "Control": 26,
+    "ASD": 30
+  },
+  "retained_below_200ms": 4,
+  "pooling": "Raw trials across participants and sessions; five shared parameters per group across both ASLs and all signed differences",
+  "prior_and_guide": "Actual model prior remains Uniform(0,.3). AutoMultivariateNormal uses a guide-only prototype capped at the minimum retained group RT, where the actual posterior support ends. No prior renormalization or additional trial exclusion.",
+  "causal_delay_limits_s": {
+    "ASD": 0.1816110000945627,
+    "Control": 0.1111897998489439
+  },
+  "initializer": "reactive_tied_rt_svi_rt_le_1p5s: a fully confirmed earlier joint fit retaining the fastest RTs; later 200/250-ms fits have incompatible delays",
+  "changes_from_latest_250ms_run": "RT window changes from .25--1.5 to 0--1.8, restoring eight RTs below 250 ms and 109 RTs from 1.5--1.8; actual model delay prior rises from 250 to 300 ms; no change to five-parameter model or other priors",
+  "checkpoint_repair": "See checkpoint_repair.json and repair_control_checkpoints.py: terminated leftover original Control worker; deterministic replay restores the accepted 40k/81k checkpoints and verifies all accepted losses, means and posterior draws without changing the posterior files.",
+  "timing_note": "For the resumed Control process, convergence_summary.wall_seconds is time in the resumed process. Use the convergence elapsed_s column and the stopping/repair records for the full execution history."
+}

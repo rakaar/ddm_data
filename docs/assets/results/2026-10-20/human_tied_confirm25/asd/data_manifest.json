@@ -1,0 +1,19 @@
+{
+  "group": "ASD",
+  "n_trials": 4800,
+  "participants": [
+    29,
+    31,
+    40,
+    51,
+    52,
+    54,
+    56,
+    59
+  ],
+  "min_rt_s": 0.1816110000945627,
+  "max_rt_s": 2.43322530016303,
+  "delay_support_lower_s": 0.0,
+  "delay_support_upper_s": 0.1816100000945627,
+  "source_rows_sha256": "e1edf276a796babb771477d724d095e596bb95957bcb414fb30ecf1ea0ca217f"
+}

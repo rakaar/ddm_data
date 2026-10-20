@@ -1,0 +1,30 @@
+{
+  "groups": {
+    "Control": {
+      "conditions": 20,
+      "upper_95pct_endpoint_at_least_295ms": 2,
+      "conditions_with_at_least_10pct_mass_above_290ms": 2,
+      "largest_posterior_mean_ms": 292.26029364721154,
+      "largest_95pct_endpoint_ms": 298.9521834727532,
+      "conditions_gaining_causal_support": 5,
+      "largest_new_causal_limit_ms": 347.71120001857724
+    },
+    "ASD": {
+      "conditions": 20,
+      "upper_95pct_endpoint_at_least_295ms": 8,
+      "conditions_with_at_least_10pct_mass_above_290ms": 11,
+      "largest_posterior_mean_ms": 290.05055564279235,
+      "largest_95pct_endpoint_ms": 298.87037535247293,
+      "conditions_gaining_causal_support": 16,
+      "largest_new_causal_limit_ms": 390.9983000561371
+    }
+  },
+  "only_analysis_change": "Delay hard upper prior 0.3 -> 0.5 s; flat 0.01--0.2 s unchanged",
+  "same_trials": true,
+  "same_exclusions": true,
+  "same_initial_physical_values": true,
+  "same_other_fit_settings": true,
+  "causality": "No delay can exceed its own condition minimum RT; no retained trials removed",
+  "baseline_config_sha256": "2c2063f6b1aa53287d9914e44504b2aa2ed081311fe43f21184df7c88c3696a0",
+  "refit_config_sha256": "d3b8fc1a5cfaf6026bcbe177a4bb800a20becbf2dd6c55d5df61c6d40670d0ce"
+}

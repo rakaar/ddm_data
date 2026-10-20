@@ -57,6 +57,8 @@ nav:
       - "2026-10-13": results/2026-10-13.md
       - "2026-10-14": results/2026-10-14.md
       - "2026-10-15": results/2026-10-15.md
+      - "2026-10-20": results/2026-10-20.md
+      - "2026-10-21": results/2026-10-21.md
 markdown_extensions:
   - toc:
       permalink: true

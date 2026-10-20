@@ -1,0 +1,139 @@
+{
+  "status": "passed",
+  "source_rows": 28880,
+  "original_RT_rows": 11400,
+  "retained_rows": 11344,
+  "excluded_rows": 56,
+  "retained_below_200ms": 4,
+  "priors_integrate_to_one": {
+    "gamma_positive": 0.9999999999999999,
+    "gamma_negative": 0.9999999999999999,
+    "omega": 1.0,
+    "t_E_aff": 0.9999999999999998,
+    "w": 1.0
+  },
+  "groups": {
+    "Control": {
+      "trials": 6574,
+      "participants": 11,
+      "parameters": 61,
+      "numerical": {
+        "joint_log_likelihood_K40": -341.35588537109516,
+        "joint_log_likelihood_K80": -341.3558853710951,
+        "absolute_series_difference": 5.684341886080802e-14,
+        "finite_gradients": true
+      },
+      "independent_joint_log_likelihood": -341.3558853710951,
+      "unit_conditional_mass_max_error": 1.2723155862204294e-13,
+      "scipy_cdf_max_error": 5.551115123125783e-15,
+      "convergence": {
+        "stop_reason": "confirmed_minimum_and_terminal_parameter_stability",
+        "completed_steps": 92000,
+        "restored_best_step": 63000,
+        "best_window_mean_negative_elbo": 601.0740506740175,
+        "terminal_parameter_stable": true,
+        "restored_checkpoint_parameter_stable": false,
+        "confirmation_windows": 29,
+        "required_confirmation_windows": 25,
+        "updates_after_restored_best": 29000,
+        "flagged": false,
+        "maximum_terminal_mean_change_sd": 0.09137479745279212,
+        "wall_seconds": 951.7629739735276,
+        "numerical_check_at_posterior_means": {
+          "joint_log_likelihood_K40": -341.35588537109516,
+          "joint_log_likelihood_K80": -341.3558853710951,
+          "absolute_series_difference": 5.684341886080802e-14,
+          "finite_gradients": true
+        },
+        "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+        "warning": "Confirmation does not prove a global optimum; pooled-trial posterior uncertainty excludes participant variability"
+      }
+    },
+    "ASD": {
+      "trials": 4770,
+      "participants": 8,
+      "parameters": 61,
+      "numerical": {
+        "joint_log_likelihood_K40": -869.0111115615757,
+        "joint_log_likelihood_K80": -869.0111115615757,
+        "absolute_series_difference": 0.0,
+        "finite_gradients": true
+      },
+      "independent_joint_log_likelihood": -869.0111115615757,
+      "unit_conditional_mass_max_error": 6.88338275267597e-14,
+      "scipy_cdf_max_error": 1.0103029524088925e-14,
+      "convergence": {
+        "stop_reason": "confirmed_minimum_and_terminal_parameter_stability",
+        "completed_steps": 88000,
+        "restored_best_step": 63000,
+        "best_window_mean_negative_elbo": 1124.2159596591048,
+        "terminal_parameter_stable": true,
+        "restored_checkpoint_parameter_stable": true,
+        "confirmation_windows": 25,
+        "required_confirmation_windows": 25,
+        "updates_after_restored_best": 25000,
+        "flagged": false,
+        "maximum_terminal_mean_change_sd": 0.07786288730400572,
+        "wall_seconds": 705.356773935724,
+        "numerical_check_at_posterior_means": {
+          "joint_log_likelihood_K40": -869.0111115615757,
+          "joint_log_likelihood_K80": -869.0111115615757,
+          "absolute_series_difference": 0.0,
+          "finite_gradients": true
+        },
+        "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+        "warning": "Confirmation does not prove a global optimum; pooled-trial posterior uncertainty excludes participant variability"
+      }
+    }
+  },
+  "probabilities_reconstructed": 40,
+  "histograms_reconstructed": 20,
+  "signed_curves_reconstructed": 40,
+  "mixture_curves_reconstructed": 20,
+  "posterior_parameters_reconstructed": 122,
+  "prior_artifacts_preserved": 1268,
+  "unrelated_modified_tracked_files_preserved": 21,
+  "figures": [
+    {
+      "file": "human_control_gamma_omega_rtd_psychometric.png",
+      "width": 3924,
+      "height": 1368
+    },
+    {
+      "file": "human_control_gamma_omega_rtd_psychometric.pdf",
+      "pages": 1,
+      "all_text_within_page": true
+    },
+    {
+      "file": "human_asd_gamma_omega_rtd_psychometric.png",
+      "width": 3924,
+      "height": 1368
+    },
+    {
+      "file": "human_asd_gamma_omega_rtd_psychometric.pdf",
+      "pages": 1,
+      "all_text_within_page": true
+    },
+    {
+      "file": "human_gamma_omega_parameter_comparison.png",
+      "width": 3006,
+      "height": 2376
+    },
+    {
+      "file": "human_gamma_omega_parameter_comparison.pdf",
+      "pages": 1,
+      "all_text_within_page": true
+    },
+    {
+      "file": "human_gamma_omega_convergence_correlations.png",
+      "width": 2700,
+      "height": 1710
+    },
+    {
+      "file": "human_gamma_omega_convergence_correlations.pdf",
+      "pages": 1,
+      "all_text_within_page": true
+    }
+  ],
+  "verifier_sha256": "4377cb5319598318774ba3a5018128bf891a554322ba865c67d69fdd3860559b"
+}

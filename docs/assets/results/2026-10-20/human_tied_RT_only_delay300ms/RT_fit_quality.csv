@@ -1,0 +1,3 @@
+Group,fit,n_trials,n_participants,rt_lower_s,rt_upper_s,mean_parameter_RT_log_likelihood,mean_condition_cdf_error,max_condition_cdf_error
+Control,rt_only,6574,11,0,1.8,358.43075640971091,0.32777535342852809,0.42372445985736423
+ASD,rt_only,4770,8,0,1.8,185.05306643435094,0.25571868515453267,0.3274161855206571

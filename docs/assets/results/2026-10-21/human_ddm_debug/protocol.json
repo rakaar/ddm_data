@@ -1,0 +1,114 @@
+{
+  "selection": "Condition == RT and 0 <= RT_s <= 1.8; all correct/error choices; observed response side ignored",
+  "rt_window_s": [
+    0.0,
+    1.8
+  ],
+  "delay_hard_bound_s": [
+    0.0,
+    0.3
+  ],
+  "causal_delay_support": "Delay strictly below minimum retained group RT; same support as the existing likelihood",
+  "likelihood": "log[f_right(RT)+f_left(RT)] - log[P(either bound by 1.8 s)] per retained trial",
+  "pooling": "Raw trials across participants/sessions within Control/ASD; 20 signed stimulus conditions remain distinct",
+  "fit_kind": "Direct maximum likelihood, without priors; diagnostic for optimizer/variational/model restrictions",
+  "tied": "Same five parameters, invertibly reparameterized by log(lambda), log(Gamma small-D slope), log(reference Omega), w, delay",
+  "free_ddm": "20 free signed Gamma and 20 free Omega, shared w and delay: 42 parameters per group",
+  "drift_sign": "Gamma sign follows signed Delta_dB; RT-only drift directions are not identified by response observations",
+  "computational_bounds": {
+    "rate_lambda": [
+      0.0001,
+      10.0
+    ],
+    "gamma_slope": [
+      0.0001,
+      1000.0
+    ],
+    "reference_omega": [
+      0.0001,
+      1000.0
+    ],
+    "abs_gamma": [
+      0.0001,
+      100.0
+    ],
+    "omega": [
+      0.0001,
+      100.0
+    ],
+    "w": [
+      0.05,
+      0.95
+    ]
+  },
+  "optimizer": "SciPy L-BFGS-B, JAX float64 exact gradients, multi-start",
+  "K_max": 40,
+  "maxiter": 1600,
+  "seed": 0,
+  "baseline_dir": "/home/rlab/raghavendra/ddm_data/ASD_Human_Data/reactive_tied_rt_only_svi_0_1p8s_delay300ms",
+  "data": {
+    "source": "table_visualTask_15nov2026.mat",
+    "source_sha256": "4d83b8024d3927eb4e57daffbba7a4ff8bb32b8db50c7b94e3cf098f62095961",
+    "source_rows": 28880,
+    "source_columns": [
+      "Participant",
+      "GroupID",
+      "Group",
+      "Trial",
+      "Condition",
+      "Session",
+      "Block",
+      "FirstSide",
+      "ASL_cd",
+      "Stim_left_dB",
+      "Stim_right_dB",
+      "Delta_dB",
+      "Stim_left_cdm2",
+      "Stim_right_cdm2",
+      "Delta_cdm2",
+      "Stim_duration_s",
+      "Choice",
+      "ChoseRight",
+      "Correct",
+      "RT_s",
+      "Valid",
+      "Stim_first_dB",
+      "Stim_second_dB",
+      "Delta_SecondMinusFirst_dB",
+      "Stim_first_cdm2",
+      "Stim_second_cdm2",
+      "ChoseSecond"
+    ],
+    "condition_counts": {
+      "RT": 11400,
+      "CB": 11400,
+      "SD": 6080
+    },
+    "selection": "Condition == \"RT\" and 0.0 <= RT_s <= 1.8; response side ignored in fitting",
+    "selected_rows": 11400,
+    "selected_participants": 19,
+    "mean_brightness": "Mean_dB = (Stim_left_dB + Stim_right_dB) / 2",
+    "difference": "Delta_dB is the stored Stim_right_dB - Stim_left_dB",
+    "observed_luminance_mapping": "Stim_side_cdm2 = offset + 10^(Stim_side_dB / 10)",
+    "observed_luminance_offset_cdm2": 7.719999999999999,
+    "conversion_max_abs_error_cdm2": 7.105427357601002e-15,
+    "output": "simultaneous_rt_trials.csv",
+    "output_sha256": "d5042c4fc4bb7b47b1ac0267938a21150c096827c11f9a81ec90fd0064b63967",
+    "rt_s_min": 0.11118979984894395,
+    "rt_s_max": 2.499536400020588,
+    "rt_ge_2_49_s": 1,
+    "rt_ge_2_4999_s": 0,
+    "rt_ge_2_5_s": 0,
+    "csv_sha256": "d5042c4fc4bb7b47b1ac0267938a21150c096827c11f9a81ec90fd0064b63967",
+    "selected_source_rows_sha256": "efe40b25c6bbc9692bc5916231a69e4d25b05af5ee15c1d2ecbd0b74fa754885",
+    "retention_window_s": [
+      0.0,
+      1.8
+    ],
+    "original_trials": 11400,
+    "selected_trials": 11344,
+    "removed_trials": 56,
+    "excluded_source_rows_sha256": "e01412417cbeaedeb1e7268fbb0b844ca65c905d92593cd00cf1ad6262ecc412"
+  },
+  "posterior_curves": "Keep original arithmetic physical posterior means; separately compare posterior predictive curves"
+}

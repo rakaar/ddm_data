@@ -1,0 +1,61 @@
+{
+  "status": "complete",
+  "selection": "Condition == RT and 0 <= RT_s <= 1.8; observed RT plus choice",
+  "retained_trials": 11344,
+  "parameters_per_group": 61,
+  "posterior_draws_per_group": 10000,
+  "independent_verification": "passed",
+  "mkdocs_strict_build_exit_code": 0,
+  "git_diff_check_exit_code": 0,
+  "prior_artifacts_preserved": 1268,
+  "unrelated_modified_tracked_files_preserved": 21,
+  "requested_result_page": "docs/results/2026-10-20.md",
+  "parallel_execution_record": "execution_schedule.json",
+  "groups": {
+    "Control": {
+      "stop_reason": "confirmed_minimum_and_terminal_parameter_stability",
+      "completed_steps": 92000,
+      "restored_best_step": 63000,
+      "best_window_mean_negative_elbo": 601.0740506740175,
+      "terminal_parameter_stable": true,
+      "restored_checkpoint_parameter_stable": false,
+      "confirmation_windows": 29,
+      "required_confirmation_windows": 25,
+      "updates_after_restored_best": 29000,
+      "flagged": false,
+      "maximum_terminal_mean_change_sd": 0.09137479745279212,
+      "wall_seconds": 951.7629739735276,
+      "numerical_check_at_posterior_means": {
+        "joint_log_likelihood_K40": -341.35588537109516,
+        "joint_log_likelihood_K80": -341.3558853710951,
+        "absolute_series_difference": 5.684341886080802e-14,
+        "finite_gradients": true
+      },
+      "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+      "warning": "Confirmation does not prove a global optimum; pooled-trial posterior uncertainty excludes participant variability"
+    },
+    "ASD": {
+      "stop_reason": "confirmed_minimum_and_terminal_parameter_stability",
+      "completed_steps": 88000,
+      "restored_best_step": 63000,
+      "best_window_mean_negative_elbo": 1124.2159596591048,
+      "terminal_parameter_stable": true,
+      "restored_checkpoint_parameter_stable": true,
+      "confirmation_windows": 25,
+      "required_confirmation_windows": 25,
+      "updates_after_restored_best": 25000,
+      "flagged": false,
+      "maximum_terminal_mean_change_sd": 0.07786288730400572,
+      "wall_seconds": 705.356773935724,
+      "numerical_check_at_posterior_means": {
+        "joint_log_likelihood_K40": -869.0111115615757,
+        "joint_log_likelihood_K80": -869.0111115615757,
+        "absolute_series_difference": 0.0,
+        "finite_gradients": true
+      },
+      "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+      "warning": "Confirmation does not prove a global optimum; pooled-trial posterior uncertainty excludes participant variability"
+    }
+  },
+  "strict_build_log_sha256": "6df9c94f66271fdcc93d04b7d3271f0c514de302246b573ad0a69e949d1da982"
+}

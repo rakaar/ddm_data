@@ -1,0 +1,100 @@
+{
+  "status": "passed",
+  "reviewed_at_utc": "2026-10-20T14:37:35.869750+00:00",
+  "figures": {
+    "asd/convergence.png": {
+      "sha256": "c4121f15cc260cb0d8e14c2da8cde532182b82642c03bc54a0886de2b3245156",
+      "dimensions_px": [
+        2400,
+        1280
+      ],
+      "reviewed": true
+    },
+    "asd/parameter_corner.png": {
+      "sha256": "7986ebdc9cdbd926f7bc7c0685ed2d358c2e80b01d9d683a8c366c7cd72fbe75",
+      "dimensions_px": [
+        2210,
+        2040
+      ],
+      "reviewed": true
+    },
+    "comparison/human_tied_continuation_confirmation.png": {
+      "sha256": "9777b775bd0220471d2271d59be2ec4f72b4f05a96d22dab38229480b25a14ef",
+      "dimensions_px": [
+        3060,
+        1530
+      ],
+      "reviewed": true
+    },
+    "comparison/human_tied_original_vs_continued_full_0_3s.png": {
+      "sha256": "7eed501f6bcf97eab267b9377f987e42050e5eef02ba51a3500a36b813d199fd",
+      "dimensions_px": [
+        2700,
+        1800
+      ],
+      "reviewed": true
+    },
+    "comparison/human_tied_original_vs_continued_zoom_0_1p5s.png": {
+      "sha256": "080f31f5323f7c20088b722cd4450e5dc825775bd7059ce647c7dc4f495a7674",
+      "dimensions_px": [
+        2700,
+        1800
+      ],
+      "reviewed": true
+    },
+    "control/convergence.png": {
+      "sha256": "2b667007867861dfb5c5aa8d6308289330a438c86aaa3ddd053fdf2cfe788969",
+      "dimensions_px": [
+        2400,
+        1280
+      ],
+      "reviewed": true
+    },
+    "control/parameter_corner.png": {
+      "sha256": "db1ee2d7cde82bf16fa8e042d08727a6bd019c781f204a867070efa281d8a44e",
+      "dimensions_px": [
+        2210,
+        2040
+      ],
+      "reviewed": true
+    },
+    "human_reactive_tied_psychometric_rtd_full_0_3s.png": {
+      "sha256": "805859c3586e43f8a61e8f92f7871b45ed220534fa7e685770810edb9d09f725",
+      "dimensions_px": [
+        2700,
+        1800
+      ],
+      "reviewed": true
+    },
+    "human_reactive_tied_psychometric_rtd_zoom_0_1p5s.png": {
+      "sha256": "dc6719731390501a4ee2e8de4cc3659b756346b4735c95eef58644097357bb22",
+      "dimensions_px": [
+        2700,
+        1800
+      ],
+      "reviewed": true
+    },
+    "human_reactive_tied_rtd_by_delta_full_0_3s.png": {
+      "sha256": "c3d5c3d32d8600b69c363992c9e721c6f71ea1686c2845edb5af5f6f07d5d237",
+      "dimensions_px": [
+        3780,
+        1620
+      ],
+      "reviewed": true
+    },
+    "human_reactive_tied_rtd_by_delta_zoom_0_1p5s.png": {
+      "sha256": "aa89ca27ffa739d818ab69e66ad7f806127375848afcad20d75370205c378024",
+      "dimensions_px": [
+        3780,
+        1620
+      ],
+      "reviewed": true
+    }
+  },
+  "notes": [
+    "Reviewed both original-versus-continued comparisons, the confirmation figure, four continued-fit comparisons, two corners, and two parameter traces.",
+    "Shared RTD axes include all empirical and model peaks; all labels and legends are readable.",
+    "Corresponding PDFs passed the independent text-bound checks.",
+    "Corner axes intentionally show central 99.8%; posterior files retain all 10000 draws."
+  ]
+}

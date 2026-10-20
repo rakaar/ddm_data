@@ -1,0 +1,12 @@
+{
+  "reason": "Align with original user plan: stability over last three checkpoints; remove additional selected-checkpoint stability gate",
+  "original_gate": "25 post-minimum windows AND terminal stability AND selected-checkpoint stability",
+  "corrected_gate": "25 post-minimum windows AND terminal stability; selected-checkpoint movement remains diagnostic",
+  "resumed_group": "Control",
+  "resumed_checkpoint_step": 78000,
+  "best_checkpoint_step": 40000,
+  "optimizer_and_rng_preserved": true,
+  "new_statistical_initialization": false,
+  "trial_selection_changed": false,
+  "priors_changed": false
+}

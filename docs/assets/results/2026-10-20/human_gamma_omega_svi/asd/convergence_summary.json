@@ -1,0 +1,22 @@
+{
+  "stop_reason": "confirmed_minimum_and_terminal_parameter_stability",
+  "completed_steps": 88000,
+  "restored_best_step": 63000,
+  "best_window_mean_negative_elbo": 1124.2159596591048,
+  "terminal_parameter_stable": true,
+  "restored_checkpoint_parameter_stable": true,
+  "confirmation_windows": 25,
+  "required_confirmation_windows": 25,
+  "updates_after_restored_best": 25000,
+  "flagged": false,
+  "maximum_terminal_mean_change_sd": 0.07786288730400572,
+  "wall_seconds": 705.356773935724,
+  "numerical_check_at_posterior_means": {
+    "joint_log_likelihood_K40": -869.0111115615757,
+    "joint_log_likelihood_K80": -869.0111115615757,
+    "absolute_series_difference": 0.0,
+    "finite_gradients": true
+  },
+  "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+  "warning": "Confirmation does not prove a global optimum; pooled-trial posterior uncertainty excludes participant variability"
+}

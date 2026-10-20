@@ -1,0 +1,39 @@
+{
+  "analysis": "RT-only delay-upper-bound sensitivity",
+  "selected_trials": 11227,
+  "group_counts": {
+    "Control": 6524,
+    "ASD": 4703
+  },
+  "condition": "RT",
+  "retention_window_s": [
+    0.25,
+    1.5
+  ],
+  "delay_prior_support_s": [
+    0.0,
+    0.25
+  ],
+  "source_fit": "/home/rlab/raghavendra/ddm_data/ASD_Human_Data/reactive_tied_rt_only_svi_0p2_1p5s_delay200ms",
+  "newly_excluded_source_rows": [
+    6418,
+    6492,
+    6987,
+    6992
+  ],
+  "changes": "Prior delay cap increased from 200 to 250 ms; lower retained RT increased from 200 to 250 ms",
+  "pooling": "Raw trials across participants and sessions, separate Control and ASD; actual retained stimulus frequencies",
+  "comparison": "Both 200-ms and 250-ms parameter sets scored on the same 0.25--1.5 s trials and conditional normalization",
+  "source_export_rows": 11400,
+  "legacy_provenance_note": "Inherited run_config.data selected_rows/rt_s_min/rt_s_max describe the original 11,400-row RT export; selected_trials and retention_window_s describe this refit.",
+  "selected_group_rt_ranges_s": {
+    "ASD": {
+      "min": 0.2778402999974787,
+      "max": 1.4961738000856712
+    },
+    "Control": {
+      "min": 0.2578978999517858,
+      "max": 1.4988076998852191
+    }
+  }
+}

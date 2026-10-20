@@ -1,0 +1,15 @@
+{
+  "figures": [
+    "human_gamma_omega_delay_prior_comparison.png",
+    "human_gamma_omega_delay_prior_comparison.pdf"
+  ],
+  "tables": [
+    "delay300_boundary_audit.csv",
+    "delay_bound_parameter_comparison.csv",
+    "delay_bound_fit_comparison.csv",
+    "delay_bound_delay_comparison.csv",
+    "delay_bound_pooled_rtd_model_curves.csv",
+    "delay_bound_pooled_rtd_histograms.csv"
+  ],
+  "script_sha256": "e790ace154cf361471d85ea369bf82abf4eae1967153c59581bebf52a823c8c2"
+}

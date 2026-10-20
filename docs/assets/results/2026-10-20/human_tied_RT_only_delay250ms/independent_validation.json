@@ -1,0 +1,110 @@
+{
+  "status": "passed",
+  "original_mat_rows": 28880,
+  "selected_source_rows": 11227,
+  "excluded_source_rows": 173,
+  "early_RT_excluded": 8,
+  "late_RT_excluded": 165,
+  "groups": {
+    "Control": {
+      "n_trials": 6524,
+      "n_participants": 11,
+      "source_rows_verified": 6524,
+      "five_free_parameters": [
+        "rate_lambda",
+        "T_0",
+        "theta_E",
+        "w",
+        "t_E_aff"
+      ],
+      "response_labels_do_not_change_likelihood_or_gradients": true,
+      "delay_prior_upper_s": 0.25,
+      "parameter_points_checked": 15,
+      "numerics": {
+        "K40_K80_max_density_abs": 1.6653345369377348e-15,
+        "K40_K80_max_mass_abs": 0.0,
+        "scipy_max_density_abs": 4.884981308350689e-15,
+        "scipy_max_cdf_abs": 3.774758283725532e-15,
+        "unit_mass_max_abs": 3.4072744625746054e-13,
+        "cdf_derivative_max_abs": 3.080053700976748e-08
+      },
+      "convergence": {
+        "stop_reason": "confirmed_minimum_25_windows_and_parameter_stability",
+        "completed_steps": 53000,
+        "restored_best_step": 27000,
+        "best_window_mean_negative_elbo": -2049.6849842833867,
+        "terminal_parameter_stable": true,
+        "restored_checkpoint_parameter_stable": true,
+        "minimum_followup_confirmed": true,
+        "confirmation_windows": 26,
+        "required_confirmation_windows": 25,
+        "updates_after_restored_best": 26000,
+        "flagged": false,
+        "wall_seconds": 204.61179657373577,
+        "new_updates": 53000,
+        "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+        "warning": "Observed-window confirmation does not prove a global optimum; pooled-trial uncertainty excludes participant variability"
+      }
+    },
+    "ASD": {
+      "n_trials": 4703,
+      "n_participants": 8,
+      "source_rows_verified": 4703,
+      "five_free_parameters": [
+        "rate_lambda",
+        "T_0",
+        "theta_E",
+        "w",
+        "t_E_aff"
+      ],
+      "response_labels_do_not_change_likelihood_or_gradients": true,
+      "delay_prior_upper_s": 0.25,
+      "parameter_points_checked": 15,
+      "numerics": {
+        "K40_K80_max_density_abs": 1.6653345369377348e-15,
+        "K40_K80_max_mass_abs": 0.0,
+        "scipy_max_density_abs": 3.9968028886505635e-15,
+        "scipy_max_cdf_abs": 4.440892098500626e-15,
+        "unit_mass_max_abs": 7.270184454455375e-12,
+        "cdf_derivative_max_abs": 1.5397499414371296e-08
+      },
+      "convergence": {
+        "stop_reason": "maximum_steps_without_confirmation",
+        "completed_steps": 1000000,
+        "restored_best_step": 40000,
+        "best_window_mean_negative_elbo": -996.198660722351,
+        "terminal_parameter_stable": false,
+        "restored_checkpoint_parameter_stable": false,
+        "minimum_followup_confirmed": true,
+        "confirmation_windows": 960,
+        "required_confirmation_windows": 25,
+        "updates_after_restored_best": 960000,
+        "flagged": true,
+        "wall_seconds": 2589.9554218361154,
+        "new_updates": 1000000,
+        "posterior_kind": "full-rank Gaussian variational approximation in unconstrained coordinates",
+        "warning": "Observed-window confirmation does not prove a global optimum; pooled-trial uncertainty excludes participant variability"
+      }
+    }
+  },
+  "condition_CDF_checks": 80,
+  "histogram_bins_verified": 1512,
+  "empirical_CDF_points_verified": 11227,
+  "mixture_rows_verified": 160,
+  "figures": {
+    "asd/convergence.png": "a2c51d2f01060c9e1c0482de90139e126ab2576bee42f4e994a8da90e740bb85",
+    "asd/parameter_corner.png": "b5bf7eac0d0ca8054918e414fb671406cdd9c0116ba01efb098e811d07312d30",
+    "control/convergence.png": "2bacdb0eca5841c99e86304cc9ec00f3e28cd2d870279269b5683d8e9fdc1868",
+    "control/parameter_corner.png": "b1597657bb646954f2e50064897627d4d8fac224ab31f58f24d0d939307d4655",
+    "human_RT_only_rtd_by_delta_full_0p25_1p5s.png": "d7dca83a208e931e13e2f362e030f75f45afa3193447c7b613151ab5519dce85",
+    "human_RT_only_rtd_by_delta_zoom_0p25_1s.png": "b73a51ba15ed85cf8e23d83446bdf7db975193bc82dcf56155073e463fe4539b",
+    "human_RT_only_rtd_cdf_comparison_full_0p25_1p5s.png": "0373b81d9bd25fe6ef0d1819f9e6a59f3cefb84df3ec164b45f645ea399cd723",
+    "human_RT_only_rtd_cdf_comparison_zoom_0p25_1s.png": "8a46d556b521fa894c2bbeab15eafcbb2ff9c73a3d3ee4ba5e1e21dc0d4a328a"
+  },
+  "prior_artifacts_hash_verified": 1382,
+  "prior_document_bodies_preserved": 2,
+  "source_sha256": "4d83b8024d3927eb4e57daffbba7a4ff8bb32b8db50c7b94e3cf098f62095961",
+  "csv_sha256": "d5042c4fc4bb7b47b1ac0267938a21150c096827c11f9a81ec90fd0064b63967",
+  "verifier_sha256": "31db4e7a6c918e435802ef57283dc5c3889183baba007ad7b5311a0b82bf428f",
+  "independent_fpt_sha256": "8b01c969dd665ffd938f6f28d9ad32679becbfd3c8a82c6daac3656fbc23fd74"
+}

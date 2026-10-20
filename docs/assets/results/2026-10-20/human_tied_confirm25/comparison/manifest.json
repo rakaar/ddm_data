@@ -1,0 +1,12 @@
+{
+  "original_root": "/home/rlab/raghavendra/ddm_data/ASD_Human_Data/reactive_tied_rt_svi",
+  "continued_root": "/home/rlab/raghavendra/ddm_data/ASD_Human_Data/reactive_tied_rt_svi_confirm25",
+  "source_csv_sha256": "d5042c4fc4bb7b47b1ac0267938a21150c096827c11f9a81ec90fd0064b63967",
+  "script_sha256": "a05e279632e560f3d3196aef30c46600a487f2207ff5869095f64ca264107f18",
+  "objective_evaluation": "256 common-random-number draws per guide, no refitting",
+  "figure_sha256": {
+    "human_tied_continuation_confirmation.png": "9777b775bd0220471d2271d59be2ec4f72b4f05a96d22dab38229480b25a14ef",
+    "human_tied_original_vs_continued_zoom_0_1p5s.png": "080f31f5323f7c20088b722cd4450e5dc825775bd7059ce647c7dc4f495a7674",
+    "human_tied_original_vs_continued_full_0_3s.png": "7eed501f6bcf97eab267b9377f987e42050e5eef02ba51a3500a36b813d199fd"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "method": "Viewed all six scientific figures; rechecked final pooled RTD and parameter-constraint title margins after PDF layout correction; independent PDF text bounds passed for every figure.",
+  "findings": "Plain RT-only DDMs improve RT shape markedly but still miss sharp peaks; the natural drift-direction interpretation predicts near-deterministic choices at small differences. Joint fits recover graded choices and again have overly broad RTDs. Posterior predictive averaging leaves the original TIED mismatch.",
+  "figures_sha256": {
+    "human_ddm_parameter_constraints_debug.png": "7b831d7ac66596a1fd37ccea49fc912e7efe0a884caa5fd89b2014dde18fa5c9",
+    "human_joint_ddm_debug.png": "b74a94f2917d6a448ff62cea20181883a82692a1275a82ea84e2305ea6312165",
+    "human_svi_predictive_ddm_debug.png": "c1359a391e281ab96b0f0f61cccab190cd32aeed57cc28e29873278a2eb0e020",
+    "human_ddm_choice_debug.png": "2aa28a143941800b53fc202ab14091e1508fd6237a92b7165f24602deeb5834c",
+    "human_ddm_rt_by_delta_debug.png": "28bb9cbd8cc60233385901fca29f5736eeb961e38277c3c6f30c544cf9335b48",
+    "human_rt_only_ddm_debug.png": "a40c77f34153dfa441b6f152a93bfb962fd13ccfb6a042a62f79fe58bcc86566"
+  }
+}

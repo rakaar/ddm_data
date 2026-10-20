@@ -1,0 +1,31 @@
+{
+  "groups": {
+    "Control": {
+      "final_step": 150000,
+      "best_step": 150000,
+      "steps_after_best": 0,
+      "implemented_patience_counter": 133,
+      "windows_after_actual_best": 0,
+      "new_minima_in_last_25_windows": 21,
+      "loss_improvement_over_last_25000_steps": 3.922897269531859,
+      "source_sha256": "ccad3b48db5f146e159a0dd11bb2834003824c2ca637ddd70b20764348e19e92",
+      "minimum_followup_confirmed": false
+    },
+    "ASD": {
+      "final_step": 127000,
+      "best_step": 127000,
+      "steps_after_best": 0,
+      "implemented_patience_counter": 106,
+      "windows_after_actual_best": 0,
+      "new_minima_in_last_25_windows": 15,
+      "loss_improvement_over_last_25000_steps": 2.619225900225956,
+      "source_sha256": "b563577443bf8603dffd8cae3854bcd80518a72423c3d1df1412d2e430e03f9c",
+      "minimum_followup_confirmed": false
+    }
+  },
+  "reference": "fit_animal_by_animal/numpyro_svi_vanilla_condition_delay_single_animal.py:231-257",
+  "human_rule": "12 windows of 1000 steps without >=0.001 single-window relative improvement, plus mean stability",
+  "distinction": "The best checkpoint updates on any lower window mean, but patience resets only on significant individual improvements.",
+  "checked_code_matches_recorded_counters": true,
+  "refits_started": false
+}

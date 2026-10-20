@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "inspected_at_utc": "2026-10-20T15:08:30.817776+00:00",
+  "figures": {
+    "human_tied_rt_cutoff_comparison.png": "2f2b611edf11801b81278041b8d72c347bf1f01ca132a19068bcbf0e96e9bd54",
+    "human_reactive_tied_psychometric_rtd_zoom_0_1s.png": "71c7a4310822be4bd9fd6f9fd146868545788decedbb08fdb118ec5ba41d882e",
+    "human_reactive_tied_rtd_by_delta_full_0_1p5s.png": "cb555757a751c517b8a3e5dbf589bef7d0867f2efb82acd51c6e8c3d96dd75b4",
+    "human_reactive_tied_rtd_by_delta_zoom_0_1s.png": "1028b37d2c725a6c8a06390251ca35a2e07dba12401cb9bafe550fcaefc80261",
+    "human_reactive_tied_psychometric_rtd_full_0_1p5s.png": "745ac41a9dc1e9f27689ab790a1a16c0a270455271234e4d2a2594cc56cc0261",
+    "asd/parameter_corner.png": "bd9de655e1f6ae54d528d0b4c034cb3bbb93720d466a28ab4f9bd23311808134",
+    "asd/convergence.png": "0a1fb84012e4f4b66eaf25c1cb2a0303a1d962a7ee867c8637c4b30c44fa2e46",
+    "control/parameter_corner.png": "1e6ed1a84e193b8272b68ce29dda9451f4efc3c540089a31a59fea58d0f11a60",
+    "control/convergence.png": "e5693fdd7028e097cfe76c50240749bd6ab306fd6d039a0c421e2ca6b8afee96"
+  },
+  "checks": [
+    "Both groups, Control above ASD; ASL 20/40 blue/orange; cutoff and conditional normalization labeled",
+    "Full and zoomed 2x2, 2x5, previous-versus-refit comparison, both corners and both traces inspected",
+    "No clipped model/data peaks or labels; matching RTD axes include all peaks",
+    "Comparison uses solid refit, dotted reconditioned previous model, light empirical steps",
+    "Broad model RTDs and narrow data peaks remain visible; local stopping check wording explicit"
+  ]
+}

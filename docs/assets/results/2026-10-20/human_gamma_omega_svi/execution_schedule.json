@@ -1,0 +1,15 @@
+{
+  "request": "User requested parallel Control/ASD runs with separate tracking",
+  "initial_execution": "Control started in all-group sequential launcher",
+  "transition": "Original launcher survived tool interruption; both Control replicas intentionally stopped on next checkpoint write, then one chain resumed",
+  "control_resume_step": 62000,
+  "best_checkpoint_step_at_transition": 60000,
+  "initial_seed": 0,
+  "optimizer_and_rng_preserved": true,
+  "new_statistical_initializations": false,
+  "workers": {
+    "Control": "parent",
+    "ASD": "asd_fit sub-agent"
+  },
+  "mode": "parallel CPU group processes"
+}
