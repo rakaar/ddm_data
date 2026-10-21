@@ -1,0 +1,5 @@
+view,fit_status,jnd_status,fits
+animal,ok,ok,154
+animal,ok,thresholds_outside_asymptotes_or_reversed,5
+cohort,ok,ok,36
+family,ok,ok,18

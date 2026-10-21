@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "date": "2026-10-19",
+  "direct_unwrapped_PNG_embeds": 2,
+  "working_asset_links_checked": 31,
+  "published_exports_byte_identical": true,
+  "PNG_pages_visually_inspected": 2,
+  "PDF_pages": 2,
+  "PDF_bookmarks": 6,
+  "strict_MkDocs_build": "passed",
+  "navigation": "passed",
+  "audit_zip_entries": 24,
+  "input_and_prior_files_unchanged": 587
+}

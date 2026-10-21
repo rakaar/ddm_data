@@ -1,0 +1,131 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/plot_session_type_1_genotype_overlaid_rtds.py",
+  "input": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
+  "input_sha256": "db95fc66fc434c81832cb460ed5fe28857b1aa25c639b6a31fbb1859d2ba4408",
+  "selection": "Prepared session1/training16; success in {1,-1}; ABL59->60 then20/40/60; ILDs\u00b11/2/4/8/16; finite timed_rt in inclusive[0,1] seconds",
+  "repeat_filter_reapplied": false,
+  "calibration_rule": "CNTNAP2 cohort4 session>=13 already applied",
+  "pooling": "Raw trials pooled across ABLs, signed ILDs, sessions, animals, and cohorts within family/genotype",
+  "bin_width_s": 0.02,
+  "normalization_window_s": [
+    0.0,
+    1.0
+  ],
+  "display_xlim_s": [
+    0.0,
+    1.0
+  ],
+  "normalization": "Bin count/(curve window trials * .020); area 1 independently per curve",
+  "selected_choices": 451381,
+  "window_trials": 446949,
+  "animals": 53,
+  "curves": 6,
+  "bins_per_curve": 50,
+  "colors": {
+    "wt": "#1f77b4",
+    "hom": "#2ca02c",
+    "het": "#ff7f0e"
+  },
+  "legend_order": [
+    "wt",
+    "hom",
+    "het"
+  ],
+  "family_order": [
+    "SHANK3",
+    "CNTNAP2"
+  ],
+  "curve_counts": [
+    {
+      "family": "SHANK3",
+      "genotype": "wt",
+      "animals": 6,
+      "window_trials": 72297,
+      "color": "#1f77b4",
+      "density_area": 1.0000000000000002
+    },
+    {
+      "family": "SHANK3",
+      "genotype": "hom",
+      "animals": 7,
+      "window_trials": 71878,
+      "color": "#2ca02c",
+      "density_area": 0.9999999999999999
+    },
+    {
+      "family": "SHANK3",
+      "genotype": "het",
+      "animals": 7,
+      "window_trials": 64895,
+      "color": "#ff7f0e",
+      "density_area": 0.9999999999999998
+    },
+    {
+      "family": "CNTNAP2",
+      "genotype": "wt",
+      "animals": 10,
+      "window_trials": 68850,
+      "color": "#1f77b4",
+      "density_area": 1.0000000000000002
+    },
+    {
+      "family": "CNTNAP2",
+      "genotype": "hom",
+      "animals": 12,
+      "window_trials": 107031,
+      "color": "#2ca02c",
+      "density_area": 1.0
+    },
+    {
+      "family": "CNTNAP2",
+      "genotype": "het",
+      "animals": 11,
+      "window_trials": 61998,
+      "color": "#ff7f0e",
+      "density_area": 0.9999999999999998
+    }
+  ],
+  "figure_inches": [
+    14,
+    5.4
+  ],
+  "png_dpi": 200,
+  "png": "asd_analysis/session_type_1_genotype_overlaid_rtds/ASD_session_type_1_family_genotype_ABL_ILD_pooled_rtds.png",
+  "checks": [
+    "All 300 bins independently counted from source CSV",
+    "All bins agree with pooled earlier CDF histograms",
+    "Six sample totals match current family/genotype audits",
+    "Unit areas and 20 ms bins",
+    "Protected inputs/previous artifacts unchanged"
+  ],
+  "protected_file_sha256": {
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/ASD_family_genotype_cdf_quantile_scaling_page_01.png": "7ae7c2dc44d9d4f419aa2e0bd0203f7ac049081e9f4be50821cc27aabc6e5bbb",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/ASD_family_genotype_cdf_quantile_scaling_page_02.png": "8870cde8f6e44072c13f13af9ada08a53477574d65319c15e8c5c1d5f4fee63d",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/ASD_session_type_1_family_genotype_psychometric_rtd_chronometric_scaling.pdf": "a970d2d2d6690f681ba41246e23090f0223e8908a7fda1e96b408714bb9fce93",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/abl_counts.csv": "e01a750e60ac5b340aa7e32e2596ba4bc5bd9ed542f2ee1fdfe78f14f7efb173",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/chronometric_points.csv": "c297babf7bd26ffa21606b9331eb72e68dc4022485c437405ba7a5f8f83b1369",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/condition_counts.csv": "e182ddd912d505f66379951e0ecc70ce8160f4f09d8ad46cfc021459e8a244bb",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/delta_cdf_curves.csv.gz": "4a8f50d58ffe00bcdd828ad99969b77c4f54d1a620f72a237e30e2524a95eeb6",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/fine_quantiles.csv.gz": "44af4878815f63e42bed0ab1aa77fe5db964154a5ab32e9dfcb67ef1a3e20bb9",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/group_counts.csv": "be4bd51fb434afc058da8517202f85651ac97f25e0329f5e17679369c79a0f4e",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/group_membership.csv": "ce3ae477325384beedf86a2258ed581ae627094fd740f40768e06a0103478fa3",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/histogram_cdf_bins.csv.gz": "3b14359893d827e604bd2acc39a69567c62013f86c677784938219227034be55",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/independent_validation.json": "fb91d54d796cc4890375509a0d473e673b6e0eed4b4fc49a5c9cfb5241738176",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/panel_layout.csv": "13097de007ff0807a7c46c9909e1cc6d6d00c3948783958df0cb2af83fc32810",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/plotted_chronometric_points.csv": "8653e8a08361345f4d998f2e5b2ff948a6173cfa0f59fd6f709bba57ddb55da7",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/plotted_psychometric_points.csv": "1987151dfc6d5ea798c46c632dc867f1b8485cbd7b04bda37957d287d09a6f7a",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/plotted_thresholds.csv": "78c8ccbad137ec80b9f41341cc42e988d3428f8484533a19a6876b5dcb588203",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/psychometric_fits.csv": "73b4954de17b57dfcdb507b44c2a74918b47259c9b9d94ccaf5000a8ea3450fa",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/psychometric_points.csv": "1c24bd1ca3b37be9ccfc7a3cf3bd5358b0ce2019dbd5a7db2b23d97e508a6607",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/publication_validation.json": "45260c20fc955a1859ed174cb7abb3ec2ef0200c9cd77eb91a6d880ba07328c1",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/raw_quantiles.csv": "e520f09060dec3f38b6c5bbf01b35d730b7f86289d9147f67cde1bef6c3620b7",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/rtd_histogram_bins.csv": "63706e950b12d3e98a8d9866f087a54134ed33caba793a9cf5ffb8b357ac7010",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/scaled_quantiles.csv": "bbef8a0a4b9a0146e4c13d923117034b6288409b32cc3d3fb36f09e49b7a110f",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/scaling_fit_inputs.csv.gz": "39ee909a7e7c29f1a18929f9b2234c44be9ec79b14bddf65b5ee1cbb236f163d",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/scaling_fits.csv": "5523764fe6c7afa5f1037218286bcfbc4dcc000e8a02fde8b1e7ed87e12fc789",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/thresholds.csv": "f2d8f3d57d6640eb3f2e2a72c2467034a9104b78fa28143dc16b2e50e2da9657",
+    "asd_analysis/session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/validation.json": "9a790ce3b15ef4fa750034b02e75ef0932b71aedae53c8e9bee7025bc7c34f2d",
+    "asd_analysis/session_type_csvs/ASD_session_type_1.csv": "db95fc66fc434c81832cb460ed5fe28857b1aa25c639b6a31fbb1859d2ba4408"
+  }
+}

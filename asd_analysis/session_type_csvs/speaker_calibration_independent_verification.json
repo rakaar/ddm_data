@@ -1,0 +1,72 @@
+{
+  "status": "passed",
+  "files": {
+    "CNTNAP2_cohort4.csv": {
+      "before_rows": 618712,
+      "removed_rows": 96082,
+      "retained_rows": 522630,
+      "animals_retained": 20,
+      "affected_animals": 20,
+      "every_retained_byte_cell_and_row_order_matches_archive": true
+    },
+    "asd_analysis/session_type_csvs/ASD_session_type_1.csv": {
+      "before_rows": 642370,
+      "removed_rows": 31767,
+      "retained_rows": 610603,
+      "animals_retained": 53,
+      "affected_animals": 10,
+      "every_retained_byte_cell_and_row_order_matches_archive": true
+    }
+  },
+  "removed_row_locations_checked": 127849,
+  "protected_hashes_sizes_mtimes_unchanged": true,
+  "independent_preparation_verification": {
+    "status": "passed",
+    "rows_checked": 1843386,
+    "columns_checked": 109,
+    "checks": [
+      "next chronological trial exclusion with CNP/Fixation exceptions",
+      "session boundaries and duplicate trial status",
+      "training/session/outcome filters",
+      "session-type-1 short-sound exclusion after repeat derivation",
+      "CNTNAP2 cohort 4 excludes numeric sessions below 13 after repeat derivation",
+      "source filename and genotype",
+      "source row counts and order",
+      "every preserved cell value"
+    ],
+    "fixation_abort_rows": {
+      "1": 135375,
+      "2": 139413,
+      "23": 190209
+    },
+    "genotype_counts": {
+      "1": {
+        "hom": 235236,
+        "het": 175054,
+        "wt": 200313
+      },
+      "2": {
+        "hom": 279464,
+        "het": 132955,
+        "wt": 135301
+      },
+      "23": {
+        "hom": 252308,
+        "het": 228993,
+        "wt": 203762
+      }
+    },
+    "counts_by_session_and_source": {
+      "1/CNTNAP2_cohort3.csv": 195069,
+      "1/CNTNAP2_cohort4.csv": 143135,
+      "1/SHANK3_cohort1.csv": 237010,
+      "1/SHANK3_cohort2.csv": 35389,
+      "2/CNTNAP2_cohort3.csv": 206006,
+      "2/CNTNAP2_cohort4.csv": 114297,
+      "2/SHANK3_cohort1.csv": 223247,
+      "2/SHANK3_cohort2.csv": 4170,
+      "23/CNTNAP2_cohort4.csv": 158490,
+      "23/SHANK3_cohort1.csv": 526573
+    }
+  }
+}

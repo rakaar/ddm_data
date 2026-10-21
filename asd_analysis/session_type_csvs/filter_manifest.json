@@ -10,12 +10,13 @@
     "repeat_order": "numeric trial_start within each animal/source_file/session",
     "duplicate_trials": "Records with the same session keys and trial_start share repeat status; all original records are preserved unless excluded by a requested filter.",
     "outcome": "abort_type == 'Fixation' OR success in {1, -1}",
+    "excluded_short_sound_rule": "session_type == 1 AND is_short_sound == 1; apply after deriving repeats on all source trials",
+    "speaker_calibration_rule": "Exclude CNTNAP2_cohort4.csv rows with numeric session < 13, at every training level and session type. Derive repeats first; the cutoff removes whole sessions and does not link sessions.",
     "session_types": [
       1,
       2,
       23
-    ],
-    "excluded_short_sound_rule": "session_type == 1 AND is_short_sound == 1; apply after deriving repeats on all source trials"
+    ]
   },
   "filename": "basename of the input cohort CSV; source_file retains the daily CSV name",
   "genotype": "metadata.csv genotype matched by animal; wt/hom/het",
@@ -148,6 +149,10 @@
           "after_repeat": 244451,
           "repeat_rows_removed_at_level16": 2186,
           "output_rows": 237010,
+          "output_rows_before_short_sound_exclusion": 237487,
+          "short_sound_rows_removed": 477,
+          "output_rows_before_calibration_exclusion": 237010,
+          "uncalibrated_rows_removed": 0,
           "fixation_abort_rows": 41639,
           "success_1_rows": 151857,
           "success_minus1_rows": 43514,
@@ -155,9 +160,7 @@
             "hom": 85968,
             "het": 62772,
             "wt": 88270
-          },
-          "output_rows_before_short_sound_exclusion": 237487,
-          "short_sound_rows_removed": 477
+          }
         },
         "2": {
           "input_rows": 234479,
@@ -165,6 +168,10 @@
           "after_repeat": 232330,
           "repeat_rows_removed_at_level16": 2149,
           "output_rows": 223247,
+          "output_rows_before_short_sound_exclusion": 223247,
+          "short_sound_rows_removed": 0,
+          "output_rows_before_calibration_exclusion": 223247,
+          "uncalibrated_rows_removed": 0,
           "fixation_abort_rows": 46280,
           "success_1_rows": 134107,
           "success_minus1_rows": 42860,
@@ -180,6 +187,10 @@
           "after_repeat": 538642,
           "repeat_rows_removed_at_level16": 4871,
           "output_rows": 526573,
+          "output_rows_before_short_sound_exclusion": 526573,
+          "short_sound_rows_removed": 0,
+          "output_rows_before_calibration_exclusion": 526573,
+          "uncalibrated_rows_removed": 0,
           "fixation_abort_rows": 136911,
           "success_1_rows": 308103,
           "success_minus1_rows": 81559,
@@ -207,6 +218,10 @@
           "after_repeat": 37398,
           "repeat_rows_removed_at_level16": 413,
           "output_rows": 35389,
+          "output_rows_before_short_sound_exclusion": 35389,
+          "short_sound_rows_removed": 0,
+          "output_rows_before_calibration_exclusion": 35389,
+          "uncalibrated_rows_removed": 0,
           "fixation_abort_rows": 9528,
           "success_1_rows": 20417,
           "success_minus1_rows": 5444,
@@ -214,9 +229,7 @@
             "het": 22930,
             "hom": 6723,
             "wt": 5736
-          },
-          "output_rows_before_short_sound_exclusion": 35389,
-          "short_sound_rows_removed": 0
+          }
         },
         "2": {
           "input_rows": 4520,
@@ -224,6 +237,10 @@
           "after_repeat": 4482,
           "repeat_rows_removed_at_level16": 38,
           "output_rows": 4170,
+          "output_rows_before_short_sound_exclusion": 4170,
+          "short_sound_rows_removed": 0,
+          "output_rows_before_calibration_exclusion": 4170,
+          "uncalibrated_rows_removed": 0,
           "fixation_abort_rows": 1007,
           "success_1_rows": 2426,
           "success_minus1_rows": 737,
@@ -237,6 +254,10 @@
           "after_repeat": 0,
           "repeat_rows_removed_at_level16": 0,
           "output_rows": 0,
+          "output_rows_before_short_sound_exclusion": 0,
+          "short_sound_rows_removed": 0,
+          "output_rows_before_calibration_exclusion": 0,
+          "uncalibrated_rows_removed": 0,
           "fixation_abort_rows": 0,
           "success_1_rows": 0,
           "success_minus1_rows": 0,
@@ -260,6 +281,10 @@
           "after_repeat": 211085,
           "repeat_rows_removed_at_level16": 2761,
           "output_rows": 195069,
+          "output_rows_before_short_sound_exclusion": 195399,
+          "short_sound_rows_removed": 330,
+          "output_rows_before_calibration_exclusion": 195069,
+          "uncalibrated_rows_removed": 0,
           "fixation_abort_rows": 44705,
           "success_1_rows": 116471,
           "success_minus1_rows": 33893,
@@ -267,9 +292,7 @@
             "hom": 96569,
             "het": 21128,
             "wt": 77372
-          },
-          "output_rows_before_short_sound_exclusion": 195399,
-          "short_sound_rows_removed": 330
+          }
         },
         "2": {
           "input_rows": 219327,
@@ -277,6 +300,10 @@
           "after_repeat": 215984,
           "repeat_rows_removed_at_level16": 3343,
           "output_rows": 206006,
+          "output_rows_before_short_sound_exclusion": 206006,
+          "short_sound_rows_removed": 0,
+          "output_rows_before_calibration_exclusion": 206006,
+          "uncalibrated_rows_removed": 0,
           "fixation_abort_rows": 56173,
           "success_1_rows": 108412,
           "success_minus1_rows": 41421,
@@ -292,6 +319,10 @@
           "after_repeat": 0,
           "repeat_rows_removed_at_level16": 0,
           "output_rows": 0,
+          "output_rows_before_short_sound_exclusion": 0,
+          "short_sound_rows_removed": 0,
+          "output_rows_before_calibration_exclusion": 0,
+          "uncalibrated_rows_removed": 0,
           "fixation_abort_rows": 0,
           "success_1_rows": 0,
           "success_minus1_rows": 0,
@@ -300,31 +331,33 @@
       }
     },
     "CNTNAP2_cohort4.csv": {
-      "input_rows": 618712,
-      "repeated_trial_true": 212776,
-      "repeated_trial_false": 405936,
+      "input_rows": 522630,
+      "repeated_trial_true": 177334,
+      "repeated_trial_false": 345296,
       "repeated_trial_missing": 0,
-      "source_sessions": 1404,
-      "distinct_timestamped_trials": 616023,
-      "duplicate_records_beyond_first": 2689,
-      "derived_repeat_rows": 10579,
+      "source_sessions": 1164,
+      "distinct_timestamped_trials": 520086,
+      "duplicate_records_beyond_first": 2544,
+      "derived_repeat_rows": 7074,
       "session_types": {
         "1": {
-          "input_rows": 336691,
-          "after_training": 182468,
-          "after_repeat": 180258,
-          "repeat_rows_removed_at_level16": 2210,
-          "output_rows": 174902,
-          "fixation_abort_rows": 50187,
-          "success_1_rows": 96333,
-          "success_minus1_rows": 28382,
+          "input_rows": 240609,
+          "after_training": 149614,
+          "after_repeat": 147773,
+          "repeat_rows_removed_at_level16": 1841,
+          "output_rows": 143135,
+          "output_rows_before_short_sound_exclusion": 143135,
+          "short_sound_rows_removed": 0,
+          "output_rows_before_calibration_exclusion": 143135,
+          "uncalibrated_rows_removed": 0,
+          "fixation_abort_rows": 39503,
+          "success_1_rows": 79862,
+          "success_minus1_rows": 23770,
           "genotype_counts": {
-            "hom": 54170,
-            "wt": 36478,
-            "het": 84254
-          },
-          "output_rows_before_short_sound_exclusion": 174902,
-          "short_sound_rows_removed": 0
+            "hom": 45976,
+            "wt": 28935,
+            "het": 68224
+          }
         },
         "2": {
           "input_rows": 118138,
@@ -332,6 +365,10 @@
           "after_repeat": 116317,
           "repeat_rows_removed_at_level16": 1821,
           "output_rows": 114297,
+          "output_rows_before_short_sound_exclusion": 114297,
+          "short_sound_rows_removed": 0,
+          "output_rows_before_calibration_exclusion": 114297,
+          "uncalibrated_rows_removed": 0,
           "fixation_abort_rows": 35953,
           "success_1_rows": 57036,
           "success_minus1_rows": 21308,
@@ -347,6 +384,10 @@
           "after_repeat": 162235,
           "repeat_rows_removed_at_level16": 1646,
           "output_rows": 158490,
+          "output_rows_before_short_sound_exclusion": 158490,
+          "short_sound_rows_removed": 0,
+          "output_rows_before_calibration_exclusion": 158490,
+          "uncalibrated_rows_removed": 0,
           "fixation_abort_rows": 53298,
           "success_1_rows": 80160,
           "success_minus1_rows": 25032,
@@ -362,19 +403,23 @@
   "outputs": {
     "1": {
       "path": "asd_analysis/session_type_csvs/ASD_session_type_1.csv",
-      "rows": 642370,
-      "bytes": 498000546
+      "rows": 610603,
+      "bytes": 473606962,
+      "sha256": "db95fc66fc434c81832cb460ed5fe28857b1aa25c639b6a31fbb1859d2ba4408"
     },
     "2": {
       "path": "asd_analysis/session_type_csvs/ASD_session_type_2.csv",
       "rows": 547720,
-      "bytes": 426995542
+      "bytes": 426995542,
+      "sha256": "d42712ce3a32f0b91733a2b013546e94535f8c220f5dde0b92988444fc72a8d0"
     },
     "23": {
       "path": "asd_analysis/session_type_csvs/ASD_session_type_23.csv",
       "rows": 685063,
-      "bytes": 521340928
+      "bytes": 521340928,
+      "sha256": "71dc19176e8131a78db4381af0126e86511e54330dcb62f9bdb5f4f109c7ae1b"
     }
   },
-  "cleanup_manifest": "asd_analysis/session_type_csvs/short_sound_cleanup.json"
+  "cleanup_manifest": "asd_analysis/session_type_csvs/short_sound_cleanup.json",
+  "calibration_cleanup_manifest": "asd_analysis/session_type_csvs/speaker_calibration_cleanup.json"
 }

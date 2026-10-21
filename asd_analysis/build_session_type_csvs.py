@@ -2,6 +2,7 @@
 """Combine ASD cohorts by session type using the documented next-trial rule."""
 import csv
 import json
+import os
 from collections import Counter
 from contextlib import ExitStack
 from pathlib import Path
@@ -17,7 +18,11 @@ SOURCE_FILES = [
     REPO_ROOT / "CNTNAP2_cohort3.csv",
     REPO_ROOT / "CNTNAP2_cohort4.csv",
 ]
-OUTPUT_DIR = REPO_ROOT / "asd_analysis/session_type_csvs"
+# An alternate directory lets cleanup runs compare a fresh build before
+# adopting its manifest, without rewriting unaffected prepared CSVs.
+OUTPUT_DIR = Path(os.environ.get(
+    "ASD_SESSION_TYPE_OUTPUT_DIR", REPO_ROOT / "asd_analysis/session_type_csvs"
+))
 METADATA_PATH = REPO_ROOT / "metadata.csv"
 SESSION_TYPES = (1, 2, 23)
 TRAINING_LEVEL = 16
@@ -26,6 +31,8 @@ FIXATION_ABORT = "Fixation"
 NON_REPEAT_ABORTS = ("CNP", "Fixation")
 SESSION_KEYS = ["animal", "source_file", "session"]
 CHUNK_ROWS = 50_000
+CALIBRATION_SOURCE = "CNTNAP2_cohort4.csv"
+FIRST_CALIBRATED_SESSION = 13
 
 
 # %% Read animal genotypes and retain the union of source columns
@@ -70,6 +77,11 @@ audit = {
         ),
         "outcome": "abort_type == 'Fixation' OR success in {1, -1}",
         "excluded_short_sound_rule": "session_type == 1 AND is_short_sound == 1; apply after deriving repeats on all source trials",
+        "speaker_calibration_rule": (
+            "Exclude CNTNAP2_cohort4.csv rows with numeric session < 13, "
+            "at every training level and session type. Derive repeats first; "
+            "the cutoff removes whole sessions and does not link sessions."
+        ),
         "session_types": list(SESSION_TYPES),
     },
     "filename": "basename of the input cohort CSV; source_file retains the daily CSV name",
@@ -164,6 +176,12 @@ with ExitStack() as stack:
             success = pd.to_numeric(chunk["success"], errors="coerce")
             short_sound = pd.to_numeric(chunk["is_short_sound"], errors="coerce")
             exclude_short_sound = session_type.eq(1) & short_sound.eq(1)
+            session_number = pd.to_numeric(chunk["session"], errors="raise")
+            exclude_uncalibrated = (
+                session_number.lt(FIRST_CALIBRATED_SESSION)
+                if source_path.name == CALIBRATION_SOURCE
+                else pd.Series(False, index=chunk.index)
+            )
             repeated_trial = chunk["repeated_trial"].str.strip().str.lower()
             known_repeat = repeated_trial.isin(["true", "false", "", "nan"])
             if not known_repeat.all():
@@ -192,7 +210,8 @@ with ExitStack() as stack:
             for selected_type in SESSION_TYPES:
                 type_mask = session_type.eq(selected_type)
                 before_short_sound = type_mask & keep
-                selected_mask = before_short_sound & ~exclude_short_sound
+                before_calibration = before_short_sound & ~exclude_short_sound
+                selected_mask = before_calibration & ~exclude_uncalibrated
                 counts = source_session_counts.setdefault(str(selected_type), Counter())
                 counts.update(
                     {
@@ -205,6 +224,8 @@ with ExitStack() as stack:
                         "output_rows": int(selected_mask.sum()),
                         "output_rows_before_short_sound_exclusion": int(before_short_sound.sum()),
                         "short_sound_rows_removed": int((before_short_sound & exclude_short_sound).sum()),
+                        "output_rows_before_calibration_exclusion": int(before_calibration.sum()),
+                        "uncalibrated_rows_removed": int((before_calibration & exclude_uncalibrated).sum()),
                         "fixation_abort_rows": int(
                             (selected_mask & chunk["abort_type"].eq(FIXATION_ABORT)).sum()
                         ),

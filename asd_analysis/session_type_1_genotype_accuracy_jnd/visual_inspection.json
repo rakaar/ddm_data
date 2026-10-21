@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "figures_inspected": [
+    {
+      "metric": "accuracy",
+      "view": "cohort",
+      "panels": 12,
+      "checks": "Square panels, blue WT/green HOM/orange HET, categorical offsets, visible single-animal dots without bars, all means/bars within 0\u20131"
+    },
+    {
+      "metric": "accuracy",
+      "view": "family",
+      "panels": 6,
+      "checks": "Square panels, readable counts/labels, genotype colors and offsets, full means/bar range"
+    },
+    {
+      "metric": "jnd",
+      "view": "cohort",
+      "panels": 12,
+      "checks": "Separate pool/SEM counts at every category, seven unavailable bars correctly absent, large CNTNAP2 cohort3 HET ABL40 bar fully visible, footer clear of labels"
+    },
+    {
+      "metric": "jnd",
+      "view": "family",
+      "panels": 6,
+      "checks": "Separate pool/SEM counts readable, shared JND limits, all bars fully visible, footer clear of labels"
+    }
+  ]
+}

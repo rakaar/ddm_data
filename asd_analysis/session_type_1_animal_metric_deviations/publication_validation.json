@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "direct_image_embeds": 2,
+  "images_wrapped_in_links": false,
+  "pdf_downloads_resolve": true,
+  "all_audit_and_source_links_resolve": true,
+  "native_and_published_exports_identical": true,
+  "both_figures_visually_inspected": true,
+  "strict_mkdocs_build": "passed",
+  "eligible_animals": {
+    "jnd": 50,
+    "k": 53
+  },
+  "figures": 2,
+  "data_dots_verified": 618,
+  "SD_bars_verified": 4,
+  "previous_analyses_and_extended_PDF_preserved": true
+}

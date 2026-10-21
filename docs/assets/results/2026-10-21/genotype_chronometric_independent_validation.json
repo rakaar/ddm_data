@@ -1,0 +1,41 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/verify_session_type_1_genotype_chronometrics.py",
+  "input_rows_checked": 610603,
+  "RTs_per_view": 446949,
+  "animals_per_view": 53,
+  "animal_condition_means_checked": 795,
+  "pooled_means_checked": 270,
+  "across_animal_SEMs_checked": 240,
+  "unavailable_single_animal_SEMs_checked": 30,
+  "memberships_checked": 106,
+  "PDF_points_checked": 270,
+  "PDF_error_bars_checked": 240,
+  "PDF_single_animal_bars_absent": 30,
+  "figure_checks": [
+    {
+      "view": "cohort",
+      "panels": 12,
+      "PDF_dots_checked": 180,
+      "PDF_error_bars_checked": 150,
+      "PDF_pages": 1
+    },
+    {
+      "view": "family",
+      "panels": 6,
+      "PDF_dots_checked": 90,
+      "PDF_error_bars_checked": 90,
+      "PDF_pages": 1
+    }
+  ],
+  "protected_files_checked": 35,
+  "checks": [
+    "Standard-library CSV selection and signed pooling",
+    "Pooled means from raw RTs and trial-weighted animal means",
+    "Animal SEM uses sample SD about unweighted animal-mean center",
+    "No zero substitution for single-animal SEM",
+    "Actual PDF colored dots and SEM endpoints",
+    "Cohort/family orders and common square geometry",
+    "Unchanged inputs/previous exports"
+  ]
+}

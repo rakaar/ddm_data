@@ -1,0 +1,57 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/verify_session_type_1_genotype_accuracy_jnd.py",
+  "selected_trials_per_view": 446949,
+  "animals_per_view": 53,
+  "animal_accuracies_checked": 795,
+  "pooled_accuracies_checked": 270,
+  "accuracy_SEMs_checked": 240,
+  "accuracy_SEMs_unavailable": 30,
+  "refits_checked": 213,
+  "defined_animal_JNDs": 154,
+  "undefined_animal_JNDs": 5,
+  "pooled_JNDs_checked": 54,
+  "numerical_crossings_checked": 416,
+  "JND_SEMs_checked": 47,
+  "JND_SEMs_unavailable": 7,
+  "PDF_dots_checked": 324,
+  "PDF_bars_checked": 287,
+  "PDF_missing_bars_checked": 37,
+  "figures": [
+    {
+      "metric": "accuracy",
+      "view": "cohort",
+      "pages": 1,
+      "dots_checked": 180,
+      "bars_checked": 150
+    },
+    {
+      "metric": "accuracy",
+      "view": "family",
+      "pages": 1,
+      "dots_checked": 90,
+      "bars_checked": 90
+    },
+    {
+      "metric": "jnd",
+      "view": "cohort",
+      "pages": 1,
+      "dots_checked": 36,
+      "bars_checked": 29
+    },
+    {
+      "metric": "jnd",
+      "view": "family",
+      "pages": 1,
+      "dots_checked": 18,
+      "bars_checked": 18
+    }
+  ],
+  "protected_files_checked": 58,
+  "synthetic_checks": [
+    "Zero-lapse JND=ln(3)/k",
+    "Undefined thresholds",
+    "Non-increasing/zero-k JND",
+    "Optimizer failure"
+  ]
+}

@@ -93,6 +93,7 @@ for name in SOURCE_FILES:
                 and row_index not in excluded_rows
                 and (row["abort_type"] == "Fixation" or row["success"] in {"1", "-1"})
                 and not (t == "1" and float(row["is_short_sound"] or 0) == 1)
+                and not (name == "CNTNAP2_cohort4.csv" and float(row["session"]) < 13)
             )
             if retain:
                 row["filename"] = name
@@ -118,6 +119,7 @@ for t in SESSION_TYPES:
             assert row["trial_is_repeat"] == "False"
             assert row["abort_type"] == "Fixation" or row["success"] in {"1", "-1"}
             assert not (t == "1" and float(row["is_short_sound"] or 0) == 1)
+            assert not (row["filename"] == "CNTNAP2_cohort4.csv" and float(row["session"]) < 13)
             assert row["genotype"] == genotypes[row["animal"]]
             key = (t, row["filename"])
             assert key in actual_hashes
@@ -146,6 +148,7 @@ result = {
         "session boundaries and duplicate trial status",
         "training/session/outcome filters",
         "session-type-1 short-sound exclusion after repeat derivation",
+        "CNTNAP2 cohort 4 excludes numeric sessions below 13 after repeat derivation",
         "source filename and genotype",
         "source row counts and order",
         "every preserved cell value",

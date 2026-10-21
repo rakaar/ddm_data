@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "result_book": "docs/results/2026-10-22.md",
+  "direct_image_embeds_unwrapped": 4,
+  "single_page_PDF_downloads": 4,
+  "native_published_and_built_files_identical": 24,
+  "audit_ZIP_members_checked": 16,
+  "internal_links_checked": 90,
+  "original_cohort_and_prepared_CSVs_and_previous_exports_unchanged": 58,
+  "previous_October_21_entry_unchanged": true,
+  "README_prior_content_preserved": true,
+  "statistics_and_actual_PDF_marks": "independent verification passed",
+  "visual_inspection": "all four final PNGs inspected; readable square panels, correct counts/colors, full bars, no footer overlap",
+  "navigation_and_downloads": "passed",
+  "mkdocs_build_strict": "passed",
+  "diff_whitespace_check": "passed"
+}

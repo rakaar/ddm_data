@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "direct_PNG_embed": true,
+  "PNG_pixels": [
+    2800,
+    1080
+  ],
+  "asset_links_checked": 6,
+  "strict_MkDocs_build": "passed",
+  "visually_inspected": true,
+  "published_PNG_byte_identical": true
+}

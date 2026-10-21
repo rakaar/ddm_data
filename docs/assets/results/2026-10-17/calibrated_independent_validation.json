@@ -1,0 +1,61 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/verify_session_type_1_animal_metric_deviations_calibrated.py",
+  "eligible_animals": {
+    "jnd": 49,
+    "k": 53
+  },
+  "eligible_choices": {
+    "jnd": 420616,
+    "k": 451381
+  },
+  "source_values_checked": 306,
+  "signed_deviations_checked": 306,
+  "saved_PDF_dots_checked": 612,
+  "animal_means_checked": 102,
+  "summary_bars_checked": 4,
+  "population_SD_ddof": 0,
+  "figure_checks": [
+    {
+      "metric": "jnd",
+      "animals": 49,
+      "data_dots_checked": 294,
+      "gray_SD_bars_checked": 2,
+      "pdf_pages": 1,
+      "png_pixels": [
+        4680,
+        1800
+      ]
+    },
+    {
+      "metric": "k",
+      "animals": 53,
+      "data_dots_checked": 318,
+      "gray_SD_bars_checked": 2,
+      "pdf_pages": 1,
+      "png_pixels": [
+        4680,
+        1800
+      ]
+    }
+  ],
+  "protected_files_checked": 518,
+  "refits_checked": 159,
+  "numeric_JND_crossings_checked": 308,
+  "unchanged_animal_ABL_conditions": 129,
+  "before_after_summary_rows_checked": 8,
+  "checks": [
+    "independent current and archived CSV choice counts",
+    "all 159 refits and numeric JND crossings",
+    "eight common/all-eligible before-after summary rows",
+    "independent source CSV parsing of saved fits",
+    "metric-specific complete eligibility",
+    "equal ABL means and animal weighting",
+    "signed deviations sum to zero per animal",
+    "independent ascending order and animal-ID tie break",
+    "population SDs from statistics.pstdev",
+    "all PDF data dots and SD bar endpoints verified",
+    "full ranges and readable labels",
+    "unchanged input and previous artifacts"
+  ]
+}

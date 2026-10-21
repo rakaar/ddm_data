@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "pdf_pages": 11,
+  "animals": 53,
+  "direct_new_png_embeds": 11,
+  "image_links_wrap_pngs": false,
+  "latest_pdf_linked_from_october_14": true,
+  "previous_two_and_three_column_downloads_preserved": true,
+  "all_new_pages_and_53_lower_rows_visually_inspected": true,
+  "all_new_downloads_and_source_links_resolve": true,
+  "native_and_published_exports_identical": true,
+  "complete_audit_bundle_verified": true,
+  "strict_mkdocs_build": "passed",
+  "new_window_trials": 466978,
+  "thresholds": 265,
+  "scaling_fits": 530,
+  "original_reference_audits_byte_identical": true
+}

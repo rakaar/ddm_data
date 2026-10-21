@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "result_book": "docs/results/2026-10-21.md",
+  "direct_PNG_embeds_unwrapped": 2,
+  "single_page_PDF_downloads": 2,
+  "matching_native_published_and_built_files": 14,
+  "audit_ZIP_members_checked": 10,
+  "previous_October_21_assets_preserved": 268,
+  "existing_result_page_and_README_prefix_preserved": true,
+  "input_and_previous_native_exports_preserved": 35,
+  "independent_statistics_and_actual_PDF_marks": "passed",
+  "visual_inspection": {
+    "cohort": "12 square panels; readable labels; correct genotype colors and singleton bars absent; no clipped points or bars",
+    "family": "6 square panels; readable labels; correct genotype colors; no clipped points or bars"
+  },
+  "navigation_and_downloads": "passed",
+  "mkdocs_build_strict": "passed"
+}

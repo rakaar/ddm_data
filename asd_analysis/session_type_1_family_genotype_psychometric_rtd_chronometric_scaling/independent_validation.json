@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "source_script": "asd_analysis/verify_family_genotype_psychometric_rtd_chronometric_scaling.py",
+  "group_ids": 6,
+  "new_window_trials": 446949,
+  "histogram_cdf_conditions": 90,
+  "histogram_bins_checked": 90000,
+  "delta_cdf_bins_checked": 30000,
+  "thresholds_checked": 30,
+  "scaling_fits_checked": 60,
+  "raw_quantile_points_checked": 450,
+  "fine_quantiles_checked": 8910,
+  "scaled_points_checked": 450,
+  "synthetic_checks": [
+    "flat/short curve has no onset",
+    "known factor 1.5 recovered and inverted",
+    "missing cutoff and insufficient fit points audited",
+    "nonpositive factor omitted rather than used"
+  ],
+  "raw_pooling_and_18_refits_checked": true,
+  "psychometric_probabilities_checked": 180,
+  "PDF_psychometric_dots_checked": 180,
+  "chronometric_dots_and_SEMs_checked_in_PDF": 90,
+  "pdf_pages": 2,
+  "genotype_bookmarks_checked": 6,
+  "page_checks": [
+    {
+      "page": 1,
+      "group_ids": [
+        "SHANK3/wt",
+        "SHANK3/het",
+        "SHANK3/hom"
+      ],
+      "cutoff_markers_checked": 15,
+      "chronometric_dots_and_SEMs_checked": 45
+    },
+    {
+      "page": 2,
+      "group_ids": [
+        "CNTNAP2/wt",
+        "CNTNAP2/het",
+        "CNTNAP2/hom"
+      ],
+      "cutoff_markers_checked": 15,
+      "chronometric_dots_and_SEMs_checked": 45
+    }
+  ],
+  "protected_files_checked": 587
+}

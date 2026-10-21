@@ -1,0 +1,116 @@
+{
+  "status": "passed",
+  "date": "2026-10-17",
+  "rule": "filename == CNTNAP2_cohort4.csv AND numeric session < 13; no training/session-type restriction",
+  "reason": "Speaker calibration was incorrect before session 13.",
+  "archive_directory": "asd_analysis/session_type_csvs/archive/pre_cntnap2_cohort4_session13_cleanup",
+  "removed_row_locations": "asd_analysis/session_type_csvs/archive/pre_cntnap2_cohort4_session13_cleanup/removed_row_locations.csv.gz",
+  "files": {
+    "CNTNAP2_cohort4.csv": {
+      "archive_csv": "asd_analysis/session_type_csvs/archive/pre_cntnap2_cohort4_session13_cleanup/CNTNAP2_cohort4.csv",
+      "removed_csv": "asd_analysis/session_type_csvs/archive/pre_cntnap2_cohort4_session13_cleanup/removed_CNTNAP2_cohort4.csv",
+      "before": {
+        "sha256": "2f2d8450de17b596d555b1440bc47e869b311fda227cbd68158c1f1e3ca2f516",
+        "bytes": 443626713,
+        "mtime_ns": 1791512162000000000
+      },
+      "after": {
+        "sha256": "1e67104feb2a217950c46337b906b99d6ede08579c7fcb14e7233979b15eafcd",
+        "bytes": 375065434,
+        "mtime_ns": 1792180423197308946
+      },
+      "before_rows": 618712,
+      "removed_rows": 96082,
+      "after_rows": 522630,
+      "retained_animals": 20,
+      "affected_animals": 20,
+      "removed_rows_by_animal": {
+        "ASD0052": 8649,
+        "ASD0053": 8301,
+        "ASD0054": 6742,
+        "ASD0055": 6619,
+        "ASD0056": 6294,
+        "ASD0057": 7667,
+        "ASD0058": 6140,
+        "ASD0059": 6898,
+        "ASD0060": 7408,
+        "ASD0061": 6884,
+        "ASD0062": 1944,
+        "ASD0063": 2975,
+        "ASD0064": 2593,
+        "ASD0065": 3159,
+        "ASD0066": 992,
+        "ASD0067": 1494,
+        "ASD0068": 3295,
+        "ASD0069": 2586,
+        "ASD0070": 1808,
+        "ASD0071": 3634
+      },
+      "retained_bytes_and_row_order_preserved": true
+    },
+    "asd_analysis/session_type_csvs/ASD_session_type_1.csv": {
+      "archive_csv": "asd_analysis/session_type_csvs/archive/pre_cntnap2_cohort4_session13_cleanup/ASD_session_type_1.csv",
+      "removed_csv": "asd_analysis/session_type_csvs/archive/pre_cntnap2_cohort4_session13_cleanup/removed_ASD_session_type_1.csv",
+      "before": {
+        "sha256": "b7104220b3dbcfceb5a2e59ddd540b747de52db684d8cf0d808ebd638acd4dbe",
+        "bytes": 498000546,
+        "mtime_ns": 1791821268317619444
+      },
+      "after": {
+        "sha256": "db95fc66fc434c81832cb460ed5fe28857b1aa25c639b6a31fbb1859d2ba4408",
+        "bytes": 473606962,
+        "mtime_ns": 1792180427365309302
+      },
+      "before_rows": 642370,
+      "removed_rows": 31767,
+      "after_rows": 610603,
+      "retained_animals": 53,
+      "affected_animals": 10,
+      "removed_rows_by_animal": {
+        "ASD0052": 5608,
+        "ASD0053": 4058,
+        "ASD0055": 3485,
+        "ASD0056": 3219,
+        "ASD0057": 4576,
+        "ASD0058": 3032,
+        "ASD0059": 3738,
+        "ASD0060": 2586,
+        "ASD0061": 1378,
+        "ASD0068": 87
+      },
+      "retained_bytes_and_row_order_preserved": true
+    }
+  },
+  "protected_files": {
+    "SHANK3_cohort1.csv": {
+      "sha256": "22e3e26dc9358a2b55164639e9907651f2a230798034aea7c9cc2f52e753d146",
+      "bytes": 823715001,
+      "mtime_ns": 1791512858000000000
+    },
+    "SHANK3_cohort2.csv": {
+      "sha256": "9975cb4e89b4775aae44c17a0d6745d211d1c1a7e185ac14aba0571d52f0e544",
+      "bytes": 66782373,
+      "mtime_ns": 1791537066000000000
+    },
+    "CNTNAP2_cohort3.csv": {
+      "sha256": "6d8635b97ffed2ad02e3423148dba699d87df0a40d92abe6a6f1af865c48c81e",
+      "bytes": 388162234,
+      "mtime_ns": 1791544074000000000
+    },
+    "asd_analysis/session_type_csvs/ASD_session_type_2.csv": {
+      "sha256": "d42712ce3a32f0b91733a2b013546e94535f8c220f5dde0b92988444fc72a8d0",
+      "bytes": 426995542,
+      "mtime_ns": 1791813657076969070
+    },
+    "asd_analysis/session_type_csvs/ASD_session_type_23.csv": {
+      "sha256": "71dc19176e8131a78db4381af0126e86511e54330dcb62f9bdb5f4f109c7ae1b",
+      "bytes": 521340928,
+      "mtime_ns": 1791813657076969070
+    }
+  },
+  "previous_figures": "Preserved as historical pre-calibration-exclusion results; not recomputed.",
+  "old_row_numbers": "Earlier source/prepared row numbers refer to the archived copies, not the shortened active CSVs.",
+  "protected_files_unchanged": true,
+  "fresh_preparation_matches_all_retained_cells_and_order": true,
+  "independent_preparation_verification": "asd_analysis/session_type_csvs/verification.json"
+}

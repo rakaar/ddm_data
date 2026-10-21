@@ -3,15 +3,22 @@
 - `build_session_type_csvs.py` - Combines the four supplied ASD cohort CSVs into session-type 1, 2, and 23 CSVs using the documented next-trial repeat rule; preserves source columns and adds `filename`, `genotype`, and derived `trial_is_repeat`.
 - `verify_session_type_csvs.py` - Independently reconstructs repeat status with the standard-library CSV parser and verifies every output row and preserved cell against its source.
 - `clean_session_type_1_csv.py` - One-time cleanup: archives the previous prepared CSV and manifests, removes 807 flagged session-type-1 rows, and verifies retained cells/order and protected file hashes.
+- `remove_cntnap2_cohort4_precalibration_sessions.py` - One-time speaker-calibration cleanup: archives the source cohort 4 CSV, prepared session-type-1 CSV, and manifests; removes numeric sessions below 13 from those two CSVs while preserving every retained byte; compares a separate fresh preparation build and runs the independent source verifier.
+- `verify_cntnap2_cohort4_session13_cleanup.py` - Independently checks both active CSVs against their archived originals, every removed-row location, unchanged animals, and hashes/sizes/mtimes of the other cohorts and prepared session types 2/23.
 - `plot_session_type_1_rtds.py` - Plots session-type-1 RTDs by cohort CSV and animal, with 20 ms window-normalized histograms, an eight-page PDF, PNG pages, count/bin audits, and complete short-sound row locations.
 - `plot_session_type_1_genotype_rtds.py` - Pools session-type-1 trials by filename + genotype (12 rows, two pages) and gene family + genotype (six rows, one page), and checks every pooled histogram bin against the existing animal histogram counts.
 - `plot_session_type_1_psychometrics.py` - Empirical P(right) scatter plots by filename + genotype (12 panels) and genotype alone (three panels, both gene families combined), pooling correct/error choices without an RT restriction.
 - `plot_session_type_1_family_psychometrics.py` - Additional six-panel P(right) scatter image with SHANK3 and CNTNAP2 separate, pooling cohorts within each family + genotype and checking counts against the existing psychometric audits.
 - `plot_session_type_1_ild_pooled_rtds.py` - Three RTD images matching the psychometric layouts, pooling all ten signed ILDs within each ABL; 20 ms bins, 0–0.6 s display with 0–1 s normalization, and independent checks against existing animal histogram counts.
+- `plot_session_type_1_genotype_overlaid_rtds.py` - Current cleaned-data 1×2 PNG: SHANK3 and CNTNAP2 separate, each overlaying WT (blue), HOM (green), HET (orange), pooling ABL 20/40/60 and signed ILDs ±1/2/4/8/16. Uses valid choices with finite timed_rt in inclusive [0,1] s; 20 ms bins, full 0–1 s display, area 1 per curve. The 446,949 RTs, six memberships/counts and all 300 bins are independently checked against source CSV parsing and pooled current CDF histograms; outputs are in `session_type_1_genotype_overlaid_rtds/`, directly embedded in the October 19 result book.
 - `plot_session_type_1_slope_jnd.py` - Eight scatter images of fitted sigmoid k and Figure 1 JND: individual animals, filename + genotype, family + genotype, and genotype only; fits ten equally weighted ILD probabilities separately at each ABL.
 - `verify_session_type_1_slope_jnd.py` - Independently reconstructs raw choice counts/memberships, checks numerical sigmoid crossings, and verifies saved PDF colors/marker counts and preserved existing artifacts.
 - `plot_session_type_1_low_delta_psychometrics.py` - Two-by-five psychometric comparison: the five smallest mean absolute pairwise JND differences across ABL above the five smallest k differences. Both rankings use the same 50 JND-eligible animals from the 53-animal sample. Reuses saved probabilities/fits with no RT restriction; PNG/PDF, 53-animal eligibility/metrics, complete rankings, panel counts, and validation are in `session_type_1_low_delta_psychometrics/`. Published in the October 15 result book; previous figures and CSVs are preserved.
 - `verify_session_type_1_low_delta_psychometrics.py` - Independently checks all pairwise differences, the two-thirds-range identity, common eligibility, rankings, 300 measured points, 30 reused fits and smooth curves, saved PDF colors/marker/curve counts, and protected artifact hashes.
+- `plot_session_type_1_animal_metric_deviations.py` - Two Figure 1-style PNG/PDF pairs: JND and signed JND-minus-animal-mean deviations for 50 complete-JND animals, and fitted k with signed k deviations for all 53 animals. Reuses unfiltered-by-RT saved fits, orders animals by their equal-ABL means, and adds gray mean ±1 population-SD bars (`ddof=0`). Eligibility, 103 means, 309 values/deviations, summaries, and plot geometry are in `session_type_1_animal_metric_deviations/`; published in the October 15 result book.
+- `verify_session_type_1_animal_metric_deviations.py` - Independently parses saved source fits, checks metric-specific eligibility, means, signed deltas, sorting, sample totals, `statistics.pstdev` summaries, all 618 saved-PDF data dots, four SD-bar endpoints, and preserved earlier artifacts.
+- `plot_session_type_1_animal_metric_deviations_calibrated.py` - Updated Figure 1-style JND/signed-ΔJND and k/signed-Δk PNG/PDF pairs after CNTNAP2 cohort 4 sessions below 13 were removed. Refits all 159 animal/ABL psychometrics from 451,381 valid choices without an RT restriction; includes 49 complete-JND animals and all 53 complete-slope animals. Outputs, eligibility, fits, probabilities, and common-population before/after comparisons are in `session_type_1_animal_metric_deviations_calibrated/`; directly embedded in the October 17 result book. Historical fits and figures are preserved.
+- `verify_session_type_1_animal_metric_deviations_calibrated.py` - Independently reconstructs current and archived choices, checks all 159 refits and 308 numerical JND crossings, confirms 129 unchanged fits for the 43 unaffected animals, and checks means, signed deltas, eight before/after summary rows, all 612 PDF data dots, four SD bars, and protected hashes.
 - `plot_session_type_1_genotype_overlay_psychometrics.py` - Six WT/HET/HOM comparison figures with measured scatter points and four-parameter sigmoid fits, using trial pooling or equal averages of measured ABL probabilities.
 - `verify_session_type_1_genotype_overlay_psychometrics.py` - Independently checks raw choice counts, memberships, both ABL combination formulas, unweighted fits, and saved PDF marker/curve colors and counts.
 - `plot_session_type_1_genotype_overlay_psychometrics_rt_0_to_1.py` - Three additional trial-pooled genotype overlays restricted to finite measured `timed_rt` in inclusive [0,1] seconds, retaining all 53 animals and preserving the six unrestricted figures.
@@ -21,6 +28,10 @@
 - `verify_all_animals_psychometric_and_rtd.py` - Independently parses the prepared CSV, checks every animal/ABL/ILD choice count and all-RT histogram, and verifies the 53-animal PDF's pagination, bookmarks, colors, scatter points, and fitted curves.
 - `plot_all_animals_psychometric_rtd_chronometric.py` - Three-column version of the 53-animal PDF: unchanged psychometrics/RTDs plus mean RT ± SEM versus |ILD| after pooling +ILD and -ILD raw valid trials. Uses all finite RTs, five animals per page, 11 PDF/PNG pages with compact square chronometric panels at 28% of the other column widths on 18.24-inch pages, and preserves the two-column exports; outputs are in `session_type_1_all_animals_psychometric_rtd_chronometric/`.
 - `verify_all_animals_psychometric_rtd_chronometric.py` - Independently verifies all 795 signed-ILD-pooled means/SEMs, count/weighted-mean consistency, unchanged psychometric/RTD audits, and every chronometric dot and SEM error bar in the saved PDF.
+- `plot_all_animals_psychometric_rtd_chronometric_scaling.py` - Extended 53-animal PDF with two rows per animal: the saved psychometric/RTD/chronometric panels above CDFs, ΔCDF/onsets, three ABL quantile panels, and their scaled overlay. The new row uses 466,978 measured RTs in [0,1] s, 1 ms CDF bins, 265 freshly detected per-animal/|ILD| cutoffs, and 530 Figure 1 rescaling fits. Five animals per page, 11 taller pages; previous exports remain unchanged. Outputs and full count/bin/quantile/scaling audits are in `session_type_1_all_animals_psychometric_rtd_chronometric_scaling/`.
+- `verify_all_animals_psychometric_rtd_chronometric_scaling.py` - Independently parses raw CSV trials, checks signed pooling, bisect-based histogram counts, CDF differences/onsets, order-statistic quantiles, scalar rescaling fits, synthetic missing/invalid cases, original means/SEMs, PDF cutoff/error-bar geometry, pagination/bookmarks, and preserved artifact hashes.
+- `plot_family_genotype_psychometric_rtd_chronometric_scaling.py` - New two-page PDF and matching PNGs using the calibration-cleaned CSV: SHANK3 on page 1, CNTNAP2 on page 2, each with WT/HET/HOM blocks. Pools raw trials across cohorts/animals within family/genotype before recomputing psychometrics, full-range RTDs, mean RT ± pooled-trial SEM, CDF cutoffs, quantiles, and Figure 1 scaling. Published in the October 19 result book; outputs/audits are in `session_type_1_family_genotype_psychometric_rtd_chronometric_scaling/`.
+- `verify_family_genotype_psychometric_rtd_chronometric_scaling.py` - Independently checks raw memberships/counts, 18 refits, 180 probabilities, full-range RTD bins/unit areas, 90 means/SEMs, 90,000 CDF bins, 30 cutoffs, 60 scaling fits, all quantiles/transforms, missing/invalid cases, PDF points/SEMs/cutoffs, two pages/six bookmarks, and protected file hashes.
 - `plot_session_type_1_animal_rt_summary.py` - Three plots with all 53 animals on one categorical axis: mean RT ± sample SD, mean RT ± SEM, and median RT with a binomial/order-statistic 95% CI. Pools all selected signed ILDs and uses every finite valid-trial RT, including >1 s; statistics, membership, plot-point audits, and exports are in `session_type_1_animal_rt_summary/`.
 - `verify_session_type_1_animal_rt_summary.py` - Independently checks RT selection and Python sample statistics, median CI endpoints/coverage, all 477 plotted estimates and error bars, and saved PDF identities/colors/geometry.
 - `plot_session_type_1_accuracy_vs_mean_rt.py` - One scatter dot per animal/ABL (159 dots), plotting valid-choice accuracy against all-finite-RT arithmetic mean. ABL determines color; SHANK3 is hollow and CNTNAP2 filled; WT/HET/HOM are circles/squares/triangles. Pools signed ILDs and sessions; uses all valid choices for accuracy and all finite RTs for the RT mean, with both denominators in `session_type_1_accuracy_vs_mean_rt/animal_abl_points.csv`.
@@ -47,6 +58,7 @@ Each output pools SHANK3 cohorts 1 and 2 and CNTNAP2 cohorts 3 and 4, selecting:
   except that a True flag on a CNP or fixation abort does not exclude the next trial.
 - `abort_type == 'Fixation'` **or** `success` is 1 or -1.
 - For session type 1 only, exclude `is_short_sound == 1` after deriving repeat eligibility on all original trials.
+- For `CNTNAP2_cohort4.csv` only, exclude numeric `session < 13` because the speaker calibration was incorrect before session 13. Apply at every training level and session type; session 13 is retained. The source cohort CSV itself has also been shortened by this rule.
 
 The ASD source fields are Boolean `repeated_trial`, text `abort_type`, and numeric
 `success`. The requested `abort_event == 3` condition maps to fixation aborts.
@@ -69,7 +81,8 @@ values `wt`, `hom`, and `het`. `trial_is_repeat` records the derived current-tri
 repeat status and is False for every retained row; the raw `repeated_trial`
 column remains unchanged and may be True.
 All source columns are preserved; columns absent from a cohort are blank in its
-output rows. Apart from the session-type-1 short-sound exclusion, no further duration, session-number, genotype, RT-quality, or
+output rows. Apart from the session-type-1 short-sound exclusion and the CNTNAP2
+cohort 4 calibration cutoff, no further duration, session-number, genotype, RT-quality, or
 missing-timing filters are applied, and rows are not deduplicated.
 
 `filter_manifest.json` records counts after each selection step, retained outcomes
@@ -77,7 +90,7 @@ and genotypes by source, and the grouping/ordering rules. A successful independe
 verification writes `session_type_csvs/verification.json`; rebuilding clears the
 previous verification so it cannot be mistaken for a check of the new files.
 
-The 2026-10-12 cleanup and independent verification produced:
+The historical 2026-10-12 cleanup and independent verification produced:
 
 | Output | Rows | Fixation aborts |
 | --- | ---: | ---: |
@@ -93,12 +106,96 @@ the actual repeated trial following a different, repeat-triggering trial.
 
 The prepared session-type-1 CSV was shortened from 643,177 to 642,370 rows by
 removing 807 `session_type == 1 AND is_short_sound == 1` records (330 ASD0026,
-477 ASD0045). All 53 animals remain. The source cohorts and prepared session
-types 2/23 are unchanged. Retained cells, columns, and order were preserved.
+477 ASD0045). All 53 animals remained. At that cleanup, the source cohorts and
+prepared session types 2/23 were unchanged. Retained cells, columns, and order were preserved.
 The former CSV, preparation manifest, verification, and removed records are in
 `session_type_csvs/archive/pre_short_sound_cleanup/`; `short_sound_cleanup.json`
 records before/after hashes and verification. The cleanup script deliberately
 does not overwrite an existing archive; future rebuilds use the generator's rule.
+
+### Current CSVs after the 2026-10-17 speaker-calibration cleanup
+
+The second CNTNAP2 cohort is stored as `CNTNAP2_cohort4.csv`. The user reported
+incorrect speaker calibration before session 13 and requested removal from both
+that source CSV and the prepared CSV used for analysis. This uses the numeric
+`session` column, not `session_type`, and removes whole sessions 1–12. It does
+not exclude whole animals or impose any RT restriction.
+
+| Active CSV | Before | Removed | Retained | Animals retained |
+| --- | ---: | ---: | ---: | ---: |
+| `CNTNAP2_cohort4.csv` | 618,712 | 96,082 | 522,630 | 20 |
+| `session_type_csvs/ASD_session_type_1.csv` | 642,370 | 31,767 | 610,603 | 53 |
+
+The source removal affects 20 animals; the prepared removal affects 10 animals
+(2 WT, 6 HET, 2 HOM). Every affected animal retains later sessions. Cohort 4
+still contributes 17 animals to the 53-animal prepared analysis. The other
+cohort CSVs and prepared session types 2/23 are byte-for-byte unchanged.
+
+Current prepared output counts are **610,603 / 547,720 / 685,063** for session
+types **1 / 2 / 23**, totaling **1,843,386 rows**. A fresh preparation build
+matches all retained cells and row order, and the independent verifier checks
+repeat eligibility on the surviving complete source sessions before selection.
+Removing whole sessions does not change next-trial eligibility in retained sessions.
+The generator and verifier also apply the cutoff explicitly, so restoring an
+older source file cannot silently reintroduce these sessions into prepared data.
+
+Complete pre-change CSVs, old manifests, exact removed rows, and a compressed
+row-location audit are under
+`session_type_csvs/archive/pre_cntnap2_cohort4_session13_cleanup/`.
+`session_type_csvs/speaker_calibration_cleanup.json` and
+`speaker_calibration_independent_verification.json` contain before/after hashes,
+per-animal removals, protected-file checks, and independent verification.
+
+**The figures, fits, and detailed analysis counts below and in the October
+12–15 result-book entries remain historical results from before this calibration
+exclusion.** Their previous prepared CSV is the
+archived 642,370-row version. Earlier row numbers for either shortened CSV refer
+to its archived copy. Existing fit-dependent scripts retain their original
+validation expectations; the old fits must be refreshed before presenting them
+as analyses of the current CSV.
+
+The **October 17 Figure 1-style animal JND/signed-ΔJND and k/signed-Δk plots**
+have now been recomputed in `session_type_1_animal_metric_deviations_calibrated/`
+using the current CSV and the same unweighted four-parameter psychometric fits.
+They use 451,381 valid choices (231,263 right; 220,118 left), with no RT restriction.
+All 53 animals retain three k values. JND eligibility is now 49 animals rather
+than 50: ASD0058's ABL-20 lower target falls below the fitted lower asymptote;
+ASD0035/0044/0048 remain ineligible. The other historical figure sets and fit
+tables have not been overwritten or refreshed.
+
+The before/after audit includes a fixed population for each metric. Among the
+same 49 animals, mean JND changes 3.188877 → 3.188179 dB and the SD of signed
+ABL deviations changes 0.363051 → 0.383571 dB (+5.65%). Among the same 53
+animals, mean k changes 0.365666 → 0.366198 dB⁻¹ and its deviation SD changes
+0.038319 → 0.039098 dB⁻¹ (+2.03%). The 43 unaffected animals' 129 fits are
+numerically unchanged; some of the 10 affected animals change more.
+
+## Family/genotype PDF with CDFs and quantile scaling — 2026-10-19
+
+Run `.venv/bin/python asd_analysis/plot_family_genotype_psychometric_rtd_chronometric_scaling.py`,
+then `.venv/bin/python asd_analysis/verify_family_genotype_psychometric_rtd_chronometric_scaling.py`.
+The new two-page PDF is the genotype-pooled counterpart of the original
+53-animal extended PDF. SHANK3 and CNTNAP2 are separate, with WT/HET/HOM
+on each family's page; cohorts and animals are pooled by observed trials.
+The page width is 18.24 inches, height 22 inches, with the compact square
+chronometric geometry and two rows/nine panels per genotype. Six bookmarks
+identify the six family/genotype groups. The October 19 result book embeds
+both PNG pages directly and provides the PDF, sources, and complete audits.
+
+Use the current cleaned CSV: 451,381 valid choices (231,263 right; 220,118 left),
+449,193 finite RTs, and 446,949 RTs in inclusive [0,1] seconds. Include all
+53 animals irrespective of JND availability. The psychometric uses all valid
+choices with no RT restriction; RTD/chronometric use all finite RTs, including
+2,244 above 1 second. The lower CDF/quantile row alone uses [0,1] seconds.
+The confirmed repeat rule is already applied and is not derived again.
+
+Raw choice counts are pooled before the 18 unweighted four-parameter fits;
+raw RTs are pooled before means, sample SDs, SEMs, CDFs, and quantiles.
+SEM is sample SD divided by sqrt(pooled finite-trial n), describing pooled
+trial variability. The RTDs have 20 ms bins, full-range normalization, and
+0–0.6 s display. The CDFs use 1 ms bins; all 30 fresh thresholds are available
+(37.5–79.5 ms), and all 60 Figure 1 scaling factors are valid. The previous
+animal plots, fits, and source CSVs remain unchanged.
 
 ## Session-type-1 RTDs
 
@@ -414,13 +511,42 @@ different units and describe ABL stability; raw score sizes cannot be
 compared directly. Full eligibility, pairwise differences, rankings, and
 selected point/fit/count audits accompany the PNG/PDF and validation reports.
 
+## Per-animal CDF cutoffs and quantile scaling
+
+The extended all-animal PDF in the October 15 result book adds six panels
+beneath each animal: CDFs, ΔCDFs, ABL 20/40/60 quantiles, and a rescaled
+overlay. All 53 animals are included, regardless of JND eligibility. The
+upper row reuses the previous psychometric/RTD/chronometric audits exactly.
+The new row alone selects `timed_rt` in inclusive [0,1] seconds, yielding
+466,978 valid-choice RTs. Pool raw +ILD/-ILD trials across sessions first.
+
+CDFs use 1 ms bins normalized by each animal/ABL/|ILD| window count. For
+each animal/|ILD|, ΔCDF is the mean of the three absolute ABL-pair differences.
+The cutoff is the first bin center where the next ten bins' mean minus the
+preceding ten bins' mean is at least 0.005, excluding the current bin.
+All 265 cutoffs are available (10.5–104.5 ms); they replace the old paper's
+hard-coded cutoffs for this new analysis only. Both CDF displays zoom to
+0–0.15 seconds; cutoff markers appear only on ΔCDF panels.
+
+Display five empirical quantiles (10/30/50/70/90%) against |ILD| 1/2/4/8/16.
+For ABL 20/40, fit 1–99% quantiles against ABL 60 where its reference RT is
+between the cutoff and 0.3 seconds. Match the original shifted-difference
+fit: `x=Q60-t0; y=Qabl-Q60; m=sum(x*(y-yfirst))/sum(x*x)`. Above the cutoff,
+use `t0+(Q-t0)/(1+m)`; earlier quantiles and the ABL-60 reference remain
+unchanged. All 530 fits are valid. Missing cutoffs or invalid/nonpositive
+factors are audited and omit affected scaled values, never silently replaced
+with unscaled points. Full bin/CDF, fine-quantile, and fit-input audits use
+gzip-compressed CSVs; other compact tables and JSON checks remain directly
+readable. The book provides individual audit downloads and a complete bundle.
+
 ## Versioned artifacts and local data
 
 The ASD analysis scripts, compact count/membership/histogram/fit audits, and
 JSON preparation/validation manifests are versioned with the result-book pages.
 Published PNGs, PDF downloads, source-script copies, and downloadable audits
 are in the date folders under `docs/assets/results/`, including 2026-10-12,
-2026-10-13, 2026-10-14, and 2026-10-15. During git wrap-up, explicitly stage published
+2026-10-13, 2026-10-14, 2026-10-15, 2026-10-17, 2026-10-19, 2026-10-21,
+and 2026-10-22. During git wrap-up, explicitly stage published
 downloads and compact analysis CSV audits despite the repository's general
 CSV/PDF ignore rules.
 
@@ -430,3 +556,75 @@ They are not included in this analysis commit; preparation manifests record
 their provenance and hashes. Native PNG/PDF exports in the analysis output
 directories also remain local under the existing ignore rules; their published
 copies are included in the result book.
+
+## Genotype chronometrics by cohort and gene family — October 21
+
+Run `.venv/bin/python asd_analysis/plot_session_type_1_genotype_chronometrics.py`,
+then `.venv/bin/python asd_analysis/verify_session_type_1_genotype_chronometrics.py`.
+Both scripts use readable `# %%` blocks and editable parameters near the top.
+Outputs are in `asd_analysis/session_type_1_genotype_chronometrics/`; the two
+PNG images and matching single-page PDFs are embedded/downloadable in
+`docs/results/2026-10-21.md`.
+
+The current cleaned CSV contributes 446,949 valid-choice RTs from all 53
+animals: `success in {1,-1}`, finite recorded `timed_rt` in inclusive [0,1]
+seconds, ABL 59→60 then 20/40/60, and signed ILDs ±1/2/4/8/16. Prepared
+training/repeat/short-sound/speaker-calibration rules remain applied; no
+repeat filter is reapplied. This window excludes RTs above one second,
+unlike the earlier all-finite-RT animal chronometrics.
+
+Dots pool raw positive/negative ILD trials across sessions/animals before
+calculating mean RT. Error bars use the sample SD of animal condition means
+about their unweighted mean, divided by √animal count (`ddof=1`). The point
+is trial weighted; animals have equal weight in the SEM, which is centered
+on the pooled point as requested. This differs from earlier pooled-trial
+SEM. SHANK3 cohort 2 WT/HOM each have one animal: retain their dots and
+record SD/SEM as unavailable, with no bar and no zero substitution.
+
+The four-cohort × three-ABL view has 180 points; the two-family × three-ABL
+view has 90. All panels are square, share 0–0.45 s limits, and show filled
+circular points with capped bars, no lines/fits. Genotype colors are WT blue,
+HOM green, HET orange, offset −0.12/0/+0.12 at categorical |ILD| 1/2/4/8/16.
+Audits include 795 animal-condition means, 270 pooled means, 240 available
+SEMs, 30 unavailable SEMs, signed-trial counts, memberships, and PDF geometry.
+The independent verifier reconstructs these statistics from the CSV, checks
+the saved PDF dots/bar endpoints, and verifies unchanged inputs and prior
+genotype exports.
+
+## Genotype accuracy and JND by cohort and family — October 22
+
+Run `.venv/bin/python asd_analysis/plot_session_type_1_genotype_accuracy_jnd.py`,
+then `.venv/bin/python asd_analysis/verify_session_type_1_genotype_accuracy_jnd.py`.
+The readable `# %%` plotter has editable parameters at the top. Output folder:
+`asd_analysis/session_type_1_genotype_accuracy_jnd/`. Four PNGs and matching
+single-page PDFs are directly embedded/downloadable in `docs/results/2026-10-22.md`.
+
+Use the same 446,949 valid-choice RTs and all 53 animals as the October 21
+chronometrics: `success in {1,-1}`, finite recorded `timed_rt` in inclusive
+[0,1] seconds, ABL 59→60 then 20/40/60, signed ILDs ±1/2/4/8/16, and all
+existing cleaned preparation rules. No repeat filter is reapplied.
+
+The two accuracy figures retain cohort 4×3/family 2×3 layouts, ABL columns,
+and categorical |ILD|. Dots pool actual ±ILD trials: correct / valid choices.
+Bars use sample SD of animal accuracies around their unweighted mean / √N.
+The 795 animal accuracies yield 270 pooled points, 240 SEM bars and 30 missing
+single-animal bars. Accuracy limits are 0–1. Colors remain WT blue, HOM green,
+HET orange, with offsets −0.12/0/+0.12 and no connecting lines.
+
+The two JND figures retain those grids, with WT/HOM/HET as x categories.
+Refit 159 animal and 54 pooled psychometrics using this RT window and the
+unchanged unweighted four-parameter sigmoid and paper JND definition. All
+54 pooled JNDs are defined; 154/159 individual JNDs are defined. Undefined:
+ASD0035/0058 at ABL20, ASD0044 at ABL40, ASD0048 at ABL40/60. All their trials
+remain in pooled fits. Bars use sample SD of defined animal JNDs / √defined N,
+centered on the pooled-fit JND. They are not pooled-fit confidence intervals.
+Show pooled and SEM-contributing animal counts separately. The 47 available
+bars and seven missing bars are audited; no missing SEM is replaced by zero.
+Both JND figures share limits covering every full bar.
+
+Audits include raw condition/choice counts, memberships, animal/pooled
+estimates, fit parameters/statuses, thresholds/crossings, SEMs and PDF geometry.
+The independent verifier reconstructs selections and accuracies from the CSV,
+refits all 213 curves, numerically checks 416 crossings, validates all 324
+colored PDF dots/287 bars and missing bars, checks zero-lapse/invalid-fit
+handling, and verifies unchanged data and prior-result hashes.
