@@ -1,0 +1,140 @@
+{
+  "status": "passed",
+  "lapse_support_s": [
+    0.0,
+    null
+  ],
+  "location_s": 0.0,
+  "survival_floor": 1e-300,
+  "lapse_checks": [
+    {
+      "shape": 0.05,
+      "scale_s": 0.001,
+      "integrated_mass": 0.9999999999989665,
+      "shape_gradient": 19.05059455140959,
+      "scipy_shape_finite_difference": 19.050594551650587,
+      "gradients_finite": true
+    },
+    {
+      "shape": 0.3,
+      "scale_s": 0.08,
+      "integrated_mass": 0.9999999999994424,
+      "shape_gradient": 3.214783539611433,
+      "scipy_shape_finite_difference": 3.2147835396327076,
+      "gradients_finite": true
+    },
+    {
+      "shape": 1.0,
+      "scale_s": 0.2,
+      "integrated_mass": 0.9999999999989999,
+      "shape_gradient": 1.1735630272247275,
+      "scipy_shape_finite_difference": 1.173563027234703,
+      "gradients_finite": true
+    },
+    {
+      "shape": 2.5,
+      "scale_s": 0.04,
+      "integrated_mass": 0.9999999999932585,
+      "shape_gradient": 0.6272118040850231,
+      "scipy_shape_finite_difference": 0.6272118041250607,
+      "gradients_finite": true
+    },
+    {
+      "shape": 10.0,
+      "scale_s": 0.02,
+      "integrated_mass": 0.9999999999989966,
+      "shape_gradient": 0.2778042550845179,
+      "scipy_shape_finite_difference": 0.2778042551043747,
+      "gradients_finite": true
+    },
+    {
+      "shape": 49.5,
+      "scale_s": 0.0011,
+      "integrated_mass": 0.9999999999990082,
+      "shape_gradient": 0.11806101042182893,
+      "scipy_shape_finite_difference": 0.11806101045887994,
+      "gradients_finite": true
+    },
+    {
+      "shape": 1.2,
+      "scale_s": 4.9,
+      "integrated_mass": 0.9999999999989935,
+      "shape_gradient": 1.0273101284112436,
+      "scipy_shape_finite_difference": 1.0273101286965385,
+      "gradients_finite": true
+    }
+  ],
+  "likelihood_checks": [
+    {
+      "shape": 0.3,
+      "scale_s": 0.08,
+      "scipy_log_likelihood": -22.829528165556464,
+      "jax_log_likelihood": -22.829528165556464
+    },
+    {
+      "shape": 1.0,
+      "scale_s": 0.2,
+      "scipy_log_likelihood": -21.505605597643278,
+      "jax_log_likelihood": -21.505605597643278
+    },
+    {
+      "shape": 2.5,
+      "scale_s": 0.04,
+      "scipy_log_likelihood": -31.981177245344345,
+      "jax_log_likelihood": -31.98117724534435
+    }
+  ],
+  "mass_checks": [
+    {
+      "LED_trial": 0,
+      "t_stim": 0.2,
+      "density_mass_plus_survival": 0.9999999999955288
+    },
+    {
+      "LED_trial": 0,
+      "t_stim": 0.7,
+      "density_mass_plus_survival": 0.9999999999955215
+    },
+    {
+      "LED_trial": 0,
+      "t_stim": 1.5,
+      "density_mass_plus_survival": 0.9999999999955291
+    },
+    {
+      "LED_trial": 0,
+      "t_stim": 2.3,
+      "density_mass_plus_survival": 0.9999999999955239
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 0.2,
+      "density_mass_plus_survival": 0.9999999999955287
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 0.7,
+      "density_mass_plus_survival": 0.9999999999955289
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 1.5,
+      "density_mass_plus_survival": 0.9999999999955286
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 2.3,
+      "density_mass_plus_survival": 0.9999999999955286
+    }
+  ],
+  "checks": [
+    "SciPy density/CDF/survival",
+    "zero support boundary",
+    "unit mass",
+    "shape below and above one",
+    "incomplete-gamma shape derivative",
+    "finite gradients",
+    "four-term likelihood",
+    "shape one equals exponential",
+    "censoring mass"
+  ]
+}

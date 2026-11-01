@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "page_status": 200,
+  "url": "http://127.0.0.1:8000/results/2026-11-02/#led7-session-types-8-and-9-gamma-lapses-with-fixed-zero-location",
+  "served_figure_matches_saved": true,
+  "mkdocs_strict_build": "passed"
+}

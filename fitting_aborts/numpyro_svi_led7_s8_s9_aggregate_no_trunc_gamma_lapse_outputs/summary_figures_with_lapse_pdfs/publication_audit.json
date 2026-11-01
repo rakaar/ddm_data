@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "url": "http://127.0.0.1:8000/results/2026-11-02/#led7-fitted-lapse-distributions-beside-abort-rt-comparisons",
+  "page_status": 200,
+  "served_png_matches_saved": true,
+  "strict_mkdocs_build": "passed",
+  "visually_inspected": true,
+  "refitted": false
+}

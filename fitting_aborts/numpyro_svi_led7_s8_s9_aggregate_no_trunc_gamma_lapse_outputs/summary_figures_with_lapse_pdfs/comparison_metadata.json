@@ -1,0 +1,254 @@
+{
+  "uniform_interval_s": [
+    0.0,
+    2.2
+  ],
+  "time_reference": "fixation start",
+  "posterior_point_estimate": "mean",
+  "model_grid_s": 0.001,
+  "data_bin_s": 0.01,
+  "display_range_s": [
+    -0.3,
+    0.7
+  ],
+  "trial_population": "identical baseline event-3 plus censored likelihood rows",
+  "pooling": "trial_weighted",
+  "normalization": "all event-or-censored trials in each session-type and LED group",
+  "interpretation": "In-sample comparisons at posterior means; prediction not evaluated on held-out trials.",
+  "source_script": "/home/rlab/raghavendra/ddm_data/fitting_aborts/plot_led7_s8_s9_exponential_vs_uniform_lapse.py",
+  "source_fits": {
+    "8": {
+      "old_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_8",
+      "new_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_uniform_lapse_0_2p2s_outputs/session_type_8",
+      "identical_source_rows": true,
+      "n_trials": 139547,
+      "gaussian_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_gaussian_lapse_outputs/session_type_8",
+      "gamma_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_gamma_lapse_outputs/session_type_8"
+    },
+    "9": {
+      "old_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9",
+      "new_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_uniform_lapse_0_2p2s_outputs/session_type_9",
+      "identical_source_rows": true,
+      "n_trials": 93381,
+      "gaussian_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_gaussian_lapse_outputs/session_type_9",
+      "gamma_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_gamma_lapse_outputs/session_type_9"
+    }
+  },
+  "uniform_interval_decision": "user selected a fixed interval of 0 to 2.2 seconds from fixation start",
+  "historical_hashes_verified": 157,
+  "lapse_families": [
+    "exponential",
+    "uniform",
+    "gaussian",
+    "gamma"
+  ],
+  "figure_layout": [
+    4,
+    4
+  ],
+  "display_only": true,
+  "cached_abort_comparison": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_gamma_lapse_outputs/summary_figures/comparison_payload.pkl",
+  "historical_curves": "all four families reused from saved Gamma comparison",
+  "lapse_pdf_definition": "f(t; E_q[parameters]), conditional on a lapse; p shown separately in titles",
+  "lapse_pdf_normalization": "unit mass on full support; plotted window is not renormalized",
+  "lapse_pdf_time_reference": "fixation start",
+  "lapse_pdf_display_range_s": [
+    0.0,
+    0.5
+  ],
+  "abort_time_reference": "time relative to scheduled LED onset (OFF) or actual LED onset (ON)",
+  "lapse_pdf_grid_s": 0.001,
+  "lapse_pdf_y_axes": "shared within each family across session types",
+  "columns": [
+    "s8 lapse PDF",
+    "s8 data/model",
+    "s9 lapse PDF",
+    "s9 data/model"
+  ],
+  "source_artifact_hashes_verified": 190,
+  "refitted": false,
+  "gaussian_support_s": [
+    0.0,
+    null
+  ],
+  "gaussian_parameter_bounds": {
+    "V_A_base": {
+      "hard": [
+        0.1,
+        8.0
+      ],
+      "plausible": [
+        0.5,
+        3.0
+      ]
+    },
+    "V_A_post_LED": {
+      "hard": [
+        0.1,
+        8.0
+      ],
+      "plausible": [
+        0.5,
+        3.0
+      ]
+    },
+    "theta_A": {
+      "hard": [
+        0.1,
+        8.0
+      ],
+      "plausible": [
+        0.5,
+        3.0
+      ]
+    },
+    "del_a_minus_del_LED": {
+      "hard": [
+        -1.1,
+        1.1
+      ],
+      "plausible": [
+        0.01,
+        0.07
+      ]
+    },
+    "del_m_plus_del_LED": {
+      "hard": [
+        0.001,
+        0.2
+      ],
+      "plausible": [
+        0.01,
+        0.07
+      ]
+    },
+    "lapse_prob": {
+      "hard": [
+        0.0,
+        1.0
+      ],
+      "plausible": [
+        0.01,
+        0.3
+      ]
+    },
+    "mu_lapse": {
+      "hard": [
+        -5.0,
+        5.0
+      ],
+      "plausible": [
+        -0.5,
+        0.5
+      ]
+    },
+    "sigma_lapse": {
+      "hard": [
+        0.001,
+        5.0
+      ],
+      "plausible": [
+        0.01,
+        0.8
+      ]
+    }
+  },
+  "gaussian_parameterization": "mu and sigma of the underlying Gaussian; actual retained moments saved separately",
+  "gaussian_bound_audit": "posterior mean distance to each hard bound in posterior SD; flag within two SD",
+  "gaussian_mu_decision": "user allows negative underlying mu with sampled times conditioned on >= 0",
+  "gamma_location_s": 0.0,
+  "gamma_parameter_bounds": {
+    "V_A_base": {
+      "hard": [
+        0.1,
+        8.0
+      ],
+      "plausible": [
+        0.5,
+        3.0
+      ]
+    },
+    "V_A_post_LED": {
+      "hard": [
+        0.1,
+        8.0
+      ],
+      "plausible": [
+        0.5,
+        3.0
+      ]
+    },
+    "theta_A": {
+      "hard": [
+        0.1,
+        8.0
+      ],
+      "plausible": [
+        0.5,
+        3.0
+      ]
+    },
+    "del_a_minus_del_LED": {
+      "hard": [
+        -1.1,
+        1.1
+      ],
+      "plausible": [
+        0.01,
+        0.07
+      ]
+    },
+    "del_m_plus_del_LED": {
+      "hard": [
+        0.001,
+        0.2
+      ],
+      "plausible": [
+        0.01,
+        0.07
+      ]
+    },
+    "lapse_prob": {
+      "hard": [
+        0.0,
+        1.0
+      ],
+      "plausible": [
+        0.01,
+        0.3
+      ]
+    },
+    "shape_lapse": {
+      "hard": [
+        0.05,
+        50.0
+      ],
+      "plausible": [
+        0.3,
+        10.0
+      ]
+    },
+    "scale_lapse": {
+      "hard": [
+        0.001,
+        5.0
+      ],
+      "plausible": [
+        0.01,
+        0.8
+      ]
+    }
+  },
+  "gamma_parameterization": "shape and scale in seconds; location fixed at zero",
+  "gamma_location_decision": "user selected fixed zero location from fixation start",
+  "gamma_display": "exact lapse CDF differences averaged over 1 ms bins, clipped at fixation start and each trial stimulus time",
+  "source_code_sha256": {
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/plot_led7_s8_s9_exponential_vs_uniform_lapse.py": "c9a04c68489f6aefcb04b79ee3574f5177e5d15a70755e7dcc761ceb2831c8d3",
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_proactive_led_step_jump_no_trunc_uniform_lapse_svi_utils.py": "b58766a58a869394e48bf9ec5c828324573fd39cb512d1b1c3f0f4f38d6a2c3d",
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_proactive_led_step_jump_no_trunc_exp_lapse_svi_utils.py": "2d725eb54c5bdc4c426260410868106c40df05286bb54d9b1050d75697e7c54a",
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_proactive_led_step_jump_svi_utils.py": "3613a596dad7ef4587d6d119cf6809f461f68bc3777affeb2af728fadab47449",
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_proactive_led_step_jump_no_trunc_exp_lapse_led7_s8_s9_aggregate.py": "bb8d81bc7fdcd52d0173b465f88229ebd3b36e0332437dbd32ecbd60062d81e6",
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_proactive_led_step_jump_no_trunc_gaussian_lapse_svi_utils.py": "454cb928b7c08a6525b41e83fab8979663b01f7bbbaf9cc32813cff6f626205e",
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_proactive_led_step_jump_no_trunc_gamma_lapse_svi_utils.py": "66c0950e62cee5677c90f23e3faf58ce66bbe5eb6ae6b4c75c5351486f72dc3f"
+  }
+}

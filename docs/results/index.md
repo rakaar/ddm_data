@@ -52,3 +52,5 @@ Daily result pages:
 - [2026-10-20](2026-10-20.md) — human TIED RT ≤1.5 s sensitivity refits and full-RT comparisons; human RT-only fits with 200 ms delay; human RT-only 250 ms delay sensitivity; human RT-only 0–1.8 s with 300 ms delay prior; human condition-wise Gamma–Omega–delay RT + choice SVI
 - [2026-10-21](2026-10-21.md) — Human TIED/DDM debugging: likelihood checks, RT-only and joint fits, timing–choice trade-off.; human Gamma–Omega delay-prior sensitivity: 300 versus 500 ms; rat genotype chronometrics.
 - [2026-10-22](2026-10-22.md) — Rat genotype accuracy and JND by cohort/family: pooled-trial dots and SEM across animal estimates, valid-choice RTs in [0,1] s.
+- [2026-11-01](2026-11-01.md)
+- [2026-11-02](2026-11-02.md)

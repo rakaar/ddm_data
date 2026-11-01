@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "uniform_interval_s": [
+    0.0,
+    2.2
+  ],
+  "log_likelihood": -29.184141067201097,
+  "independent_log_likelihood": -29.184141067201097,
+  "gradients_finite": true,
+  "mass_checks": [
+    {
+      "LED_trial": 0,
+      "t_stim": 0.2,
+      "density_mass_plus_survival": 1.0
+    },
+    {
+      "LED_trial": 0,
+      "t_stim": 0.7,
+      "density_mass_plus_survival": 0.9999999999999927
+    },
+    {
+      "LED_trial": 0,
+      "t_stim": 1.5,
+      "density_mass_plus_survival": 1.0000000000000004
+    },
+    {
+      "LED_trial": 0,
+      "t_stim": 2.3,
+      "density_mass_plus_survival": 0.9999999999999981
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 0.2,
+      "density_mass_plus_survival": 0.9999999999999999
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 0.7,
+      "density_mass_plus_survival": 1.0000000000000002
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 1.5,
+      "density_mass_plus_survival": 1.0
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 2.3,
+      "density_mass_plus_survival": 1.0000000000000002
+    }
+  ],
+  "checks": [
+    "SciPy density and survival",
+    "support boundaries",
+    "unit lapse mass",
+    "four-term likelihood",
+    "finite gradients",
+    "censoring mass"
+  ]
+}

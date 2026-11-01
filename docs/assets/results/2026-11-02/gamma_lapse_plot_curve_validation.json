@@ -1,0 +1,46 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "family": "uniform",
+      "LED_trial": 0,
+      "unchanged": true
+    },
+    {
+      "family": "uniform",
+      "LED_trial": 1,
+      "unchanged": true
+    },
+    {
+      "family": "gaussian",
+      "LED_trial": 0,
+      "unchanged": true
+    },
+    {
+      "family": "gaussian",
+      "LED_trial": 1,
+      "unchanged": true
+    },
+    {
+      "family": "gamma",
+      "shape": 0.3,
+      "finite": true,
+      "integrated_lapse_mass": 0.14940561488658083,
+      "analytic_lapse_mass": 0.14940561488658083
+    },
+    {
+      "family": "gamma",
+      "shape": 1.0,
+      "finite": true,
+      "integrated_lapse_mass": 0.145867445485415,
+      "analytic_lapse_mass": 0.14586744548541497
+    },
+    {
+      "family": "gamma",
+      "shape": 2.5,
+      "finite": true,
+      "integrated_lapse_mass": 0.12866684648360652,
+      "analytic_lapse_mass": 0.12866684648360668
+    }
+  ]
+}

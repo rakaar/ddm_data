@@ -23,13 +23,26 @@ EXPECTED_SOURCE_ROWS = 571_060
 EXPECTED_SOURCE_SHA256 = (
     "9844c0e940db52f68365612f7baf934f5fbce6d7e96f5ba3570bc73ae593941b"
 )
+LAPSE_FAMILY = os.environ.get("LED7_S8_S9_AGG_SVI_LAPSE_FAMILY", "exponential")
+if LAPSE_FAMILY not in ("exponential", "uniform", "gaussian", "gamma"):
+    raise ValueError("Lapse family must be exponential, uniform, gaussian, or gamma.")
+BASELINE_FIT_ROOT = SCRIPT_DIR / "numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs"
+REUSE_SOURCE_MANIFESTS = os.environ.get(
+    "LED7_S8_S9_AGG_SVI_REUSE_MANIFESTS", "0" if LAPSE_FAMILY == "exponential" else "1"
+) == "1"
 
 OUTPUT_ROOT = Path(
     os.environ.get(
         "LED7_S8_S9_AGG_SVI_OUTPUT_ROOT",
         str(
             SCRIPT_DIR
-            / "numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs"
+            / ("numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs"
+               if LAPSE_FAMILY == "exponential"
+               else "numpyro_svi_led7_s8_s9_aggregate_no_trunc_uniform_lapse_0_2p2s_outputs"
+               if LAPSE_FAMILY == "uniform"
+               else "numpyro_svi_led7_s8_s9_aggregate_no_trunc_gaussian_lapse_outputs"
+               if LAPSE_FAMILY == "gaussian"
+               else "numpyro_svi_led7_s8_s9_aggregate_no_trunc_gamma_lapse_outputs")
         ),
     )
 ).expanduser()
@@ -132,19 +145,16 @@ from numpyro.infer import SVI, Trace_ELBO
 from numpyro.infer.svi import SVIRunResult
 from numpyro.infer.util import log_density
 
-try:
-    from matio import load_from_mat
-except ImportError as exc:
-    raise ImportError(
-        "Run with the isolated MAT-table decoder, for example:\n"
-        "env PYTHONPATH=/tmp/codex_mat_io_led789 .venv/bin/python "
-        "fitting_aborts/numpyro_svi_proactive_led_step_jump_no_trunc_exp_lapse_"
-        "led7_s8_s9_aggregate.py"
-    ) from exc
-
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
-import numpyro_proactive_led_step_jump_no_trunc_exp_lapse_svi_utils as svi_utils
+if LAPSE_FAMILY == "uniform":
+    import numpyro_proactive_led_step_jump_no_trunc_uniform_lapse_svi_utils as svi_utils
+elif LAPSE_FAMILY == "gaussian":
+    import numpyro_proactive_led_step_jump_no_trunc_gaussian_lapse_svi_utils as svi_utils
+elif LAPSE_FAMILY == "gamma":
+    import numpyro_proactive_led_step_jump_no_trunc_gamma_lapse_svi_utils as svi_utils
+else:
+    import numpyro_proactive_led_step_jump_no_trunc_exp_lapse_svi_utils as svi_utils
 
 
 # %%
@@ -169,7 +179,7 @@ def to_numpy_tree(tree):
     )
 
 
-def run_svi_with_convergence_checks(svi, rng_key, data, fit_label):
+def run_svi_with_convergence_checks(svi, rng_key, data, fit_label, guide, progress_dir):
     """Run fixed-size JIT windows, retain the best, and require a patience tail."""
 
     def full_window_scan(svi_state, scan_data):
@@ -349,6 +359,13 @@ def run_svi_with_convergence_checks(svi, rng_key, data, fit_label):
                 "n_nonfinite": n_nonfinite,
             }
         )
+        median_values = guide.median(chunk_params)
+        convergence_rows[-1].update(
+            {f"median_{name}": float(value) for name, value in median_values.items()}
+        )
+        pd.DataFrame(convergence_rows).to_csv(
+            progress_dir / "main_fullrank_convergence_checks.csv", index=False
+        )
         rel_text = (
             "NA"
             if not np.isfinite(relative_change)
@@ -405,54 +422,87 @@ if source_sha256 != EXPECTED_SOURCE_SHA256:
         f"Source MAT hash changed: {source_sha256}; expected "
         f"{EXPECTED_SOURCE_SHA256}."
     )
-mat_contents = load_from_mat(INPUT_MAT_PATH, variable_names=[TABLE_NAME])
-if TABLE_NAME not in mat_contents:
-    raise KeyError(f"{TABLE_NAME!r} is absent from {INPUT_MAT_PATH}.")
-raw_df = mat_contents[TABLE_NAME]
-if not isinstance(raw_df, pd.DataFrame):
-    raise TypeError(f"Expected a DataFrame, found {type(raw_df).__name__}.")
-if len(raw_df) != EXPECTED_SOURCE_ROWS:
-    raise RuntimeError(
-        f"Expected {EXPECTED_SOURCE_ROWS:,} source rows, found {len(raw_df):,}."
-    )
+if REUSE_SOURCE_MANIFESTS:
+    # Reuse the exact audited selection, including excluded rows, from each old fit.
+    # Original repeat/training filters are verified in its saved configuration.
+    source_frames = []
+    for session_type in SESSION_TYPES:
+        baseline_dir = BASELINE_FIT_ROOT / f"session_type_{session_type}"
+        baseline_summary = json.loads((baseline_dir / "run_summary.json").read_text())
+        baseline_config = baseline_summary["config"]
+        for key, expected_value in {
+            "source_sha256": source_sha256,
+            "training_level": TRAINING_LEVEL,
+            "session_type": session_type,
+            "repeat_trial": [0, 2, "NaN"],
+            "led_trial": [0, 1],
+            "animals": list(ANIMALS),
+            "pooling": "trial_weighted",
+            "truncation": "none",
+        }.items():
+            if baseline_config.get(key) != expected_value:
+                raise RuntimeError(f"Baseline s{session_type} {key} changed.")
+        frame = pd.read_csv(baseline_dir / "source_row_manifest.csv")
+        frame = frame.set_index("source_row_index", drop=True)
+        frame["session_type"] = session_type
+        frame["training_level"] = TRAINING_LEVEL
+        source_frames.append(frame)
+    filtered_df = pd.concat(source_frames, axis=0)
+else:
+    try:
+        from matio import load_from_mat
+    except ImportError as exc:
+        raise ImportError("Provide the MAT-table decoder on PYTHONPATH, or set "
+                          "LED7_S8_S9_AGG_SVI_REUSE_MANIFESTS=1.") from exc
+    mat_contents = load_from_mat(INPUT_MAT_PATH, variable_names=[TABLE_NAME])
+    if TABLE_NAME not in mat_contents:
+        raise KeyError(f"{TABLE_NAME!r} is absent from {INPUT_MAT_PATH}.")
+    raw_df = mat_contents[TABLE_NAME]
+    if not isinstance(raw_df, pd.DataFrame):
+        raise TypeError(f"Expected a DataFrame, found {type(raw_df).__name__}.")
+    if len(raw_df) != EXPECTED_SOURCE_ROWS:
+        raise RuntimeError(
+            f"Expected {EXPECTED_SOURCE_ROWS:,} source rows, found {len(raw_df):,}."
+        )
 
-required_columns = [
-    "animal",
-    "session",
-    "block",
-    "trial",
-    "training_level",
-    "session_type",
-    "repeat_trial",
-    "LED_trial",
-    "abort_event",
-    "success",
-    "timed_fix",
-    "intended_fix",
-    "LED_onset_time",
-]
-missing_columns = [column for column in required_columns if column not in raw_df]
-if missing_columns:
-    raise ValueError(f"Missing required columns: {missing_columns}")
-if not raw_df.index.is_unique:
-    raise RuntimeError("Source table row index is not unique.")
+    required_columns = [
+        "animal",
+        "session",
+        "block",
+        "trial",
+        "training_level",
+        "session_type",
+        "repeat_trial",
+        "LED_trial",
+        "abort_event",
+        "success",
+        "timed_fix",
+        "intended_fix",
+        "LED_onset_time",
+    ]
+    missing_columns = [column for column in required_columns if column not in raw_df]
+    if missing_columns:
+        raise ValueError(f"Missing required columns: {missing_columns}")
+    if not raw_df.index.is_unique:
+        raise RuntimeError("Source table row index is not unique.")
 
-training_df = raw_df.loc[raw_df["training_level"].eq(TRAINING_LEVEL)].copy()
-session_df = training_df.loc[
-    training_df["session_type"].isin(SESSION_TYPES)
-].copy()
-repeat_df = session_df.loc[
-    session_df["repeat_trial"].isin(ALLOWED_REPEAT_TRIALS)
-    | session_df["repeat_trial"].isna()
-].copy()
-filtered_df = repeat_df.loc[
-    repeat_df["LED_trial"].isin(LED_TRIAL_VALUES)
-].copy()
+    training_df = raw_df.loc[raw_df["training_level"].eq(TRAINING_LEVEL)].copy()
+    session_df = training_df.loc[
+        training_df["session_type"].isin(SESSION_TYPES)
+    ].copy()
+    repeat_df = session_df.loc[
+        session_df["repeat_trial"].isin(ALLOWED_REPEAT_TRIALS)
+        | session_df["repeat_trial"].isna()
+    ].copy()
+    filtered_df = repeat_df.loc[
+        repeat_df["LED_trial"].isin(LED_TRIAL_VALUES)
+    ].copy()
 
 print(f"Source: {INPUT_MAT_PATH.resolve()} :: {TABLE_NAME}")
 print(f"Source SHA256: {source_sha256}")
 print(f"Output root: {OUTPUT_ROOT.resolve()}")
 print(f"Session types: {SESSION_TYPES}")
+print(f"Lapse family: {LAPSE_FAMILY}; source mode: {'saved manifests' if REUSE_SOURCE_MANIFESTS else 'MAT table'}")
 print(f"Animals: {ANIMALS} (trial pooled)")
 print("Likelihood: finite event 3 density + finite successful survival")
 print("Truncation: none; LED ON scope: every LED_trial == 1 row")
@@ -495,11 +545,10 @@ for session_type in SESSION_TYPES:
         raise RuntimeError(f"s{session_type}: another training level survived.")
     if not candidate_df["session_type"].eq(session_type).all():
         raise RuntimeError(f"s{session_type}: another session type survived.")
-    repeat_values = set(
-        candidate_df["repeat_trial"].dropna().astype(int).unique()
-    )
-    if not repeat_values.issubset(ALLOWED_REPEAT_TRIALS):
-        raise RuntimeError(f"s{session_type}: invalid repeat_trial values.")
+    if not REUSE_SOURCE_MANIFESTS:
+        repeat_values = set(candidate_df["repeat_trial"].dropna().astype(int).unique())
+        if not repeat_values.issubset(ALLOWED_REPEAT_TRIALS):
+            raise RuntimeError(f"s{session_type}: invalid repeat_trial values.")
     if set(candidate_df["LED_trial"].astype(int).unique()) != {0, 1}:
         raise RuntimeError(f"s{session_type}: expected LED_trial 0 and 1.")
     timing = candidate_df[["intended_fix", "effective_scheduled_onset"]]
@@ -679,9 +728,9 @@ for session_type in SESSION_TYPES:
     fit_label = f"LED7 session type {session_type}"
     payload = fit_payloads[session_type]
     jax_data = payload["jax_data"]
-    init_values = svi_utils.clip_init_to_hard_bounds(
-        dict(svi_utils.DEFAULT_INIT_VALUES)
-    )
+    init_values = dict(svi_utils.DEFAULT_INIT_VALUES)
+    if LAPSE_FAMILY == "exponential":
+        init_values = svi_utils.clip_init_to_hard_bounds(init_values)
     expected_init_values = {
         "V_A_base": 1.6,
         "V_A_post_LED": 3.0,
@@ -691,6 +740,16 @@ for session_type in SESSION_TYPES:
         "lapse_prob": 0.05,
         "beta_lapse": 5.0,
     }
+    if LAPSE_FAMILY == "uniform":
+        expected_init_values.pop("beta_lapse")
+        if payload["fit_df"]["intended_fix"].max() > svi_utils.UNIFORM_END_S:
+            raise RuntimeError("The fixed uniform interval does not cover every censoring time.")
+    elif LAPSE_FAMILY == "gaussian":
+        expected_init_values.pop("beta_lapse")
+        expected_init_values.update(mu_lapse=0.05, sigma_lapse=0.2)
+    elif LAPSE_FAMILY == "gamma":
+        expected_init_values.pop("beta_lapse")
+        expected_init_values.update(shape_lapse=1.0, scale_lapse=0.2)
     if init_values != expected_init_values:
         raise RuntimeError(
             f"Established initialization changed: {init_values}."
@@ -731,6 +790,13 @@ for session_type in SESSION_TYPES:
         raise FileExistsError(
             f"Refusing to overwrite nonempty fit directory: {fit_dir}."
         )
+    fit_dir.mkdir(parents=True, exist_ok=True)
+    (fit_dir / "run_status.json").write_text(json.dumps({
+        "status": "running", "session_type": session_type,
+        "lapse_family": LAPSE_FAMILY, "source_sha256": source_sha256,
+        "likelihood_rows": payload["counts"]["likelihood_total"],
+        "uniform_interval_s": [0.0, svi_utils.UNIFORM_END_S] if LAPSE_FAMILY == "uniform" else None,
+    }, indent=2) + "\n")
 
     guide = svi_utils.make_fullrank_guide(
         model, init_values, init_scale=GUIDE_INIT_SCALE
@@ -739,7 +805,7 @@ for session_type in SESSION_TYPES:
     fit_start = perf_counter()
     fit_result, convergence_df, stop_reason, extended_after_main = (
         run_svi_with_convergence_checks(
-            svi, random.PRNGKey(RNG_SEED), jax_data, fit_label
+            svi, random.PRNGKey(RNG_SEED), jax_data, fit_label, guide, fit_dir
         )
     )
     fit_elapsed_seconds = perf_counter() - fit_start
@@ -805,6 +871,37 @@ for session_type in SESSION_TYPES:
             }
         ]
     )
+    if LAPSE_FAMILY == "gaussian":
+        from scipy.stats import truncnorm
+        mu, sigma = posterior_np["mu_lapse"], posterior_np["sigma_lapse"]
+        retained_mean, retained_var = truncnorm.stats(-mu / sigma, np.inf, loc=mu, scale=sigma, moments="mv")
+        retained_values = {"lapse_mean_after_zero_truncation": retained_mean,
+                           "lapse_sd_after_zero_truncation": np.sqrt(retained_var)}
+        rows = []
+        for name, values in retained_values.items():
+            if not np.isfinite(values).all():
+                raise RuntimeError("Nonfinite retained Gaussian moments.")
+            rows.append({"session_type": session_type, "parameter": name,
+                "definition": "moment of Normal(mu_lapse, sigma_lapse) conditioned on time >= 0",
+                "mean": float(np.mean(values)), "std": float(np.std(values)),
+                "q025": float(np.quantile(values, 0.025)), "median": float(np.median(values)),
+                "q975": float(np.quantile(values, 0.975)), "n_samples": len(values), "n_nonfinite": 0})
+        derived_summary_df = pd.concat([derived_summary_df, pd.DataFrame(rows)], ignore_index=True)
+
+    if LAPSE_FAMILY == "gamma":
+        shape, scale = posterior_np["shape_lapse"], posterior_np["scale_lapse"]
+        gamma_moments = {"lapse_mean": shape * scale,
+                         "lapse_sd": np.sqrt(shape) * scale,
+                         "lapse_mode": np.maximum(shape - 1.0, 0.0) * scale}
+        rows = []
+        for name, values in gamma_moments.items():
+            rows.append({"session_type": session_type, "parameter": name,
+                "definition": "Gamma(shape_lapse, scale_lapse), location fixed at 0 s",
+                "mean": float(np.mean(values)), "std": float(np.std(values)),
+                "q025": float(np.quantile(values, 0.025)), "median": float(np.median(values)),
+                "q975": float(np.quantile(values, 0.975)), "n_samples": len(values),
+                "n_nonfinite": int(np.sum(~np.isfinite(values)))})
+        derived_summary_df = pd.concat([derived_summary_df, pd.DataFrame(rows)], ignore_index=True)
 
     posterior_means = {
         name: float(np.mean(posterior_np[name]))
@@ -896,7 +993,20 @@ for session_type in SESSION_TYPES:
     plt.close(fig)
 
     config = {
-        "model_name": "proactive_led_step_jump_no_trunc_exp_lapse_svi",
+        "model_name": f"proactive_led_step_jump_no_trunc_{LAPSE_FAMILY}_lapse_svi",
+        "lapse_family": LAPSE_FAMILY,
+        "gaussian_parameterization": "underlying untruncated mu and sigma; mu may be negative" if LAPSE_FAMILY == "gaussian" else None,
+        "gaussian_support_s": [0.0, None] if LAPSE_FAMILY == "gaussian" else None,
+        "gamma_parameterization": "shape and scale (seconds); location fixed at zero" if LAPSE_FAMILY == "gamma" else None,
+        "gamma_location_s": svi_utils.GAMMA_LOCATION_S if LAPSE_FAMILY == "gamma" else None,
+        "gamma_support_s": [0.0, None] if LAPSE_FAMILY == "gamma" else None,
+        "gamma_survival_floor": svi_utils.SURVIVAL_FLOOR if LAPSE_FAMILY == "gamma" else None,
+        "fitted_parameter_bounds": svi_utils.PARAM_BOUNDS,
+        "uniform_interval_s": [0.0, svi_utils.UNIFORM_END_S] if LAPSE_FAMILY == "uniform" else None,
+        "n_fitted_parameters": len(svi_utils.PARAM_NAMES),
+        "source_mode": "saved_baseline_manifests" if REUSE_SOURCE_MANIFESTS else "MAT_table",
+        "baseline_fit_dir": str((BASELINE_FIT_ROOT / f"session_type_{session_type}").resolve()),
+        "baseline_manifest_sha256": file_sha256(BASELINE_FIT_ROOT / f"session_type_{session_type}" / "source_row_manifest.csv") if REUSE_SOURCE_MANIFESTS else None,
         "source_mat": str(INPUT_MAT_PATH.resolve()),
         "source_table": TABLE_NAME,
         "source_sha256": source_sha256,
@@ -929,7 +1039,7 @@ for session_type in SESSION_TYPES:
         "led_on_weight": 1.0,
         "led_off_weight": 1.0,
         "led_on_scope": "all LED_trial == 1 rows",
-        "lapse_process": "exponential in fixation time",
+        "lapse_process": f"{LAPSE_FAMILY} in fixation time",
         "likelihood_population": (
             "finite abort_event == 3 plus finite success in {-1,+1} "
             "censored at intended_fix"
@@ -991,6 +1101,10 @@ for session_type in SESSION_TYPES:
         },
     }
     run_summary_json.write_text(json.dumps(run_summary, indent=2) + "\n")
+    (fit_dir / "run_status.json").write_text(json.dumps({
+        "status": status, "stop_reason": stop_reason,
+        "completed_steps": checked_step, "restored_best_step": best_step,
+    }, indent=2) + "\n")
 
     print(f"\n[{fit_label}] Posterior summary:")
     print(posterior_summary_df.to_string(index=False))

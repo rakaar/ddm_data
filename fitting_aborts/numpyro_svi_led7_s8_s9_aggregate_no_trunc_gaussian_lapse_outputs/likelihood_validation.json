@@ -1,0 +1,103 @@
+{
+  "status": "passed",
+  "lapse_support_s": [
+    0.0,
+    null
+  ],
+  "mu_may_be_negative": true,
+  "lapse_checks": [
+    {
+      "mu": -0.4,
+      "sigma": 0.05,
+      "integrated_mass": 1.0000000000000093,
+      "retained_mean": 0.006068405611808991,
+      "retained_sd": 0.005984330255506352,
+      "gradients_finite": true
+    },
+    {
+      "mu": 0.0,
+      "sigma": 0.2,
+      "integrated_mass": 1.0,
+      "retained_mean": 0.1595769121605731,
+      "retained_sd": 0.12056205499781739,
+      "gradients_finite": true
+    },
+    {
+      "mu": 0.2,
+      "sigma": 0.08,
+      "integrated_mass": 1.0000000000000004,
+      "retained_mean": 0.20141102603895336,
+      "retained_sd": 0.07820360476171624,
+      "gradients_finite": true
+    },
+    {
+      "mu": -5.0,
+      "sigma": 0.9,
+      "integrated_mass": 0.9999999918636353,
+      "retained_mean": 0.15288806708283786,
+      "retained_sd": 0.14894597520404937,
+      "gradients_finite": true
+    },
+    {
+      "mu": 0.05,
+      "sigma": 0.001,
+      "integrated_mass": 0.9999999999999999,
+      "retained_mean": 0.05,
+      "retained_sd": 0.001,
+      "gradients_finite": true
+    }
+  ],
+  "reference_log_likelihood": -23.103402836088215,
+  "actual_log_likelihood": -23.10340283608822,
+  "mass_checks": [
+    {
+      "LED_trial": 0,
+      "t_stim": 0.2,
+      "density_mass_plus_survival": 1.0
+    },
+    {
+      "LED_trial": 0,
+      "t_stim": 0.7,
+      "density_mass_plus_survival": 0.9999999999999928
+    },
+    {
+      "LED_trial": 0,
+      "t_stim": 1.5,
+      "density_mass_plus_survival": 1.0000000000000004
+    },
+    {
+      "LED_trial": 0,
+      "t_stim": 2.3,
+      "density_mass_plus_survival": 0.9999999999999953
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 0.2,
+      "density_mass_plus_survival": 1.0
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 0.7,
+      "density_mass_plus_survival": 1.0000000000000002
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 1.5,
+      "density_mass_plus_survival": 0.9999999999999998
+    },
+    {
+      "LED_trial": 1,
+      "t_stim": 2.3,
+      "density_mass_plus_survival": 1.0
+    }
+  ],
+  "checks": [
+    "SciPy log density and log survival",
+    "zero support boundary",
+    "unit mass",
+    "negative mu and narrow sigma",
+    "finite gradients",
+    "four-term likelihood",
+    "censoring mass"
+  ]
+}

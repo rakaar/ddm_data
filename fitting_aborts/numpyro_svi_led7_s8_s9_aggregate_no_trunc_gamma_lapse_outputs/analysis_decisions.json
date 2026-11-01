@@ -1,0 +1,60 @@
+{
+  "lapse_family": "gamma",
+  "session_types": [
+    8,
+    9
+  ],
+  "time_reference": "fixation start",
+  "location_s": 0.0,
+  "location_decision": "user selected fixed zero location",
+  "fitted_parameters": [
+    "five proactive parameters",
+    "lapse_prob",
+    "shape_lapse",
+    "scale_lapse"
+  ],
+  "shape_bounds": {
+    "hard": [
+      0.05,
+      50.0
+    ],
+    "plausible": [
+      0.3,
+      10.0
+    ]
+  },
+  "scale_bounds_s": {
+    "hard": [
+      0.001,
+      5.0
+    ],
+    "plausible": [
+      0.01,
+      0.8
+    ]
+  },
+  "initial_shape": 1.0,
+  "initial_scale_s": 0.2,
+  "initialization_interpretation": "same lapse density and survival as baseline exponential beta=5/s",
+  "trial_selection": "exact baseline saved row manifests, all eight animals",
+  "pooling": "trial_weighted",
+  "censoring": "at intended_fix",
+  "truncation": "none",
+  "min_steps": 150000,
+  "patience_windows": 12,
+  "seed": 0,
+  "figure_rows": [
+    "exponential",
+    "uniform",
+    "gaussian",
+    "gamma"
+  ],
+  "figure_columns": [
+    8,
+    9
+  ],
+  "historical_artifacts_hashed": 157,
+  "client_date": "2026-11-02",
+  "gamma_display": "Exact CDF differences over 1 ms bins, clipped at zero and the trial-specific censoring time; handles the integrable t=0 singularity when shape < 1.",
+  "survival_floor": 1e-300
+}

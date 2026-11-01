@@ -1,0 +1,42 @@
+{
+  "uniform_interval_s": [
+    0.0,
+    2.2
+  ],
+  "time_reference": "fixation start",
+  "posterior_point_estimate": "mean",
+  "model_grid_s": 0.001,
+  "data_bin_s": 0.01,
+  "display_range_s": [
+    -0.3,
+    0.7
+  ],
+  "trial_population": "identical baseline event-3 plus censored likelihood rows",
+  "pooling": "trial_weighted",
+  "normalization": "all event-or-censored trials in each session-type and LED group",
+  "interpretation": "In-sample comparisons at posterior means; prediction not evaluated on held-out trials.",
+  "source_script": "/home/rlab/raghavendra/ddm_data/fitting_aborts/plot_led7_s8_s9_exponential_vs_uniform_lapse.py",
+  "source_fits": {
+    "8": {
+      "old_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_8",
+      "new_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_uniform_lapse_0_2p2s_outputs/session_type_8",
+      "identical_source_rows": true,
+      "n_trials": 139547
+    },
+    "9": {
+      "old_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9",
+      "new_fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_uniform_lapse_0_2p2s_outputs/session_type_9",
+      "identical_source_rows": true,
+      "n_trials": 93381
+    }
+  },
+  "uniform_interval_decision": "user selected a fixed interval of 0 to 2.2 seconds from fixation start",
+  "historical_hashes_verified": 42,
+  "source_code_sha256": {
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/plot_led7_s8_s9_exponential_vs_uniform_lapse.py": "5ff67671206987a0a9fc3dd4b18b5b0005dba5e9cfeb58c688226d4ba9a6ed99",
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_proactive_led_step_jump_no_trunc_uniform_lapse_svi_utils.py": "b58766a58a869394e48bf9ec5c828324573fd39cb512d1b1c3f0f4f38d6a2c3d",
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_proactive_led_step_jump_no_trunc_exp_lapse_svi_utils.py": "2d725eb54c5bdc4c426260410868106c40df05286bb54d9b1050d75697e7c54a",
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_proactive_led_step_jump_svi_utils.py": "3613a596dad7ef4587d6d119cf6809f461f68bc3777affeb2af728fadab47449",
+    "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_proactive_led_step_jump_no_trunc_exp_lapse_led7_s8_s9_aggregate.py": "0b3fe62f352555be58b0b6f8e7dcac9ce21ad20d9a1824acddc3162235b3743c"
+  }
+}

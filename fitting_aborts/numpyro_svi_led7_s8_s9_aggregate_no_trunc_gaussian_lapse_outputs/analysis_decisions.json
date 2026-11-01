@@ -1,0 +1,17 @@
+{
+  "lapse_family": "gaussian conditioned on fixation time >= 0",
+  "fitted_parameters": "five proactive parameters plus lapse_prob, mu_lapse and sigma_lapse",
+  "mu_may_be_negative": true,
+  "mu_bounds_s": [
+    -5.0,
+    5.0
+  ],
+  "sigma_bounds_s": [
+    0.001,
+    5.0
+  ],
+  "parameter_meaning": "mu and sigma of underlying Gaussian; retained moments saved separately",
+  "figure_layout": "3 rows x 2 columns; exponential/uniform/gaussian rows; session types 8/9 columns",
+  "data_selection": "identical baseline manifests, abort density plus censored survival, no 300ms truncation",
+  "historical_hash_count": 86
+}

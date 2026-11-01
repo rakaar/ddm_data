@@ -1,0 +1,6 @@
+{
+  "status": "complete",
+  "stop_reason": "patience12_restore_best",
+  "completed_steps": 174000,
+  "restored_best_step": 162000
+}

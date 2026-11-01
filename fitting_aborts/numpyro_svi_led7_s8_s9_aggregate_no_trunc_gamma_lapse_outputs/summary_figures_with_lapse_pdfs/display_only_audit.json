@@ -1,0 +1,109 @@
+{
+  "status": "passed",
+  "refitted": false,
+  "source_hashes_preserved": 190,
+  "figure_layout": [
+    4,
+    4
+  ],
+  "source_abort_arrays_reused": true,
+  "lapse_pdf_count": 8,
+  "lapse_pdf_checks": [
+    {
+      "session_type": 8,
+      "lapse_family": "exponential",
+      "lapse_prob": 0.0353063052440815,
+      "reference_full_support_mass": 1.0,
+      "visible_probability_mass": 0.9507388133965176,
+      "plot_max_s": 0.5,
+      "max_abs_density_difference_vs_scipy": 8.881784197001252e-16,
+      "density_definition": "f(t; posterior mean parameters), conditional on a lapse",
+      "time_reference": "fixation start",
+      "fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_8"
+    },
+    {
+      "session_type": 8,
+      "lapse_family": "uniform",
+      "lapse_prob": 0.25283949591551513,
+      "reference_full_support_mass": 1.0,
+      "visible_probability_mass": 0.22727272727272727,
+      "plot_max_s": 0.5,
+      "max_abs_density_difference_vs_scipy": 5.551115123125783e-17,
+      "density_definition": "f(t; posterior mean parameters), conditional on a lapse",
+      "time_reference": "fixation start",
+      "fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_uniform_lapse_0_2p2s_outputs/session_type_8"
+    },
+    {
+      "session_type": 8,
+      "lapse_family": "gaussian",
+      "lapse_prob": 0.023635113532132896,
+      "reference_full_support_mass": 1.0,
+      "visible_probability_mass": 0.9999999993474329,
+      "plot_max_s": 0.5,
+      "max_abs_density_difference_vs_scipy": 2.6645352591003757e-15,
+      "density_definition": "f(t; posterior mean parameters), conditional on a lapse",
+      "time_reference": "fixation start",
+      "fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_gaussian_lapse_outputs/session_type_8"
+    },
+    {
+      "session_type": 8,
+      "lapse_family": "gamma",
+      "lapse_prob": 0.027326587412517485,
+      "reference_full_support_mass": 1.0,
+      "visible_probability_mass": 0.997653357563344,
+      "plot_max_s": 0.5,
+      "max_abs_density_difference_vs_scipy": 6.217248937900877e-15,
+      "density_definition": "f(t; posterior mean parameters), conditional on a lapse",
+      "time_reference": "fixation start",
+      "fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_gamma_lapse_outputs/session_type_8"
+    },
+    {
+      "session_type": 9,
+      "lapse_family": "exponential",
+      "lapse_prob": 0.05660522912181759,
+      "reference_full_support_mass": 1.0,
+      "visible_probability_mass": 0.980203597911713,
+      "plot_max_s": 0.5,
+      "max_abs_density_difference_vs_scipy": 2.6645352591003757e-15,
+      "density_definition": "f(t; posterior mean parameters), conditional on a lapse",
+      "time_reference": "fixation start",
+      "fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_exp_lapse_outputs/session_type_9"
+    },
+    {
+      "session_type": 9,
+      "lapse_family": "uniform",
+      "lapse_prob": 0.3592188363981826,
+      "reference_full_support_mass": 1.0,
+      "visible_probability_mass": 0.22727272727272727,
+      "plot_max_s": 0.5,
+      "max_abs_density_difference_vs_scipy": 5.551115123125783e-17,
+      "density_definition": "f(t; posterior mean parameters), conditional on a lapse",
+      "time_reference": "fixation start",
+      "fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_uniform_lapse_0_2p2s_outputs/session_type_9"
+    },
+    {
+      "session_type": 9,
+      "lapse_family": "gaussian",
+      "lapse_prob": 0.05509402069615608,
+      "reference_full_support_mass": 1.0,
+      "visible_probability_mass": 0.9904413705703765,
+      "plot_max_s": 0.5,
+      "max_abs_density_difference_vs_scipy": 4.440892098500626e-15,
+      "density_definition": "f(t; posterior mean parameters), conditional on a lapse",
+      "time_reference": "fixation start",
+      "fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_gaussian_lapse_outputs/session_type_9"
+    },
+    {
+      "session_type": 9,
+      "lapse_family": "gamma",
+      "lapse_prob": 0.05530784424780204,
+      "reference_full_support_mass": 1.0,
+      "visible_probability_mass": 0.9857738862091372,
+      "plot_max_s": 0.5,
+      "max_abs_density_difference_vs_scipy": 1.0658141036401503e-14,
+      "density_definition": "f(t; posterior mean parameters), conditional on a lapse",
+      "time_reference": "fixation start",
+      "fit_dir": "/home/rlab/raghavendra/ddm_data/fitting_aborts/numpyro_svi_led7_s8_s9_aggregate_no_trunc_gamma_lapse_outputs/session_type_9"
+    }
+  ]
+}

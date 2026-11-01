@@ -1,0 +1,53 @@
+{
+  "status": "passed",
+  "fits": [
+    {
+      "session_type": 8,
+      "status": "complete",
+      "completed_steps": 150000,
+      "restored_best_step": 126000,
+      "late_shifts_in_posterior_sd": {
+        "V_A_base": 0.0540532302054368,
+        "V_A_post_LED": 0.017372382668740752,
+        "theta_A": 0.027287510630905308,
+        "del_a_minus_del_LED": -0.04938085689362642,
+        "del_m_plus_del_LED": -0.011627188010397596,
+        "lapse_prob": -0.07772730718974599,
+        "shape_lapse": 0.09634596434485093,
+        "scale_lapse": -0.11373373082365117
+      },
+      "max_abs_late_shift_in_posterior_sd": 0.11373373082365117,
+      "nearest_hard_bound_in_posterior_sd": {
+        "shape_lapse": 20.680420025499767,
+        "scale_lapse": 10.503033491355072
+      },
+      "lapse_logsurvival_at_2p2s": -29.926005888301212,
+      "location_s": 0.0
+    },
+    {
+      "session_type": 9,
+      "status": "complete",
+      "completed_steps": 174000,
+      "restored_best_step": 162000,
+      "late_shifts_in_posterior_sd": {
+        "V_A_base": 0.04573372602675922,
+        "V_A_post_LED": -0.013050896648654367,
+        "theta_A": 0.05434032624092988,
+        "del_a_minus_del_LED": -0.060975620987606886,
+        "del_m_plus_del_LED": 0.008666516289676246,
+        "lapse_prob": -0.05265726329326128,
+        "shape_lapse": 0.03182234724839966,
+        "scale_lapse": -0.03858342580245357
+      },
+      "max_abs_late_shift_in_posterior_sd": 0.060975620987606886,
+      "nearest_hard_bound_in_posterior_sd": {
+        "shape_lapse": 24.249141848261104,
+        "scale_lapse": 10.958203884535507
+      },
+      "lapse_logsurvival_at_2p2s": -19.105366508957164,
+      "location_s": 0.0
+    }
+  ],
+  "historical_hashes_preserved": 157,
+  "fit_source_snapshots_match": true
+}

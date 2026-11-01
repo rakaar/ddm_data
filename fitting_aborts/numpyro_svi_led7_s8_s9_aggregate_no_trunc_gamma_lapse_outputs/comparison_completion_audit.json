@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "historical_artifacts_preserved": 157,
+  "previous_three_rows_exactly_reused": true,
+  "identical_data_all_four_rows": true,
+  "layout": [
+    4,
+    2
+  ],
+  "gamma_location_s": 0.0,
+  "fit_quality_rows": 8,
+  "condition_rows": 16,
+  "code_hashes_match": true,
+  "published_png_pdf_match": true,
+  "gamma_boundary_flags": 0,
+  "visually_inspected": true
+}
