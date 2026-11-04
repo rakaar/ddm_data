@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "artifacts": {
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_parameter_comparison.png": "3d7731a32d89e6b9321c9c47de8dc87b337235deb6e14b638dff933d7af16ef7",
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_parameter_comparison.pdf": "63dabd3d7179a1b5f5152387664ed21f961186965be86ef6999277f2a67ea235"
+  },
+  "inspected_utc": "2026-11-04T22:26:02.926588+00:00",
+  "method": "Full-resolution final composite PNG viewed with view_image",
+  "checks": [
+    "Ten equally sized square plotting areas",
+    "Control WT black; ASD HOM red",
+    "Means with capped central 95% posterior credible intervals",
+    "Seven shared fitted-parameter panels and bottom 1x3 ABL-specific delay row",
+    "Ten signed ILDs retained, with readable rotated labels and genotype offsets",
+    "Shared delay limits cover every interval",
+    "Header, legends, axis titles, labels and footer separated and readable",
+    "No grids and no clipping"
+  ]
+}

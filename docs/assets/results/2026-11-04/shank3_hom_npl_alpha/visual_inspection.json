@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "inspected_utc": "2026-11-04T21:59:32.695442+00:00",
+  "method": "Both actual fitted-result PNGs viewed at full resolution with view_image",
+  "figure_artifact_hashes": {
+    "SHANK3_cohort1_HOM_npl_alpha_RTDs.png": "6e4968eb063f5084a5193ca0c6022167bf033fa4044c129a36c55763571586a1",
+    "SHANK3_cohort1_HOM_npl_alpha_psychometric.png": "4ed34bab3f7924dfd3d20e10935319b05d080f8b2a6e7f2fd9ba543cddd67dc5"
+  },
+  "checks": [
+    "15 RTD panels use three ABL rows and five absolute-ILD columns",
+    "Correct HOM counts: six animals, 67,715 valid choices and 13,274 displayed aborts",
+    "Colored data steps visible above thin 0.9 pt black model curves",
+    "RTD display -0.1 to 0.6 s, shared density limits cover all curves",
+    "Psychometric dots and model lines use matching ABL colors and measured signed ILDs",
+    "Labels, legends and captions readable, without clipped curves or text"
+  ],
+  "observations": "Residual discrepancies remain, including sharper model peaks at high ABL/high absolute ILD and weak-ILD choice deviations. Presentation pass does not imply a perfect fit."
+}

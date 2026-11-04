@@ -1,0 +1,8 @@
+{
+  "sources": {
+    "parent_trials.csv.gz": "a3e98cde8af24a83e0bce199481f5986733d0c166b62c3d0eaae4a146e464993",
+    "fixed_proactive.json": "8576c7cb6e8aef8f7891b6aa2974defcb12bed0ee79467547adb9ca69e270ea7"
+  },
+  "grid_step_s": 0.001,
+  "onset_average": "every exact parent-trial onset, equal trial weight"
+}

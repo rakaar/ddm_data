@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "parameter_estimates": 74,
+  "draws_per_genotype": 10000,
+  "global_panels": 7,
+  "delay_panels": 3,
+  "condition_specific_delay_estimates": 60,
+  "all_parameters_shown_once": true,
+  "all_panels_equal_square": true,
+  "delay_ILDS": [
+    -16,
+    -8,
+    -4,
+    -2,
+    -1,
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "colors": {
+    "wt": "#000000",
+    "hom": "#d62728"
+  },
+  "all_errorbar_endpoints_verified": true,
+  "all_intervals_unclipped": true,
+  "inputs_and_fit_outputs_unchanged": true,
+  "pdf_pages": 1,
+  "artifacts": {
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_parameter_comparison.png": "3d7731a32d89e6b9321c9c47de8dc87b337235deb6e14b638dff933d7af16ef7",
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_parameter_comparison.pdf": "63dabd3d7179a1b5f5152387664ed21f961186965be86ef6999277f2a67ea235"
+  },
+  "verifier": "asd_analysis/verify_shank3_wt_hom_npl_alpha_parameters.py",
+  "verifier_sha256": "3998ed176ba2c7330712fed94b1b1936d3f5b68ecded14088bbf9a50e58c5c22"
+}

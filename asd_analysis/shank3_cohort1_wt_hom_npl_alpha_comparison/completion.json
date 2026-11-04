@@ -1,0 +1,15 @@
+{
+  "status": "complete",
+  "result_book": "http://127.0.0.1:8000/results/2026-11-04/#shank3-cohort-1-wt-vs-hom-nplalpha-posterior-parameters",
+  "primary_png": "http://127.0.0.1:8000/assets/results/2026-11-04/SHANK3_cohort1_WT_HOM_NPL_alpha_parameter_comparison.png",
+  "pdf": "http://127.0.0.1:8000/assets/results/2026-11-04/SHANK3_cohort1_WT_HOM_NPL_alpha_parameter_comparison.pdf",
+  "verified_estimates": 74,
+  "panels": 10,
+  "all_previous_fit_outputs_unchanged": true,
+  "existing_diagnostic_embeds_preserved": true,
+  "independent_validation": "passed",
+  "visual_inspection": "passed",
+  "strict_mkdocs_build": "passed",
+  "working_links": 7,
+  "completed_utc": "2026-11-04T22:26:36.997769+00:00"
+}

@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "page": "http://127.0.0.1:8000/results/2026-11-04/",
+  "section": "http://127.0.0.1:8000/results/2026-11-04/#shank3-cohort-1-wt-nplalpha-with-condition-specific-delays-and-fixed-exponential-lapses",
+  "direct_embeds": [
+    "http://127.0.0.1:8000/assets/results/2026-11-04/SHANK3_cohort1_WT_npl_alpha_RTDs.png",
+    "http://127.0.0.1:8000/assets/results/2026-11-04/SHANK3_cohort1_WT_npl_alpha_psychometric.png"
+  ],
+  "working_asset_urls": 10,
+  "input_and_reference_hashes_unchanged": true,
+  "strict_mkdocs_build": "passed",
+  "checked_utc": "2026-11-04T21:26:36.568163+00:00"
+}

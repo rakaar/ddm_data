@@ -1,0 +1,37 @@
+{
+  "status": "complete",
+  "started_utc": "2026-11-04T21:48:45.165243+00:00",
+  "parameter_count": 37,
+  "fitted_choices": 67715,
+  "animals": 6,
+  "visual_inspection": "passed",
+  "stage": "published",
+  "fit": {
+    "status": "converged",
+    "parameter_count": 37,
+    "seed": 0,
+    "stop_reason": "confirmed_minimum_and_loss_patience",
+    "final_checked_step": 127000,
+    "restored_best_step": 102000,
+    "best_window_negative_elbo": -48418.326222076175,
+    "confirmation_windows": 25,
+    "parameter_stability_required": false,
+    "terminal_parameter_stable": false,
+    "restored_parameter_stable": false,
+    "valid_trials": 67715,
+    "animals": 6,
+    "posterior_draws": 10000,
+    "posterior_mean_joint_log_likelihood": 48607.06870312831,
+    "posterior_mean_rt_log_likelihood": 83637.49081527532,
+    "elapsed_seconds_this_invocation": 583.2848724771757,
+    "initializations": 1
+  },
+  "independent_validation": "passed",
+  "strict_mkdocs_build": "passed",
+  "result_book": "http://127.0.0.1:8000/results/2026-11-04/#shank3-cohort-1-hom-nplalpha-with-condition-specific-delays-and-fixed-exponential-lapses",
+  "primary_pngs": [
+    "http://127.0.0.1:8000/assets/results/2026-11-04/SHANK3_cohort1_HOM_npl_alpha_RTDs.png",
+    "http://127.0.0.1:8000/assets/results/2026-11-04/SHANK3_cohort1_HOM_npl_alpha_psychometric.png"
+  ],
+  "wt_unchanged": true
+}

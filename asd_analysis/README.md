@@ -628,3 +628,39 @@ The independent verifier reconstructs selections and accuracies from the CSV,
 refits all 213 curves, numerically checks 416 crossings, validates all 324
 colored PDF dots/287 bars and missing bars, checks zero-lapse/invalid-fit
 handling, and verifies unchanged data and prior-result hashes.
+
+
+## SHANK3 cohort 1 WT: NPL+alpha with condition-specific delays (2026-11-04)
+
+37-parameter fit using the exact 68,184 WT choices from the existing condition-delay reference, with five proactive/exponential-lapse parameters frozen. No prepared filters are reapplied. Full-rank GPU SVI uses minimum 50k updates and a strict-improvement 25-window confirmation tail, without a parameter-stability gate. Output: `shank3_cohort1_wt_npl_alpha_condition_delay/`.
+
+Scripts: `prepare_shank3_wt_npl_alpha.py`, `verify_shank3_wt_npl_alpha.py --pre-fit`, `run_shank3_wt_npl_alpha_pipeline.py`, and (after visual inspection) `publish_shank3_wt_npl_alpha.py`. Two PNGs: 3×5 RTDs (full [-1,1] normalization; [-0.1,0.6] display) and ABL-colored psychometric points/model lines. The result book includes direct embeds, posterior/audit/source downloads and an in-sample comparison against the 92-parameter Gamma/Omega reference.
+
+
+## SHANK3 cohort 1 HOM: NPL+alpha with condition-specific delays (2026-11-04)
+
+37-parameter fit using the exact 67,715 HOM choices from the existing condition-delay reference, with five proactive/exponential-lapse parameters frozen. No prepared filters are reapplied. Full-rank GPU SVI uses minimum 50k updates and a strict-improvement 25-window confirmation tail, without a parameter-stability gate. Output: `shank3_cohort1_hom_npl_alpha_condition_delay/`.
+
+Scripts: `prepare_shank3_hom_npl_alpha.py`, `verify_shank3_hom_npl_alpha.py --pre-fit`, `run_shank3_hom_npl_alpha_pipeline.py`, and (after visual inspection) `publish_shank3_hom_npl_alpha.py`. Two PNGs: 3×5 RTDs (full [-1,1] normalization; [-0.1,0.6] display) and ABL-colored psychometric points/model lines. The result book includes direct embeds, posterior/audit/source downloads and an in-sample comparison against the 92-parameter Gamma/Omega reference.
+
+
+## WT/HOM NPL+alpha posterior-parameter comparison (2026-11-04)
+
+`plot_shank3_wt_hom_npl_alpha_parameters.py` reads the two completed NPL+alpha seed-0 posteriors without refitting. One ten-panel PNG/PDF contains all 37 fitted parameters per genotype: seven shared-parameter panels and a 1×3 ABL delay row versus ten signed ILDs. Control/WT is black; ASD/HOM is red. All axes are equal 2.8-inch squares, with no grids. Error bars are central 95% credible intervals from 10,000 draws, conditional on fixed proactive/lapse values; times are shown in ms. Outputs and 74-estimate audit: `shank3_cohort1_wt_hom_npl_alpha_comparison/`. Verify with `verify_shank3_wt_hom_npl_alpha_parameters.py`. The November 4 result book directly embeds the PNG and provides the PDF, source and audits.
+
+### NPL+alpha workflow files and saved artifacts
+
+For each genotype, replace `<group>` with `wt` or `hom` in these filenames:
+
+- `prepare_shank3_<group>_npl_alpha.py` copies the exact existing Gamma/Omega reference trials, fixed proactive/lapse values and condition maps, recording preservation hashes without reapplying preparation filters.
+- `fit_shank3_<group>_npl_alpha.py` runs the fresh seed-0 full-rank GPU fit, with disposable timing and smoke-test options, atomic resumable checkpoints, strict loss-confirmation stopping and absolute-best restoration.
+- `plot_shank3_<group>_npl_alpha.py` generates the 3×5 RTD and psychometric PNGs, signed-condition predictions, window masses and in-sample reference comparisons.
+- `verify_shank3_<group>_npl_alpha.py` independently reconstructs trial identities, priors, mapping, SciPy likelihoods, normalization, checkpoint/posterior restoration and numerical plot values; `--pre-fit` runs the checks required before fitting.
+- `publish_shank3_<group>_npl_alpha.py` embeds verified PNGs and downloadable source/audits in the November 4 result book while preserving existing entries.
+- `run_shank3_<group>_npl_alpha_pipeline.py` sequences fitting, prediction and independent verification, recording failures and preserving completed checkpoints; visual inspection precedes publication.
+
+`shank3_wt_npl_alpha_utils.py` defines the shared 37-parameter model, established trapezoidal priors, fresh initialization, NPL+alpha Gamma/Omega mapping and loss-window decision. `shank3_hom_npl_alpha_utils.py` reuses those pure functions with HOM-specific output/reference roots. Both use `shank3_wt_gamma_omega_utils.py` for stable evidence kernels and the complete-mixture conditional RT/choice likelihood, and `proactive_lapse_no_led_utils.py` for the untruncated inverse-Gaussian/exponential proactive model and priors. Existing `fit_animal_by_animal/numpyro_npl_alpha_svi_utils.py` supplies the canonical NPL+alpha mapping; `ASD_Human_Data/human_plain_ddm_diagnostics_utils.py` supplies the independent SciPy evidence calculations.
+
+The comparison workflow is `plot_shank3_wt_hom_npl_alpha_parameters.py`, then `verify_shank3_wt_hom_npl_alpha_parameters.py`, followed by actual visual inspection and `publish_shank3_wt_hom_npl_alpha_parameters.py`. It reads the two saved 10,000-draw posteriors and makes no model or data changes.
+
+Versioned results include compact preparation/provenance records, condition/membership and numerical summaries, posterior draws and losses, plus the November 4 published images, parameter PDF and complete audit downloads. Raw cohort/prepared CSVs, copied trial-level inputs and optimizer/checkpoint pickle files remain local under the repository's existing ignore rules. Preparation and independent raw-data verification require those local datasets and the earlier Gamma/Omega/abort reference fit folders. The published per-genotype audit ZIPs retain trial tables, likelihood data, posterior draws, losses, numerical predictions and source snapshots.

@@ -1,0 +1,3 @@
+variant,status,parameters,valid_trials,joint_log_likelihood,rt_log_likelihood,psychometric_rmse,trial_weighted_psychometric_rmse,mean_rt_cdf_max_gap_1ms,worst_rt_cdf_max_gap_1ms,trial_weighted_rt_cdf_integrated_gap,model
+condition_delay,converged,92,67715,49060.51277768546,84004.99953820641,0.0104315823473455,0.010522693774063,0.0411161339375305,0.0748667773104029,0.0078744916358217,Direct Gamma/Omega; 92 parameters
+npl_alpha,converged,37,67715,48607.06870312831,83637.49081527532,0.027448004002069443,0.027416333320670234,0.05135310951845675,0.11086586891124178,0.008971999178904065,NPL+alpha; 37 parameters

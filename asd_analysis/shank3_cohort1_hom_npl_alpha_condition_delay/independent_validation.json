@@ -1,0 +1,70 @@
+{
+  "status": "passed",
+  "valid_trials": 67715,
+  "right": 35320,
+  "left": 32395,
+  "animals": 6,
+  "conditions": 30,
+  "parent_trials": 81721,
+  "display_trials": 80989,
+  "parameter_count": 37,
+  "initial_log_likelihood": -40399.17384390152,
+  "scipy_initial_log_likelihood": -40399.173843901524,
+  "finite_gradients": true,
+  "independent_prior_logprob": 31.001813129004987,
+  "mapping_and_expansion_verified": true,
+  "normalization": [
+    {
+      "delay": 0.05,
+      "onset": 0.6,
+      "mass": 0.9027854883339312,
+      "integral": 0.9027854883337807
+    },
+    {
+      "delay": 0.1,
+      "onset": 1.0,
+      "mass": 0.6319773310767332,
+      "integral": 0.6319773310767227
+    },
+    {
+      "delay": 0.2,
+      "onset": 0.4,
+      "mass": 0.94745080491377,
+      "integral": 0.9474508049137741
+    },
+    {
+      "delay": 0.0,
+      "onset": 1.1,
+      "mass": 0.49703350734296314,
+      "integral": 0.49703350734277063
+    },
+    {
+      "delay": 0.5,
+      "onset": 0.7,
+      "mass": 0.857718315223823,
+      "integral": 0.8577183152236099
+    }
+  ],
+  "stop_reset_tie_minimum_resume_tests": "passed",
+  "verifier_sha256": "8661acb671b0136c7aa0d6d45a18ef4ac4b139339114a37c1b1962f507cf4b39",
+  "posterior_log_likelihood": 48607.06870312831,
+  "scipy_posterior_log_likelihood": 48607.06870312831,
+  "posterior_restoration": "passed",
+  "draws_reproduced": true,
+  "convergence_status": "converged",
+  "posterior_gradients_finite": true,
+  "rtd_panels": 15,
+  "psychometric_predictions": 30,
+  "histogram_count": 80989,
+  "plot_checks": "passed",
+  "figure_artifact_hashes": {
+    "SHANK3_cohort1_HOM_npl_alpha_RTDs.png": "6e4968eb063f5084a5193ca0c6022167bf033fa4044c129a36c55763571586a1",
+    "SHANK3_cohort1_HOM_npl_alpha_psychometric.png": "4ed34bab3f7924dfd3d20e10935319b05d080f8b2a6e7f2fd9ba543cddd67dc5"
+  },
+  "verification_sources": {
+    "asd_analysis/verify_shank3_hom_npl_alpha.py": "8661acb671b0136c7aa0d6d45a18ef4ac4b139339114a37c1b1962f507cf4b39",
+    "ASD_Human_Data/human_plain_ddm_diagnostics_utils.py": "23c25445918eb7249a3c9040255686d5675e584bab2c6c10ae555bd9d6ef75ab"
+  },
+  "reference_common_trial_log_likelihood": 49060.512777685464,
+  "empirical_rtd_arrays_unchanged": true
+}

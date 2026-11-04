@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "resumed_vs_uninterrupted_losses": "bitwise identical",
+  "resumed_vs_uninterrupted_posterior_draws": "bitwise identical",
+  "restored_step": 5,
+  "stop_status": "converged",
+  "unconfirmed_at_limit_remains_unconfirmed": true,
+  "parameter_count": 37
+}

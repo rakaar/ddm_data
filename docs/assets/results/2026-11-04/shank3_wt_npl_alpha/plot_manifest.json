@@ -1,0 +1,48 @@
+{
+  "status": "independently_and_visually_verified",
+  "fit_trials": 68184,
+  "display_trials": 81934,
+  "parent_trials": 83921,
+  "animals": 5,
+  "rtd_bin_width_s": 0.02,
+  "model_grid_width_s": 0.001,
+  "display_xlim": [
+    -0.1,
+    0.6
+  ],
+  "display_ylim": [
+    0,
+    17.0
+  ],
+  "ABL_colors": {
+    "20": "#1f77b4",
+    "40": "#ff7f0e",
+    "60": "#2ca02c"
+  },
+  "data_linewidth_pt": 1.4,
+  "data_alpha": 0.7,
+  "model_linewidth_pt": 0.9,
+  "output_formats": [
+    "png"
+  ],
+  "models": [
+    {
+      "variant": "npl_alpha",
+      "status": "converged",
+      "rtd_panels": 15,
+      "psychometric_points": 30,
+      "quadrature_max_order_difference": 4.979203271915367e-09,
+      "parent_onsets": "all exact parent-trial onsets",
+      "psychometric_onsets": "all exact fitted valid-trial onsets; normalize each trial before averaging"
+    }
+  ],
+  "artifacts": {
+    "SHANK3_cohort1_WT_npl_alpha_RTDs.png": "e3ca018730f7f588149b93689dbe7ae6be21551badbd7204309554dba59fe563",
+    "SHANK3_cohort1_WT_npl_alpha_psychometric.png": "6b6faa6ef55e3c74d27c2fadb61df0aed646608698418fd0d186a0532f181b51"
+  },
+  "source_hashes": {
+    "asd_analysis/plot_shank3_wt_npl_alpha.py": "0d3bad1f1e254ad9928cf223353f81890647d16e8c04c2b48e40890535a1b2a9"
+  },
+  "comparison": "in-sample, posterior-mean plug-in; no held-out evidence or initialization-sensitivity test",
+  "uncertainty": "conditional on frozen proactive/lapse posterior means"
+}

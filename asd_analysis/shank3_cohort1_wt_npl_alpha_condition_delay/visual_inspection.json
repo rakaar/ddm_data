@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "inspected_utc": "2026-11-04T21:25:17.722691+00:00",
+  "method": "Both full-resolution PNGs viewed with view_image",
+  "figure_artifact_hashes": {
+    "SHANK3_cohort1_WT_npl_alpha_RTDs.png": "e3ca018730f7f588149b93689dbe7ae6be21551badbd7204309554dba59fe563",
+    "SHANK3_cohort1_WT_npl_alpha_psychometric.png": "6b6faa6ef55e3c74d27c2fadb61df0aed646608698418fd0d186a0532f181b51"
+  },
+  "checks": [
+    "15 RTD panels: ABL rows and absolute-ILD columns correct",
+    "Colored data steps remain visible above thin black model curves",
+    "RTD display -0.1 to 0.6 s; shared density scale covers all curves",
+    "Psychometric points and connected model predictions in correct ABL colors",
+    "Titles, legends, counts and captions readable; no grid and no clipped labels"
+  ],
+  "observations": "Model leaves visible peak-shape discrepancies in several RTDs and underpredicts some ABL-60 weak-ILD right-choice probabilities; visual pass is for presentation, not goodness of fit."
+}
