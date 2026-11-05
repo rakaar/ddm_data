@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "resumed_and_uninterrupted_losses_identical": true,
+  "posterior_samples_identical": true,
+  "paused_after_step": 5,
+  "final_step": 15
+}

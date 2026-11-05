@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "direct_png_embeds": 5,
+  "all_local_links_resolve": true,
+  "strict_mkdocs_build": "passed",
+  "live_http_verified": true,
+  "url": "http://127.0.0.1:8000/results/2026-11-05/#shank3-cohort-1-wthom-nplalpha-with-gaussian-condition-delays",
+  "download_http_checks": 8
+}

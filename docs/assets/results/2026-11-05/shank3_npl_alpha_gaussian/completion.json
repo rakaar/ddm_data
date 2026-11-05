@@ -1,0 +1,32 @@
+{
+  "status": "figures_ready_for_visual_inspection",
+  "started_utc": "2026-11-05T12:13:15.549031+00:00",
+  "parameter_count_per_genotype": 67,
+  "stage": "numerically_verified",
+  "parallel": true,
+  "benchmarks": [
+    {
+      "device": "NVIDIA GeForce RTX 4090",
+      "backend": "gpu",
+      "compile_seconds": 63.53314925101586,
+      "seconds_per_update": 0.02586610965663567,
+      "timed_updates": 20,
+      "peak_bytes": 1956627200,
+      "memory_limit_bytes": 18937184256,
+      "states_discarded": true,
+      "initial_loss": -19081.74708421943
+    },
+    {
+      "device": "NVIDIA GeForce RTX 4090",
+      "backend": "gpu",
+      "compile_seconds": 21.81484559108503,
+      "seconds_per_update": 0.02586882634786889,
+      "timed_updates": 20,
+      "peak_bytes": 1959629056,
+      "memory_limit_bytes": 18937184256,
+      "states_discarded": true,
+      "initial_loss": 1914.642298571196
+    }
+  ],
+  "genotype": "hom"
+}

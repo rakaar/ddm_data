@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "inspected_utc": "2026-11-05T12:34:06.805535+00:00",
+  "inspector": "Codex visual inspection via view_image",
+  "artifacts": {
+    "wt/SHANK3_cohort1_WT_npl_alpha_gaussian_RTDs.png": "fc87eb306f4a290f4f93de28e011f270f7815366261848f87188acee2e45b4aa",
+    "wt/SHANK3_cohort1_WT_npl_alpha_gaussian_psychometric.png": "7a103416e7916fc2ff3cb899b3a42e6a5fb942687f2fde585db125028179b446",
+    "hom/SHANK3_cohort1_HOM_npl_alpha_gaussian_RTDs.png": "68acdaa2f01b718def398f98b7080a0d3b5cee0780af9e4e60503ca75d064650",
+    "hom/SHANK3_cohort1_HOM_npl_alpha_gaussian_psychometric.png": "e516165ed0d840f999806b45c4fd081460c545bdaba7dab5e56a2bddd7d5bc9b",
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_parameter_comparison.png": "74ffb7f6576b47c8821966c790defe6d710efcffa3911611df0eb68c85366716",
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_parameter_comparison.pdf": "eb6a0b14a8e4fba187d9d2bd5ec58e2d8bae25fb8bbf5c371e60a73e264fcfb4"
+  },
+  "pngs_inspected": 5,
+  "pdf_pages": 1,
+  "checks": [
+    "Both 3x5 RTD grids: visible data steps, thin black model lines, correct ABL colors, -0.1 to 0.6 second display, no clipped curves.",
+    "Both psychometrics: measured scatter and ABL-colored prediction lines, readable labels and counts, no grid.",
+    "Parameter comparison: all 13 square panels, black WT/red HOM, readable signed ILD labels, complete capped 95% intervals and unclipped footnotes.",
+    "Single-page parameter PDF rendered with PyMuPDF and inspected; matches PNG."
+  ]
+}

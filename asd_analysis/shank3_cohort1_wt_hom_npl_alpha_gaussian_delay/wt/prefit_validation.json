@@ -1,0 +1,108 @@
+{
+  "status": "passed",
+  "genotype": "wt",
+  "animals": 5,
+  "valid": 68184,
+  "right": 37482,
+  "left": 30702,
+  "parent": 83921,
+  "aborts": 13750,
+  "display": 81934,
+  "parameter_count": 67,
+  "conditions": 30,
+  "joint_log_likelihood": 33816.88352090317,
+  "independent_scipy_log_likelihood": 33816.87945413115,
+  "mean_log_likelihood_disagreement": 5.964408096933368e-08,
+  "fine_log_likelihood": 33816.9209708054,
+  "fine_mean_log_likelihood_disagreement": 5.49247656768853e-07,
+  "scipy_adaptive_quadrature_cases": 72,
+  "maximum_direct_density_error": 6.185540968317582e-11,
+  "finite_gradients": true,
+  "prior_multiplicities": true,
+  "random_initialization_reproduced": true,
+  "gaussian_support_checks": [
+    {
+      "mu": 0.0,
+      "sigma": 0.005,
+      "area": 1.0
+    },
+    {
+      "mu": 0.01,
+      "sigma": 0.15,
+      "area": 1.0000000000000098
+    },
+    {
+      "mu": 0.5,
+      "sigma": 0.3,
+      "area": 0.9999999999999999
+    }
+  ],
+  "vanishing_sigma_limit": "passed",
+  "normalization": [
+    {
+      "condition": 0,
+      "onset": 0.4,
+      "lapse_prob": 0.0,
+      "mass": 0.9953710367103956,
+      "integrated_mass": 0.9953710353291746
+    },
+    {
+      "condition": 0,
+      "onset": 0.4,
+      "lapse_prob": 0.07067394825050298,
+      "mass": 0.9430556145071827,
+      "integrated_mass": 0.9430556134828565
+    },
+    {
+      "condition": 0,
+      "onset": 0.4,
+      "lapse_prob": 1.0,
+      "mass": 0.25513473325977254,
+      "integrated_mass": 0.25513473692843275
+    },
+    {
+      "condition": 14,
+      "onset": 0.8,
+      "lapse_prob": 0.0,
+      "mass": 0.8548665615156471,
+      "integrated_mass": 0.8548665606034648
+    },
+    {
+      "condition": 14,
+      "onset": 0.8,
+      "lapse_prob": 0.07067394825050298,
+      "mass": 0.7992221920129443,
+      "integrated_mass": 0.7992221912338535
+    },
+    {
+      "condition": 14,
+      "onset": 0.8,
+      "lapse_prob": 1.0,
+      "mass": 0.06752736680316297,
+      "integrated_mass": 0.0675273677741596
+    },
+    {
+      "condition": 29,
+      "onset": 1.2,
+      "lapse_prob": 0.0,
+      "mass": 0.6012848018191524,
+      "integrated_mass": 0.6012848022228943
+    },
+    {
+      "condition": 29,
+      "onset": 1.2,
+      "lapse_prob": 0.07067394825050298,
+      "mass": 0.560052764771966,
+      "integrated_mass": 0.5600527651653368
+    },
+    {
+      "condition": 29,
+      "onset": 1.2,
+      "lapse_prob": 1.0,
+      "mass": 0.017872694983971812,
+      "integrated_mass": 0.01787269524096874
+    }
+  ],
+  "stop_reset_tie_minimum_tests": "passed",
+  "verifier_sha256": "8335799d7b50679e628809f946e40093c3696b33653fb65648b4a9e6c6326eab"
+}

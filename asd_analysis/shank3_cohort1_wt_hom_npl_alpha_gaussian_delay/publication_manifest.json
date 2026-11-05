@@ -1,0 +1,13 @@
+{
+  "page": "docs/results/2026-11-05.md",
+  "title": "SHANK3 cohort 1 WT/HOM: NPL+alpha with Gaussian condition delays",
+  "artifacts": {
+    "wt/SHANK3_cohort1_WT_npl_alpha_gaussian_RTDs.png": "fc87eb306f4a290f4f93de28e011f270f7815366261848f87188acee2e45b4aa",
+    "wt/SHANK3_cohort1_WT_npl_alpha_gaussian_psychometric.png": "7a103416e7916fc2ff3cb899b3a42e6a5fb942687f2fde585db125028179b446",
+    "hom/SHANK3_cohort1_HOM_npl_alpha_gaussian_RTDs.png": "68acdaa2f01b718def398f98b7080a0d3b5cee0780af9e4e60503ca75d064650",
+    "hom/SHANK3_cohort1_HOM_npl_alpha_gaussian_psychometric.png": "e516165ed0d840f999806b45c4fd081460c545bdaba7dab5e56a2bddd7d5bc9b",
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_parameter_comparison.png": "74ffb7f6576b47c8821966c790defe6d710efcffa3911611df0eb68c85366716",
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_parameter_comparison.pdf": "eb6a0b14a8e4fba187d9d2bd5ec58e2d8bae25fb8bbf5c371e60a73e264fcfb4"
+  },
+  "published_utc": "2026-11-05T12:34:10.314202+00:00"
+}

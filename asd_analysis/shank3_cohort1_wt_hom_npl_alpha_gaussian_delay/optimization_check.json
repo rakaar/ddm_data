@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "old_source_sha256": "98b1f17072d8e5673c0fc599ada9ed3628f66fd7ac7bc84e3cf698efe8aa8d42",
+  "new_source_sha256": "3ff4c45f1c56b2aee7a2cddb505c99f9dd5ffdcef770836066be195531f42da2",
+  "cases": [
+    {
+      "case": "current_means",
+      "old_likelihood": 44333.43845385407,
+      "new_likelihood": 44333.43845385407,
+      "maximum_gradient_difference": 9.549694368615746e-12,
+      "old_seconds": 0.05816804179921746,
+      "new_seconds": 0.008614700194448233
+    },
+    {
+      "case": "initial",
+      "old_likelihood": 13129.530026706243,
+      "new_likelihood": 13129.530026706243,
+      "maximum_gradient_difference": 1.1641532182693481e-10,
+      "old_seconds": 0.0767301470041275,
+      "new_seconds": 0.07278938316740095
+    }
+  ]
+}
