@@ -1,0 +1,491 @@
+{
+  "status": "generated",
+  "genotype": "WT",
+  "model": "NPL+alpha",
+  "animals": 5,
+  "fitted_valid_trials": 68184,
+  "parent_trials": 83921,
+  "conditions": 30,
+  "rows": 10,
+  "columns": 3,
+  "signed_ILDS": [
+    -16,
+    -8,
+    -4,
+    -2,
+    -1,
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "ABLs": [
+    20,
+    40,
+    60
+  ],
+  "colors": {
+    "20": "#1f77b4",
+    "40": "#ff7f0e",
+    "60": "#2ca02c"
+  },
+  "bin_width_s": 0.02,
+  "RT_normalization_window_s": [
+    -1,
+    1
+  ],
+  "RT_display_window_s": [
+    -0.1,
+    0.6
+  ],
+  "NDT_normalization": "underlying zero-truncated Gaussian on [0,infinity), no RT conditioning",
+  "fixed_proactive_values": [
+    1.4484797928707815,
+    2.250058912562228,
+    0.02194949665860899,
+    0.07067394825050298,
+    3.3231470537844783
+  ],
+  "remaining_parameters_unchanged": true,
+  "calculation": "complete f_right+f_left; Gaussian bypassed for zero-delay column only",
+  "parent_weighting": "every exact original parent onset; no signed-condition pooling",
+  "source_hashes": {
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay/wt/seed_0/posterior_samples.npz": "26a884281bcd416ff6cf29861211e55f5fb75cccf33976ebf105d8cb808d65e4",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay/wt/conditions.csv": "072a54a2c3f8917a14731ba2faf265b1e307c116c4ea022fdee3096a39fda58a",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay/wt/fixed_proactive.json": "ff00ac31555eb32c31944d2eb835997ee2853ec301115bcb2e4c5e2a01893c1d",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay/wt/fixed_parent_design_averages.npz": "360c9660042d234720b972fdeaca866443cca4cf0732b192e75116048bce281a",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay/wt/fixed_parent_design_manifest.json": "2f6e6b68f43b386c47259f2f6444dc8901b8abb046015e3364a907a90e2e3bc0",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay/wt/signed_parent_model_1ms.csv.gz": "52b47013649c1717b02275f75cfe0f1835212d4c0ac00047a4b19c700001fc55",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay/wt/condition_parameter_means.csv": "8d306352192f98efc2da25eb1ea0be18d83a542c29f616f5ab9c6a167616c732",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay/wt/parent_trials.csv.gz": "b1f5bb61bbd378b731c6e997a195dc9c1058ec80b26faafae3e14ff524071b38",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay/wt/fit_trials.csv.gz": "11e6fc89e9235ad05aeb169bbf887154c3cb09b9c0f785de9e1ef6e02bff109a"
+  },
+  "script_sha256": "b1765b095af81dac42f9e9125d51676279a413224e75576c7b4dcff2618ec9fa",
+  "geometry": [
+    {
+      "row": 0,
+      "column": 0,
+      "ILD": -16,
+      "distribution": "sensory_delay",
+      "xlim": [
+        0.0,
+        0.25
+      ],
+      "ylim": [
+        0.0,
+        28.229602384012576
+      ]
+    },
+    {
+      "row": 0,
+      "column": 1,
+      "ILD": -16,
+      "distribution": "zero_sensory_delay_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 0,
+      "column": 2,
+      "ILD": -16,
+      "distribution": "original_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 1,
+      "column": 0,
+      "ILD": -8,
+      "distribution": "sensory_delay",
+      "xlim": [
+        0.0,
+        0.25
+      ],
+      "ylim": [
+        0.0,
+        28.229602384012576
+      ]
+    },
+    {
+      "row": 1,
+      "column": 1,
+      "ILD": -8,
+      "distribution": "zero_sensory_delay_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 1,
+      "column": 2,
+      "ILD": -8,
+      "distribution": "original_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 2,
+      "column": 0,
+      "ILD": -4,
+      "distribution": "sensory_delay",
+      "xlim": [
+        0.0,
+        0.25
+      ],
+      "ylim": [
+        0.0,
+        28.229602384012576
+      ]
+    },
+    {
+      "row": 2,
+      "column": 1,
+      "ILD": -4,
+      "distribution": "zero_sensory_delay_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 2,
+      "column": 2,
+      "ILD": -4,
+      "distribution": "original_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 3,
+      "column": 0,
+      "ILD": -2,
+      "distribution": "sensory_delay",
+      "xlim": [
+        0.0,
+        0.25
+      ],
+      "ylim": [
+        0.0,
+        28.229602384012576
+      ]
+    },
+    {
+      "row": 3,
+      "column": 1,
+      "ILD": -2,
+      "distribution": "zero_sensory_delay_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 3,
+      "column": 2,
+      "ILD": -2,
+      "distribution": "original_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 4,
+      "column": 0,
+      "ILD": -1,
+      "distribution": "sensory_delay",
+      "xlim": [
+        0.0,
+        0.25
+      ],
+      "ylim": [
+        0.0,
+        28.229602384012576
+      ]
+    },
+    {
+      "row": 4,
+      "column": 1,
+      "ILD": -1,
+      "distribution": "zero_sensory_delay_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 4,
+      "column": 2,
+      "ILD": -1,
+      "distribution": "original_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 5,
+      "column": 0,
+      "ILD": 1,
+      "distribution": "sensory_delay",
+      "xlim": [
+        0.0,
+        0.25
+      ],
+      "ylim": [
+        0.0,
+        28.229602384012576
+      ]
+    },
+    {
+      "row": 5,
+      "column": 1,
+      "ILD": 1,
+      "distribution": "zero_sensory_delay_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 5,
+      "column": 2,
+      "ILD": 1,
+      "distribution": "original_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 6,
+      "column": 0,
+      "ILD": 2,
+      "distribution": "sensory_delay",
+      "xlim": [
+        0.0,
+        0.25
+      ],
+      "ylim": [
+        0.0,
+        28.229602384012576
+      ]
+    },
+    {
+      "row": 6,
+      "column": 1,
+      "ILD": 2,
+      "distribution": "zero_sensory_delay_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 6,
+      "column": 2,
+      "ILD": 2,
+      "distribution": "original_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 7,
+      "column": 0,
+      "ILD": 4,
+      "distribution": "sensory_delay",
+      "xlim": [
+        0.0,
+        0.25
+      ],
+      "ylim": [
+        0.0,
+        28.229602384012576
+      ]
+    },
+    {
+      "row": 7,
+      "column": 1,
+      "ILD": 4,
+      "distribution": "zero_sensory_delay_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 7,
+      "column": 2,
+      "ILD": 4,
+      "distribution": "original_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 8,
+      "column": 0,
+      "ILD": 8,
+      "distribution": "sensory_delay",
+      "xlim": [
+        0.0,
+        0.25
+      ],
+      "ylim": [
+        0.0,
+        28.229602384012576
+      ]
+    },
+    {
+      "row": 8,
+      "column": 1,
+      "ILD": 8,
+      "distribution": "zero_sensory_delay_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 8,
+      "column": 2,
+      "ILD": 8,
+      "distribution": "original_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 9,
+      "column": 0,
+      "ILD": 16,
+      "distribution": "sensory_delay",
+      "xlim": [
+        0.0,
+        0.25
+      ],
+      "ylim": [
+        0.0,
+        28.229602384012576
+      ]
+    },
+    {
+      "row": 9,
+      "column": 1,
+      "ILD": 16,
+      "distribution": "zero_sensory_delay_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    },
+    {
+      "row": 9,
+      "column": 2,
+      "ILD": 16,
+      "distribution": "original_rt",
+      "xlim": [
+        -0.1,
+        0.6
+      ],
+      "ylim": [
+        0.0,
+        27.717276684159742
+      ]
+    }
+  ],
+  "artifacts": {
+    "SHANK3_cohort1_WT_signed_ILD_sensory_delay_effect.png": "35595c8c4dba4975d9db40365e12a14a335702c41d11a77bc993be9430b5d8f6",
+    "SHANK3_cohort1_WT_signed_ILD_sensory_delay_effect.pdf": "2453bb3b0b6a20edc84e907dd0f9890e2e78331b785861643a4ae6b9e55fb223"
+  }
+}

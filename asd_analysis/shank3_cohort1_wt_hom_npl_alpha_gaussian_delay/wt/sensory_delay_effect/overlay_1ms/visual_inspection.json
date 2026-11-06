@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "genotype": "WT",
+  "rows": 3,
+  "columns": 10,
+  "model_curves": 90,
+  "model_resolution_s": 0.001,
+  "empirical_data_plotted": false,
+  "xlim_s": [
+    0.0,
+    0.4
+  ],
+  "checks": [
+    "all 30 panels inspected",
+    "all three model curves visible",
+    "readable ticks 0 to 0.4 s",
+    "unclipped peaks",
+    "unchanged normalization",
+    "readable legend and footer"
+  ],
+  "artifacts": {
+    "SHANK3_cohort1_WT_sensory_delay_model_overlay_3x10_1ms.png": "f148019710c6da7870614151e221bed397a903f6dcb9e44cbd52a64bfb453f58",
+    "SHANK3_cohort1_WT_sensory_delay_model_overlay_3x10_1ms.pdf": "181b146ce5135260535998dcb96d478892a977c220e67e59ad10cb99eab30150"
+  }
+}

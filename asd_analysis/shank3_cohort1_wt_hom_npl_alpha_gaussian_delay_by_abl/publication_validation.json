@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "direct_png_embeds": 5,
+  "all_local_links_resolve": true,
+  "unchanged_inputs_and_reference_hashes": true,
+  "strict_mkdocs_build": "passed",
+  "archive_verified": true,
+  "live_http_verified": true,
+  "url": "http://127.0.0.1:8000/results/2026-11-07/#shank3-cohort-1-wthom-nplalpha-with-gaussian-delays-shared-across-ilds",
+  "download_checks": [
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-07/shank3_npl_alpha_gaussian_abl_delay/SHANK3_cohort1_WT_npl_alpha_gaussian_by_abl_RTDs.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-07/shank3_npl_alpha_gaussian_abl_delay/SHANK3_cohort1_WT_npl_alpha_gaussian_by_abl_psychometric.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-07/shank3_npl_alpha_gaussian_abl_delay/SHANK3_cohort1_HOM_npl_alpha_gaussian_by_abl_RTDs.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-07/shank3_npl_alpha_gaussian_abl_delay/SHANK3_cohort1_HOM_npl_alpha_gaussian_by_abl_psychometric.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-07/shank3_npl_alpha_gaussian_abl_delay/SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_ABL_delay_parameter_comparison.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-07/shank3_npl_alpha_gaussian_abl_delay/SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_ABL_delay_parameter_comparison.pdf",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-07/shank3_npl_alpha_gaussian_abl_delay/shank3_npl_alpha_gaussian_abl_delay_audits.zip",
+      "status": 200
+    }
+  ]
+}

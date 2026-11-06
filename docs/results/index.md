@@ -57,3 +57,4 @@ Daily result pages:
 - [2026-11-02](2026-11-02.md)
 - [2026-11-04](2026-11-04.md) — SHANK3 cohort 1 WT and HOM NPL+alpha fits, condition-specific delays and fixed exponential lapses; combined black/red posterior-parameter comparison.
 - [2026-11-05](2026-11-05.md) — SHANK3 cohort 1 WT/HOM NPL+alpha Gaussian condition-delay fits and diagnostics.
+- [2026-11-07](2026-11-07.md) — WT NPL+alpha model-only sensory-delay overlays: three ABL rows × ten signed ILDs, 1 ms resolution. WT/HOM NPL+alpha refits with Gaussian delays shared across ILDs.

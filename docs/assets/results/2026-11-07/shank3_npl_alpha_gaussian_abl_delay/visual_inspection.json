@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "images_inspected": 5,
+  "pdf_pages_inspected": 1,
+  "checks": [
+    "WT/HOM RTD data remain visible above 0.9 pt black model curves",
+    "ABL blue/orange/green",
+    "RTD limits -0.1 to 0.6 s",
+    "signed-ILD psychometric dots and model lines",
+    "animal/trial counts",
+    "nine equal 2.8-inch square parameter axes",
+    "WT black and HOM red",
+    "unclipped credible intervals",
+    "footer clear of axis labels",
+    "parameter PDF rendered and inspected"
+  ],
+  "artifacts": {
+    "wt/SHANK3_cohort1_WT_npl_alpha_gaussian_by_abl_RTDs.png": "cefa5056e22f5c69f07a9bf1f94e8394687cdcfa884a04fda5f93242f734f167",
+    "wt/SHANK3_cohort1_WT_npl_alpha_gaussian_by_abl_psychometric.png": "86881e9b80edef8fe7bb78797748bdfaa403d6bb657b992227554b1e392a4168",
+    "hom/SHANK3_cohort1_HOM_npl_alpha_gaussian_by_abl_RTDs.png": "a4c3abf8ac63a33cb47b89efd282bf7add53e5f002a7e70183c63df8554bba8c",
+    "hom/SHANK3_cohort1_HOM_npl_alpha_gaussian_by_abl_psychometric.png": "5fbe428290cae3e11578f9ab9fc5f11d6130c6a6d8c1db47b13b2067417d2857",
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_ABL_delay_parameter_comparison.png": "0687e15258116907cb464ada5fd826e4479d3f530eeb1bad08abdf01326c68ef",
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_ABL_delay_parameter_comparison.pdf": "c3e84cf354c0513b317ce1905e29603137a30ddddecf38a67d198836aad3c38a"
+  }
+}

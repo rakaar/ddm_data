@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "strict_mkdocs_build": "passed",
+  "checks": [
+    {
+      "url": "http://127.0.0.1:8000/results/2026-11-07/",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-07/SHANK3_cohort1_WT_signed_ILD_sensory_delay_effect.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-07/SHANK3_cohort1_WT_signed_ILD_sensory_delay_effect.pdf",
+      "status": 200
+    }
+  ]
+}

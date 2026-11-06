@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "checkpoint_step": 7000,
+  "checkpoint_sha256": "5701ffa606a3d8972fd10b4e5ee83fd7eb48f4b36e3d871b288dcd27dda7a1b1",
+  "loss_difference": 0.0,
+  "maximum_updated_guide_parameter_difference": 0.0,
+  "optimizer_and_rng_preserved": true
+}

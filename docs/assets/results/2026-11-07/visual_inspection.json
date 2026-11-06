@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "genotype": "WT",
+  "inspected_signed_ILD_rows": 10,
+  "panels": 30,
+  "checks": [
+    "readable signed-ILD labels",
+    "ABL colors",
+    "unfilled model histograms",
+    "square axes",
+    "shared RT limits",
+    "unclipped peaks",
+    "footer spacing"
+  ],
+  "artifacts": {
+    "SHANK3_cohort1_WT_signed_ILD_sensory_delay_effect.png": "35595c8c4dba4975d9db40365e12a14a335702c41d11a77bc993be9430b5d8f6",
+    "SHANK3_cohort1_WT_signed_ILD_sensory_delay_effect.pdf": "2453bb3b0b6a20edc84e907dd0f9890e2e78331b785861643a4ae6b9e55fb223"
+  }
+}

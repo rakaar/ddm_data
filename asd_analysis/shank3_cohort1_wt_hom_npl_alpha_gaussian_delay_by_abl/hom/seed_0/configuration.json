@@ -1,0 +1,134 @@
+{
+  "genotype": "hom",
+  "seed": 0,
+  "parameter_count": 13,
+  "parameter_order": [
+    "rate_lambda",
+    "T_0",
+    "theta_E",
+    "rate_norm_l",
+    "alpha",
+    "w",
+    "del_go",
+    "delay_mu_ABL20",
+    "delay_mu_ABL40",
+    "delay_mu_ABL60",
+    "delay_sigma_ABL20",
+    "delay_sigma_ABL40",
+    "delay_sigma_ABL60"
+  ],
+  "priors": {
+    "rate_lambda": [
+      0.5,
+      1.0,
+      3.0,
+      5.0
+    ],
+    "T_0": [
+      0.02,
+      0.04,
+      0.4,
+      0.8
+    ],
+    "theta_E": [
+      1.0,
+      1.5,
+      10.0,
+      15.0
+    ],
+    "rate_norm_l": [
+      0.0,
+      0.75,
+      1.05,
+      2.0
+    ],
+    "alpha": [
+      0.0,
+      0.1,
+      1.8,
+      2.0
+    ],
+    "w": [
+      0.3,
+      0.4,
+      0.6,
+      0.7
+    ],
+    "del_go": [
+      0.0,
+      0.02,
+      0.199,
+      0.2
+    ],
+    "delay_mu": [
+      0.0,
+      0.01,
+      0.2,
+      0.5
+    ],
+    "delay_sigma": [
+      0.005,
+      0.01,
+      0.15,
+      0.3
+    ]
+  },
+  "initial": {
+    "rate_lambda": 2.2739233746429086,
+    "T_0": 0.13712321695499333,
+    "theta_E": 1.8482749534576548,
+    "rate_norm_l": 0.7549582906585587,
+    "alpha": 1.4825594066404633,
+    "w": 0.5825511154555443,
+    "del_go": 0.1285878038623252,
+    "delay_mu": [
+      0.1486043465869597,
+      0.11328874837843034,
+      0.18766376051967598
+    ],
+    "delay_sigma": [
+      0.12421949757701449,
+      0.010383390023820733,
+      0.1300365987222597
+    ]
+  },
+  "backend": "gpu",
+  "device": "NVIDIA GeForce RTX 4090",
+  "float64": true,
+  "jax": "0.4.38",
+  "numpyro": "0.15.3",
+  "learning_rate": 0.0002,
+  "clip_norm": 1.0,
+  "guide_scale": 0.1,
+  "window": 1000,
+  "min_steps": 50000,
+  "max_steps": 1000000,
+  "confirmation_windows": 25,
+  "parameter_stability_required": false,
+  "initialization": "seed-0 independent uniform draws within prior flat intervals",
+  "delay_grid_s": 0.0005,
+  "delay_grid_end_s": 1.2,
+  "adaptive_refinement_factors": [
+    5,
+    25
+  ],
+  "quadrature_order": 24,
+  "draws": 10000,
+  "diagnostic_draws": 2048,
+  "series_terms": 12,
+  "source_hashes": {
+    "asd_analysis/fit_shank3_npl_alpha_gaussian_abl_delay.py": "f37cea4bcf9c68187a2396cfca2ac411894b3acb678701140eab4e8386417011",
+    "asd_analysis/shank3_npl_alpha_gaussian_abl_delay_utils.py": "317f3cb86cadfbe266634fe7b502135ffc086a6cb85897d2a637a87387ac0122",
+    "asd_analysis/shank3_npl_alpha_gaussian_utils.py": "3ff4c45f1c56b2aee7a2cddb505c99f9dd5ffdcef770836066be195531f42da2",
+    "ASD_Human_Data/gaussian_delay_likelihood.py": "82d4e9974ef5b1ce19db6a00cd6cea9453c654b98637e14dadc5566b2a46dffe",
+    "ASD_Human_Data/human_plain_ddm_diagnostics_utils.py": "23c25445918eb7249a3c9040255686d5675e584bab2c6c10ae555bd9d6ef75ab",
+    "asd_analysis/shank3_wt_npl_alpha_utils.py": "8fb24f87b224f1c0d965a3d1ef228e524d63479a428aa2b6b659aefe2efba313",
+    "asd_analysis/shank3_wt_gamma_omega_utils.py": "97dd8485781126a558b8b5c48d7a8aea4157e28bec54227e3492f76d82fdf96a",
+    "asd_analysis/proactive_lapse_no_led_utils.py": "494fa090d9f0b12fa9d0e97618bf039c0e3ebb43ae0f5bbae4f1768dd8a754bd",
+    "fit_animal_by_animal/numpyro_npl_alpha_svi_utils.py": "034cf84b1e4ec6c8189d00553ca4be917480176757ea1553724b733676dc5db0",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/preparation.json": "2563de223631f951bb2cb4633056d234de9090d5083c3c04b20c84a5c6d0f896",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/likelihood_data.npz": "80ec2e010fbfb5c5df8e30f5834a0d8807be229cf13182f94931cda7cb619950",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/fixed_proactive.json": "8576c7cb6e8aef8f7891b6aa2974defcb12bed0ee79467547adb9ca69e270ea7",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/initialization.json": "eaf1693aad893794802070531790c05f45d4e9dc87c0e3a9ba8b46200a248103"
+  }
+}

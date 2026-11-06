@@ -1,0 +1,13 @@
+{
+  "page": "docs/results/2026-11-07.md",
+  "title": "SHANK3 cohort 1 WT/HOM: NPL+alpha with Gaussian delays shared across ILDs",
+  "artifacts": {
+    "wt/SHANK3_cohort1_WT_npl_alpha_gaussian_by_abl_RTDs.png": "cefa5056e22f5c69f07a9bf1f94e8394687cdcfa884a04fda5f93242f734f167",
+    "wt/SHANK3_cohort1_WT_npl_alpha_gaussian_by_abl_psychometric.png": "86881e9b80edef8fe7bb78797748bdfaa403d6bb657b992227554b1e392a4168",
+    "hom/SHANK3_cohort1_HOM_npl_alpha_gaussian_by_abl_RTDs.png": "a4c3abf8ac63a33cb47b89efd282bf7add53e5f002a7e70183c63df8554bba8c",
+    "hom/SHANK3_cohort1_HOM_npl_alpha_gaussian_by_abl_psychometric.png": "5fbe428290cae3e11578f9ab9fc5f11d6130c6a6d8c1db47b13b2067417d2857",
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_ABL_delay_parameter_comparison.png": "0687e15258116907cb464ada5fd826e4479d3f530eeb1bad08abdf01326c68ef",
+    "SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_ABL_delay_parameter_comparison.pdf": "c3e84cf354c0513b317ce1905e29603137a30ddddecf38a67d198836aad3c38a"
+  },
+  "published_utc": "2026-11-06T21:17:18.294111+00:00"
+}

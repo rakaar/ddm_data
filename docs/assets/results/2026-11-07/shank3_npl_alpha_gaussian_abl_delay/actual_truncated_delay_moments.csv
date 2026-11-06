@@ -1,0 +1,13 @@
+group,abl_index,ABL,quantity,posterior_mean_s,lower95_s,upper95_s,population
+wt,0,20,truncated_mean,0.09378093521156948,0.091752971321467841,0.095798409506221566,zero-truncated delay before RT-window selection; shared across all signed ILDs
+wt,0,20,truncated_sd,0.015853281627605138,0.014563739541216541,0.01728105354900902,zero-truncated delay before RT-window selection; shared across all signed ILDs
+wt,1,40,truncated_mean,0.10016536990602325,0.098855322212553581,0.10152112356348036,zero-truncated delay before RT-window selection; shared across all signed ILDs
+wt,1,40,truncated_sd,0.017226639584146993,0.016399005394954695,0.01810167690282662,zero-truncated delay before RT-window selection; shared across all signed ILDs
+wt,2,60,truncated_mean,0.094865412871561153,0.09342965850004202,0.096297418955973352,zero-truncated delay before RT-window selection; shared across all signed ILDs
+wt,2,60,truncated_sd,0.019885058108666816,0.019134496923836907,0.020678566667362265,zero-truncated delay before RT-window selection; shared across all signed ILDs
+hom,0,20,truncated_mean,0.10047079698227761,0.097917713809391321,0.10300939109352858,zero-truncated delay before RT-window selection; shared across all signed ILDs
+hom,0,20,truncated_sd,0.016002420914494577,0.01410852099786813,0.018192839359844764,zero-truncated delay before RT-window selection; shared across all signed ILDs
+hom,1,40,truncated_mean,0.10680112520625225,0.105227283681951,0.10841294198999452,zero-truncated delay before RT-window selection; shared across all signed ILDs
+hom,1,40,truncated_sd,0.017733803473009721,0.016564640774165824,0.018996673638665786,zero-truncated delay before RT-window selection; shared across all signed ILDs
+hom,2,60,truncated_mean,0.099969517010566625,0.09819955786550702,0.10173506644111012,zero-truncated delay before RT-window selection; shared across all signed ILDs
+hom,2,60,truncated_sd,0.021979131472587399,0.02100855411440803,0.023014803955264476,zero-truncated delay before RT-window selection; shared across all signed ILDs

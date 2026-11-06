@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "paused_after": 5,
+  "final_steps": 15,
+  "resumed_and_straight_losses_identical": true,
+  "resumed_and_straight_posteriors_identical": true,
+  "restored_best_step": 15,
+  "optimizer_rng_and_guide_state_preserved": true
+}

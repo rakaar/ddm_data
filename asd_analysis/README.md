@@ -683,3 +683,31 @@ Workflow files:
 Both fits converged after 116,000 updates and restored update 91,000, followed by 25 non-improving windows; parameter stability is diagnostic only. `source_migration.json` and `optimization_check.json` document an execution-only optimization at the 8,000-update checkpoints, preserving optimizer/RNG state and verified likelihood/gradient equivalence. `resume_validation.json` records an independent interrupted-versus-uninterrupted recovery check.
 
 Versioned results include compact numerical/provenance tables, posterior draws, loss traces and published PNG/PDF/source downloads. The published audit ZIP additionally preserves copied trial inputs, numerical caches, resumable checkpoints and source history. Raw datasets, duplicate local caches, previews and smoke-run folders remain local. Raw-data verification and preparation require the local cleaned CSV and reference fits. Focused figure verification: `JAX_PLATFORMS=cpu .venv/bin/python asd_analysis/verify_shank3_npl_alpha_gaussian_figures.py`; result-book validation: `.venv/bin/python -m mkdocs build --strict`.
+
+
+## WT sensory-delay effect in the NPL+alpha fit (2026-11-07)
+
+`plot_shank3_sensory_delay_effect.py` reads saved Gaussian-delay posterior means (editable `GENOTYPE`, currently `wt`) and produces a **three-ABL-row × ten-signed-ILD-column** PNG/PDF, overlaying three continuous model-density curves at **1 ms** resolution in every panel: sensory delay/NDT (blue), complete model with exactly zero sensory delay (orange), and the fitted full model RT (green). There are no empirical data or histogram steps in this figure. Proactive timing, exponential lapses and all remaining NPL+alpha parameters and exact parent onsets remain fixed; no refitting or ±ILD pooling. Each RT curve normalizes independently over [-1,1] s; NDT keeps its full nonnegative normalization. All panels display [0,0.4] s with common density limits; the zoom does not change normalization.
+
+`verify_shank3_sensory_delay_effect.py` checks all 90 plotted 1 ms arrays and curve-to-panel mappings against the original numerical export, reconstructs complete right/left densities with independent SciPy series and raw onset frequencies, and verifies unchanged fit inputs. Outputs and audits: `shank3_cohort1_wt_hom_npl_alpha_gaussian_delay/wt/sensory_delay_effect/overlay_1ms/`. The November 7 result book directly embeds this figure and links the PDF, sources and audits; the earlier 20 ms histogram layout remains downloadable. Reference 20 ms bin tables are retained only as numerical checks and are not used for plotting.
+
+
+## NPL+alpha Gaussian delays shared across ILDs (2026-11-07)
+
+The WT/HOM extension fits **13 parameters per genotype**: seven shared NPL+alpha parameters plus three ABL-specific Gaussian means and three SDs. Each ABL's pair is shared across all ten signed ILDs. Evidence retains all 30 conditions. The exact earlier WT/HOM trial identities and five fixed proactive/exponential-lapse values are reused; Gaussian delays are integrated before complete-mixture valid-window normalization. Priors apply once per free parameter; there is no additional lapse component or upper cutoff on delay draws.
+
+Scripts use the `shank3_npl_alpha_gaussian_abl_delay` prefix:
+
+- `_utils.py` defines sampling, 13-parameter initialization and deterministic expansion to the existing immutable 67-parameter numerical kernels.
+- `prepare_…py` preserves reference inputs and hashes, records condition-to-ABL sharing maps and identical fresh seed-0 initial values for WT/HOM.
+- `fit_…py` runs or resumes full-rank float64 GPU SVI, restoring the best window after at least 50,000 updates and 25 non-improving 1,000-update windows. Parameter stability is diagnostic only; the update cap is 1,000,000.
+- `verify_…py` independently reconstructs raw selection, priors, shared-gradient sums, SciPy convolution, normalization and posterior/checkpoint restoration. Use `--pre-fit` before fitting.
+- `run_…_pipeline.py` benchmarks both complete fits, selects concurrent/sequential execution by measured memory, then runs predictions, parameter plots and independent verification.
+- `plot_…py`, `plot_…_parameters.py` and `verify_…_figures.py` generate/check four RTD/psychometric PNGs and a nine-square-panel black/red WT/HOM posterior comparison with a single-page PDF.
+- `publish_…py` adds all five verified and visually inspected PNGs, source/audit downloads and in-sample comparisons against the 67-parameter reference to the November 7 result book.
+
+Outputs: `shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/`, separately under `wt/` and `hom/`. Each fit retains 10,000 posterior draws, losses, best/latest resumable states and provenance. RTDs use 20 ms data bins, 1 ms model evaluation, [-1,1] s normalization and [-0.1,0.6] s display. Trials, earlier fits and earlier figures remain unchanged. Posterior uncertainty is conditional on frozen proactive/lapse values; one initialization per genotype leaves initialization sensitivity untested.
+
+`shank3_gaussian_batched_refinement.py` evaluates the same refined FFT grids in batches while retaining the original condition-wise direct-quadrature safeguard. `_batched_utils.py` and `fit_…_batched.py` select it for WT; HOM's completed original-kernel run stays unchanged. WT resumed update 33,000 with its exact guide/optimizer/RNG state. `source_migration.json`, `batched_refinement_validation.json`, `batched_svi_validation.json` and `source_history/WT_before_batched_refinement/` preserve the execution-only change and equivalence checks. Point likelihoods were identical, gradients agreed within 2e-9, and a full SVI update yielded identical loss and guide parameters.
+
+Both ABL-delay fits stopped at 108,000 updates and restored their 83,000-update checkpoints after 25 confirmation windows. Versioned artifacts include posterior draws, loss traces, compact numerical/provenance exports and the published figures and audit ZIPs. The ZIPs preserve copied trial inputs, resumable states and source history; duplicate local caches, checkpoint pickles, smoke runs and exploratory previews remain outside this commit. Raw-data verification requires the local cleaned CSV and earlier reference fits.

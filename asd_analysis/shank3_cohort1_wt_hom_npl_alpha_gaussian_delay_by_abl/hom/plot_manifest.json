@@ -1,0 +1,48 @@
+{
+  "status": "generated_pending_independent_verification",
+  "fit_trials": 67715,
+  "display_trials": 80989,
+  "parent_trials": 81721,
+  "animals": 6,
+  "rtd_bin_width_s": 0.02,
+  "model_grid_width_s": 0.001,
+  "display_xlim": [
+    -0.1,
+    0.6
+  ],
+  "display_ylim": [
+    0,
+    12.0
+  ],
+  "ABL_colors": {
+    "20": "#1f77b4",
+    "40": "#ff7f0e",
+    "60": "#2ca02c"
+  },
+  "data_linewidth_pt": 1.4,
+  "data_alpha": 0.7,
+  "model_linewidth_pt": 0.9,
+  "output_formats": [
+    "png"
+  ],
+  "models": [
+    {
+      "variant": "npl_alpha_gaussian_by_abl",
+      "status": "converged",
+      "rtd_panels": 15,
+      "psychometric_points": 30,
+      "quadrature_max_order_difference": 5.702608385504959e-09,
+      "parent_onsets": "all exact parent-trial onsets",
+      "psychometric_onsets": "all exact fitted valid-trial onsets; normalize each trial before averaging"
+    }
+  ],
+  "artifacts": {
+    "SHANK3_cohort1_HOM_npl_alpha_gaussian_by_abl_RTDs.png": "a4c3abf8ac63a33cb47b89efd282bf7add53e5f002a7e70183c63df8554bba8c",
+    "SHANK3_cohort1_HOM_npl_alpha_gaussian_by_abl_psychometric.png": "5fbe428290cae3e11578f9ab9fc5f11d6130c6a6d8c1db47b13b2067417d2857"
+  },
+  "source_hashes": {
+    "asd_analysis/plot_shank3_npl_alpha_gaussian_abl_delay.py": "3d91f89cd9dd5a9945fd594bfc68e942659e6a2bd55304348d9a1aa6105cfb11"
+  },
+  "comparison": "in-sample, posterior-mean plug-in; no held-out evidence or initialization-sensitivity test",
+  "uncertainty": "conditional on frozen proactive/lapse posterior means"
+}

@@ -1,0 +1,49 @@
+{
+  "status": "published",
+  "date": "2026-11-07",
+  "title": "SHANK3 cohort 1 WT/HOM: NPL+alpha with Gaussian delays shared across ILDs",
+  "fits": {
+    "wt": {
+      "status": "converged",
+      "parameter_count": 13,
+      "seed": 0,
+      "stop_reason": "confirmed_minimum_and_loss_patience",
+      "final_checked_step": 108000,
+      "restored_best_step": 83000,
+      "best_window_negative_elbo": -71276.25321778408,
+      "confirmation_windows": 25,
+      "parameter_stability_required": false,
+      "terminal_parameter_stable": false,
+      "restored_parameter_stable": false,
+      "valid_trials": 68184,
+      "animals": 5,
+      "posterior_draws": 10000,
+      "posterior_mean_joint_log_likelihood": 71348.53011421514,
+      "posterior_mean_rt_log_likelihood": 100485.23816895462,
+      "elapsed_seconds_this_invocation": 316.6789807761088,
+      "initializations": 1
+    },
+    "hom": {
+      "status": "converged",
+      "parameter_count": 13,
+      "seed": 0,
+      "stop_reason": "confirmed_minimum_and_loss_patience",
+      "final_checked_step": 108000,
+      "restored_best_step": 83000,
+      "best_window_negative_elbo": -50562.86650564334,
+      "confirmation_windows": 25,
+      "parameter_stability_required": false,
+      "terminal_parameter_stable": false,
+      "restored_parameter_stable": false,
+      "valid_trials": 67715,
+      "animals": 6,
+      "posterior_draws": 10000,
+      "posterior_mean_joint_log_likelihood": 50633.21815277237,
+      "posterior_mean_rt_log_likelihood": 85531.95719997183,
+      "elapsed_seconds_this_invocation": 660.1492783401627,
+      "initializations": 1
+    }
+  },
+  "strict_mkdocs_build": "passed",
+  "visual_inspection": "passed"
+}

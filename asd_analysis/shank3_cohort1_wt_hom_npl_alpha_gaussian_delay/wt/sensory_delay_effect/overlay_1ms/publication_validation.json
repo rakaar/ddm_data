@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "strict_mkdocs_build": "passed",
+  "direct_model_png_embed": true,
+  "checks": [
+    {
+      "url": "http://127.0.0.1:8000/results/2026-11-07/",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-07/wt_sensory_delay_overlay_1ms/SHANK3_cohort1_WT_sensory_delay_model_overlay_3x10_1ms.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-07/wt_sensory_delay_overlay_1ms/SHANK3_cohort1_WT_sensory_delay_model_overlay_3x10_1ms.pdf",
+      "status": 200
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "tests": [
+    {
+      "case": "current_WT",
+      "likelihood_difference": 0.0,
+      "maximum_gradient_difference": 3.652758095995523e-10,
+      "old_seconds": 0.13136967300670221,
+      "batched_seconds": 0.021442658035084605,
+      "speedup": 6.126557294891071
+    },
+    {
+      "case": "initial",
+      "likelihood_difference": 0.0,
+      "maximum_gradient_difference": 1.6569003946642624e-09,
+      "old_seconds": 0.14720414549810812,
+      "batched_seconds": 0.021673600480426103,
+      "speedup": 6.791863937468597
+    }
+  ]
+}

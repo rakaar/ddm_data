@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "genotype": "wt",
+  "checkpoint_step": 33000,
+  "best_step": 33000,
+  "patience": 0,
+  "optimizer_guide_rng_and_losses_preserved": true,
+  "checkpoint_sha256": "047dda130f1de96eb018a2febb34ed619f51280304ee29b00c2637d925a1a60d",
+  "old_configuration_sha256": "7bcf14e2dbea026ab5966aa144623ef241966e724a1523ab897596a0c5334a90",
+  "new_configuration_sha256": "5dbb3c57a9463e2306027045df9a2b19546227b7b296291b536c96153315fb87",
+  "model_priors_trials_and_stopping_unchanged": true,
+  "change": "batch FFT refinements at the same factors 5/25; unchanged direct quadrature",
+  "likelihood_and_gradient_validation": "batched_refinement_validation.json",
+  "one_step_SVI_validation": "batched_svi_validation.json",
+  "HOM_completed_and_unchanged": true,
+  "archive": "source_history/WT_before_batched_refinement"
+}
