@@ -1,0 +1,197 @@
+{
+  "status": "passed",
+  "url": "http://127.0.0.1:8000/results/2026-11-08/#shank3-cohort-1-wthom-gammaomega-refits-with-omega-upper-bound-25",
+  "direct_img_embeds": 7,
+  "pdf_downloads": 3,
+  "linked_files_checked": 37,
+  "http_checks": [
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_omega25_RTDs.png",
+      "status": 200,
+      "size": "358801"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_omega25_psychometric.png",
+      "status": 200,
+      "size": "165576"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.pdf",
+      "status": 200,
+      "size": "37653"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.png",
+      "status": 200,
+      "size": "282032"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_omega25_RTDs.png",
+      "status": 200,
+      "size": "363688"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_omega25_psychometric.png",
+      "status": 200,
+      "size": "165006"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/actual_truncated_delay_moments.csv",
+      "status": 200,
+      "size": "2135"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/figure_validation.json",
+      "status": 200,
+      "size": "1299"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/fit_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "status": 200,
+      "size": "11086"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/hom_in_sample_comparison.csv",
+      "status": 200,
+      "size": "1348"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/omega_bound_in_sample_comparison.csv",
+      "status": 200,
+      "size": "692"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/omega_bound_parameter_sensitivity.csv",
+      "status": 200,
+      "size": "25481"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/omega_bound_pressure_by_ABL.csv",
+      "status": 200,
+      "size": "1350"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/parameter_estimates.csv",
+      "status": 200,
+      "size": "20079"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/plot_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "status": 200,
+      "size": "19123"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/plot_shank3_gamma_omega_gaussian_abl_delay_omega25_parameters.py",
+      "status": 200,
+      "size": "7281"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/posterior_boundary_audit.csv",
+      "status": 200,
+      "size": "8397"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/prepare_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "status": 200,
+      "size": "3234"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/publish_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "status": 200,
+      "size": "12857"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/reference_evidence_parameter_ranges.csv",
+      "status": 200,
+      "size": "420"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/run_shank3_gamma_omega_gaussian_abl_delay_omega25_pipeline.py",
+      "status": 200,
+      "size": "4438"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/sensitivity_validation.json",
+      "status": 200,
+      "size": "413"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_omega25_2x2.pdf",
+      "status": 200,
+      "size": "34802"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_omega25_2x2.png",
+      "status": 200,
+      "size": "306720"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/plot_shank3_gamma_omega_model_comparison_omega25.py",
+      "status": 200,
+      "size": "9014"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25_audits.zip",
+      "status": 200,
+      "size": "64271"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/verify_shank3_gamma_omega_model_comparison_omega25.py",
+      "status": 200,
+      "size": "7062"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_omega25_2x2.pdf",
+      "status": 200,
+      "size": "21601"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_omega25_2x2.png",
+      "status": 200,
+      "size": "181529"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/plot_shank3_gaussian_abl_delay_model_comparison_omega25.py",
+      "status": 200,
+      "size": "7962"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25_audits.zip",
+      "status": 200,
+      "size": "13041"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/verify_shank3_gaussian_abl_delay_model_comparison_omega25.py",
+      "status": 200,
+      "size": "5143"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_gamma_omega_gaussian_abl_delay_omega25_audits.zip",
+      "status": 200,
+      "size": "53041554"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_gamma_omega_gaussian_abl_delay_omega25_utils.py",
+      "status": 200,
+      "size": "6569"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/verify_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "status": 200,
+      "size": "14741"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/verify_shank3_gamma_omega_gaussian_abl_delay_omega25_figures.py",
+      "status": 200,
+      "size": "7519"
+    },
+    {
+      "url": "http://127.0.0.1:8000/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/wt_in_sample_comparison.csv",
+      "status": 200,
+      "size": "1351"
+    }
+  ],
+  "previous_286_files_unchanged": true,
+  "navigation_and_index": "passed",
+  "strict_mkdocs_build": "passed"
+}

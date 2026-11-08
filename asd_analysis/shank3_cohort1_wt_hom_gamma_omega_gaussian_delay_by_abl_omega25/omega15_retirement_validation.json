@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "removed_sections": 3,
+  "current_png_embeds": 7,
+  "visible_omega15_tables_removed": true,
+  "old_links_resolve_to_current_section": true,
+  "unchanged_fit_and_figure_files": 34,
+  "strict_mkdocs_build": "passed",
+  "current_url": "http://127.0.0.1:8000/results/2026-11-08/#shank3-cohort-1-wthom-gammaomega-refits-with-omega-upper-bound-25"
+}

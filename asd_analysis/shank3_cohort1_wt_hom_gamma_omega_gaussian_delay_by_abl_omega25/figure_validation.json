@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "rtd_panels": 30,
+  "psychometric_points": 60,
+  "parameter_estimates": 136,
+  "parameter_panels": 10,
+  "posterior_boundary_estimates": 136,
+  "empirical_arrays_unchanged": true,
+  "signed_parent_weights_reconstructed": true,
+  "actual_truncated_moments_verified": true,
+  "artifacts": {
+    "wt/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_omega25_RTDs.png": "3ae0d10e641fcf699dd667124a6651375fe0b55db5b668ee97743e77dd373b6f",
+    "wt/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_omega25_psychometric.png": "e961f335ff3f7f233128f1cf08752c5a504f91f05ff6700f544579e6ac25e92b",
+    "hom/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_omega25_RTDs.png": "00d35954df849619b4d88a3daf9083167b3da162c7cee18eb835b3274a2258ea",
+    "hom/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_omega25_psychometric.png": "e76eef5edf1a5f5e861797468b3869ddbcf05ba0da6f825aab53dd56f8d40f89",
+    "SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.png": "e1c1d23c940098c7a70c53cd603f3117883af0b6dd5eac70e9c59734b1a7106f",
+    "SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.pdf": "c13bb1d5023b971d3bfd5a84be7fef79de99bbf2aaa1f9f583e575c0703b9d40"
+  },
+  "verifier_sha256": "3e5e0108a90c5d2332efbb05a33e8caacff4e6a0a8d39e76b23fdbb8fdefa9d1"
+}

@@ -1,0 +1,114 @@
+{
+  "status": "passed",
+  "genotype": "wt",
+  "animals": 5,
+  "valid": 68184,
+  "right": 37482,
+  "left": 30702,
+  "parent": 83921,
+  "aborts": 13750,
+  "display": 81934,
+  "parameter_count": 68,
+  "conditions": 30,
+  "joint_log_likelihood": 71742.51837835312,
+  "independent_scipy_log_likelihood": 71742.51851894073,
+  "mean_log_likelihood_disagreement": 2.0618856341103717e-09,
+  "fine_log_likelihood": 71742.5183902164,
+  "fine_mean_log_likelihood_disagreement": 1.7398912159661117e-10,
+  "scipy_adaptive_quadrature_cases": 72,
+  "maximum_direct_density_error": 6.776978977995896e-11,
+  "npl_mapping_likelihood_difference": 0.0,
+  "finite_gradients": true,
+  "tied_expansion_likelihood_verified": true,
+  "tied_gradient_sums_verified": true,
+  "prior_multiplicities": true,
+  "random_initialization_reproduced": true,
+  "gaussian_support_checks": [
+    {
+      "mu": 0.0,
+      "sigma": 0.005,
+      "area": 1.0
+    },
+    {
+      "mu": 0.01,
+      "sigma": 0.15,
+      "area": 1.0000000000000098
+    },
+    {
+      "mu": 0.5,
+      "sigma": 0.3,
+      "area": 0.9999999999999999
+    }
+  ],
+  "vanishing_sigma_limit": "passed",
+  "normalization": [
+    {
+      "condition": 0,
+      "onset": 0.4,
+      "lapse_prob": 0.0,
+      "mass": 0.9953710546096556,
+      "integrated_mass": 0.9953710532284458
+    },
+    {
+      "condition": 0,
+      "onset": 0.4,
+      "lapse_prob": 0.07067394825050298,
+      "mass": 0.9430556311414312,
+      "integrated_mass": 0.9430556301171158
+    },
+    {
+      "condition": 0,
+      "onset": 0.4,
+      "lapse_prob": 1.0,
+      "mass": 0.25513473325977254,
+      "integrated_mass": 0.25513473692843275
+    },
+    {
+      "condition": 14,
+      "onset": 0.8,
+      "lapse_prob": 0.0,
+      "mass": 0.8548654150990853,
+      "integrated_mass": 0.8548654141865363
+    },
+    {
+      "condition": 14,
+      "onset": 0.8,
+      "lapse_prob": 0.07067394825050298,
+      "mass": 0.7992211266181672,
+      "integrated_mass": 0.7992211258387358
+    },
+    {
+      "condition": 14,
+      "onset": 0.8,
+      "lapse_prob": 1.0,
+      "mass": 0.06752736680316297,
+      "integrated_mass": 0.0675273677741596
+    },
+    {
+      "condition": 29,
+      "onset": 1.2,
+      "lapse_prob": 0.0,
+      "mass": 0.6012851640882388,
+      "integrated_mass": 0.6012851644900451
+    },
+    {
+      "condition": 29,
+      "onset": 1.2,
+      "lapse_prob": 0.07067394825050298,
+      "mass": 0.5600531014380656,
+      "integrated_mass": 0.5600531018296377
+    },
+    {
+      "condition": 29,
+      "onset": 1.2,
+      "lapse_prob": 1.0,
+      "mass": 0.017872694983971812,
+      "integrated_mass": 0.01787269524096874
+    }
+  ],
+  "stop_reset_tie_minimum_tests": "passed",
+  "verifier_sha256": "5be1580687725fad94e38369778cd3a0408837bce9954fce27d105965186602c",
+  "posterior_summaries": 68,
+  "checkpoint_restoration_verified": true,
+  "posterior_draws_reproduced": true
+}

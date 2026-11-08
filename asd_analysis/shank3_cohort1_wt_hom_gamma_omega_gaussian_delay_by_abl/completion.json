@@ -1,0 +1,60 @@
+{
+  "status": "published",
+  "page": "docs/results/2026-11-08.md",
+  "title": "SHANK3 cohort 1 WT/HOM: condition-specific Gamma/Omega with Gaussian delays by ABL",
+  "png_embeds": 5,
+  "strict_mkdocs_build": "passed",
+  "audit_zip_crc": "passed",
+  "visual_inspection": "passed",
+  "artifacts": {
+    "wt/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_RTDs.png": "202e8a8d35bdbef9d57ef5cb461519b4db986e288ec249a10312f61b43f8732f",
+    "wt/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_psychometric.png": "6ce6af32265d79de896666d72bb55fb39cc3226deafea1f4e65d90ad8408ac16",
+    "hom/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_RTDs.png": "95f2bddfda8c90a7e24ec2ad58868cd7f2afcceab0027652b2311d56dc38861c",
+    "hom/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_psychometric.png": "35ae428b47f7832ae9d78a94a74b0eeea62801e97afc112e3fab53ce0fe86e5d",
+    "SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.png": "343c84dc5389f50a1550002cca47b5c9f5a99233478ffe5acf96420e7b33c84b",
+    "SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.pdf": "356616827981bb2cd7fee0b7ede05c74a414d4e0a3c4dbf1c84ae384bf3a3f15"
+  },
+  "published_utc": "2026-11-08T12:03:15.065999+00:00",
+  "fits": {
+    "wt": {
+      "status": "converged",
+      "parameter_count": 68,
+      "seed": 0,
+      "stop_reason": "confirmed_minimum_and_loss_patience",
+      "final_checked_step": 153000,
+      "restored_best_step": 128000,
+      "best_window_negative_elbo": -71221.89761569585,
+      "confirmation_windows": 25,
+      "parameter_stability_required": false,
+      "terminal_parameter_stable": false,
+      "restored_parameter_stable": false,
+      "valid_trials": 68184,
+      "animals": 5,
+      "posterior_draws": 10000,
+      "posterior_mean_joint_log_likelihood": 71592.24673100412,
+      "posterior_mean_rt_log_likelihood": 100581.15341788394,
+      "elapsed_seconds_this_invocation": 1104.4284357998986,
+      "initializations": 1
+    },
+    "hom": {
+      "status": "converged",
+      "parameter_count": 68,
+      "seed": 0,
+      "stop_reason": "confirmed_minimum_and_loss_patience",
+      "final_checked_step": 118000,
+      "restored_best_step": 93000,
+      "best_window_negative_elbo": -50138.8356056457,
+      "confirmation_windows": 25,
+      "parameter_stability_required": false,
+      "terminal_parameter_stable": false,
+      "restored_parameter_stable": false,
+      "valid_trials": 67715,
+      "animals": 6,
+      "posterior_draws": 10000,
+      "posterior_mean_joint_log_likelihood": 50473.36924768257,
+      "posterior_mean_rt_log_likelihood": 85526.97684560396,
+      "elapsed_seconds_this_invocation": 967.623546826886,
+      "initializations": 1
+    }
+  }
+}

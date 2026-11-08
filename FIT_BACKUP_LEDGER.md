@@ -1160,3 +1160,54 @@ Status:
 - This local ledger records the verified backup. The central Drive ledger was
   not modified because approval covered the two fit roots and their dated
   destination, not upload of the ledger's private local-path metadata.
+
+### SHANK3 WT/HOM Gaussian-delay fits: Drive backup completed 2026-11-08
+
+Artifact family:
+- Current SHANK3 cohort 1 WT/HOM condition-specific Gamma/Omega fits with Omega hard upper **25 s⁻¹**, flat interval **0.1–12 s⁻¹**, and Gaussian delay μ/σ shared across signed ILDs within ABL. There are **68 parameters per genotype**, with **68,184 WT** and **67,715 HOM** valid choices. Both runs checked **135,000** updates and restored **110,000** after 25 confirmation windows.
+- Includes complete posterior draws, best/latest resumable guide and optimizer states, exact selected trial tables, likelihood arrays, losses, memberships, model/data predictions, PNG/PDF diagnostics and independent validation records.
+- Includes both current model comparisons, unchanged NPL+alpha Gaussian-by-ABL references, WT/HOM proactive abort fits, and historical 15-bound direct fits/comparisons. Historical results are labelled superseded and remain removed from the result-book display.
+- Includes fitting/plotting/verification/publication dependencies, current result-book assets, README, index and navigation. Whole raw cohort CSVs and unrelated human/LED7 outputs are excluded; exact selected-trial tables are included.
+
+Source machine: **lavos**. Fits ran locally in `/home/rlab/raghavendra/ddm_data/`; no remote-host copy was required.
+
+Current local fit root:
+- `/home/rlab/raghavendra/ddm_data/asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/`
+
+Immutable final local snapshot:
+- `/home/rlab/raghavendra/ddm_data/backup_staging/shank3_gaussian_omega25_20261108_141011/`
+
+Google Drive destination:
+- `raga:ddm_fit_backups_20261108_shank3_wt_hom_gaussian_omega25_lavos/20261108_141011/`
+- [Open the verified backup folder](https://drive.google.com/drive/folders/1_Bjnht1qsA9FAP8qIj-STSozuR7rBxoK).
+
+Per-directory local/remote counts and byte totals (relative to the checkout; path sets, sizes and MD5 agree):
+
+| Directory | Files | Bytes |
+|---|---:|---:|
+| `asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25` | 141 | 115,167,360 |
+| `asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25` | 7 | 227,748 |
+| `asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25` | 8 | 623,837 |
+| `asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl` | 122 | 115,114,003 |
+| `asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison` | 9 | 238,274 |
+| `asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison` | 10 | 685,232 |
+| `asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl` | 135 | 91,108,628 |
+| `asd_analysis/shank3_cohort1_proactive_lapse/wt` | 16 | 3,194,648 |
+| `asd_analysis/shank3_cohort1_proactive_lapse/hom` | 16 | 3,429,234 |
+| `docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25` | 46 | 55,262,560 |
+
+Whole backup, including source/config snapshots: **566 files, 385,769,807 bytes** expected and observed.
+- `rclone check`: **zero differences; 566 matching files**. Independent verification also compared every remote path, size and MD5, and SHA256 for all **564 original source files**. All original fits remained unchanged.
+- Verified at **2026-11-08T14:17:23.502475+00:00**. Transfer used `rclone copy`, with no synchronization or deletion.
+- The first transfer passed data checks; a missing ID in the root-folder metadata prevented its receipt from being written. The folder-link lookup was corrected, the initial local snapshot retained as `_before_receipt_fix`, and an idempotent copy refreshed only the backup script/manifest. The final snapshot and all checks above passed.
+
+Transfer and audit files:
+- `scripts/backup_shank3_gaussian_omega25_to_drive_20261108.py`.
+- tmux sessions `gdrive_shank3_omega25` and `gdrive_shank3_omega25_receipt` completed; the final session succeeded.
+- `logs/gdrive_shank3_gaussian_omega25_20261108_141011.transfer.log`.
+- `logs/gdrive_shank3_gaussian_omega25_20261108_141011.check.txt`.
+- `logs/gdrive_shank3_gaussian_omega25_20261108_141011.local_files.json` and `.remote_files.json`.
+- `logs/gdrive_shank3_gaussian_omega25_20261108_141011.verification.json`.
+- Versioned copies: `asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/drive_backup_manifest.json` and `drive_backup_verification.json`.
+
+Status: **uploaded and independently verified**. This local ledger records the backup; no central Drive ledger was changed.

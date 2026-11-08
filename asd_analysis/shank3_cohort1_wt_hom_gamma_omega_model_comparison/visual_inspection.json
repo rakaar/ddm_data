@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "inspected_utc": "2026-11-08T13:14:06.974335+00:00",
+  "artifacts": {
+    "SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_2x2.png": "67e2a252d571c6db35ba19f77f93b066e242962557488fd68d96394c0ffe5c29",
+    "SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_2x2.pdf": "5ca470e88f70fc0b5eea5a596e9a9ceaaec6a4f054d5817ef29177171123b6e9"
+  },
+  "checks": [
+    "WT top / HOM bottom; Gamma left / Omega right",
+    "ABL 20 blue / 40 orange / 60 green",
+    "direct posterior dots and capped 95% credible intervals",
+    "common black ABL-invariant Gamma curve",
+    "three ABL-colored Omega curves",
+    "unclipped intervals and curves",
+    "four equal square axes without grids",
+    "readable non-overlapping headers, labels and footer",
+    "single-page PDF rendered and inspected"
+  ]
+}

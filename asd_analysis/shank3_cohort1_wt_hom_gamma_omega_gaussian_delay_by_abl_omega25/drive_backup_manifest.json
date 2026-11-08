@@ -1,0 +1,3407 @@
+{
+  "machine": "lavos",
+  "source_checkout": "/home/rlab/raghavendra/ddm_data",
+  "snapshot": "/home/rlab/raghavendra/ddm_data/backup_staging/shank3_gaussian_omega25_20261108_141011",
+  "remote": "raga:ddm_fit_backups_20261108_shank3_wt_hom_gaussian_omega25_lavos/20261108_141011",
+  "created_utc": "2026-11-08T14:17:01.091659+00:00",
+  "source_directories": [
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25",
+    "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl",
+    "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl",
+    "asd_analysis/shank3_cohort1_proactive_lapse/wt",
+    "asd_analysis/shank3_cohort1_proactive_lapse/hom",
+    "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25"
+  ],
+  "source_files": 564,
+  "source_bytes": 385606899,
+  "files": [
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.pdf",
+      "bytes": 37653,
+      "sha256": "c13bb1d5023b971d3bfd5a84be7fef79de99bbf2aaa1f9f583e575c0703b9d40",
+      "md5": "6c51113e2f2c5ff7c45ff6d0b1a51cc0"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.png",
+      "bytes": 282032,
+      "sha256": "e1c1d23c940098c7a70c53cd603f3117883af0b6dd5eac70e9c59734b1a7106f",
+      "md5": "66476ce525972e79162dd1f47b5e209c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/actual_truncated_delay_moments.csv",
+      "bytes": 2135,
+      "sha256": "8f797cb160a9530aee2f181a9cfc853e9a5fd4f3f71ff16cfc41d31c427bb0b3",
+      "md5": "d156747ba520ebc1cc172122cd9e513d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/bound_change_validation.json",
+      "bytes": 281,
+      "sha256": "dd75dda6d195a856a0792ae56fc2166d9c9e42eced13197f059ab96bba4eb357",
+      "md5": "b9aa89674304b4a5062bb099fc9bd748"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/comparison_publication.log",
+      "bytes": 1044,
+      "sha256": "59f20b2253db4829e686c0dbc475bb01367f1f8e872d1b62af08b64e52b02600",
+      "md5": "d20f3f5d61354aa99ab0b5adc381929f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/completion.json",
+      "bytes": 696,
+      "sha256": "dad0bf33fc51a9bad7cceb3fce2484bdfae47c9c69e967f4e59b0c2263dd1b35",
+      "md5": "6bb107c9d6a9921a6a387d441cfdd4c8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/current_in_sample_comparison.csv",
+      "bytes": 491,
+      "sha256": "be6c46bcc8e469bd42c791513bfeee31f98228022949345c15fe70b9dc1ec459",
+      "md5": "4c773d53a06348e63ee57426e227a9f4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/current_omega_boundary_by_ABL.csv",
+      "bytes": 777,
+      "sha256": "edeef864da575bcca59590253c4b6da878d1c7bb819fc87a7400d0369178ceaf",
+      "md5": "99c91f59d2847276bb1b5f98348aae1b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/figure_validation.json",
+      "bytes": 1299,
+      "sha256": "0acae7fae02f4f89f5c375ed568f774d8c4c23bac3ed36c13bc00b7238618b08",
+      "md5": "c35e32ffb2605418ca459e4233a06cd7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/figure_verification.log",
+      "bytes": 61,
+      "sha256": "810f8d076190f3a4acba48528bc1917d17137c813b8cf0dc475ea733f24f55cc",
+      "md5": "1841fede0f139ddf5bf30b23ddc5db04"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_omega25_RTDs.png",
+      "bytes": 358801,
+      "sha256": "00d35954df849619b4d88a3daf9083167b3da162c7cee18eb835b3274a2258ea",
+      "md5": "f932983a8fc801492240ad496e72f4d0"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_omega25_psychometric.png",
+      "bytes": 165576,
+      "sha256": "e76eef5edf1a5f5e861797468b3869ddbcf05ba0da6f825aab53dd56f8d40f89",
+      "md5": "8b5d05bb49a732487bbd27adda2ac3ab"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/benchmark.log",
+      "bytes": 303,
+      "sha256": "2f5368136e29295a847b9711005d9073820a06b8dd2eaa2c0a549c1fc7b41285",
+      "md5": "67637d549eacfd6f13c6dd6981909b7f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/condition_parameter_means.csv",
+      "bytes": 3845,
+      "sha256": "ac8ba8d24de51eda33cb7606d581227036127a255ea6f70e4caefee52fa473bc",
+      "md5": "7c5b07dc155304b3ffb491621c0846b9"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/conditions.csv",
+      "bytes": 3774,
+      "sha256": "dd26637ca308ece39ffb0bd0cd16ee971af8a2eb4b0288483792c899a215e4c9",
+      "md5": "db389d5b1ebb6bd0e6114b619c4889a3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/delay_condition_map.csv",
+      "bytes": 1376,
+      "sha256": "a7773be8c7b4330a0f14924bf543e4bc05bc001765c8ea3cf463970c9ee7047e",
+      "md5": "8b893316d10732a6ae9174c6f4bd1c7d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/excluded_valid_trials.csv",
+      "bytes": 89907,
+      "sha256": "84749cd3992d1054a0cea2670c3b473a6a192ea6f4323b492ed3fce8667bd16e",
+      "md5": "2252cec51a29181ed6164e6bab33075c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/fit.log",
+      "bytes": 13138,
+      "sha256": "086eb3c7f133f6dfc47297028baebc4d29b9ec967db6d49841be48fbb9bb9604",
+      "md5": "aa3389495c20c340ce5cb0453319df27"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/fit_trials.csv.gz",
+      "bytes": 4168933,
+      "sha256": "77aed082b6b4631ab27a9c35108c0a38d702ba1dac73c40c159d16a006d75a24",
+      "md5": "c35f1c0d64e759660f19b73657fca6e7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/fixed_parent_design_averages.npz",
+      "bytes": 1817906,
+      "sha256": "688a6aa0b61758980b50a7b824367d90990c1a63ea35799c802c766d5d4d61ef",
+      "md5": "e4162de54cb841649bb096a0875b0959"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/fixed_parent_design_manifest.json",
+      "bytes": 311,
+      "sha256": "b3078023f1606e766bbb1c939392c29b16c4b8cf89a6f6d72e4f53a9e6dedfe0",
+      "md5": "ba1cf8534ae312571b7c66a7543eb246"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/fixed_proactive.json",
+      "bytes": 450,
+      "sha256": "8576c7cb6e8aef8f7891b6aa2974defcb12bed0ee79467547adb9ca69e270ea7",
+      "md5": "dbc8520f2e63d917a62035687c2aa1d6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/gpu_benchmark.json",
+      "bytes": 303,
+      "sha256": "2f5368136e29295a847b9711005d9073820a06b8dd2eaa2c0a549c1fc7b41285",
+      "md5": "67637d549eacfd6f13c6dd6981909b7f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/in_sample_comparison.csv",
+      "bytes": 1348,
+      "sha256": "987bb12eee6c9e113101cfaad5f6aafa5e28eadc95b638189f250babe43a73ef",
+      "md5": "3c67e0bd55d8e6b07bfaa31ca62e089f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/independent_validation.json",
+      "bytes": 2881,
+      "sha256": "cd89bbe918c1148a3bb6c48a0ff3a66a5538771ab2e05bccfc3ea7fd44327794",
+      "md5": "b03a311d0bbe16d2fab49a67f20cc8ba"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/initialization.json",
+      "bytes": 1708,
+      "sha256": "5aeb48d0557af85e1f85e77a51fced9ad898025526f8a9610c410a0eede76eca",
+      "md5": "b680cd42cc67541e608b281bf082359c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/initialization_rng.json",
+      "bytes": 492,
+      "sha256": "397f2253ca9844cac5724b549702a6aaba93eb352c259f5f3607c3475a4d28cb",
+      "md5": "472ba1a21a6c8f39c40e27b79f365aa3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/likelihood_data.npz",
+      "bytes": 5961992,
+      "sha256": "80ec2e010fbfb5c5df8e30f5834a0d8807be229cf13182f94931cda7cb619950",
+      "md5": "6426a809820761e1b7f6489bfa7bd12e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/membership.csv",
+      "bytes": 193,
+      "sha256": "411da7fe909a7de4010f8a7f59be1bd9582c74bb319a5cbe0f969b32205fd94c",
+      "md5": "6163d5a4a66c1ddfb3ad1840691edd64"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/parallel_plot.log",
+      "bytes": 2696,
+      "sha256": "c8f598e06d510cd6340f27ff981892cc600c7786cbd5a033189da422be95b22a",
+      "md5": "73faf42a73485b7327cbc3c731f26b09"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/parallel_verify.log",
+      "bytes": 2959,
+      "sha256": "da5aead7dcfac54b6ac1820165999157c24c7a72f8caa1af752337a68fc0ebb1",
+      "md5": "d76b95858f2ac53513b2128ed68b5d8c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/parent_trials.csv.gz",
+      "bytes": 5023320,
+      "sha256": "a3e98cde8af24a83e0bce199481f5986733d0c166b62c3d0eaae4a146e464993",
+      "md5": "e1d1db1d4a292529edc4f46ec90e3577"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/plot_manifest.json",
+      "bytes": 1553,
+      "sha256": "daec12bbeb9ffdcd3e91f2d1a2ef7015ea49d29e01befb66840b44f874e5c82f",
+      "md5": "ec1543dbd9df2a690065c537fd652f88"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/pooled_rtd_model_1ms.csv.gz",
+      "bytes": 915187,
+      "sha256": "21487d35c7cfb00c8749494c3858461ad7267f996eb571ff45f3b7c09163ce1e",
+      "md5": "f75d06e8923362538eb7beac5adf3ba4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/pooled_rtd_model_bins.csv",
+      "bytes": 145071,
+      "sha256": "fd44eecd54cd40e7c265d647c3c2b5d25be20ba4f0fdf482441053443ab1d9c6",
+      "md5": "94ea4108b882f66398406fb1e2d592c7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/prefit_validation.json",
+      "bytes": 2775,
+      "sha256": "644747651011a016eb43cd88e417c9434f5f80f129ffdaa2dd81398c86e6beed",
+      "md5": "123a2450599ed6c8668ed28540a246a5"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/preparation.json",
+      "bytes": 66985,
+      "sha256": "c5d65099309032acaef848a55574aa446d0acbdec1e65f39ffef32d5fce61619",
+      "md5": "6748b700d8dfd63dc46728621911f50a"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/psychometric_predictions.csv",
+      "bytes": 5563,
+      "sha256": "9a03ce2538eb88dbacff49d318de785db44ac47098a815cfe79d979deae95a78",
+      "md5": "bb465bae6f423aa3cf932338502f76c5"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/rtd_data_bins.csv",
+      "bytes": 126155,
+      "sha256": "38237e183661b07020ae893f759a05c42685b874625ae198cf57e9e36b28717d",
+      "md5": "07d07be9b0cf419469b5045048747b7d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/rtd_panel_audit.csv",
+      "bytes": 1697,
+      "sha256": "9c8c12dfd13f601b164f5654cc398107344c2cf2d5aef724e92c5cc68e510509",
+      "md5": "56c5368e1262f7f3e2f2e1b9ca7f50bd"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/seed_0/best_checkpoint.pkl",
+      "bytes": 95775,
+      "sha256": "35bb04b09888dee91510a7b0fe742a45d8499fe0d146372501770dd4f1f5a848",
+      "md5": "0ab80a8920244609d2296bf1ce55bfa8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/seed_0/configuration.json",
+      "bytes": 7671,
+      "sha256": "fba9250cbfcdea626f62815cea6d02b789bd62e1d68e9705056c390dd559f423",
+      "md5": "01863cab7e529830eca8286fba417102"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/seed_0/convergence.csv",
+      "bytes": 568798,
+      "sha256": "5262191f601cd667380e37ca2ce27933bf093e6ee001b0a49048aad89e97d2de",
+      "md5": "9e627327a73200011525c859db1fa85d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/seed_0/latest_checkpoint.pkl",
+      "bytes": 2554730,
+      "sha256": "f38f0f5245223c1ad5d46440e690602b8feab735cbbe677a21a2393dc58f1ec7",
+      "md5": "33048056e1b8dc6309b0a68a1c93e0bb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/seed_0/losses.npy",
+      "bytes": 1080128,
+      "sha256": "8b39f8d63b9f8f211fe75f5baffb78818cc131a0b218d51031063477c1b4c9be",
+      "md5": "ebe41aae801ab7d33c081dc3881dd58e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/seed_0/posterior_covariance.npy",
+      "bytes": 37120,
+      "sha256": "a47a5a4a98256bafb9b40f722a638dca15738d0f6c28401b513d0b8f689d051d",
+      "md5": "18056719e6fadc8b53aedae0a0d027a7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/seed_0/posterior_samples.npz",
+      "bytes": 5090615,
+      "sha256": "f36a2a60514d21edba41bc631774adac126fb187c2833d6fff913bb273e7d8af",
+      "md5": "8744b55b4e4b471b12ec5da87b65d238"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/seed_0/posterior_summary.csv",
+      "bytes": 7233,
+      "sha256": "11100a006b6164def6c9c94e68e34fe6b65464942b2e5d7fa75ad0ca54287bad",
+      "md5": "cae3e6f96fcd223f5eef90c70a71f728"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/seed_0/restored_guide_optimizer.pkl",
+      "bytes": 95775,
+      "sha256": "35bb04b09888dee91510a7b0fe742a45d8499fe0d146372501770dd4f1f5a848",
+      "md5": "0ab80a8920244609d2296bf1ce55bfa8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/seed_0/run_summary.json",
+      "bytes": 652,
+      "sha256": "4007f68994d73a9519eaf5fdd162b5d54cf0589f6b0c2318c6a4f08b5f8bffdc",
+      "md5": "a3cd9063fdb00f58da0da962f564d96b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/signed_parent_model_1ms.csv.gz",
+      "bytes": 1316826,
+      "sha256": "8ee92c18dc5115edd6ea01aa4c5824976c86e061349c1645a7616f5e4822f2a3",
+      "md5": "abe9d9a8b8b1f9b692f4e0e4c4ef510d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/valid_cdfs_1ms.csv.gz",
+      "bytes": 428675,
+      "sha256": "bd950268a155ea82917c948b7e2d34d5bd410caabd00aaf9d61acaad736d28b7",
+      "md5": "56d11a3149355f4e0b861bb9d219adf6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/hom/verify_shank3_gamma_omega_gaussian_abl_delay_omega25.log",
+      "bytes": 2854,
+      "sha256": "a328c6317e9baf7b4a6d1f1f059da674d5fefcb9db8a9d7c1cd11f78f8163ff5",
+      "md5": "38a5db27a5c7a4ab38214fcdad3c2e4f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/omega15_retirement_validation.json",
+      "bytes": 370,
+      "sha256": "c8f87e2ec1065de90397e9203c503df1cd859b804dd88dcf7dc2e791b7c66ff7",
+      "md5": "1f2e53553518b39f3ecb16a9621e60dc"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/omega_bound_in_sample_comparison.csv",
+      "bytes": 692,
+      "sha256": "0388fa8327883a55e57d4f882db4f3ada2167e4a1de056dfbe0dec51f5497d02",
+      "md5": "3e4b065894f339032c17be8cc5c32bbd"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/omega_bound_parameter_sensitivity.csv",
+      "bytes": 25481,
+      "sha256": "ca806bfa7f33afbff828d6883bbea8a284c1a13c9c95da06dc8b54b1ab7f7ce2",
+      "md5": "345c30d198ee31c1897f613ed7d3c870"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/omega_bound_pressure_by_ABL.csv",
+      "bytes": 1350,
+      "sha256": "35d91ac9efa63d525f868ffe09f865569def864bdf7f6ae7861cebdf8ab387ce",
+      "md5": "2d7737a64b0c286007ed2cec25acaa2f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/parameter_estimates.csv",
+      "bytes": 20079,
+      "sha256": "04756989a6868ed333cb0a029aa3dc81e89db67ffb26e2ba7493b4404d03921e",
+      "md5": "09cbee57aa93cf570182f4b89c29190d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/parameter_plot_manifest.json",
+      "bytes": 22798,
+      "sha256": "2009d1986311fd5575a31d3b5abe042a564cafc963176844dffa40acead9ebcf",
+      "md5": "ab1521f4637c49c586e5d6677cf0f353"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/parameters.log",
+      "bytes": 48,
+      "sha256": "02a6903613b34b54c17f0cadbc8cdc6ca2362404334eacd8daacfb8e305f6afa",
+      "md5": "ae05702011f1f1a2f724f5c1fa63ca5f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/pipeline.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/pipeline.log",
+      "bytes": 938,
+      "sha256": "bca4df9cef4cd1404b57cf05d42ebf15095cb89bbfffea6da7609cec141628f1",
+      "md5": "718d67c6f91e5c20df7ef6cbc89225cc"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/posterior_boundary_audit.csv",
+      "bytes": 8397,
+      "sha256": "325d5f649f1fb969cf8944fd6f37f364704626ca1f85fb583a31bfcadb775c19",
+      "md5": "178338a8622afd9452f7538e22ff5ad7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/preservation_baseline.json",
+      "bytes": 50007,
+      "sha256": "27d1f5f28894a8c12e29b5cb8727de57120d0b5304129b1cfc8f72e711e638ae",
+      "md5": "7a4a1dbee6739f2d6cee59c23e443a54"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/publication.log",
+      "bytes": 456,
+      "sha256": "0041ad16cbcbff1f91984a7c054b161ea4cbd07f4b74a8076a8da29be67a54e5",
+      "md5": "f284627751b6a16e9568cc6b4588fe34"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/publication_validation.json",
+      "bytes": 1230,
+      "sha256": "751b815feef24658db5ef269eeef7c134ba1f4e0b5f3cac0acaea398e27017e7",
+      "md5": "5e1cbc9c58466bf2c0b8b60fedc36822"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/reference_evidence_parameter_ranges.csv",
+      "bytes": 420,
+      "sha256": "12ae19d5695285e190666b9a47a573af7557035e750534796bd9ad015a320d6a",
+      "md5": "9e3525ee640064bfb35c8c47988d2286"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/result_book_before_retiring_omega15.md",
+      "bytes": 36536,
+      "sha256": "1df56994a9b530b75ba0129ca30aaa84fb591df79160bd7b80342bd902faceb4",
+      "md5": "9d6969c87e0056e0e335d7bd19ae5dd9"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/result_book_verification.json",
+      "bytes": 9099,
+      "sha256": "286fd375b47f9c39ae0ae6fca269f5cdedfdcde65d3c6a587cd54749375c8897",
+      "md5": "f1348f8ddf8504ee32203bf7f038c6ed"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/resume_validation.json",
+      "bytes": 365,
+      "sha256": "6a9bd877f52a0e8c7e02693e471aae2d72f64adf95dd36d6f9cf735953cc70a4",
+      "md5": "d8d499c38f98a2db20bc2ebbd8608ab9"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/resume_validation.log",
+      "bytes": 1823,
+      "sha256": "ea63f61e187e3c2866a90377572531cf388d824a0a9eb6248891781db3c49c11",
+      "md5": "e3db00024d8eba26161ffba0a51a4da1"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/retire_omega15_comparison_publication.log",
+      "bytes": 1044,
+      "sha256": "c37504f55938c3a7aa25b1e79ed00988780c1f1c9f1ec343f2f5f550b82501b0",
+      "md5": "a407868390666b944ded85b25b0a8695"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/retire_omega15_final_publication.log",
+      "bytes": 1500,
+      "sha256": "10026913a5224c0eec17b17869c7404e1bb1c6b9d21e06c89bef29fd06b09a34",
+      "md5": "eb8918653cba9c3b4ef8f44742683b4f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/retire_omega15_publication.log",
+      "bytes": 456,
+      "sha256": "8f9502c6c7532223e8216dcb48e5cc7f15e06a1d0227fae510cddc15c91cb582",
+      "md5": "49325f3e0c472331b47bcc8405e4995f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/retirement_preservation_baseline.json",
+      "bytes": 6767,
+      "sha256": "3c03651159d628c58a92a602f4b2aab9fbcf36dfedf88c4332ac908595a5b239",
+      "md5": "86deac6c5faaf28f4d88d1c8aadb564b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/sensitivity_validation.json",
+      "bytes": 413,
+      "sha256": "5ee3e57364ef23fe02b94b0969f924cd0c15607f83cad9602dbf0337fd4f71bd",
+      "md5": "37a671681a7cc55ea5b29966af178c31"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/shank3_gamma_omega_gaussian_abl_delay_omega25_audits.zip",
+      "bytes": 53041851,
+      "sha256": "ce5f47203c5f5d08787a73882b6c8d0f0a7f8895709c014257ecb66f82a73519",
+      "md5": "8ff59bc6a19fd9574da00123ca3a0d73"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/visual_inspection.json",
+      "bytes": 1425,
+      "sha256": "2ac7579296f26798f86f3d02b9f0876b209995faf3bfefda1251948d12850438",
+      "md5": "b19fcdfd9747575e44fde9de35b7bb6a"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_omega25_RTDs.png",
+      "bytes": 363688,
+      "sha256": "3ae0d10e641fcf699dd667124a6651375fe0b55db5b668ee97743e77dd373b6f",
+      "md5": "9ac8852fd2ae466ad44453c6d8da58b8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_omega25_psychometric.png",
+      "bytes": 165006,
+      "sha256": "e961f335ff3f7f233128f1cf08752c5a504f91f05ff6700f544579e6ac25e92b",
+      "md5": "ae616e30636247d271b53bd54d4c2df2"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/benchmark.log",
+      "bytes": 302,
+      "sha256": "b0c67397fd00e78783abea5110afe9c89e08e4b13468883eb2149b358f83d677",
+      "md5": "9fa4c29f56dee35bf595995e7812b0a0"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/condition_parameter_means.csv",
+      "bytes": 3844,
+      "sha256": "baf9405af76d5d7a08ea6a9662857a24b2c557bf418868b4bdd8812988aac187",
+      "md5": "8655396471671befc9e2f10c3ad5347e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/conditions.csv",
+      "bytes": 3777,
+      "sha256": "072a54a2c3f8917a14731ba2faf265b1e307c116c4ea022fdee3096a39fda58a",
+      "md5": "5d1a1f67d34c5cc1569b21cd0fe29654"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/delay_condition_map.csv",
+      "bytes": 1376,
+      "sha256": "a7773be8c7b4330a0f14924bf543e4bc05bc001765c8ea3cf463970c9ee7047e",
+      "md5": "8b893316d10732a6ae9174c6f4bd1c7d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/excluded_valid_trials.csv",
+      "bytes": 93588,
+      "sha256": "9c176712088e9a6c2b6cf07e97ff5e3fe423e3db9b8db830c7e200a6e574307c",
+      "md5": "2c5aa6e066d6243187ac9f978ee9e8c7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/fit.log",
+      "bytes": 13006,
+      "sha256": "aec93663b6821810f55a5cdb8ffb6cb97dd8322ae81a13b79d0dbc4eae1db960",
+      "md5": "73ed1bc27bc4dc56a296129b27e3b981"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/fit_trials.csv.gz",
+      "bytes": 4205505,
+      "sha256": "11e6fc89e9235ad05aeb169bbf887154c3cb09b9c0f785de9e1ef6e02bff109a",
+      "md5": "b84bcf35559116291ae1f6ad1414e3a6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/fixed_parent_design_averages.npz",
+      "bytes": 1818374,
+      "sha256": "360c9660042d234720b972fdeaca866443cca4cf0732b192e75116048bce281a",
+      "md5": "8cb894b80dd0a3e572f126e725c74ffd"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/fixed_parent_design_manifest.json",
+      "bytes": 311,
+      "sha256": "2f6e6b68f43b386c47259f2f6444dc8901b8abb046015e3364a907a90e2e3bc0",
+      "md5": "5d9679840313ceb0fa786d172c5647da"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/fixed_proactive.json",
+      "bytes": 448,
+      "sha256": "ff00ac31555eb32c31944d2eb835997ee2853ec301115bcb2e4c5e2a01893c1d",
+      "md5": "2a46c354dc3c6e884def0ce68e6e2013"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/gpu_benchmark.json",
+      "bytes": 302,
+      "sha256": "b0c67397fd00e78783abea5110afe9c89e08e4b13468883eb2149b358f83d677",
+      "md5": "9fa4c29f56dee35bf595995e7812b0a0"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/in_sample_comparison.csv",
+      "bytes": 1351,
+      "sha256": "b50e602e03b8485e0ef1c98f33b79a9d771af55a98b610c49990df81bf017000",
+      "md5": "3d9765a4e3ea7738d59927df25e5c3e8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/independent_validation.json",
+      "bytes": 2882,
+      "sha256": "cbf777acd083ed9efb7f90cbde4c672c6492444d4cec5322fb3432355e4cf142",
+      "md5": "c9dec6562137080a65a984adc1e365e5"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/initialization.json",
+      "bytes": 1708,
+      "sha256": "5aeb48d0557af85e1f85e77a51fced9ad898025526f8a9610c410a0eede76eca",
+      "md5": "b680cd42cc67541e608b281bf082359c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/initialization_rng.json",
+      "bytes": 492,
+      "sha256": "397f2253ca9844cac5724b549702a6aaba93eb352c259f5f3607c3475a4d28cb",
+      "md5": "472ba1a21a6c8f39c40e27b79f365aa3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/likelihood_data.npz",
+      "bytes": 6003264,
+      "sha256": "f353bd29bb8510b4525718662943eba9e2738f2790d30392d8c54bdfdc3f74c2",
+      "md5": "56c25f5934a4259fed994abe7bc48911"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/membership.csv",
+      "bytes": 170,
+      "sha256": "650149fdec9875a061eb14fb6b873f62e04ac84c7ed560221ff09cf3ef548761",
+      "md5": "c7207e600d55f09f7b099e720735cb3f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/parent_trials.csv.gz",
+      "bytes": 5171657,
+      "sha256": "b1f5bb61bbd378b731c6e997a195dc9c1058ec80b26faafae3e14ff524071b38",
+      "md5": "1f16b75c52ad33b9fbbca4844647f084"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/plot.log",
+      "bytes": 2695,
+      "sha256": "c1f910c06744eb729c49733cc12e48fbd6e33791a47efd6f120c9737ba77db41",
+      "md5": "b7dc27bbccbd60aaf111d890ddc88a38"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/plot_manifest.json",
+      "bytes": 1551,
+      "sha256": "134a5a013d7146459ecfb14a4942286082736d7a8a9aa197d0ba31b3bd7d05ac",
+      "md5": "8050bf762149dc4f393103bf3b5a2658"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/pooled_rtd_model_1ms.csv.gz",
+      "bytes": 914380,
+      "sha256": "02358ad1d8368f01dcac6ec676fb55db3bba955cd0672f3fb63b48c2b3e081f0",
+      "md5": "941530633f2b79f437cb18b2e186571e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/pooled_rtd_model_bins.csv",
+      "bytes": 145428,
+      "sha256": "833a2f4839739a1a976b78d48da2d691b068c9dc270a8266ba8ba54154dba12e",
+      "md5": "189c4569ea74355e6e7facae6336b5b4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/prefit_validation.json",
+      "bytes": 2775,
+      "sha256": "f904c7ea4b9ef2a20f662b22dd42f62362341af38f1c516f06624496fee76260",
+      "md5": "bf7b3d55fbe18748c1e3ee1e15fe549b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/preparation.json",
+      "bytes": 82134,
+      "sha256": "700d95d65922d2542e4e6d00e2185b263b3d07e5068958b4cd52c6d5dd4d3b51",
+      "md5": "ad6d230b81532983bf37a9f3c655e0cc"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/psychometric_predictions.csv",
+      "bytes": 5540,
+      "sha256": "127d5f05f976c31ae2da27d7fdcc7ba36e5abc83a94914b40fbef0e466c2a80c",
+      "md5": "d3194f67252a893e7709cf8e52516792"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/rtd_data_bins.csv",
+      "bytes": 125472,
+      "sha256": "99489dd5891897d9d7024dd79d03c127358a04f07ed78ed6ae56e930fd2cd978",
+      "md5": "ba31fca7abf148db3d3387905825ac90"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/rtd_panel_audit.csv",
+      "bytes": 1657,
+      "sha256": "62aa9f1d8a494a5ffe45ce6187a9892f58e6c510f9a4a88c93bb7d9061d60998",
+      "md5": "de0189c9d7baf43b2175c3ad7a1c7d5f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/seed_0/best_checkpoint.pkl",
+      "bytes": 95775,
+      "sha256": "c3344b5bec66ae4cb50b209395d3a4559f4cb3b5cdc7897c6e97a191b11b7ef8",
+      "md5": "f13628b8bf477b47e7f084a000eb21bb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/seed_0/configuration.json",
+      "bytes": 7666,
+      "sha256": "3e748e8bb4ec1a4f8a5c3a5fddd29f162d2457028e6f589383d765c3ccdfe514",
+      "md5": "f79c9b413cbdb878cf953fd58ef8256b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/seed_0/convergence.csv",
+      "bytes": 567803,
+      "sha256": "11c4a65211a0d39724d7e1b8c967ff4a2468df8bf7c36b454749c855ffef732f",
+      "md5": "7d1fe56f38ebc10a5bc0311a2069ee52"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/seed_0/latest_checkpoint.pkl",
+      "bytes": 2554730,
+      "sha256": "71a2287443f5abff2a6eff8094aa169118ecffa124178c90a43d592735f1653c",
+      "md5": "49c00acd990e693a90907a8973318f05"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/seed_0/losses.npy",
+      "bytes": 1080128,
+      "sha256": "be23872fdbfc0603ae16d3f8f7804ea112399752e7402a246d2c6e9fe5d03f84",
+      "md5": "bbbf775f9e9f9fe395cfd9161f272b58"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/seed_0/posterior_covariance.npy",
+      "bytes": 37120,
+      "sha256": "6260fbf3bda2dd46e7b926b294ebee167b3ede64550afadc66ac185513c46eda",
+      "md5": "7bd968e4341b6f1daf193c4aa11bc30b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/seed_0/posterior_samples.npz",
+      "bytes": 5099975,
+      "sha256": "9f652c049094d34a58bfcf509ece2686fb5f5bc844ff20e5f4ea40c726af4e9a",
+      "md5": "fd8cd251dd0e56bf46722950b4f3acf1"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/seed_0/posterior_summary.csv",
+      "bytes": 7236,
+      "sha256": "810420e13ca63ee429ec1b3450ecd46f34d7e8736296bde45bb575bb190bfc3d",
+      "md5": "2ea86dfbdfde0d0dbc9dd4c53303dd3e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/seed_0/restored_guide_optimizer.pkl",
+      "bytes": 95775,
+      "sha256": "c3344b5bec66ae4cb50b209395d3a4559f4cb3b5cdc7897c6e97a191b11b7ef8",
+      "md5": "f13628b8bf477b47e7f084a000eb21bb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/seed_0/run_summary.json",
+      "bytes": 652,
+      "sha256": "a5561580e30230cf23c60804b43e3e0f883ea238760a103488ca60917ff80903",
+      "md5": "575e5ec88830882814f6e05c8e0f0de9"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/signed_parent_model_1ms.csv.gz",
+      "bytes": 1313062,
+      "sha256": "ffe62297ff0288b858a15db90f852bbb3080479887ff21353ae6a21038eb5594",
+      "md5": "75b0fd569d8a3a823c45e34689eaf95f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/valid_cdfs_1ms.csv.gz",
+      "bytes": 417105,
+      "sha256": "ae204798a8c3d96a11df2aeab00376967e1ae1baed2e6868103e4d22bafbf8e6",
+      "md5": "560cbe54037b3daf8a0ab949b1850722"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_resume/best_checkpoint.pkl",
+      "bytes": 95772,
+      "sha256": "a5a17c341fdb63ad8ff64924f0445e6f369dae408796261b1092ac5748345975",
+      "md5": "680560610b7ab042d4752b4d5a903edf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_resume/configuration.json",
+      "bytes": 7651,
+      "sha256": "5d45a60d399575c3a642fc0386986a08a04174e68a585e0859d8dc00a501102a",
+      "md5": "ef612ab43bd6d631f3c8c4b301ba4745"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_resume/convergence.csv",
+      "bytes": 13289,
+      "sha256": "3ce592214f67241437dc390cf5812dcb9046797851ad65ab86ddbd60fc7b0325",
+      "md5": "77c76051930a7f91826d65c0511c83fb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_resume/latest_checkpoint.pkl",
+      "bytes": 183680,
+      "sha256": "455554fd0a6cfe8f92e5de55fa8a60cf8cb8770be8f0274beb806b7225e5c9f5",
+      "md5": "182d8f7af7da8c72a5ed5337ad322a34"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_resume/losses.npy",
+      "bytes": 248,
+      "sha256": "2f92e83acc0d3c1e04fc8953bf91d4ca95ed103630807f5561c933c8b90ae494",
+      "md5": "2f3d5ce874c6d6514c7b188f71b5f9b4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_resume/posterior_covariance.npy",
+      "bytes": 37120,
+      "sha256": "3cc2421faf1e9b00f9828d9f54c9e24139fb8a03325750ba5bd31733aa993133",
+      "md5": "3c3742d927d8bb82df362760a8798071"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_resume/posterior_samples.npz",
+      "bytes": 67544,
+      "sha256": "fb32e1220283bfd8b172e4f68a08403c9c275bf1b9b44d17f9c5d1f04ac566dd",
+      "md5": "5d860d1a03d92af0a61379130a92b5cd"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_resume/posterior_summary.csv",
+      "bytes": 7113,
+      "sha256": "95205d340b1727e9be7cc1f34668e06e86cae3ebb68fbcfb12e9ced50fcd2bad",
+      "md5": "711a431fcdf8e163e6fd76c63c6c85ef"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_resume/restored_guide_optimizer.pkl",
+      "bytes": 95772,
+      "sha256": "a5a17c341fdb63ad8ff64924f0445e6f369dae408796261b1092ac5748345975",
+      "md5": "680560610b7ab042d4752b4d5a903edf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_resume/run_summary.json",
+      "bytes": 637,
+      "sha256": "4762f7518d454e841c017819069cf9c79d10a67e70c35e309e06abd41ed031a1",
+      "md5": "3d1eae926af8ac89e33b4ed4058b26ea"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_straight/best_checkpoint.pkl",
+      "bytes": 95772,
+      "sha256": "a5a17c341fdb63ad8ff64924f0445e6f369dae408796261b1092ac5748345975",
+      "md5": "680560610b7ab042d4752b4d5a903edf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_straight/configuration.json",
+      "bytes": 7651,
+      "sha256": "5d45a60d399575c3a642fc0386986a08a04174e68a585e0859d8dc00a501102a",
+      "md5": "ef612ab43bd6d631f3c8c4b301ba4745"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_straight/convergence.csv",
+      "bytes": 13552,
+      "sha256": "3cd95622d0ac348a778967d96e0f523a3292abc0820ff6aeda8a6ad5f33078eb",
+      "md5": "463b012de2eaaa63067a403a86836983"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_straight/latest_checkpoint.pkl",
+      "bytes": 183538,
+      "sha256": "5625b5ef4386e236cccb5bcd2b6b97b38ede9b34261245ee3edea3b086679b9f",
+      "md5": "a4a8e8743f1c0e1482ba772f90080b9d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_straight/losses.npy",
+      "bytes": 248,
+      "sha256": "2f92e83acc0d3c1e04fc8953bf91d4ca95ed103630807f5561c933c8b90ae494",
+      "md5": "2f3d5ce874c6d6514c7b188f71b5f9b4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_straight/posterior_covariance.npy",
+      "bytes": 37120,
+      "sha256": "3cc2421faf1e9b00f9828d9f54c9e24139fb8a03325750ba5bd31733aa993133",
+      "md5": "3c3742d927d8bb82df362760a8798071"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_straight/posterior_samples.npz",
+      "bytes": 67544,
+      "sha256": "fb32e1220283bfd8b172e4f68a08403c9c275bf1b9b44d17f9c5d1f04ac566dd",
+      "md5": "5d860d1a03d92af0a61379130a92b5cd"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_straight/posterior_summary.csv",
+      "bytes": 7113,
+      "sha256": "95205d340b1727e9be7cc1f34668e06e86cae3ebb68fbcfb12e9ced50fcd2bad",
+      "md5": "711a431fcdf8e163e6fd76c63c6c85ef"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_straight/restored_guide_optimizer.pkl",
+      "bytes": 95772,
+      "sha256": "a5a17c341fdb63ad8ff64924f0445e6f369dae408796261b1092ac5748345975",
+      "md5": "680560610b7ab042d4752b4d5a903edf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/validation_smoke_straight/run_summary.json",
+      "bytes": 637,
+      "sha256": "4c54ccdf47faad5a57d27da2194fbfae9a5e81f3fbf9c0a27797e92d1715a808",
+      "md5": "068dbcd27a96af3a7f501a92c71a232a"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/verification.log",
+      "bytes": 2959,
+      "sha256": "f71de179ab4b4c8d722e53b697e7cecb6bdd4395d023187b03dc4f1f5a851ce1",
+      "md5": "ba1b1c4c4ce3856c07488d22b3593597"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25/wt/verify_shank3_gamma_omega_gaussian_abl_delay_omega25.log",
+      "bytes": 2854,
+      "sha256": "c1afa91bf89a403e7536afab624875716935e134ed51f9a77d270691399a512f",
+      "md5": "f23f02a041d1d62e3449cb70590b6162"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_omega25_2x2.pdf",
+      "bytes": 21601,
+      "sha256": "12cd13086c07a70e4baaa463895e83d3778c6c822ccc55f10031bc3e3bd58b09",
+      "md5": "9bc387b512180f3a052627c371d1a6bc"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_omega25_2x2.png",
+      "bytes": 181529,
+      "sha256": "83bbb47edcf7824b50fbd0eb76c715c8dbd12b49b4fc0eae1c428e1c777c6a14",
+      "md5": "c0578e53104eb5669bf42f46447d4c7d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/delay_posterior_comparison.csv",
+      "bytes": 5771,
+      "sha256": "fc7c58c321bd95d705af2e431891f76c823e66d772d840e9930d810144534b9f",
+      "md5": "b63d47426102c8b9583aa720925b10d3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/delay_posterior_mean_differences.csv",
+      "bytes": 958,
+      "sha256": "8d0f4e2faf95046a21d3a9807445291eaca13d0350cb2e37b5099b8df78f8869",
+      "md5": "a91107c8b4c79ecebbaa38245821a0cb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/manifest.json",
+      "bytes": 16495,
+      "sha256": "b4cb172c621c974ad978921817b25af028b9aec145ba9182431436b81bcd010a",
+      "md5": "a284e9d80ebe19f653f1b7346c321899"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/validation.json",
+      "bytes": 719,
+      "sha256": "8b2c8990bca671ae32cbb3f159143ec4b21e72abd5c76da2326a8abda67e9d32",
+      "md5": "c49575c192e7e6da41024416b0d0f2f7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/visual_inspection.json",
+      "bytes": 675,
+      "sha256": "67901f23ccbfbeba7af1e555dbc0bd0e251800c0d14c50b708590b0fbe588f6a",
+      "md5": "f32086ba3401cf98e97c4e51bc877c46"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_omega25_2x2.pdf",
+      "bytes": 34802,
+      "sha256": "7f8bd75f5688cc90dfa2b4d94eca14d28389474596f180c343ba249c6af6fa72",
+      "md5": "f401136c03c08118eea79373c392eaa7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_omega25_2x2.png",
+      "bytes": 306720,
+      "sha256": "639bd1d3f88fe57f6bc3125a8fa44ded3fb5fd1cb8120ba8189866e4bd06e1d9",
+      "md5": "7f7daf4a9c0568286429ac758c7cb5dc"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/direct_gamma_omega_posterior_points.csv",
+      "bytes": 12035,
+      "sha256": "cf1f68215680b964c860570a30f5850eb4b53c88f81a30dc8f799bc8730a6eee",
+      "md5": "085659c243b8b1f5f193c0f8faaf3fcc"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/manifest.json",
+      "bytes": 151469,
+      "sha256": "d164a11ab699177300528109ecc703acb413b4cbd799f21b39af5332afc90f63",
+      "md5": "3f051ed8758e00be225bbe460a9fa0a0"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/npl_alpha_continuous_gamma_omega.csv",
+      "bytes": 116943,
+      "sha256": "8ff6ed80159f9d0df0fa74f2ad32add21b9fdc6ef698f4a7687bbdc5c57fbb0e",
+      "md5": "ae4793afef5d6d35a510eb550ffb0498"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/npl_alpha_mapping_parameter_means.csv",
+      "bytes": 345,
+      "sha256": "06c294adca664773dfa14153b7ba99c357408218340e4a354d75df40379df398",
+      "md5": "e75bdf799e1fec228c82917baba965b2"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/validation.json",
+      "bytes": 856,
+      "sha256": "496483fb5a8580dc913e0d6598bb8fa24f23b334e0ba03a3804477bb254a93e2",
+      "md5": "2e84e63bc139771a2d970e3032756e73"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/visual_inspection.json",
+      "bytes": 667,
+      "sha256": "b24dc1388ab5f3ba7129259e2d066b33702f04a9cac16da29649f577afae6d0b",
+      "md5": "3ceff194e864cb89d7fd8cfb6b1fab7e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.pdf",
+      "bytes": 37833,
+      "sha256": "356616827981bb2cd7fee0b7ede05c74a414d4e0a3c4dbf1c84ae384bf3a3f15",
+      "md5": "bfa40a520dfdc87b3e150cf1d6a0f7ef"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.png",
+      "bytes": 289919,
+      "sha256": "343c84dc5389f50a1550002cca47b5c9f5a99233478ffe5acf96420e7b33c84b",
+      "md5": "ccc85ca9388f93979806bd1ad48d3322"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/actual_truncated_delay_moments.csv",
+      "bytes": 2138,
+      "sha256": "6e3e3dcbb9ea506b90b361f7c68637fcb14f3d723894b1b9603dd5d364663a71",
+      "md5": "b34e060a450b853350a6318f382049dc"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/completion.json",
+      "bytes": 2705,
+      "sha256": "d7a62f87d2e6bd02f288fc0c3a398b07fb3c44a339f2f84df6f75b3ee5ad7fc9",
+      "md5": "e24e67995b79df8835f50f108deb250f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/figure_validation.json",
+      "bytes": 1267,
+      "sha256": "07306c1d4f5b6574e7a3a1a1795226f02eced0aa8c022bb1bf4e9f8b26fb514a",
+      "md5": "e7d07b4bf4cd5eda072a1c10155acefe"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/figure_verification.log",
+      "bytes": 61,
+      "sha256": "810f8d076190f3a4acba48528bc1917d17137c813b8cf0dc475ea733f24f55cc",
+      "md5": "1841fede0f139ddf5bf30b23ddc5db04"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_RTDs.png",
+      "bytes": 369005,
+      "sha256": "95f2bddfda8c90a7e24ec2ad58868cd7f2afcceab0027652b2311d56dc38861c",
+      "md5": "63c8f68a244bf1d35c07e4fdbeff9dd4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_psychometric.png",
+      "bytes": 167625,
+      "sha256": "35ae428b47f7832ae9d78a94a74b0eeea62801e97afc112e3fab53ce0fe86e5d",
+      "md5": "a30da8cf42790a040e18871ee19a64ff"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/benchmark.log",
+      "bytes": 300,
+      "sha256": "a680e23a2976c4aee14e6e478915c3cd180e43748362165dddc2b4cc8f46ef91",
+      "md5": "fb56bf967a8261d3a9716e8fcc41bb84"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/condition_parameter_means.csv",
+      "bytes": 3880,
+      "sha256": "5fe0741a89fd44fafad2b6339507c5c435c6b9505342d222a59da94904ae19d5",
+      "md5": "6fbeb7afe48383ac26cf009cf719e3ca"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/conditions.csv",
+      "bytes": 3774,
+      "sha256": "dd26637ca308ece39ffb0bd0cd16ee971af8a2eb4b0288483792c899a215e4c9",
+      "md5": "db389d5b1ebb6bd0e6114b619c4889a3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/delay_condition_map.csv",
+      "bytes": 1376,
+      "sha256": "a7773be8c7b4330a0f14924bf543e4bc05bc001765c8ea3cf463970c9ee7047e",
+      "md5": "8b893316d10732a6ae9174c6f4bd1c7d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/excluded_valid_trials.csv",
+      "bytes": 89907,
+      "sha256": "84749cd3992d1054a0cea2670c3b473a6a192ea6f4323b492ed3fce8667bd16e",
+      "md5": "2252cec51a29181ed6164e6bab33075c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/fit.log",
+      "bytes": 11516,
+      "sha256": "5f5396e11f2165f09883f824e5a4c039834739cd13b67794badbf556272d329b",
+      "md5": "4f2c7d8b0487c12c428d94e1ceff675d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/fit_trials.csv.gz",
+      "bytes": 4168933,
+      "sha256": "77aed082b6b4631ab27a9c35108c0a38d702ba1dac73c40c159d16a006d75a24",
+      "md5": "c35f1c0d64e759660f19b73657fca6e7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/fixed_parent_design_averages.npz",
+      "bytes": 1817906,
+      "sha256": "688a6aa0b61758980b50a7b824367d90990c1a63ea35799c802c766d5d4d61ef",
+      "md5": "e4162de54cb841649bb096a0875b0959"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/fixed_parent_design_manifest.json",
+      "bytes": 311,
+      "sha256": "b3078023f1606e766bbb1c939392c29b16c4b8cf89a6f6d72e4f53a9e6dedfe0",
+      "md5": "ba1cf8534ae312571b7c66a7543eb246"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/fixed_proactive.json",
+      "bytes": 450,
+      "sha256": "8576c7cb6e8aef8f7891b6aa2974defcb12bed0ee79467547adb9ca69e270ea7",
+      "md5": "dbc8520f2e63d917a62035687c2aa1d6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/gpu_benchmark.json",
+      "bytes": 300,
+      "sha256": "a680e23a2976c4aee14e6e478915c3cd180e43748362165dddc2b4cc8f46ef91",
+      "md5": "fb56bf967a8261d3a9716e8fcc41bb84"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/in_sample_comparison.csv",
+      "bytes": 1339,
+      "sha256": "6106ee4427b025b2883dfe0f2583f4b3ae085d272213299553895c12aa156d1c",
+      "md5": "9eabff53f543aa9c88e54607fa9609fc"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/independent_validation.json",
+      "bytes": 2881,
+      "sha256": "683cd509b54b52b47d708b19a7135c66a666591ae9d089a9691fa66863513419",
+      "md5": "078bbd5c29704ef333fbbf31048b9c31"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/initialization.json",
+      "bytes": 1708,
+      "sha256": "5aeb48d0557af85e1f85e77a51fced9ad898025526f8a9610c410a0eede76eca",
+      "md5": "b680cd42cc67541e608b281bf082359c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/initialization_rng.json",
+      "bytes": 492,
+      "sha256": "397f2253ca9844cac5724b549702a6aaba93eb352c259f5f3607c3475a4d28cb",
+      "md5": "472ba1a21a6c8f39c40e27b79f365aa3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/likelihood_data.npz",
+      "bytes": 5961992,
+      "sha256": "80ec2e010fbfb5c5df8e30f5834a0d8807be229cf13182f94931cda7cb619950",
+      "md5": "6426a809820761e1b7f6489bfa7bd12e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/membership.csv",
+      "bytes": 193,
+      "sha256": "411da7fe909a7de4010f8a7f59be1bd9582c74bb319a5cbe0f969b32205fd94c",
+      "md5": "6163d5a4a66c1ddfb3ad1840691edd64"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/parent_trials.csv.gz",
+      "bytes": 5023320,
+      "sha256": "a3e98cde8af24a83e0bce199481f5986733d0c166b62c3d0eaae4a146e464993",
+      "md5": "e1d1db1d4a292529edc4f46ec90e3577"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/plot.log",
+      "bytes": 2448,
+      "sha256": "85512bce7c87e5192f853f5c8f366034d15377f6355c77ce51b54123b5eb2ed1",
+      "md5": "1d35de3e5e5d0763a4edef7985c39e05"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/plot_manifest.json",
+      "bytes": 1520,
+      "sha256": "10ad2dadcf174ddb40424af47f75381a16a64e80778d2c2b747a8c7c8e5b489c",
+      "md5": "d911e2a0a1ad5a1c86e91d736c3c27bb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/pooled_rtd_model_1ms.csv.gz",
+      "bytes": 914900,
+      "sha256": "045ae4e80953ef3e9f3532fb52df5effc20bba174c349e9a5ae8ebc49f3ca9de",
+      "md5": "dedb4a6a4b2abe81cf8c825aeb37e296"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/pooled_rtd_model_bins.csv",
+      "bytes": 145012,
+      "sha256": "f5fd6d3aaa18ad7b3137218b86f20cfa696d9d6418e1712b67e85b72d97576a3",
+      "md5": "aa26d219bee0d7a24a42a513cdbfe88b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/prefit_validation.json",
+      "bytes": 2775,
+      "sha256": "69ae50245ea8977b13a561b23a0454914d9da7b86cf0276a6ddc2cd5bfc4a799",
+      "md5": "1fcfeb31a1383f274c5783d93fc3c73f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/preparation.json",
+      "bytes": 66985,
+      "sha256": "4de326c76d042bee62ee783b2680352d846aa789642572ee06aaf2f61275351e",
+      "md5": "3f0ed7000a2e8085100ffa030c3bb885"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/psychometric_predictions.csv",
+      "bytes": 5546,
+      "sha256": "6a1bba0cc3c1adbefeeab09dda85e490ed5dda48dcb02140c79fda41ff3e6e4e",
+      "md5": "823d6956f0290131cafaba85ee1159e5"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/rtd_data_bins.csv",
+      "bytes": 126155,
+      "sha256": "38237e183661b07020ae893f759a05c42685b874625ae198cf57e9e36b28717d",
+      "md5": "07d07be9b0cf419469b5045048747b7d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/rtd_panel_audit.csv",
+      "bytes": 1671,
+      "sha256": "7585f45b8ec164507d93d0fb16a5e423a5cf31522cb2d4648a7c7addb75fccf9",
+      "md5": "aa305c2824935e26c64ef43ad27c3300"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/best_checkpoint.pkl",
+      "bytes": 95775,
+      "sha256": "439f9ba3b60cc6d230aac51fc4057cbc405aa8c08d2cd5d76830d1e34c4bfb60",
+      "md5": "1361dc542af9466a4d6a59244001a041"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/configuration.json",
+      "bytes": 7623,
+      "sha256": "bec97b203928dd994c2fcd6bfd7a4fa7e08a408c14fd142001caa4b1bea1e46d",
+      "md5": "a810c47594090a50871d38021bd7d8cb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/convergence.csv",
+      "bytes": 497498,
+      "sha256": "ebd043fdb9438ae413eeab95e87b665200d3e2f9cc9fd6e04b51b8c799f6228b",
+      "md5": "6449e4efdc8e7cca16af4b2541434a02"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/latest_checkpoint.pkl",
+      "bytes": 2252392,
+      "sha256": "c0312e1454504a93fb4280f3af73fd0db09b637227c404fd6044aa9314405a34",
+      "md5": "142e9d2f91e346a87e5034c735ffade7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/losses.npy",
+      "bytes": 944128,
+      "sha256": "cbdc862e087297766fa4c5a3f2b515427891b53971d27d189222de32fc6fd417",
+      "md5": "3e5c41d5e598644638872001c8dd70e5"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/posterior_covariance.npy",
+      "bytes": 37120,
+      "sha256": "fe8ee143e45e95bf550a63c0d8e34cdd3aa13230197585602dcc05e284030d39",
+      "md5": "53fc372b83c99532c4586e22272bd5d6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/posterior_samples.npz",
+      "bytes": 5092605,
+      "sha256": "aaeb79cc5917343181ce7764af246dd98c5a48db561cc8c074d1a9a6d8bc89aa",
+      "md5": "40ce9a879a04891bda1df66dbdbd84a8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/posterior_summary.csv",
+      "bytes": 7228,
+      "sha256": "de2d97829358072f9aaa7ea4f9da4c8d26e2c07575ad9a8cb652d53bdd95f93c",
+      "md5": "b201c6fdac5afca3ae1e8a8a642bd62e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/restored_guide_optimizer.pkl",
+      "bytes": 95775,
+      "sha256": "439f9ba3b60cc6d230aac51fc4057cbc405aa8c08d2cd5d76830d1e34c4bfb60",
+      "md5": "1361dc542af9466a4d6a59244001a041"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/run_summary.json",
+      "bytes": 647,
+      "sha256": "686e7debe643cff8d4710b13f5ebc92101c4aced914290654ab9c5157e98c5d8",
+      "md5": "fdc871b90a095b342ac2eba90a29e056"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/signed_parent_model_1ms.csv.gz",
+      "bytes": 1317421,
+      "sha256": "f7adcb63d6720b53611607fa0c38ea52f0ae0fb19c30d3eca9beaf77c7ea79fd",
+      "md5": "ac88aef36a65e3d9d3f379b07cbf695c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/valid_cdfs_1ms.csv.gz",
+      "bytes": 428496,
+      "sha256": "68416637e6dff729f903d1fc770c169aea1754da1c25b08037f2d34c36974cda",
+      "md5": "8e88d9603dbe92b75c10709e10a8150a"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/verification.log",
+      "bytes": 2959,
+      "sha256": "4270c38996f8091fa677adad183d61155a027a991609c7c415673b3fd606a631",
+      "md5": "18a563603cc622d7067cecebf0620976"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/verify_shank3_gamma_omega_gaussian_abl_delay.log",
+      "bytes": 2854,
+      "sha256": "35ca3b4e5bf66ef9be84b765515d3ae126e6b68a3c868130d7a9282460fcc759",
+      "md5": "c27acb2d59c42e572e7f3ad272dd8ed3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/parameter_estimates.csv",
+      "bytes": 20085,
+      "sha256": "5b92bab07a5365d49038d547464d1601d9b1a0a4ee726d28877f9fbca2926f19",
+      "md5": "cf6efa596aeb00fa37af9a41601e93f4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/parameter_plot_manifest.json",
+      "bytes": 22796,
+      "sha256": "63a2dc4d9f1c8118c66c4fc41bb2c233fc1d5a69942849c22d9baf97a5d5c3b9",
+      "md5": "553ab1332f546043e698c37bcc78d4aa"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/parameters.log",
+      "bytes": 48,
+      "sha256": "02a6903613b34b54c17f0cadbc8cdc6ca2362404334eacd8daacfb8e305f6afa",
+      "md5": "ae05702011f1f1a2f724f5c1fa63ca5f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/pipeline.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/pipeline.log",
+      "bytes": 934,
+      "sha256": "8e4ece55da63d9e31655acac7ffe4b0d64250a7dded582d9e341cb0270fb0ad5",
+      "md5": "a4a23d2ee7931d4dc726aab3b6e0e757"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/posterior_boundary_audit.csv",
+      "bytes": 8691,
+      "sha256": "92a128f443b4b6396382a6a6a994f2c11ed90fd72bb731ccbbf3df87bcfd2dce",
+      "md5": "ef070920422abddbd469f6f05b672141"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/publication_validation.json",
+      "bytes": 1513,
+      "sha256": "33205f81b31ad412b10f7926a0af4b255f6f33532fc64e4897703ed8920eeb89",
+      "md5": "ae65690fe689348296f82f8dc226e152"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/reference_evidence_parameter_ranges.csv",
+      "bytes": 421,
+      "sha256": "a736b9aa92c2fc7129ddb024b8f8c875b435521b587ca17b9c7a2288585758ce",
+      "md5": "b92d321af1907489b6fded626f790b43"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/resume_validation.json",
+      "bytes": 339,
+      "sha256": "4f4b631dc4957d44ef45a94c5c73db132ae7d9a0f3205614fa9e2dbd0f8a89ea",
+      "md5": "83692b7533f2ae157db169a7f55549bf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/shank3_gamma_omega_gaussian_abl_delay_audits.zip",
+      "bytes": 53071356,
+      "sha256": "14731b5cc23672c961560f0dd5a65921a39b72d04671412c1257b3d02e843c7d",
+      "md5": "1fff424ff122b5533882d8153c215ea2"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/visual_inspection.json",
+      "bytes": 1540,
+      "sha256": "8e1aabf7863ebdf8fe4c7ccfeac1277917e1fb68fd54716abef26551241e681f",
+      "md5": "3acd686db779e88e48ef3a7e253d7bfb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_RTDs.png",
+      "bytes": 369950,
+      "sha256": "202e8a8d35bdbef9d57ef5cb461519b4db986e288ec249a10312f61b43f8732f",
+      "md5": "098e59c526d109466610068121420b41"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_psychometric.png",
+      "bytes": 167137,
+      "sha256": "6ce6af32265d79de896666d72bb55fb39cc3226deafea1f4e65d90ad8408ac16",
+      "md5": "f500ee430671eecb74413fe59ee86f1e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/benchmark.log",
+      "bytes": 301,
+      "sha256": "75d5c24142ae954c291b6828ec78991b64afc32657cba5adba1861bb0f68dfbc",
+      "md5": "e75eb80edaddcd154153c6e6a213b562"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/condition_parameter_means.csv",
+      "bytes": 3853,
+      "sha256": "4cc655c5efa8793cee0b8e08eb6886f1d661c69087106621d04e3692a1f4ecaa",
+      "md5": "c1cf3bf02749e7b2050334036455d517"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/conditions.csv",
+      "bytes": 3777,
+      "sha256": "072a54a2c3f8917a14731ba2faf265b1e307c116c4ea022fdee3096a39fda58a",
+      "md5": "5d1a1f67d34c5cc1569b21cd0fe29654"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/delay_condition_map.csv",
+      "bytes": 1376,
+      "sha256": "a7773be8c7b4330a0f14924bf543e4bc05bc001765c8ea3cf463970c9ee7047e",
+      "md5": "8b893316d10732a6ae9174c6f4bd1c7d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/excluded_valid_trials.csv",
+      "bytes": 93588,
+      "sha256": "9c176712088e9a6c2b6cf07e97ff5e3fe423e3db9b8db830c7e200a6e574307c",
+      "md5": "2c5aa6e066d6243187ac9f978ee9e8c7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/fit.log",
+      "bytes": 14680,
+      "sha256": "4545ca91e5e6526264699a76f46bb804020223dd2c575199ecc1a0e1bdb7ebad",
+      "md5": "3caf5adef4ad3ebf7860104ef16134a9"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/fit_trials.csv.gz",
+      "bytes": 4205505,
+      "sha256": "11e6fc89e9235ad05aeb169bbf887154c3cb09b9c0f785de9e1ef6e02bff109a",
+      "md5": "b84bcf35559116291ae1f6ad1414e3a6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/fixed_parent_design_averages.npz",
+      "bytes": 1818374,
+      "sha256": "360c9660042d234720b972fdeaca866443cca4cf0732b192e75116048bce281a",
+      "md5": "8cb894b80dd0a3e572f126e725c74ffd"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/fixed_parent_design_manifest.json",
+      "bytes": 311,
+      "sha256": "2f6e6b68f43b386c47259f2f6444dc8901b8abb046015e3364a907a90e2e3bc0",
+      "md5": "5d9679840313ceb0fa786d172c5647da"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/fixed_proactive.json",
+      "bytes": 448,
+      "sha256": "ff00ac31555eb32c31944d2eb835997ee2853ec301115bcb2e4c5e2a01893c1d",
+      "md5": "2a46c354dc3c6e884def0ce68e6e2013"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/gpu_benchmark.json",
+      "bytes": 301,
+      "sha256": "75d5c24142ae954c291b6828ec78991b64afc32657cba5adba1861bb0f68dfbc",
+      "md5": "e75eb80edaddcd154153c6e6a213b562"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/in_sample_comparison.csv",
+      "bytes": 1341,
+      "sha256": "fe9d5d1d4e580c709be11fac2127df20fdc5ba14a44feb91f14491abbf7b5589",
+      "md5": "2ee3eb08e5a9b940b5b89adf591ddfec"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/independent_validation.json",
+      "bytes": 2883,
+      "sha256": "390959ebd4d3a0af1e91bea5cc776907f82b77f5964885f5caa003f90bc79981",
+      "md5": "ba5b765925c94ab7bb65930b477dca8e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/initialization.json",
+      "bytes": 1708,
+      "sha256": "5aeb48d0557af85e1f85e77a51fced9ad898025526f8a9610c410a0eede76eca",
+      "md5": "b680cd42cc67541e608b281bf082359c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/initialization_rng.json",
+      "bytes": 492,
+      "sha256": "397f2253ca9844cac5724b549702a6aaba93eb352c259f5f3607c3475a4d28cb",
+      "md5": "472ba1a21a6c8f39c40e27b79f365aa3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/likelihood_data.npz",
+      "bytes": 6003264,
+      "sha256": "f353bd29bb8510b4525718662943eba9e2738f2790d30392d8c54bdfdc3f74c2",
+      "md5": "56c25f5934a4259fed994abe7bc48911"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/membership.csv",
+      "bytes": 170,
+      "sha256": "650149fdec9875a061eb14fb6b873f62e04ac84c7ed560221ff09cf3ef548761",
+      "md5": "c7207e600d55f09f7b099e720735cb3f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/parent_trials.csv.gz",
+      "bytes": 5171657,
+      "sha256": "b1f5bb61bbd378b731c6e997a195dc9c1058ec80b26faafae3e14ff524071b38",
+      "md5": "1f16b75c52ad33b9fbbca4844647f084"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/plot.log",
+      "bytes": 2447,
+      "sha256": "94657c84add6c3a89736e68c2f3e17ff6200a577ac0de6d93e60fd94554e0836",
+      "md5": "1bce5910e46894a3e86ccc7c772b1714"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/plot_manifest.json",
+      "bytes": 1518,
+      "sha256": "1a16f70bde684d5cc82c757bf36817ab6bde91872a17fe4da98b61bfe30fc6ba",
+      "md5": "9017f2dc2ccf2668810d55d345d841bf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/pooled_rtd_model_1ms.csv.gz",
+      "bytes": 914386,
+      "sha256": "1c6e6c8b40d4d36069fd2958c066888a1bb23bb821d430e102a7d0927b2adaf2",
+      "md5": "894b3042e15109774275325a3748b337"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/pooled_rtd_model_bins.csv",
+      "bytes": 145279,
+      "sha256": "23699364a5c290054246e9b8518d403969e61fd79eb1a4d8d598448bcc7bd9c6",
+      "md5": "b8320e6334a17f5ce8ca3b3ca50d1320"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/prefit_validation.json",
+      "bytes": 2775,
+      "sha256": "77a749bdb54fdf13039d164ea08681027a4ac0e3a97f156652996c7033ee5160",
+      "md5": "61fc4bcd06fef02e86b97b0061e08db3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/preparation.json",
+      "bytes": 82134,
+      "sha256": "692ceeee315d8509ee839897309fc9fab55f1484f6d01696b26b03b700be7b7f",
+      "md5": "7d82c1981002a57d4848e2ed99a0ed35"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/psychometric_predictions.csv",
+      "bytes": 5545,
+      "sha256": "18a3fd82e1d34d14887253b720811b49db7e9d70f827ead29560b479c1157b52",
+      "md5": "7b6b256e99f37cee8739c54d30987793"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/rtd_data_bins.csv",
+      "bytes": 125472,
+      "sha256": "99489dd5891897d9d7024dd79d03c127358a04f07ed78ed6ae56e930fd2cd978",
+      "md5": "ba31fca7abf148db3d3387905825ac90"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/rtd_panel_audit.csv",
+      "bytes": 1674,
+      "sha256": "d5e961ec56179e97ef129bbac800c5e3c0b344b8a5e1c93dbf66a5d04384e86f",
+      "md5": "dee94b26ac5b2a03cc457a22bde2dc03"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/best_checkpoint.pkl",
+      "bytes": 95775,
+      "sha256": "a802eeeb8fd600c7113e640d0d7a55b4ba04cc7234d77a8822c304d2d6e95bfc",
+      "md5": "e676761b04094b9088c0ac948361be4e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/configuration.json",
+      "bytes": 7618,
+      "sha256": "727cd00f095dc965dd0d64d57458f4af8fd34b6bdc1b2425e9c632df4d80074e",
+      "md5": "70ccca1ee0ee7df197708f0986a95f73"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/convergence.csv",
+      "bytes": 644715,
+      "sha256": "3df360c10baad9e65da9dd18dc11f31591b98d4590b8472a4214d491c8c746a9",
+      "md5": "f6763526a69af40f7ff1884e659889f3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/latest_checkpoint.pkl",
+      "bytes": 2874842,
+      "sha256": "924486917353fddebea5cb65e3f8c6cb37a34ffba96105a4bb596575c950e250",
+      "md5": "36cfe1107a016f4c1b0c1211fb99d2cd"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/losses.npy",
+      "bytes": 1224128,
+      "sha256": "8791c8528189464c5ac9cc37826f946673d58c2998f273931d549862601a083b",
+      "md5": "c507708663d31d0646df3de8873f3e21"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/posterior_covariance.npy",
+      "bytes": 37120,
+      "sha256": "d3dc357941385238c91fc3192e9d769c9dfb3e04c26242105a5f785fc83122bd",
+      "md5": "b8c18e259adb8b7b2a86dc6d897728bb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/posterior_samples.npz",
+      "bytes": 5094598,
+      "sha256": "5568f6edc3eb3d1f63fbaa06154acb746efb7223a8e6c9ba8d36568aba62be1a",
+      "md5": "27b45deb88d67fda8cc11cc5019faee7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/posterior_summary.csv",
+      "bytes": 7241,
+      "sha256": "2ab4e396b341a96d10c73cd40eed77c4914e22773aba4d1c8eea0e311d7a9854",
+      "md5": "f79309730d332a683abf70e1155e9ed6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/restored_guide_optimizer.pkl",
+      "bytes": 95775,
+      "sha256": "a802eeeb8fd600c7113e640d0d7a55b4ba04cc7234d77a8822c304d2d6e95bfc",
+      "md5": "e676761b04094b9088c0ac948361be4e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/run_summary.json",
+      "bytes": 652,
+      "sha256": "23a09f080c8fe371c60a049907aff0aff43ea5802656ce1b55ed48f628e20c69",
+      "md5": "e0b0380bd3d927f33a3f67d6d6aa0662"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/signed_parent_model_1ms.csv.gz",
+      "bytes": 1313265,
+      "sha256": "ba228b2d169ce4c99b57fe926c3cce89eacc5f66263c4fab54247950dfc6c8ef",
+      "md5": "79ff36e1f4bf4370b553d89e33b5d069"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/valid_cdfs_1ms.csv.gz",
+      "bytes": 416881,
+      "sha256": "2e1bf544c4ab707b124b5fb3eb938773b4b600dc61ee4807f3f6f7841f5865eb",
+      "md5": "97e62b392ee575a15417a28a958f7130"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_resume/best_checkpoint.pkl",
+      "bytes": 95772,
+      "sha256": "63823289088ed1ef237d8265d84f78b36641eccc14bd92a8ac5c905d110efd75",
+      "md5": "f29c62dc751249464690a439fa8fddaf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_resume/configuration.json",
+      "bytes": 7603,
+      "sha256": "90b16da5428399fadaaf262b37b9c07bf45b27f559ed35e0ba585b8966fbde54",
+      "md5": "a056a1a68715aec308e6e73a17aee9d7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_resume/convergence.csv",
+      "bytes": 13297,
+      "sha256": "4714079c45bad8a791d0976d869f79d306380c41a6a832f8927a3011eb8dc802",
+      "md5": "b37a7857910bd88962af139d8aea8053"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_resume/latest_checkpoint.pkl",
+      "bytes": 183680,
+      "sha256": "d584466fcea34a5544b772d51f968eb80f839ad05c2afd07d2d2dfb64fde67c6",
+      "md5": "884a8d20b08158be227d266993c44ef8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_resume/losses.npy",
+      "bytes": 248,
+      "sha256": "91e130146e2929afa964c07a30c7ba15f3b7a89c12ccfe9f92a68074f2d3a212",
+      "md5": "c72da5aaa2cd708509fec1741d4a75a6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_resume/posterior_covariance.npy",
+      "bytes": 37120,
+      "sha256": "b35bac213073e8cdd46104d4c5e8274b2c657bcbe440977744f7c0cfc0c33bbf",
+      "md5": "77539331a7a55580c56e84201c924c85"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_resume/posterior_samples.npz",
+      "bytes": 67548,
+      "sha256": "d2c9908581fd9e280594d4e4c73256c103a77bb296d8b4734994dd0f5c8abda6",
+      "md5": "6af0b04aa04c4b053aaac625500c8509"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_resume/posterior_summary.csv",
+      "bytes": 7116,
+      "sha256": "c3f12859d608486db9fef8a7e50c3b061eaee833ac472ad6e6c9fc58a58a79e2",
+      "md5": "6c1dafd4a94d245cd860e62659cb8f2c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_resume/restored_guide_optimizer.pkl",
+      "bytes": 95772,
+      "sha256": "63823289088ed1ef237d8265d84f78b36641eccc14bd92a8ac5c905d110efd75",
+      "md5": "f29c62dc751249464690a439fa8fddaf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_resume/run_summary.json",
+      "bytes": 636,
+      "sha256": "bb1055cbff05a8d878b8a4e9d336b0224d02a7eac3b78263d8a9c8390517e280",
+      "md5": "afbe94bcf5c286e2f5c81c9072b92ac6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_straight/best_checkpoint.pkl",
+      "bytes": 95772,
+      "sha256": "63823289088ed1ef237d8265d84f78b36641eccc14bd92a8ac5c905d110efd75",
+      "md5": "f29c62dc751249464690a439fa8fddaf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_straight/configuration.json",
+      "bytes": 7603,
+      "sha256": "90b16da5428399fadaaf262b37b9c07bf45b27f559ed35e0ba585b8966fbde54",
+      "md5": "a056a1a68715aec308e6e73a17aee9d7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_straight/convergence.csv",
+      "bytes": 13555,
+      "sha256": "35e86e4ade7e9decd8ec0043715bcb330f44b20f8c8996aa897a57257aed42d5",
+      "md5": "0af1c101b0f7f1e80d3bb32a42248a62"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_straight/latest_checkpoint.pkl",
+      "bytes": 183538,
+      "sha256": "52296e89e14f7b1501bed22bba93c845332756823d550c7b470357fe005f1fa9",
+      "md5": "2af1362b809d9a655c3a15a40be433c8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_straight/losses.npy",
+      "bytes": 248,
+      "sha256": "91e130146e2929afa964c07a30c7ba15f3b7a89c12ccfe9f92a68074f2d3a212",
+      "md5": "c72da5aaa2cd708509fec1741d4a75a6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_straight/posterior_covariance.npy",
+      "bytes": 37120,
+      "sha256": "b35bac213073e8cdd46104d4c5e8274b2c657bcbe440977744f7c0cfc0c33bbf",
+      "md5": "77539331a7a55580c56e84201c924c85"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_straight/posterior_samples.npz",
+      "bytes": 67548,
+      "sha256": "d2c9908581fd9e280594d4e4c73256c103a77bb296d8b4734994dd0f5c8abda6",
+      "md5": "6af0b04aa04c4b053aaac625500c8509"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_straight/posterior_summary.csv",
+      "bytes": 7116,
+      "sha256": "c3f12859d608486db9fef8a7e50c3b061eaee833ac472ad6e6c9fc58a58a79e2",
+      "md5": "6c1dafd4a94d245cd860e62659cb8f2c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_straight/restored_guide_optimizer.pkl",
+      "bytes": 95772,
+      "sha256": "63823289088ed1ef237d8265d84f78b36641eccc14bd92a8ac5c905d110efd75",
+      "md5": "f29c62dc751249464690a439fa8fddaf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/validation_smoke_straight/run_summary.json",
+      "bytes": 636,
+      "sha256": "db524b29e11be43f8b81eb8a89e147cee21fad51111a23ae7aa6c2e0b36d35f6",
+      "md5": "1d27f11912d51693326cfbf33ba7baff"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/verification.log",
+      "bytes": 2960,
+      "sha256": "47d16d3bc003886bf5e47bdba620c7c6bc75fee55be75a131a0a74ffcceb8a62",
+      "md5": "8a5a9eed2b1c32a7998c16590a783a83"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison/SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_2x2.pdf",
+      "bytes": 21210,
+      "sha256": "dab03f9b10f3b8151d4e0b66f322894df7fc17330a31bc458bdb2a5bb6115a30",
+      "md5": "62e7fb72b5cf85d99b314cc947e4a015"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison/SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_2x2.png",
+      "bytes": 179303,
+      "sha256": "f62e6f279d5c3716278b524f916bddb141471cdb6016496d50e8b2c4f28f29c6",
+      "md5": "6fd5fd72b992c900b2e5a236cb5bfe1c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison/delay_posterior_comparison.csv",
+      "bytes": 5776,
+      "sha256": "3db6c92cd1a3c0485a253052d75e6696d473549a78c1dd06ca565c2e0ffa3ec1",
+      "md5": "a7798f1604b0f14cdd787c1281a3438e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison/delay_posterior_mean_differences.csv",
+      "bytes": 966,
+      "sha256": "ad5f35f6f7a70962ff989ea8806306796e2cb4d3a3d860f4f07e581eb7d75ef4",
+      "md5": "3527098fbf3ff687b2de339ec02a813e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison/gaussian_delay_model_comparison_audits.zip",
+      "bytes": 12991,
+      "sha256": "8dec0019434a81f080bc6efe15ca1f8ab6466846409bb0234037b10e45a8855e",
+      "md5": "3fd0841037e275aa1358c8338c681d1f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison/manifest.json",
+      "bytes": 16261,
+      "sha256": "6d60f920120f5af854d3df126be2fecb5ee41b2daa47ab57ea667a357b01dad1",
+      "md5": "ef2e1d601b1c2f8a820a28efc3e7ea23"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison/publication_validation.json",
+      "bytes": 316,
+      "sha256": "51fe3b094e608c11b41e3d02ed746687b3170af094e3ef8169a819fc27572373",
+      "md5": "bec766e26408534c15267707639a38d9"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison/validation.json",
+      "bytes": 703,
+      "sha256": "4cd879376310a31f5fa885abb75e3c268b56461afde5262bbf362537833e015c",
+      "md5": "6ee1d8f3a1382c7f3ee410df423c7c24"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison/visual_inspection.json",
+      "bytes": 748,
+      "sha256": "52d20b7af12e7987e3b3a1beb012c83aafa6d6b23c858df46470bb378155554b",
+      "md5": "59c13079958c8cbd690d324426cf4590"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison/SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_2x2.pdf",
+      "bytes": 34502,
+      "sha256": "5ca470e88f70fc0b5eea5a596e9a9ceaaec6a4f054d5817ef29177171123b6e9",
+      "md5": "ebbdb31a810b286c28e7e391244a5fb6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison/SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_2x2.png",
+      "bytes": 299094,
+      "sha256": "67e2a252d571c6db35ba19f77f93b066e242962557488fd68d96394c0ffe5c29",
+      "md5": "98164e3f849972081e696299ad58e8d9"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison/direct_gamma_omega_posterior_points.csv",
+      "bytes": 12031,
+      "sha256": "453d3735f871c57e562c9a38cf923fbefff9a5f52ce3df227c6b837a0dde3b69",
+      "md5": "8450d6bd1302bf30b9371d66e576a9ec"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison/gamma_omega_model_comparison_audits.zip",
+      "bytes": 68968,
+      "sha256": "2071ccd9888641f61093ab86951dd275d6fc6f137c44dfe9f942d1e0df4257bc",
+      "md5": "2768ef36935f3a2e152240a8cef1f8e3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison/manifest.json",
+      "bytes": 151336,
+      "sha256": "7955c099f8ce92fdf5ba8c2c57137354b0d05da3eab713da8b5f3d537dd03024",
+      "md5": "e6ceff2ce84ee03d8a1aed817daa0863"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison/npl_alpha_continuous_gamma_omega.csv",
+      "bytes": 116943,
+      "sha256": "8ff6ed80159f9d0df0fa74f2ad32add21b9fdc6ef698f4a7687bbdc5c57fbb0e",
+      "md5": "ae4793afef5d6d35a510eb550ffb0498"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison/npl_alpha_mapping_parameter_means.csv",
+      "bytes": 345,
+      "sha256": "06c294adca664773dfa14153b7ba99c357408218340e4a354d75df40379df398",
+      "md5": "e75bdf799e1fec228c82917baba965b2"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison/publication_validation.json",
+      "bytes": 351,
+      "sha256": "7b90c13f40485924232a404e10d0c27d25ddbe09961b7224ab6b5c21a4a04751",
+      "md5": "e5158439468d8c4eaf10cf100b0fb7aa"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison/validation.json",
+      "bytes": 840,
+      "sha256": "eb1dc8b5fc91e5f5d484a841f38a50cc35056e6380b09ef4d296d937a7b45121",
+      "md5": "aac28b7aa1a8e77ed514b26c2eacaf3b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison/visual_inspection.json",
+      "bytes": 822,
+      "sha256": "2fb7c1aa8bf4695c28699ea398eb5f8009ff8356e7a01ee9979c3cda5532c0e4",
+      "md5": "038100c63dee0a2373d3c21279608cb6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_ABL_delay_parameter_comparison.pdf",
+      "bytes": 28166,
+      "sha256": "c3e84cf354c0513b317ce1905e29603137a30ddddecf38a67d198836aad3c38a",
+      "md5": "73f137fdd520f2db8f977a19906cef85"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/SHANK3_cohort1_WT_HOM_NPL_alpha_gaussian_ABL_delay_parameter_comparison.png",
+      "bytes": 239662,
+      "sha256": "0687e15258116907cb464ada5fd826e4479d3f530eeb1bad08abdf01326c68ef",
+      "md5": "32fb6785f4a16c276661c59919f0bd8d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/actual_truncated_delay_moments.csv",
+      "bytes": 2034,
+      "sha256": "1c99bad6a988eb0e5d2450139b36cefe5abd4a3f3e92b0a36cc4d24ec944935a",
+      "md5": "aee111a1e78034678d1f63731dd909a9"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/batched_refinement_test.log",
+      "bytes": 426,
+      "sha256": "45bce760b3dbccf529866d17ad10ee2eea303c0df2971f3e219343cbeb6986c5",
+      "md5": "46bd6df203787f08b86cdf92ba2662fb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/batched_refinement_validation.json",
+      "bytes": 562,
+      "sha256": "de161b6a977876a128f775bedd9d10b387ceb6416ea37436e30f37b1b6e73e56",
+      "md5": "ea2e8fb42b8ab48cd391805530fee9fb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/batched_svi_test.log",
+      "bytes": 247,
+      "sha256": "4c77c95b7cfb0a5b3c6d88bd63ec8cce0212c4d14aa71629f7d32a83c03de12a",
+      "md5": "20f311c7d9578907ee36bb2c4ecfe17b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/batched_svi_test_checkpoint.pkl",
+      "bytes": 74942,
+      "sha256": "5701ffa606a3d8972fd10b4e5ee83fd7eb48f4b36e3d871b288dcd27dda7a1b1",
+      "md5": "b97071b2710adcd526efc885ec568613"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/batched_svi_validation.json",
+      "bytes": 261,
+      "sha256": "1fddecb01ebaea6d8f0c712ea71cf124399bf384594afd8022499c1b5a9964a7",
+      "md5": "6751d04c52d1aaca4a3108aed8d69ea8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/completion.json",
+      "bytes": 1698,
+      "sha256": "a03304b581e3f5d0896a8d9a2e06c12eb29f11b5d769e51166dce9bbf4bb085a",
+      "md5": "9b526c53e20fbf72fd3e7f011bdeca28"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/figure_validation.json",
+      "bytes": 1214,
+      "sha256": "d2b2083ab66c2bb435fb8cfa2ba600a39bf6109552ad65f40f002affd3cbec84",
+      "md5": "548279257da945a8e69fa064545b272f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/figure_verification.log",
+      "bytes": 61,
+      "sha256": "810f8d076190f3a4acba48528bc1917d17137c813b8cf0dc475ea733f24f55cc",
+      "md5": "1841fede0f139ddf5bf30b23ddc5db04"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/SHANK3_cohort1_HOM_npl_alpha_gaussian_by_abl_RTDs.png",
+      "bytes": 371837,
+      "sha256": "a4c3abf8ac63a33cb47b89efd282bf7add53e5f002a7e70183c63df8554bba8c",
+      "md5": "369dcb96d255d9bf8a1984c152bf5d79"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/SHANK3_cohort1_HOM_npl_alpha_gaussian_by_abl_psychometric.png",
+      "bytes": 162034,
+      "sha256": "5fbe428290cae3e11578f9ab9fc5f11d6130c6a6d8c1db47b13b2067417d2857",
+      "md5": "896e91b6cb4836f84597e069d2047c2d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/benchmark.log",
+      "bytes": 303,
+      "sha256": "e6aa4e268d31e21b20ebc709a3292409a97af234b7e28b8f53d486e687bb17af",
+      "md5": "bb9b6bf745d18766e1f20a48362fcc10"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/condition_parameter_means.csv",
+      "bytes": 3820,
+      "sha256": "844ff493280bac269833a7c04105a6c4a8ef7ade49839da9df39413ce25c1849",
+      "md5": "b93132bdaa004fe837293685bedcac20"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/conditions.csv",
+      "bytes": 3774,
+      "sha256": "dd26637ca308ece39ffb0bd0cd16ee971af8a2eb4b0288483792c899a215e4c9",
+      "md5": "db389d5b1ebb6bd0e6114b619c4889a3"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/delay_condition_map.csv",
+      "bytes": 1376,
+      "sha256": "a7773be8c7b4330a0f14924bf543e4bc05bc001765c8ea3cf463970c9ee7047e",
+      "md5": "8b893316d10732a6ae9174c6f4bd1c7d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/excluded_valid_trials.csv",
+      "bytes": 89907,
+      "sha256": "84749cd3992d1054a0cea2670c3b473a6a192ea6f4323b492ed3fce8667bd16e",
+      "md5": "2252cec51a29181ed6164e6bab33075c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/fit.log",
+      "bytes": 9624,
+      "sha256": "1028c617b1cf1bdf5e19afc8aac4b8733b0a863804925ccf1d2a57a35167c7be",
+      "md5": "3db63c7c584e1367b1927bf84127d110"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/fit_trials.csv.gz",
+      "bytes": 4168933,
+      "sha256": "77aed082b6b4631ab27a9c35108c0a38d702ba1dac73c40c159d16a006d75a24",
+      "md5": "c35f1c0d64e759660f19b73657fca6e7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/fixed_parent_design_averages.npz",
+      "bytes": 1817906,
+      "sha256": "688a6aa0b61758980b50a7b824367d90990c1a63ea35799c802c766d5d4d61ef",
+      "md5": "e4162de54cb841649bb096a0875b0959"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/fixed_parent_design_manifest.json",
+      "bytes": 311,
+      "sha256": "b3078023f1606e766bbb1c939392c29b16c4b8cf89a6f6d72e4f53a9e6dedfe0",
+      "md5": "ba1cf8534ae312571b7c66a7543eb246"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/fixed_proactive.json",
+      "bytes": 450,
+      "sha256": "8576c7cb6e8aef8f7891b6aa2974defcb12bed0ee79467547adb9ca69e270ea7",
+      "md5": "dbc8520f2e63d917a62035687c2aa1d6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/gpu_benchmark.json",
+      "bytes": 303,
+      "sha256": "e6aa4e268d31e21b20ebc709a3292409a97af234b7e28b8f53d486e687bb17af",
+      "md5": "bb9b6bf745d18766e1f20a48362fcc10"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/in_sample_comparison.csv",
+      "bytes": 1079,
+      "sha256": "58d3bbb376722eca9fe35046ccf24fb39a63468097828ebeb69b5f37013710cc",
+      "md5": "5aeab90921c6d7f0bbaaae426bb68dd6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/independent_validation.json",
+      "bytes": 2838,
+      "sha256": "8b9be9696871720b5d4ff66dee111894066d7bee5dc5cca55a6677bdbba93a96",
+      "md5": "512a67324b0e2beb7e2203b527b0ebfd"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/initialization.json",
+      "bytes": 422,
+      "sha256": "eaf1693aad893794802070531790c05f45d4e9dc87c0e3a9ba8b46200a248103",
+      "md5": "f73cffbe5d3d99e46bd6825e873237a0"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/initialization_rng.json",
+      "bytes": 492,
+      "sha256": "6f96712eef3a8af6afbdf3f5f9a0871bb774e473ec434fd19a2f893dc6c93f6a",
+      "md5": "61a1b19491e3c3c9a442f40a41d59c7c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/likelihood_data.npz",
+      "bytes": 5961992,
+      "sha256": "80ec2e010fbfb5c5df8e30f5834a0d8807be229cf13182f94931cda7cb619950",
+      "md5": "6426a809820761e1b7f6489bfa7bd12e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/membership.csv",
+      "bytes": 193,
+      "sha256": "411da7fe909a7de4010f8a7f59be1bd9582c74bb319a5cbe0f969b32205fd94c",
+      "md5": "6163d5a4a66c1ddfb3ad1840691edd64"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/parent_trials.csv.gz",
+      "bytes": 5023320,
+      "sha256": "a3e98cde8af24a83e0bce199481f5986733d0c166b62c3d0eaae4a146e464993",
+      "md5": "e1d1db1d4a292529edc4f46ec90e3577"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/plot.log",
+      "bytes": 4772,
+      "sha256": "c7454b7c2d10790dd1a697b7e61e447db7af4ee5e338fa371da79f5305b96c9c",
+      "md5": "a8582f10ad0dd94e75d1fb5ae1e9c798"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/plot_manifest.json",
+      "bytes": 1512,
+      "sha256": "915b80d0b44927bbcb14559ec78eea08f668dd6e235152f910b2267ec39d48aa",
+      "md5": "ab40cc8e6b5283f1720d490f72de6280"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/pooled_rtd_model_1ms.csv.gz",
+      "bytes": 914713,
+      "sha256": "7277b5a55c2eb6c7e95cc7d077e291077522c3c6becbb53c93e3e0c6e828c36e",
+      "md5": "f8409acd301c38a50776845fab2550d7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/pooled_rtd_model_bins.csv",
+      "bytes": 145102,
+      "sha256": "2a0677f3417684a8c82a0748dc8ab652818767cd3a11f706186b7715c96518a9",
+      "md5": "f2b439e8317c21c8bb76d29fadcb3f9c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/prefit_validation.json",
+      "bytes": 2729,
+      "sha256": "2ea04e667e28cbb553bdc0aed1b2b379f0c9c4befbeba56be0e67e1e64e01f45",
+      "md5": "37119e889ea5c7bd91bc2a78d9c5f398"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/preparation.json",
+      "bytes": 58328,
+      "sha256": "2563de223631f951bb2cb4633056d234de9090d5083c3c04b20c84a5c6d0f896",
+      "md5": "573b6dc90eccbee17938e9fdd8071654"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/psychometric_predictions.csv",
+      "bytes": 5558,
+      "sha256": "c15b8011e3bbd8e85f8697c430f28a174a333edef90d7a4418d15103e1037358",
+      "md5": "e6ab5ac943c49d3b01e3a035f100bc88"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/rtd_data_bins.csv",
+      "bytes": 126155,
+      "sha256": "38237e183661b07020ae893f759a05c42685b874625ae198cf57e9e36b28717d",
+      "md5": "07d07be9b0cf419469b5045048747b7d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/rtd_panel_audit.csv",
+      "bytes": 1774,
+      "sha256": "63c01ff738ef24cd6da5783e3474dd7d100a25a060e3ebc4cabff533366c3c72",
+      "md5": "3198570f3b4fc558504b7b332b009cf8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/best_checkpoint.pkl",
+      "bytes": 4674,
+      "sha256": "623eb5181f4e4984c63d17943e48e0b40467f1a8842356d9d2681d59a726dedc",
+      "md5": "e8b795c93041cfc7f1438778d2bf67b2"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/configuration.json",
+      "bytes": 3849,
+      "sha256": "749895c34e5add5094cc36054d21b3f17ecce64a1f3135aa79036c34c593a5a4",
+      "md5": "04e2caebca42f14b95ab364381ff06e0"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/convergence.csv",
+      "bytes": 98684,
+      "sha256": "4335f3b6a9ae7a3d2cb210a3e6ea779f36ed80d20239700f8364b76083d24d5b",
+      "md5": "8d1c0256af3bc90f452d6a6f1d21769d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/latest_checkpoint.pkl",
+      "bytes": 1088399,
+      "sha256": "ca408eed75faec80297307f6aa97bb16653ac4bbf3edcec2952c87901f225917",
+      "md5": "9ee19e3ec4edb01ad794d949e158beb8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/losses.npy",
+      "bytes": 864128,
+      "sha256": "be7a1333b04f03d3971ef54a8229563ba9d87ddacb4e1b02de47adb6648cb956",
+      "md5": "69bd4f2a7a989d9cf293dafc66b8ddaa"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/posterior_covariance.npy",
+      "bytes": 1480,
+      "sha256": "a0b24996d457e6b59d5e9765727f441df6acce30c60488e25a6b85ac8b8f9d9f",
+      "md5": "7f5a41104c20d6279d6d660b7b8eefe5"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/posterior_samples.npz",
+      "bytes": 944572,
+      "sha256": "7ef316ea805ae811bd8e3040c1b909dc5a54a7d17a1c3d13c2631dee6fca0ffa",
+      "md5": "7ae59f933017a090e4aa3c123821a2bf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/posterior_summary.csv",
+      "bytes": 1485,
+      "sha256": "f82f26d57e9137474f08837fc99eb8129c0acd5a45ed31432ebbe5bbcb0e2ece",
+      "md5": "db91152301d3473019e97873739d206d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/restored_guide_optimizer.pkl",
+      "bytes": 4674,
+      "sha256": "623eb5181f4e4984c63d17943e48e0b40467f1a8842356d9d2681d59a726dedc",
+      "md5": "e8b795c93041cfc7f1438778d2bf67b2"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/run_summary.json",
+      "bytes": 649,
+      "sha256": "3374290606d28f49314f4cf10e051c4f3c64d2c3d21f333842a9ced754321058",
+      "md5": "d113fbd58e517d9e4b56b8d6b390e1d4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/signed_parent_model_1ms.csv.gz",
+      "bytes": 1317787,
+      "sha256": "d716ec2a4e857ac01b5673039fb67c6cd2b5dd15f49c60fdb15d2bc18c15aeeb",
+      "md5": "4aed48f002e3b80fde31442931df72c8"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/valid_cdfs_1ms.csv.gz",
+      "bytes": 428614,
+      "sha256": "fb5f13e14d1d87b779c77e77fb3938b51b9d6b51fcb5bac2cd4fc388533afa9d",
+      "md5": "9cc2f5f6256df33606cd532331a4ed63"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/verification.log",
+      "bytes": 5783,
+      "sha256": "3f2f9bab672abbd49792fd1ad337dd70b90a980b62d1b2417396dc9312bb513e",
+      "md5": "61195db7076b4020cfebf5322decb5c9"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/parameter_estimates.csv",
+      "bytes": 3972,
+      "sha256": "d6c625c206c57b5f8388be90b7fae66032843a51412cd0985d9731f5bd3c2f8e",
+      "md5": "6ce50d95075517c2a28929445e90b765"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/parameter_plot_manifest.json",
+      "bytes": 9203,
+      "sha256": "a4fa04ddea8fd0a631f2bdca8bf40e7239a9cc2081cb4d06b43037c8cf8a3ea4",
+      "md5": "7d6c5dee1541ce70c04274c522e153b5"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/parameters.log",
+      "bytes": 48,
+      "sha256": "536e5a36c681d6c289eb428eeb4c4ec19a176add20befc11ae5f584d96a55fd9",
+      "md5": "e818491a9d554c6f9326cf867736a851"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/pipeline.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/pipeline.log",
+      "bytes": 939,
+      "sha256": "cc630aa66e1f6f6f3f692cdc0015deafdbd765a3a6c2f1b422bd4ed215e1d805",
+      "md5": "8107ef31760fd9a5ef98fad0fe61ecaa"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/prefit.log",
+      "bytes": 5561,
+      "sha256": "a594edffe821f2a5a4abb87fb66980144433d66e12a1ccaf339a46bd33187e51",
+      "md5": "4f192dc3b0bcf149fec2ffb71f6c23fc"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/publication_manifest.json",
+      "bytes": 1053,
+      "sha256": "3da9a44cf8901c91c73dfd43c0d80acbbd5008e42482f0bffc6895cc2898f6a8",
+      "md5": "aafd88444653725de29d84bef6480e4b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/publication_validation.json",
+      "bytes": 1740,
+      "sha256": "09be0c88d15093187196c96318b96a6d7924ba95a31253f51884484db166471e",
+      "md5": "3f97a547781fba27fbac860e345ec8e6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/resume_smoke.log",
+      "bytes": 918,
+      "sha256": "d8d60cbbfca2a2fcce7d8abd2b0bd455409b6acb3134077c23685ba573a48faa",
+      "md5": "462f78179c61d612b59b89ec28dd5b40"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/resume_validation.json",
+      "bytes": 248,
+      "sha256": "c7a1712bd4b2ca7075a2571df7e49009718b87fad9708c58b417b5c2eba1b491",
+      "md5": "a548e55dcf5e56b5007aa4e1484f95be"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/shank3_npl_alpha_gaussian_abl_delay_audits.zip",
+      "bytes": 42779624,
+      "sha256": "4f1b1972e911ffc3247888196e9813f24cbb6eca853d98aae03323cf380ab5d8",
+      "md5": "8e9be6e5598b4d4afa69488ab25dac7e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/source_history/WT_before_batched_refinement/best_checkpoint.pkl",
+      "bytes": 4672,
+      "sha256": "1997393c8f1d37576e84a119cfbcd81e367779a82d5e203c8bfbb40d124d44cd",
+      "md5": "41f36b1f2942a023e090ce3896731eb5"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/source_history/WT_before_batched_refinement/configuration.json",
+      "bytes": 3844,
+      "sha256": "7bcf14e2dbea026ab5966aa144623ef241966e724a1523ab897596a0c5334a90",
+      "md5": "150a9f5b5f9b2a1e9b0ddc2a66abd83e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/source_history/WT_before_batched_refinement/fit_shank3_npl_alpha_gaussian_abl_delay.py",
+      "bytes": 11053,
+      "sha256": "f37cea4bcf9c68187a2396cfca2ac411894b3acb678701140eab4e8386417011",
+      "md5": "cdd75b976549b837f5eda5cf53c48b16"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/source_history/WT_before_batched_refinement/gpu_benchmark.json",
+      "bytes": 303,
+      "sha256": "14e7e3566c6284fd70ecf7b38b5eca0557db23cb1990e0c2bbb5603203f66ad2",
+      "md5": "e2842817a91df8f2dc2fedd9f8602fdb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/source_history/WT_before_batched_refinement/latest_checkpoint.pkl",
+      "bytes": 335107,
+      "sha256": "047dda130f1de96eb018a2febb34ed619f51280304ee29b00c2637d925a1a60d",
+      "md5": "602e0c86b69d77e66b1149ae5b86fc0d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/source_history/WT_before_batched_refinement/shank3_npl_alpha_gaussian_abl_delay_utils.py",
+      "bytes": 2655,
+      "sha256": "317f3cb86cadfbe266634fe7b502135ffc086a6cb85897d2a637a87387ac0122",
+      "md5": "4ba4835942d3a3f85b81ca9095f0165f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/source_migration.json",
+      "bytes": 835,
+      "sha256": "65ff5f266c2c197a77093efe848fcd3200eae17d75306ba3a09728b64ee5f61d",
+      "md5": "c51aea0910666a52dc363b6d173ce297"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/straight_smoke.log",
+      "bytes": 841,
+      "sha256": "2d323833ae101862ff9fc9c59915094c81d733f732c80ce5b108fcfbf4dd0bf2",
+      "md5": "28d71bd33d58e5c889a00d8bcb246d56"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/visual_inspection.json",
+      "bytes": 1365,
+      "sha256": "e8de34be18a2b357d0fed3f57728dbc60bb049e97f6515e170ceb3f5fd8cb0ff",
+      "md5": "d442b12629396e7817ed405e3234646e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/SHANK3_cohort1_WT_npl_alpha_gaussian_by_abl_RTDs.png",
+      "bytes": 369837,
+      "sha256": "cefa5056e22f5c69f07a9bf1f94e8394687cdcfa884a04fda5f93242f734f167",
+      "md5": "6de709ab084f199d97427dd7004fd8a9"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/SHANK3_cohort1_WT_npl_alpha_gaussian_by_abl_psychometric.png",
+      "bytes": 159429,
+      "sha256": "86881e9b80edef8fe7bb78797748bdfaa403d6bb657b992227554b1e392a4168",
+      "md5": "87b1c9b48e6de03f34664045dc0d0d4e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/benchmark.log",
+      "bytes": 606,
+      "sha256": "d0a8a9792764557486d61fe44374b69d28163cd94f95c699dca69046c7ba4ecc",
+      "md5": "af2d8c3ffef44bddbff3902197772a01"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/condition_parameter_means.csv",
+      "bytes": 3834,
+      "sha256": "08fd796d25be89e6260da54a88cc3cad6d36d04397b8667c7e866dd58a4d0980",
+      "md5": "d209dfe14510c2da5425fd49a53e4bb2"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/conditions.csv",
+      "bytes": 3777,
+      "sha256": "072a54a2c3f8917a14731ba2faf265b1e307c116c4ea022fdee3096a39fda58a",
+      "md5": "5d1a1f67d34c5cc1569b21cd0fe29654"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/delay_condition_map.csv",
+      "bytes": 1376,
+      "sha256": "a7773be8c7b4330a0f14924bf543e4bc05bc001765c8ea3cf463970c9ee7047e",
+      "md5": "8b893316d10732a6ae9174c6f4bd1c7d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/excluded_valid_trials.csv",
+      "bytes": 93588,
+      "sha256": "9c176712088e9a6c2b6cf07e97ff5e3fe423e3db9b8db830c7e200a6e574307c",
+      "md5": "2c5aa6e066d6243187ac9f978ee9e8c7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/fit.log",
+      "bytes": 9524,
+      "sha256": "79bcb50dc57e0aa0d5b44f37a28731f0050af3ab67b88ad345cbde6ef3c0e60e",
+      "md5": "b5043937bbf3865d23135ac6207d5c13"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/fit_trials.csv.gz",
+      "bytes": 4205505,
+      "sha256": "11e6fc89e9235ad05aeb169bbf887154c3cb09b9c0f785de9e1ef6e02bff109a",
+      "md5": "b84bcf35559116291ae1f6ad1414e3a6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/fixed_parent_design_averages.npz",
+      "bytes": 1818374,
+      "sha256": "360c9660042d234720b972fdeaca866443cca4cf0732b192e75116048bce281a",
+      "md5": "8cb894b80dd0a3e572f126e725c74ffd"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/fixed_parent_design_manifest.json",
+      "bytes": 311,
+      "sha256": "2f6e6b68f43b386c47259f2f6444dc8901b8abb046015e3364a907a90e2e3bc0",
+      "md5": "5d9679840313ceb0fa786d172c5647da"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/fixed_proactive.json",
+      "bytes": 448,
+      "sha256": "ff00ac31555eb32c31944d2eb835997ee2853ec301115bcb2e4c5e2a01893c1d",
+      "md5": "2a46c354dc3c6e884def0ce68e6e2013"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/gpu_benchmark.json",
+      "bytes": 303,
+      "sha256": "da65cc84e68b9e5726457810f3d93a9c6b5f019fc8e5524e101c8f2aeab0ab10",
+      "md5": "5b2639bc3fb8a48aac016e732a36878f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/in_sample_comparison.csv",
+      "bytes": 1080,
+      "sha256": "bd34270347065d16359e30af5d18ca27ef07d0ff8fea35623ce1ae8ab330430c",
+      "md5": "8b815dd1c4ec247af4fe703233fdad0b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/independent_validation.json",
+      "bytes": 2837,
+      "sha256": "d66536ea5989d6ce46e57c64a99658f603a0dcd2a50c4af6c26c6b4f4c30e79f",
+      "md5": "ec8d0eaca4e03e86045bb6963a3296ac"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/initialization.json",
+      "bytes": 422,
+      "sha256": "eaf1693aad893794802070531790c05f45d4e9dc87c0e3a9ba8b46200a248103",
+      "md5": "f73cffbe5d3d99e46bd6825e873237a0"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/initialization_rng.json",
+      "bytes": 492,
+      "sha256": "6f96712eef3a8af6afbdf3f5f9a0871bb774e473ec434fd19a2f893dc6c93f6a",
+      "md5": "61a1b19491e3c3c9a442f40a41d59c7c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/likelihood_data.npz",
+      "bytes": 6003264,
+      "sha256": "f353bd29bb8510b4525718662943eba9e2738f2790d30392d8c54bdfdc3f74c2",
+      "md5": "56c25f5934a4259fed994abe7bc48911"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/membership.csv",
+      "bytes": 170,
+      "sha256": "650149fdec9875a061eb14fb6b873f62e04ac84c7ed560221ff09cf3ef548761",
+      "md5": "c7207e600d55f09f7b099e720735cb3f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/parent_trials.csv.gz",
+      "bytes": 5171657,
+      "sha256": "b1f5bb61bbd378b731c6e997a195dc9c1058ec80b26faafae3e14ff524071b38",
+      "md5": "1f16b75c52ad33b9fbbca4844647f084"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/plot.log",
+      "bytes": 2385,
+      "sha256": "08d710122954a87af96f814b6a6debeba53d008260c01a110e1520f9ed131a8c",
+      "md5": "f561d52845ee37c9f8c1dc00fcd98e17"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/plot_manifest.json",
+      "bytes": 1511,
+      "sha256": "b7dad8b61f3fe7836c7139e59c9975b63dc4c080b0f95e84c2ac6c8a102a7fe7",
+      "md5": "a272fa61d8c9e58c213c302fd2fbf6cb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/pooled_rtd_model_1ms.csv.gz",
+      "bytes": 914028,
+      "sha256": "fc805b4ed947564e72fc1284b9057198f3b31b5654ac965cdcb30afe9ad03923",
+      "md5": "5fd55b5fffc9a1b1bd07de0e1952df37"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/pooled_rtd_model_bins.csv",
+      "bytes": 145401,
+      "sha256": "cbbffcd723787def858608fdee08180657ba0e0126b8c2210bcb2255933f9146",
+      "md5": "f91f0b324f02613f2d96ae0404d57514"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/prefit_validation.json",
+      "bytes": 2726,
+      "sha256": "0509a020d91ab14361d6c2850cf7101e4f76a589147055598386b771d6ff1c00",
+      "md5": "3e1e986e204aa1b58bc7a73cca0be161"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/preparation.json",
+      "bytes": 69715,
+      "sha256": "c93c0b7ab74f280968253b110a720b2b37e4d0d1b82dc0cb60ed17b37c9c7a8e",
+      "md5": "8af43eddcb71d0d4bdfe7fe95041f275"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/psychometric_predictions.csv",
+      "bytes": 5540,
+      "sha256": "8c199de114b1cf4cd6a741356b05820d9e381668e26b31fe8c9f6dedd543fe6b",
+      "md5": "b6f6595334335fce170fc0acd7001604"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/rtd_data_bins.csv",
+      "bytes": 125472,
+      "sha256": "99489dd5891897d9d7024dd79d03c127358a04f07ed78ed6ae56e930fd2cd978",
+      "md5": "ba31fca7abf148db3d3387905825ac90"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/rtd_panel_audit.csv",
+      "bytes": 1674,
+      "sha256": "42c06af94ddfe21593714b1343ab0f5d3b36dd88c3062a0607ae8e42262a4989",
+      "md5": "28b5b00673b2415681e13391af43f5e0"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/best_checkpoint.pkl",
+      "bytes": 4674,
+      "sha256": "fd2a1c9d089bca55571dd1dd39c059406782fde2ab57d116579ac55428d1848b",
+      "md5": "dee62206f68e0608b8708df9b7d200e4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/configuration.json",
+      "bytes": 4119,
+      "sha256": "5dbb3c57a9463e2306027045df9a2b19546227b7b296291b536c96153315fb87",
+      "md5": "b2d9ae40347ff7e24b94783c9136e80b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/convergence.csv",
+      "bytes": 96714,
+      "sha256": "15922f9f6a813fcceeb4207e637077140c896f93a3c11a8e99ca0adb0a002e5c",
+      "md5": "fecd5caa3f666e3375feca997f98300c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/latest_checkpoint.pkl",
+      "bytes": 1089750,
+      "sha256": "6d84f6f24db11000c8dc0f7c827d1ba4791a762b64e86beba223f874a120e5bb",
+      "md5": "ea580983a2ee20f639c01358544a0a0f"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/losses.npy",
+      "bytes": 864128,
+      "sha256": "54e1c40d482cf9edd881bd8d017fc305ce3be158960d099a79a842a8f32848dc",
+      "md5": "9e3beaf9bccd40ac026db86800ce5af1"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/posterior_covariance.npy",
+      "bytes": 1480,
+      "sha256": "a75ce3425d9c7c58ac539f0376589e30e596733a1b5a6e78c4753b25346a3e0f",
+      "md5": "34856da5e7065e7e577b9e63888d4217"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/posterior_samples.npz",
+      "bytes": 941787,
+      "sha256": "528b3a986b3e7379ed594bbaa05ca09fb459f7db614941acbe5d575fa52f5f8d",
+      "md5": "140bb42bc0f33cd556bf550af7d326a6"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/posterior_summary.csv",
+      "bytes": 1487,
+      "sha256": "e3814d232f8b3e14172a27f88a8c2299bb9a540069e78cdcca0b400d08d35a4e",
+      "md5": "c617e5d38ad63a7ceea39e50c9a9f1e4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/restored_guide_optimizer.pkl",
+      "bytes": 4674,
+      "sha256": "fd2a1c9d089bca55571dd1dd39c059406782fde2ab57d116579ac55428d1848b",
+      "md5": "dee62206f68e0608b8708df9b7d200e4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/run_summary.json",
+      "bytes": 650,
+      "sha256": "2fb66904271532bd68fe9d7faa4d0f702e97aaa97dd69eb56fc7d180b3626f0c",
+      "md5": "c40de68b48816abe110d7da3ec61b432"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/signed_parent_model_1ms.csv.gz",
+      "bytes": 1313181,
+      "sha256": "17f7cebe0857f7592bb4f910326c312e2172df21bbf0267ba76141e857a016e3",
+      "md5": "897af41e64f8844f66b875c7d274f962"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/valid_cdfs_1ms.csv.gz",
+      "bytes": 416908,
+      "sha256": "1efc7268cdfaa2daba4775a078512a3d2c88015d1bfa19d92cc439e229026708",
+      "md5": "3b142af0cd7d9027b21bbfd83c8ef624"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_resume/best_checkpoint.pkl",
+      "bytes": 4671,
+      "sha256": "f7b1fe1fc550f07bc17f85731d70406bfc6a79c024740714505c95b83f3d97ab",
+      "md5": "14fa62c9a97a6c5b6ce263c5b9f1d98e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_resume/configuration.json",
+      "bytes": 3829,
+      "sha256": "d04f8896437425224d196857939d5d272409a6237535f33e5d46f9aeb93bdaf7",
+      "md5": "93624645f499a32070e87679b133119b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_resume/convergence.csv",
+      "bytes": 2993,
+      "sha256": "ba68169bea518dc5e3647c332a306c431208da82b22c967514cf57790bf3faeb",
+      "md5": "a8e74aba3e1cc77995f180e9fae80fa9"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_resume/latest_checkpoint.pkl",
+      "bytes": 11180,
+      "sha256": "0befccc22288267757c5a6b3fd8b2f07bf967bea50f1fc82aecabf50a33e8cb9",
+      "md5": "ebe635d326be7e3a904c5c367c6fe32a"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_resume/losses.npy",
+      "bytes": 248,
+      "sha256": "eb3a5f5e1e12671b59f49c7e7775582f8b522b8234ab83ac4a8097a08474e9ac",
+      "md5": "ad8b20c0873b68eec43063c9c657258d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_resume/posterior_covariance.npy",
+      "bytes": 1480,
+      "sha256": "e52b864eb36dd0a69f3869b5154136c0a94254bc290c3a3e08fb2e102f63a35f",
+      "md5": "68ad4dc3d3e9540fbad0546436c7605e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_resume/posterior_samples.npz",
+      "bytes": 14538,
+      "sha256": "e39d31be69d75d27c9a7f114957ce8a487a331ef61490b108ee99d525011dd83",
+      "md5": "924b885263a3989d03f6546a5f12f17d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_resume/posterior_summary.csv",
+      "bytes": 1467,
+      "sha256": "e596fab07773c7609778af13cc49474559fb2d78bf5e76d9be88ea04a029ea0b",
+      "md5": "a509c03b7684b8a21ae9d19c271b0156"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_resume/restored_guide_optimizer.pkl",
+      "bytes": 4671,
+      "sha256": "f7b1fe1fc550f07bc17f85731d70406bfc6a79c024740714505c95b83f3d97ab",
+      "md5": "14fa62c9a97a6c5b6ce263c5b9f1d98e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_resume/run_summary.json",
+      "bytes": 636,
+      "sha256": "74a2a41cffc33b33dc0ff5a06af527a056ea61bd12dbc7b38e6bf516bccc4bdb",
+      "md5": "96eeae6cc1b0c7719d4259951004aece"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_straight/best_checkpoint.pkl",
+      "bytes": 4671,
+      "sha256": "f7b1fe1fc550f07bc17f85731d70406bfc6a79c024740714505c95b83f3d97ab",
+      "md5": "14fa62c9a97a6c5b6ce263c5b9f1d98e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_straight/configuration.json",
+      "bytes": 3829,
+      "sha256": "d04f8896437425224d196857939d5d272409a6237535f33e5d46f9aeb93bdaf7",
+      "md5": "93624645f499a32070e87679b133119b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_straight/convergence.csv",
+      "bytes": 3039,
+      "sha256": "9270e020d16b4979dedf238c0dd109c00fbff46bfe88e78abcf557a49d17f88a",
+      "md5": "9dde00551f2b984fc780fcbab0e7ba7e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_straight/latest_checkpoint.pkl",
+      "bytes": 11020,
+      "sha256": "4c4a4267cd866ca9506c35b75dfb28344d797655c61d1e3e43e41c17f9cb6516",
+      "md5": "9ced881672f079fc6e50adbe4ffb2408"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_straight/losses.npy",
+      "bytes": 248,
+      "sha256": "eb3a5f5e1e12671b59f49c7e7775582f8b522b8234ab83ac4a8097a08474e9ac",
+      "md5": "ad8b20c0873b68eec43063c9c657258d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_straight/posterior_covariance.npy",
+      "bytes": 1480,
+      "sha256": "e52b864eb36dd0a69f3869b5154136c0a94254bc290c3a3e08fb2e102f63a35f",
+      "md5": "68ad4dc3d3e9540fbad0546436c7605e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_straight/posterior_samples.npz",
+      "bytes": 14538,
+      "sha256": "e39d31be69d75d27c9a7f114957ce8a487a331ef61490b108ee99d525011dd83",
+      "md5": "924b885263a3989d03f6546a5f12f17d"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_straight/posterior_summary.csv",
+      "bytes": 1467,
+      "sha256": "e596fab07773c7609778af13cc49474559fb2d78bf5e76d9be88ea04a029ea0b",
+      "md5": "a509c03b7684b8a21ae9d19c271b0156"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_straight/restored_guide_optimizer.pkl",
+      "bytes": 4671,
+      "sha256": "f7b1fe1fc550f07bc17f85731d70406bfc6a79c024740714505c95b83f3d97ab",
+      "md5": "14fa62c9a97a6c5b6ce263c5b9f1d98e"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/validation_smoke_straight/run_summary.json",
+      "bytes": 636,
+      "sha256": "9ccbd180f6ac29228b00295815c16cddbd9113a6008925fd6ad2fe35d90fff05",
+      "md5": "4805adf3d7b0a511fbb08955fb110291"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/verification.log",
+      "bytes": 2889,
+      "sha256": "a622766a4b6803085eb74dd9b962ed7b9ab0a8b01170cf60ec460f8cc9ee7ca7",
+      "md5": "d4737e9c3b12250e574aad2e6f4cc0bf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_0/checkpoint.pkl",
+      "bytes": 475032,
+      "sha256": "8569a8faec0979e3d3b570e1b4c6acf5bb86dceafc903729bda187aa97d4f8e4",
+      "md5": "6a2ceae899397be8640bcc1528306320"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_0/configuration.json",
+      "bytes": 1252,
+      "sha256": "c4e7e81899df6b076f930040ae5e3b4994ab4d2aa0aa858d373d25bf769a6c9f",
+      "md5": "6062591586ab50cb1309f82143938206"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_0/convergence_windows.csv",
+      "bytes": 6847,
+      "sha256": "85dc0ba985c829811b63dde4c5bee7709ff509599af0c096e85ae4a272209a3e",
+      "md5": "cd64998663020a3f29fc15c88953dfd7"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_0/losses.csv.gz",
+      "bytes": 536716,
+      "sha256": "2264cca78520bc1d78d64c2e6972a57db73e348d57ec92255187e9f82f5db89b",
+      "md5": "a08be338c7739620bec0e19d191ef314"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_0/posterior_samples.npz",
+      "bytes": 367816,
+      "sha256": "c259bec2c80ba5dc9f6b6af465bd40c80ef8812ceca23dcfeafde596f2838a1e",
+      "md5": "deff795fbc57c56d86b40d7f69cab7b4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_0/posterior_summary.csv",
+      "bytes": 561,
+      "sha256": "8401ab79abbb4a17e1dcc80ab0dbb59901d5b4f6d993109aa3b1eef839b2b61e",
+      "md5": "fe9e94f97f6ba2d4007990a967bcc962"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_0/restored_guide_and_optimizer.pkl",
+      "bytes": 1476,
+      "sha256": "7b1e187e4189bb3b9226169a9211426a7d88d8208eb67e53a07b2227efa733fe",
+      "md5": "c4a87a0d6e0f778796c5ece1db730499"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_0/run_summary.json",
+      "bytes": 479,
+      "sha256": "5d0b8d03c23477da7d07f6b8ac4539e86a9cc3fa4f3b009404b6545b3553d5ba",
+      "md5": "210dfd145481af6b0ee7ac99a7b4bb00"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_1/checkpoint.pkl",
+      "bytes": 666009,
+      "sha256": "bd9b222689d3876ae93cd62d4a89ded039c72c764a32917f9097a952c3a1dbb3",
+      "md5": "ffcbcf7520d74620adfd02989f884a2b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_1/configuration.json",
+      "bytes": 1252,
+      "sha256": "b5ea0f39d34358699371eec20616589408b3b88b82362c464061f13f2d565169",
+      "md5": "8958fcff41a6cbc169363b5cd0bf6cfc"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_1/convergence_windows.csv",
+      "bytes": 9540,
+      "sha256": "99d4bf908e09cd5e90fcd80bdfec7455bd077222baef8572401b45a4dff8d4b6",
+      "md5": "a392f573c9cdb5567a6d2b07673dde41"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_1/losses.csv.gz",
+      "bytes": 756727,
+      "sha256": "9c4706155e9b1ce83b8ddafe2fa1f371978f3f99b20dd591981a5aebf3995db4",
+      "md5": "1b56b6a11375df06ec40f1a88872e723"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_1/posterior_samples.npz",
+      "bytes": 368424,
+      "sha256": "346166ced3c423da3fe8d7abbbc3b0b6511a79d113b8016be565e9debfd8c755",
+      "md5": "aa05b940399537d0911c5acf2c2ed2c5"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_1/posterior_summary.csv",
+      "bytes": 563,
+      "sha256": "20234cbaa4e480c20c54a3540880f65224dc4da084a74d51a5f51b9f6d737b63",
+      "md5": "c41631e55ec2ef80b7a1742437fcdcbb"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_1/restored_guide_and_optimizer.pkl",
+      "bytes": 1476,
+      "sha256": "c34f36c3130b6681dbd4aaef142935176c5c6135647e6bcdc043dccfd78cac8a",
+      "md5": "dfec0edda03d0b0f35d785ba75e27bbf"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_1/run_summary.json",
+      "bytes": 478,
+      "sha256": "97e0ee6946d071ff9c39ddc6ae1a71b0380f681915dc8982ee24f75f0f223cd3",
+      "md5": "1b0d2362ef8b327fbe7cdcd0e6a8bd33"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_0/checkpoint.pkl",
+      "bytes": 565961,
+      "sha256": "52fab7c4d18f4a9f79afe047f70d4ed416c56c7e194121af147730c78408caac",
+      "md5": "36fae6c3deca44887c0b3535ea001bda"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_0/configuration.json",
+      "bytes": 1253,
+      "sha256": "92ef331e338dd736404a67ee6910e730f371b912fbeb9e0fe2be36cd4125e283",
+      "md5": "893f14230ff93335641321949e4002da"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_0/convergence_windows.csv",
+      "bytes": 8137,
+      "sha256": "3271f4badf61ea89812b44c05b7d7b6925155e482fff747f3dc474f15ee894be",
+      "md5": "3af8a257bf8156908f09e3e75e54879b"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_0/losses.csv.gz",
+      "bytes": 638973,
+      "sha256": "6a147317ba1caa57bda688cbcb4151b5f5b9e1ae55b427d0bad46924eb857c2a",
+      "md5": "a87380ceef22d6c25778eda7535f9fa2"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_0/posterior_samples.npz",
+      "bytes": 368827,
+      "sha256": "70867fad84c9e7dae2274aaae3cd5c639fbcfd2144d94b7796275e1c08739396",
+      "md5": "753ec8c9933dcae83ad4cad4a00d0323"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_0/posterior_summary.csv",
+      "bytes": 563,
+      "sha256": "3e45779cdae28a509bb31ee608aead692d3b4d6285730a1a8f7e1ae0266d9df6",
+      "md5": "fa1b1dd958d3a45396198ab63a317ff5"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_0/restored_guide_and_optimizer.pkl",
+      "bytes": 1476,
+      "sha256": "8c9678a8ea434194aa3eb4e8cbae6c42fb0b0327575dafa007c1677bd654b223",
+      "md5": "e2c18ca5f071c5251a2b1fc7622ceb07"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_0/run_summary.json",
+      "bytes": 479,
+      "sha256": "7c2e3fb1c786556bbdf92369d7ea4ee5f08c0056a9c9177f43a8c08a24644875",
+      "md5": "725ce26c236c62a99e528b70ae51a3f1"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_1/checkpoint.pkl",
+      "bytes": 684197,
+      "sha256": "b381d34724dd7bdc153d36270ebe8cec126ff56087a142f56b2cc4862c61e799",
+      "md5": "7466439380ed2a956c75b77d1f149195"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_1/configuration.json",
+      "bytes": 1253,
+      "sha256": "e8ec3f157d107706baf0bbb5d938dd688d00e2aa77ccda956c3a81c670e0c6ef",
+      "md5": "3722f87d5dba9e67cb086cd3bea1dd30"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_1/convergence_windows.csv",
+      "bytes": 9749,
+      "sha256": "bc0c0fd23af047ce17c646f5581bb613adf3cf88577b8bb115b1654c1d74bc4f",
+      "md5": "1e94789d523b65fe81cba4c174ce715a"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_1/losses.csv.gz",
+      "bytes": 776494,
+      "sha256": "9032a9ef1ba31d3ee19c545976f562270ec21eeef7d396b22b20596a616002a2",
+      "md5": "d9a6c6683afc8acf7d5844001d3f8161"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_1/posterior_samples.npz",
+      "bytes": 369359,
+      "sha256": "afa881e10342697ca0eab0cd3138cb343a044b1b18b1cb7be91acb2cb8085b88",
+      "md5": "ad07bde4d29202431840b0c6d155e57c"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_1/posterior_summary.csv",
+      "bytes": 562,
+      "sha256": "fac04237cafe7c2c6a0c7aa7eb7a2e438a4c8bcdae88795145f9847af76e82b5",
+      "md5": "2351621049ec6e04bda09ba593d5e6b4"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_1/restored_guide_and_optimizer.pkl",
+      "bytes": 1476,
+      "sha256": "9ec35625960e5ba48a2cee8da4d248feef8f6ab5a95f438e0bf29afa0969e932",
+      "md5": "dbc05fe39ce74307d097ecf708ad8e38"
+    },
+    {
+      "path": "asd_analysis/shank3_cohort1_proactive_lapse/hom/seed_1/run_summary.json",
+      "bytes": 475,
+      "sha256": "c330084195bffe4e31e546ae5d84e7dc531719b4a1b19bdc9122b357a18e7484",
+      "md5": "22784bba8e06339afa1a19b7b4f6ae63"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_omega25_RTDs.png",
+      "bytes": 358801,
+      "sha256": "00d35954df849619b4d88a3daf9083167b3da162c7cee18eb835b3274a2258ea",
+      "md5": "f932983a8fc801492240ad496e72f4d0"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_HOM_gamma_omega_gaussian_by_abl_omega25_psychometric.png",
+      "bytes": 165576,
+      "sha256": "e76eef5edf1a5f5e861797468b3869ddbcf05ba0da6f825aab53dd56f8d40f89",
+      "md5": "8b5d05bb49a732487bbd27adda2ac3ab"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.pdf",
+      "bytes": 37653,
+      "sha256": "c13bb1d5023b971d3bfd5a84be7fef79de99bbf2aaa1f9f583e575c0703b9d40",
+      "md5": "6c51113e2f2c5ff7c45ff6d0b1a51cc0"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_gaussian_ABL_delay_parameter_comparison.png",
+      "bytes": 282032,
+      "sha256": "e1c1d23c940098c7a70c53cd603f3117883af0b6dd5eac70e9c59734b1a7106f",
+      "md5": "66476ce525972e79162dd1f47b5e209c"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_omega25_RTDs.png",
+      "bytes": 363688,
+      "sha256": "3ae0d10e641fcf699dd667124a6651375fe0b55db5b668ee97743e77dd373b6f",
+      "md5": "9ac8852fd2ae466ad44453c6d8da58b8"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/SHANK3_cohort1_WT_gamma_omega_gaussian_by_abl_omega25_psychometric.png",
+      "bytes": 165006,
+      "sha256": "e961f335ff3f7f233128f1cf08752c5a504f91f05ff6700f544579e6ac25e92b",
+      "md5": "ae616e30636247d271b53bd54d4c2df2"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/actual_truncated_delay_moments.csv",
+      "bytes": 2135,
+      "sha256": "8f797cb160a9530aee2f181a9cfc853e9a5fd4f3f71ff16cfc41d31c427bb0b3",
+      "md5": "d156747ba520ebc1cc172122cd9e513d"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/bound_change_validation.json",
+      "bytes": 281,
+      "sha256": "dd75dda6d195a856a0792ae56fc2166d9c9e42eced13197f059ab96bba4eb357",
+      "md5": "b9aa89674304b4a5062bb099fc9bd748"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/current_in_sample_comparison.csv",
+      "bytes": 491,
+      "sha256": "be6c46bcc8e469bd42c791513bfeee31f98228022949345c15fe70b9dc1ec459",
+      "md5": "4c773d53a06348e63ee57426e227a9f4"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/current_omega_boundary_by_ABL.csv",
+      "bytes": 777,
+      "sha256": "edeef864da575bcca59590253c4b6da878d1c7bb819fc87a7400d0369178ceaf",
+      "md5": "99c91f59d2847276bb1b5f98348aae1b"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/figure_validation.json",
+      "bytes": 1299,
+      "sha256": "0acae7fae02f4f89f5c375ed568f774d8c4c23bac3ed36c13bc00b7238618b08",
+      "md5": "c35e32ffb2605418ca459e4233a06cd7"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/fit_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "bytes": 11086,
+      "sha256": "5657d1e44e773364bc08403b5ff3f5e37d1e87555ef949fe45146a1b2ea17fde",
+      "md5": "73323c7a6b892b53a61073d6af682a61"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/hom_in_sample_comparison.csv",
+      "bytes": 1348,
+      "sha256": "987bb12eee6c9e113101cfaad5f6aafa5e28eadc95b638189f250babe43a73ef",
+      "md5": "3c67e0bd55d8e6b07bfaa31ca62e089f"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/omega_bound_in_sample_comparison.csv",
+      "bytes": 692,
+      "sha256": "0388fa8327883a55e57d4f882db4f3ada2167e4a1de056dfbe0dec51f5497d02",
+      "md5": "3e4b065894f339032c17be8cc5c32bbd"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/omega_bound_parameter_sensitivity.csv",
+      "bytes": 25481,
+      "sha256": "ca806bfa7f33afbff828d6883bbea8a284c1a13c9c95da06dc8b54b1ab7f7ce2",
+      "md5": "345c30d198ee31c1897f613ed7d3c870"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/omega_bound_pressure_by_ABL.csv",
+      "bytes": 1350,
+      "sha256": "35d91ac9efa63d525f868ffe09f865569def864bdf7f6ae7861cebdf8ab387ce",
+      "md5": "2d7737a64b0c286007ed2cec25acaa2f"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/parameter_estimates.csv",
+      "bytes": 20079,
+      "sha256": "04756989a6868ed333cb0a029aa3dc81e89db67ffb26e2ba7493b4404d03921e",
+      "md5": "09cbee57aa93cf570182f4b89c29190d"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/parameter_plot_manifest.json",
+      "bytes": 22798,
+      "sha256": "2009d1986311fd5575a31d3b5abe042a564cafc963176844dffa40acead9ebcf",
+      "md5": "ab1521f4637c49c586e5d6677cf0f353"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/plot_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "bytes": 19123,
+      "sha256": "6469ed030a4ea79e1dcd75a284df3bbb9bee83ca98c427d8bbc2fedf05cfd18c",
+      "md5": "19d44ef5dcf7facd44d938c9a6fce82c"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/plot_shank3_gamma_omega_gaussian_abl_delay_omega25_parameters.py",
+      "bytes": 7281,
+      "sha256": "bfca69a2701173f67978f6f0b1d5bf034ff2ad4b068a92564ca7b6677276e32c",
+      "md5": "bbe4dcf8656c1a5e0920e77df36632e9"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/posterior_boundary_audit.csv",
+      "bytes": 8397,
+      "sha256": "325d5f649f1fb969cf8944fd6f37f364704626ca1f85fb583a31bfcadb775c19",
+      "md5": "178338a8622afd9452f7538e22ff5ad7"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/prepare_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "bytes": 3234,
+      "sha256": "60462d6b4bac1a0fe92e0b12aeb07098e00d813503baff605b11b90c005ce41d",
+      "md5": "214dbdd0653f2b70009ade96dd3626e5"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/publish_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "bytes": 13794,
+      "sha256": "c303415513c07e2b05afcc941f5bd93f68427418b3afaf6538bd0fe2bc4acf56",
+      "md5": "1034d756381520edf8911ef1d21d55be"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/publish_shank3_gamma_omega_omega25_comparisons.py",
+      "bytes": 11260,
+      "sha256": "adc75506f15e6065b05eac4a7395b97d94ed095278fe9abe741cb82180adf3ae",
+      "md5": "5f711505ddc80335c52992b2dc95299b"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/reference_evidence_parameter_ranges.csv",
+      "bytes": 420,
+      "sha256": "12ae19d5695285e190666b9a47a573af7557035e750534796bd9ad015a320d6a",
+      "md5": "9e3525ee640064bfb35c8c47988d2286"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/resume_validation.json",
+      "bytes": 365,
+      "sha256": "6a9bd877f52a0e8c7e02693e471aae2d72f64adf95dd36d6f9cf735953cc70a4",
+      "md5": "d8d499c38f98a2db20bc2ebbd8608ab9"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/run_shank3_gamma_omega_gaussian_abl_delay_omega25_pipeline.py",
+      "bytes": 4438,
+      "sha256": "ebb6f1de5cb7604676030131fb4067beaa0a2d958ec915806389025eafc12657",
+      "md5": "f67220c53e8ad6bf2de701c22f1f491e"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/sensitivity_validation.json",
+      "bytes": 413,
+      "sha256": "5ee3e57364ef23fe02b94b0969f924cd0c15607f83cad9602dbf0337fd4f71bd",
+      "md5": "37a671681a7cc55ea5b29966af178c31"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_omega25_2x2.pdf",
+      "bytes": 34802,
+      "sha256": "7f8bd75f5688cc90dfa2b4d94eca14d28389474596f180c343ba249c6af6fa72",
+      "md5": "f401136c03c08118eea79373c392eaa7"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_omega25_2x2.png",
+      "bytes": 306720,
+      "sha256": "639bd1d3f88fe57f6bc3125a8fa44ded3fb5fd1cb8120ba8189866e4bd06e1d9",
+      "md5": "7f7daf4a9c0568286429ac758c7cb5dc"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/plot_shank3_gamma_omega_model_comparison_omega25.py",
+      "bytes": 9014,
+      "sha256": "187767f0113833bcbb5ad21a4c19f3eb20c7fcf907ed61e8ddb42a3b2674605b",
+      "md5": "25fb1fe97c2029ec0a09ef81747f94ce"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25_audits.zip",
+      "bytes": 64271,
+      "sha256": "8a522f6bac44ec4353389fa710d2d78fb77ef504b7fc8c17b9619526ce511cef",
+      "md5": "16e3e9b8204d5b1e5068b4c1969868b8"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/verify_shank3_gamma_omega_model_comparison_omega25.py",
+      "bytes": 7062,
+      "sha256": "7d51e7b6f596c3a3b86db40d31c64b8acd3b66d228d0e74961afbac9828c2c35",
+      "md5": "7fb8062d3883300d3df473dfe25ac83a"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_omega25_2x2.pdf",
+      "bytes": 21601,
+      "sha256": "12cd13086c07a70e4baaa463895e83d3778c6c822ccc55f10031bc3e3bd58b09",
+      "md5": "9bc387b512180f3a052627c371d1a6bc"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_omega25_2x2.png",
+      "bytes": 181529,
+      "sha256": "83bbb47edcf7824b50fbd0eb76c715c8dbd12b49b4fc0eae1c428e1c777c6a14",
+      "md5": "c0578e53104eb5669bf42f46447d4c7d"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/plot_shank3_gaussian_abl_delay_model_comparison_omega25.py",
+      "bytes": 7962,
+      "sha256": "5c332cefb498cae7366ad803de780d4f9ad902e39fd2a21a674abf8588ca1dff",
+      "md5": "0665debf806a8f96157f9ae09d78d392"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25_audits.zip",
+      "bytes": 13041,
+      "sha256": "a469567634d2b9323538c0b0ffeeeec6fca68e5fa259e85871633c8a989075d2",
+      "md5": "282ec94b3e01bb4e244edb011dcfd335"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/verify_shank3_gaussian_abl_delay_model_comparison_omega25.py",
+      "bytes": 5143,
+      "sha256": "4ad73b1b920539fcc9e1dfa82e6e4a4926e0131ec16eec636d9f9357481c1d76",
+      "md5": "207dcfa64edb05589d09f71cef2c484e"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_gamma_omega_gaussian_abl_delay_omega25_audits.zip",
+      "bytes": 53041851,
+      "sha256": "ce5f47203c5f5d08787a73882b6c8d0f0a7f8895709c014257ecb66f82a73519",
+      "md5": "8ff59bc6a19fd9574da00123ca3a0d73"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_gamma_omega_gaussian_abl_delay_omega25_utils.py",
+      "bytes": 6569,
+      "sha256": "f8e4c1ddcfafbd4e2fbdef70d10cae228cc7152be5adcc8e23a16d8ad9ac2149",
+      "md5": "082294bf3debf0b0cf7aea2c1d842b00"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/verify_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "bytes": 14741,
+      "sha256": "5be1580687725fad94e38369778cd3a0408837bce9954fce27d105965186602c",
+      "md5": "279313369e0834c4952b2f5c1127b950"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/verify_shank3_gamma_omega_gaussian_abl_delay_omega25_figures.py",
+      "bytes": 7519,
+      "sha256": "3e5e0108a90c5d2332efbb05a33e8caacff4e6a0a8d39e76b23fdbb8fdefa9d1",
+      "md5": "9fbca334d61d05dc15076c07dde38f70"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/verify_shank3_gamma_omega_omega25_resume.py",
+      "bytes": 2571,
+      "sha256": "6676190d550634deca584d47664df5f2e0cc951b6747534a9e94f924ac8025b6",
+      "md5": "a980e8b786659e9a582b1dca0e9a7103"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/verify_shank3_gamma_omega_omega25_sensitivity.py",
+      "bytes": 6090,
+      "sha256": "08b183c523ee971be531d5a07cfb0e0dcbb631f4c8a5e9a080979788cbd3ded6",
+      "md5": "ae43e2a98ecac4d4fe96ab219d964ade"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/visual_inspection.json",
+      "bytes": 1425,
+      "sha256": "2ac7579296f26798f86f3d02b9f0876b209995faf3bfefda1251948d12850438",
+      "md5": "b19fcdfd9747575e44fde9de35b7bb6a"
+    },
+    {
+      "path": "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/wt_in_sample_comparison.csv",
+      "bytes": 1351,
+      "sha256": "b50e602e03b8485e0ef1c98f33b79a9d771af55a98b610c49990df81bf017000",
+      "md5": "3d9765a4e3ea7738d59927df25e5c3e8"
+    },
+    {
+      "path": "ASD_Human_Data/gaussian_delay_likelihood.py",
+      "bytes": 13941,
+      "sha256": "82d4e9974ef5b1ce19db6a00cd6cea9453c654b98637e14dadc5566b2a46dffe",
+      "md5": "299c7a5f2fab1781c315413f388be737"
+    },
+    {
+      "path": "ASD_Human_Data/human_plain_ddm_diagnostics_utils.py",
+      "bytes": 6314,
+      "sha256": "23c25445918eb7249a3c9040255686d5675e584bab2c6c10ae555bd9d6ef75ab",
+      "md5": "3e9cdc702f851aaf024672dc548d9042"
+    },
+    {
+      "path": "asd_analysis/README.md",
+      "bytes": 104757,
+      "sha256": "6abd1f29588acf7a355fede5013f75168f4b2210dbba905e740af9a98d8da16c",
+      "md5": "dac06cf9e1591cb6f1fb184b57cf4f74"
+    },
+    {
+      "path": "asd_analysis/fit_shank3_gamma_omega_gaussian_abl_delay.py",
+      "bytes": 11070,
+      "sha256": "a85b318f22a684c7d97c793dc7f7b69a2568332feb683c90c9e5e1d2ff140e5f",
+      "md5": "a93328348f35af69836c595640d66699"
+    },
+    {
+      "path": "asd_analysis/fit_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "bytes": 11086,
+      "sha256": "5657d1e44e773364bc08403b5ff3f5e37d1e87555ef949fe45146a1b2ea17fde",
+      "md5": "73323c7a6b892b53a61073d6af682a61"
+    },
+    {
+      "path": "asd_analysis/fit_shank3_npl_alpha_gaussian_abl_delay.py",
+      "bytes": 11053,
+      "sha256": "f37cea4bcf9c68187a2396cfca2ac411894b3acb678701140eab4e8386417011",
+      "md5": "cdd75b976549b837f5eda5cf53c48b16"
+    },
+    {
+      "path": "asd_analysis/fit_shank3_npl_alpha_gaussian_abl_delay_batched.py",
+      "bytes": 11194,
+      "sha256": "5def7aad42276b30c954b80b1cbb34bbc12c6cd76a9ddff768f46f25d59ce579",
+      "md5": "b0801e1dc52aa7d772ba5ac9387b7e63"
+    },
+    {
+      "path": "asd_analysis/plot_shank3_gamma_omega_gaussian_abl_delay.py",
+      "bytes": 19158,
+      "sha256": "aacdcd0d16b18b190fb7b2ff4671b796e643539feb4cb3f7d9d3ed96a5baa5ca",
+      "md5": "a510177fb9a5d6d77c6c1b5e2847685d"
+    },
+    {
+      "path": "asd_analysis/plot_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "bytes": 19123,
+      "sha256": "6469ed030a4ea79e1dcd75a284df3bbb9bee83ca98c427d8bbc2fedf05cfd18c",
+      "md5": "19d44ef5dcf7facd44d938c9a6fce82c"
+    },
+    {
+      "path": "asd_analysis/plot_shank3_gamma_omega_gaussian_abl_delay_omega25_parameters.py",
+      "bytes": 7281,
+      "sha256": "bfca69a2701173f67978f6f0b1d5bf034ff2ad4b068a92564ca7b6677276e32c",
+      "md5": "bbe4dcf8656c1a5e0920e77df36632e9"
+    },
+    {
+      "path": "asd_analysis/plot_shank3_gamma_omega_gaussian_abl_delay_parameters.py",
+      "bytes": 7252,
+      "sha256": "17e41ae2ea02f2af822f7dcf09705cbca9a57b86b73781323e03182abe433119",
+      "md5": "c77975e9b32f08dc6932b71409c07929"
+    },
+    {
+      "path": "asd_analysis/plot_shank3_gamma_omega_model_comparison.py",
+      "bytes": 8967,
+      "sha256": "ce840e4faf386004edede4a3dbdb99cdba9418934c428dddabd663c68640e8c0",
+      "md5": "20375b8b2e09397ad3085eedd2074378"
+    },
+    {
+      "path": "asd_analysis/plot_shank3_gamma_omega_model_comparison_omega25.py",
+      "bytes": 9014,
+      "sha256": "187767f0113833bcbb5ad21a4c19f3eb20c7fcf907ed61e8ddb42a3b2674605b",
+      "md5": "25fb1fe97c2029ec0a09ef81747f94ce"
+    },
+    {
+      "path": "asd_analysis/plot_shank3_gaussian_abl_delay_model_comparison.py",
+      "bytes": 7921,
+      "sha256": "8368e67897e7db4f54fee7da9a4fa9b61ef8d3ccc5f4c9efdd25c144f4af153e",
+      "md5": "c0b101e1f834f37cbc3e589fafa6331a"
+    },
+    {
+      "path": "asd_analysis/plot_shank3_gaussian_abl_delay_model_comparison_omega25.py",
+      "bytes": 7962,
+      "sha256": "5c332cefb498cae7366ad803de780d4f9ad902e39fd2a21a674abf8588ca1dff",
+      "md5": "0665debf806a8f96157f9ae09d78d392"
+    },
+    {
+      "path": "asd_analysis/plot_shank3_npl_alpha_gaussian_abl_delay.py",
+      "bytes": 19127,
+      "sha256": "3d91f89cd9dd5a9945fd594bfc68e942659e6a2bd55304348d9a1aa6105cfb11",
+      "md5": "626310e1444add953120e62f315e95a5"
+    },
+    {
+      "path": "asd_analysis/plot_shank3_npl_alpha_gaussian_abl_delay_parameters.py",
+      "bytes": 5385,
+      "sha256": "9df6cdaad68b83f31f71ab59896ce2ea1af91eceab97799d64eaee6b68241894",
+      "md5": "ba0ba89ead12595e55c87e0d36a38759"
+    },
+    {
+      "path": "asd_analysis/prepare_shank3_gamma_omega_gaussian_abl_delay.py",
+      "bytes": 3226,
+      "sha256": "5f88f9ecddaa05319296124ae8cc18019896fc1fa18aa9292b8bcb77ff8831ee",
+      "md5": "c1e2c59919a01547af2fc7dcecedb053"
+    },
+    {
+      "path": "asd_analysis/prepare_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "bytes": 3234,
+      "sha256": "60462d6b4bac1a0fe92e0b12aeb07098e00d813503baff605b11b90c005ce41d",
+      "md5": "214dbdd0653f2b70009ade96dd3626e5"
+    },
+    {
+      "path": "asd_analysis/prepare_shank3_npl_alpha_gaussian_abl_delay.py",
+      "bytes": 3224,
+      "sha256": "7e48d80ce533aaeb6c4921c5bb00146d598fcd4dbc67ff07223a4964ebe52868",
+      "md5": "b7f0d05b8331278d81fdfd4df4186931"
+    },
+    {
+      "path": "asd_analysis/proactive_lapse_no_led_utils.py",
+      "bytes": 3351,
+      "sha256": "494fa090d9f0b12fa9d0e97618bf039c0e3ebb43ae0f5bbae4f1768dd8a754bd",
+      "md5": "f607b2905b39ccb9f489344236911981"
+    },
+    {
+      "path": "asd_analysis/publish_shank3_gamma_omega_gaussian_abl_delay.py",
+      "bytes": 12731,
+      "sha256": "e0ca4f5a7244c15cbf9c5f368489d30815f4221bc8169efdff3f53a5e4db0fa1",
+      "md5": "7213a5a74fb92d334d5ddb6e5d2cdf35"
+    },
+    {
+      "path": "asd_analysis/publish_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "bytes": 13794,
+      "sha256": "c303415513c07e2b05afcc941f5bd93f68427418b3afaf6538bd0fe2bc4acf56",
+      "md5": "1034d756381520edf8911ef1d21d55be"
+    },
+    {
+      "path": "asd_analysis/publish_shank3_gamma_omega_omega25_comparisons.py",
+      "bytes": 11260,
+      "sha256": "adc75506f15e6065b05eac4a7395b97d94ed095278fe9abe741cb82180adf3ae",
+      "md5": "5f711505ddc80335c52992b2dc95299b"
+    },
+    {
+      "path": "asd_analysis/publish_shank3_npl_alpha_gaussian_abl_delay.py",
+      "bytes": 13249,
+      "sha256": "25db3cbed297d5fd58f688270a0447fc2a682996209319f9a58b44a8398bdee1",
+      "md5": "3829bbf85cccccfb1616f91e2d631d85"
+    },
+    {
+      "path": "asd_analysis/run_shank3_gamma_omega_gaussian_abl_delay_omega25_pipeline.py",
+      "bytes": 4438,
+      "sha256": "ebb6f1de5cb7604676030131fb4067beaa0a2d958ec915806389025eafc12657",
+      "md5": "f67220c53e8ad6bf2de701c22f1f491e"
+    },
+    {
+      "path": "asd_analysis/run_shank3_gamma_omega_gaussian_abl_delay_pipeline.py",
+      "bytes": 4106,
+      "sha256": "adc367d6936706e9153e7556ae185f06aa34be805d50c7004b75ba47c6d141f2",
+      "md5": "1557a103e9a0f36d80e3aeb09bc3df43"
+    },
+    {
+      "path": "asd_analysis/run_shank3_npl_alpha_gaussian_abl_delay_pipeline.py",
+      "bytes": 4094,
+      "sha256": "0f62d823b5e05bf9432b4e6ad077fcdcc6d9cd8e38fbc8cb978ee5468424392d",
+      "md5": "b8357db200f9fcd8f26e942f015e4552"
+    },
+    {
+      "path": "asd_analysis/shank3_gamma_omega_gaussian_abl_delay_omega25_utils.py",
+      "bytes": 6569,
+      "sha256": "f8e4c1ddcfafbd4e2fbdef70d10cae228cc7152be5adcc8e23a16d8ad9ac2149",
+      "md5": "082294bf3debf0b0cf7aea2c1d842b00"
+    },
+    {
+      "path": "asd_analysis/shank3_gamma_omega_gaussian_abl_delay_utils.py",
+      "bytes": 6561,
+      "sha256": "f5fc80c9bac65f906412c391e73910e46b97e0c48b3796f46701f52423cfbf84",
+      "md5": "da4bf1ef407f50d3f5f1aea15399bfbc"
+    },
+    {
+      "path": "asd_analysis/shank3_gaussian_batched_refinement.py",
+      "bytes": 3796,
+      "sha256": "38274ec1c5e46b35ca3b38eeec6dc3083616323694abe949c3c0c2f76fb25d53",
+      "md5": "ee479173150a67d70b8f8bdae8267744"
+    },
+    {
+      "path": "asd_analysis/shank3_npl_alpha_gaussian_abl_delay_batched_utils.py",
+      "bytes": 814,
+      "sha256": "d558c23a5ab4a30c0b4398de9d5b7091f9870764af3d293f5f0208a9318e686f",
+      "md5": "efb215d2f6a2b83eb24a4b723fc8271d"
+    },
+    {
+      "path": "asd_analysis/shank3_npl_alpha_gaussian_abl_delay_utils.py",
+      "bytes": 2655,
+      "sha256": "317f3cb86cadfbe266634fe7b502135ffc086a6cb85897d2a637a87387ac0122",
+      "md5": "4ba4835942d3a3f85b81ca9095f0165f"
+    },
+    {
+      "path": "asd_analysis/shank3_npl_alpha_gaussian_utils.py",
+      "bytes": 7517,
+      "sha256": "3ff4c45f1c56b2aee7a2cddb505c99f9dd5ffdcef770836066be195531f42da2",
+      "md5": "63e82da29720ec892f9f499381c970f4"
+    },
+    {
+      "path": "asd_analysis/shank3_wt_gamma_omega_utils.py",
+      "bytes": 7873,
+      "sha256": "97dd8485781126a558b8b5c48d7a8aea4157e28bec54227e3492f76d82fdf96a",
+      "md5": "103d18dc21ccb560cdc1bd882f9c380c"
+    },
+    {
+      "path": "asd_analysis/shank3_wt_npl_alpha_utils.py",
+      "bytes": 2699,
+      "sha256": "8fb24f87b224f1c0d965a3d1ef228e524d63479a428aa2b6b659aefe2efba313",
+      "md5": "2db165d9766d995d3953d6664c5e3910"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_gamma_omega_gaussian_abl_delay.py",
+      "bytes": 14733,
+      "sha256": "c034dff5273cb9e86d5154a91dc5b2d7f1de4d8ac93ab69174f027069fb06144",
+      "md5": "c2c04cca8cc7cf3e2dc7661930538a2d"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_gamma_omega_gaussian_abl_delay_figures.py",
+      "bytes": 7511,
+      "sha256": "751689661ce7baab6cf5e72ac8f6e66b24d47628283a0437058e13c899c176d1",
+      "md5": "4f539f146ecd0c6fbf7a27917b2a8ea8"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_gamma_omega_gaussian_abl_delay_omega25.py",
+      "bytes": 14741,
+      "sha256": "5be1580687725fad94e38369778cd3a0408837bce9954fce27d105965186602c",
+      "md5": "279313369e0834c4952b2f5c1127b950"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_gamma_omega_gaussian_abl_delay_omega25_figures.py",
+      "bytes": 7519,
+      "sha256": "3e5e0108a90c5d2332efbb05a33e8caacff4e6a0a8d39e76b23fdbb8fdefa9d1",
+      "md5": "9fbca334d61d05dc15076c07dde38f70"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_gamma_omega_model_comparison.py",
+      "bytes": 7046,
+      "sha256": "bb9ad8c491593edc3a952fbd60a16ae25a9a8e3fdb845caccb1b1e1ee7dccf31",
+      "md5": "c0e34b4f54e980244b4d7f43ef41c573"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_gamma_omega_model_comparison_omega25.py",
+      "bytes": 7062,
+      "sha256": "7d51e7b6f596c3a3b86db40d31c64b8acd3b66d228d0e74961afbac9828c2c35",
+      "md5": "7fb8062d3883300d3df473dfe25ac83a"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_gamma_omega_omega25_resume.py",
+      "bytes": 2571,
+      "sha256": "6676190d550634deca584d47664df5f2e0cc951b6747534a9e94f924ac8025b6",
+      "md5": "a980e8b786659e9a582b1dca0e9a7103"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_gamma_omega_omega25_sensitivity.py",
+      "bytes": 6090,
+      "sha256": "08b183c523ee971be531d5a07cfb0e0dcbb631f4c8a5e9a080979788cbd3ded6",
+      "md5": "ae43e2a98ecac4d4fe96ab219d964ade"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_gaussian_abl_delay_model_comparison.py",
+      "bytes": 5127,
+      "sha256": "827d0ceb6d3429a0e27b089d463f63fbc0fac126ec780ba5c2a6cf0226682830",
+      "md5": "713d98b2ad485771879f83d1fcaa5089"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_gaussian_abl_delay_model_comparison_omega25.py",
+      "bytes": 5143,
+      "sha256": "4ad73b1b920539fcc9e1dfa82e6e4a4926e0131ec16eec636d9f9357481c1d76",
+      "md5": "207dcfa64edb05589d09f71cef2c484e"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_npl_alpha_gaussian_abl_delay.py",
+      "bytes": 14295,
+      "sha256": "2da93fbd7e61a49e93e8b1a896c7370e2d38e910d9b4b35da06c91d45d2146c8",
+      "md5": "c8bea3af207f8807aa0144b4e63e5d53"
+    },
+    {
+      "path": "asd_analysis/verify_shank3_npl_alpha_gaussian_abl_delay_figures.py",
+      "bytes": 6316,
+      "sha256": "e4b55808a34457d64c7e76019444a5f61162d22bba57a93ba89414ef3b9669c7",
+      "md5": "57589608555cf68c4c6523c9314e53ec"
+    },
+    {
+      "path": "docs/results/2026-11-08.md",
+      "bytes": 17445,
+      "sha256": "062f42edc3249154d076cd0800402943997d2763ef4782364c1288e68fcc30d6",
+      "md5": "f959b87a5208146afb97687cdd95aa5e"
+    },
+    {
+      "path": "docs/results/index.md",
+      "bytes": 5138,
+      "sha256": "b135805befdbaa081f06029b575d77f4c852e65611a3a7f47026cecc1c6a564c",
+      "md5": "b958fac7e9c9159b5ff1d26f9185787f"
+    },
+    {
+      "path": "fit_animal_by_animal/numpyro_npl_alpha_svi_utils.py",
+      "bytes": 19147,
+      "sha256": "034cf84b1e4ec6c8189d00553ca4be917480176757ea1553724b733676dc5db0",
+      "md5": "3d45f5a9ef91cbf903b1ea237a4d219b"
+    },
+    {
+      "path": "mkdocs.yml",
+      "bytes": 3283,
+      "sha256": "7d1ecf80d0d6e8fffa275a2c18547f19b1a6d1cb3cd58a7a4049d8a80a30c461",
+      "md5": "639f6c44e9031f08aa28043582e71638"
+    },
+    {
+      "path": "paper_notes/model_taxonomy_and_paper_notes.md",
+      "bytes": 7648,
+      "sha256": "00cd93c792103b374009ecc458e75d7136b24018024016b68eb7c3cc3490d830",
+      "md5": "249ffcc140e893c7c3501e8ad3b763cd"
+    },
+    {
+      "path": "scripts/backup_shank3_gaussian_omega25_to_drive_20261108.py",
+      "bytes": 8764,
+      "sha256": "cec782a9e85872ebf07724330b008cc04465655d7f63f97ca0a9052054c0b7de",
+      "md5": "62127b5db2b647acc24afc7b1f8ea345"
+    }
+  ]
+}

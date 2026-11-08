@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "inspection": "Full PNG and independently rendered single-page PDF visually inspected.",
+  "checked": [
+    "WT/HOM rows, correct parameter columns, colors and intervals/curves.",
+    "Equal square panels, full uncertainty ranges, readable axes, no clipping or grids."
+  ],
+  "artifacts": {
+    "SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_omega25_2x2.png": "83bbb47edcf7824b50fbd0eb76c715c8dbd12b49b4fc0eae1c428e1c777c6a14",
+    "SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_omega25_2x2.pdf": "12cd13086c07a70e4baaa463895e83d3778c6c822ccc55f10031bc3e3bd58b09"
+  },
+  "inspected_utc": "2026-11-08T13:54:21.954245+00:00"
+}

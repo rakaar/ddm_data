@@ -1,0 +1,414 @@
+{
+  "status": "generated_pending_verification",
+  "source_roots": {
+    "condition_gamma_omega": "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl",
+    "npl_alpha": "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl"
+  },
+  "source_runs": [
+    {
+      "model": "condition_gamma_omega",
+      "group": "wt",
+      "status": "converged",
+      "free_parameters": 68,
+      "restored_best_step": 128000,
+      "final_checked_step": 153000
+    },
+    {
+      "model": "condition_gamma_omega",
+      "group": "hom",
+      "status": "converged",
+      "free_parameters": 68,
+      "restored_best_step": 93000,
+      "final_checked_step": 118000
+    },
+    {
+      "model": "npl_alpha",
+      "group": "wt",
+      "status": "converged",
+      "free_parameters": 13,
+      "restored_best_step": 83000,
+      "final_checked_step": 108000
+    },
+    {
+      "model": "npl_alpha",
+      "group": "hom",
+      "status": "converged",
+      "free_parameters": 13,
+      "restored_best_step": 83000,
+      "final_checked_step": 108000
+    }
+  ],
+  "source_hashes": {
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/fit_trials.csv.gz": "11e6fc89e9235ad05aeb169bbf887154c3cb09b9c0f785de9e1ef6e02bff109a",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/parent_trials.csv.gz": "b1f5bb61bbd378b731c6e997a195dc9c1058ec80b26faafae3e14ff524071b38",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/conditions.csv": "072a54a2c3f8917a14731ba2faf265b1e307c116c4ea022fdee3096a39fda58a",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/membership.csv": "650149fdec9875a061eb14fb6b873f62e04ac84c7ed560221ff09cf3ef548761",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/fixed_proactive.json": "ff00ac31555eb32c31944d2eb835997ee2853ec301115bcb2e4c5e2a01893c1d",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/preparation.json": "692ceeee315d8509ee839897309fc9fab55f1484f6d01696b26b03b700be7b7f",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/configuration.json": "727cd00f095dc965dd0d64d57458f4af8fd34b6bdc1b2425e9c632df4d80074e",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/run_summary.json": "23a09f080c8fe371c60a049907aff0aff43ea5802656ce1b55ed48f628e20c69",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/posterior_samples.npz": "5568f6edc3eb3d1f63fbaa06154acb746efb7223a8e6c9ba8d36568aba62be1a",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/posterior_summary.csv": "2ab4e396b341a96d10c73cd40eed77c4914e22773aba4d1c8eea0e311d7a9854",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/losses.npy": "8791c8528189464c5ac9cc37826f946673d58c2998f273931d549862601a083b",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/best_checkpoint.pkl": "a802eeeb8fd600c7113e640d0d7a55b4ba04cc7234d77a8822c304d2d6e95bfc",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/wt/seed_0/latest_checkpoint.pkl": "924486917353fddebea5cb65e3f8c6cb37a34ffba96105a4bb596575c950e250",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/fit_trials.csv.gz": "77aed082b6b4631ab27a9c35108c0a38d702ba1dac73c40c159d16a006d75a24",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/parent_trials.csv.gz": "a3e98cde8af24a83e0bce199481f5986733d0c166b62c3d0eaae4a146e464993",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/conditions.csv": "dd26637ca308ece39ffb0bd0cd16ee971af8a2eb4b0288483792c899a215e4c9",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/membership.csv": "411da7fe909a7de4010f8a7f59be1bd9582c74bb319a5cbe0f969b32205fd94c",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/fixed_proactive.json": "8576c7cb6e8aef8f7891b6aa2974defcb12bed0ee79467547adb9ca69e270ea7",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/preparation.json": "4de326c76d042bee62ee783b2680352d846aa789642572ee06aaf2f61275351e",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/configuration.json": "bec97b203928dd994c2fcd6bfd7a4fa7e08a408c14fd142001caa4b1bea1e46d",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/run_summary.json": "686e7debe643cff8d4710b13f5ebc92101c4aced914290654ab9c5157e98c5d8",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/posterior_samples.npz": "aaeb79cc5917343181ce7764af246dd98c5a48db561cc8c074d1a9a6d8bc89aa",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/posterior_summary.csv": "de2d97829358072f9aaa7ea4f9da4c8d26e2c07575ad9a8cb652d53bdd95f93c",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/losses.npy": "cbdc862e087297766fa4c5a3f2b515427891b53971d27d189222de32fc6fd417",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/best_checkpoint.pkl": "439f9ba3b60cc6d230aac51fc4057cbc405aa8c08d2cd5d76830d1e34c4bfb60",
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl/hom/seed_0/latest_checkpoint.pkl": "c0312e1454504a93fb4280f3af73fd0db09b637227c404fd6044aa9314405a34",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/fit_trials.csv.gz": "11e6fc89e9235ad05aeb169bbf887154c3cb09b9c0f785de9e1ef6e02bff109a",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/parent_trials.csv.gz": "b1f5bb61bbd378b731c6e997a195dc9c1058ec80b26faafae3e14ff524071b38",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/conditions.csv": "072a54a2c3f8917a14731ba2faf265b1e307c116c4ea022fdee3096a39fda58a",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/membership.csv": "650149fdec9875a061eb14fb6b873f62e04ac84c7ed560221ff09cf3ef548761",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/fixed_proactive.json": "ff00ac31555eb32c31944d2eb835997ee2853ec301115bcb2e4c5e2a01893c1d",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/preparation.json": "c93c0b7ab74f280968253b110a720b2b37e4d0d1b82dc0cb60ed17b37c9c7a8e",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/configuration.json": "5dbb3c57a9463e2306027045df9a2b19546227b7b296291b536c96153315fb87",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/run_summary.json": "2fb66904271532bd68fe9d7faa4d0f702e97aaa97dd69eb56fc7d180b3626f0c",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/posterior_samples.npz": "528b3a986b3e7379ed594bbaa05ca09fb459f7db614941acbe5d575fa52f5f8d",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/posterior_summary.csv": "e3814d232f8b3e14172a27f88a8c2299bb9a540069e78cdcca0b400d08d35a4e",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/losses.npy": "54e1c40d482cf9edd881bd8d017fc305ce3be158960d099a79a842a8f32848dc",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/best_checkpoint.pkl": "fd2a1c9d089bca55571dd1dd39c059406782fde2ab57d116579ac55428d1848b",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/wt/seed_0/latest_checkpoint.pkl": "6d84f6f24db11000c8dc0f7c827d1ba4791a762b64e86beba223f874a120e5bb",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/fit_trials.csv.gz": "77aed082b6b4631ab27a9c35108c0a38d702ba1dac73c40c159d16a006d75a24",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/parent_trials.csv.gz": "a3e98cde8af24a83e0bce199481f5986733d0c166b62c3d0eaae4a146e464993",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/conditions.csv": "dd26637ca308ece39ffb0bd0cd16ee971af8a2eb4b0288483792c899a215e4c9",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/membership.csv": "411da7fe909a7de4010f8a7f59be1bd9582c74bb319a5cbe0f969b32205fd94c",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/fixed_proactive.json": "8576c7cb6e8aef8f7891b6aa2974defcb12bed0ee79467547adb9ca69e270ea7",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/preparation.json": "2563de223631f951bb2cb4633056d234de9090d5083c3c04b20c84a5c6d0f896",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/configuration.json": "749895c34e5add5094cc36054d21b3f17ecce64a1f3135aa79036c34c593a5a4",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/run_summary.json": "3374290606d28f49314f4cf10e051c4f3c64d2c3d21f333842a9ced754321058",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/posterior_samples.npz": "7ef316ea805ae811bd8e3040c1b909dc5a54a7d17a1c3d13c2631dee6fca0ffa",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/posterior_summary.csv": "f82f26d57e9137474f08837fc99eb8129c0acd5a45ed31432ebbe5bbcb0e2ece",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/losses.npy": "be7a1333b04f03d3971ef54a8229563ba9d87ddacb4e1b02de47adb6648cb956",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/best_checkpoint.pkl": "623eb5181f4e4984c63d17943e48e0b40467f1a8842356d9d2681d59a726dedc",
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl/hom/seed_0/latest_checkpoint.pkl": "ca408eed75faec80297307f6aa97bb16653ac4bbf3edcec2952c87901f225917"
+  },
+  "plotted_estimates": 24,
+  "panels": 4,
+  "groups": [
+    "wt",
+    "hom"
+  ],
+  "ABLs": [
+    20,
+    40,
+    60
+  ],
+  "blocks": [
+    "delay_mu",
+    "delay_sigma"
+  ],
+  "colors": {
+    "condition_gamma_omega": "#000000",
+    "npl_alpha": "#1f77b4"
+  },
+  "markers": {
+    "condition_gamma_omega": "o",
+    "npl_alpha": "s"
+  },
+  "geometry": [
+    {
+      "panel": "wt_delay_mu",
+      "width_inches": 2.8,
+      "height_inches": 2.8,
+      "ylim": [
+        86.09653732694726,
+        110.8039851493713
+      ]
+    },
+    {
+      "panel": "wt_delay_sigma",
+      "width_inches": 2.8,
+      "height_inches": 2.8,
+      "ylim": [
+        12.065328928123169,
+        26.711902638560034
+      ]
+    },
+    {
+      "panel": "hom_delay_mu",
+      "width_inches": 2.8,
+      "height_inches": 2.8,
+      "ylim": [
+        86.09653732694726,
+        110.8039851493713
+      ]
+    },
+    {
+      "panel": "hom_delay_sigma",
+      "width_inches": 2.8,
+      "height_inches": 2.8,
+      "ylim": [
+        12.065328928123169,
+        26.711902638560034
+      ]
+    }
+  ],
+  "artists": [
+    {
+      "panel": "wt_delay_mu",
+      "model": "condition_gamma_omega",
+      "color": "#000000",
+      "marker": "o",
+      "ABL": [
+        20,
+        40,
+        60
+      ],
+      "x": [
+        -0.07,
+        0.9299999999999999,
+        1.93
+      ],
+      "mean_ms": [
+        90.93755471726404,
+        100.18216287299788,
+        89.89116943362959
+      ],
+      "lower95_ms": [
+        88.94677160069095,
+        98.73705921932996,
+        88.4875806646012
+      ],
+      "upper95_ms": [
+        92.93320555924932,
+        101.61602968108183,
+        91.29991078211002
+      ]
+    },
+    {
+      "panel": "wt_delay_mu",
+      "model": "npl_alpha",
+      "color": "#1f77b4",
+      "marker": "s",
+      "ABL": [
+        20,
+        40,
+        60
+      ],
+      "x": [
+        0.07,
+        1.07,
+        2.07
+      ],
+      "mean_ms": [
+        93.78093484249564,
+        100.1653694846795,
+        94.86531582310798
+      ],
+      "lower95_ms": [
+        91.75297068334082,
+        98.85532168403184,
+        93.42958768102346
+      ],
+      "upper95_ms": [
+        95.79840813326716,
+        101.52112322107203,
+        96.29727825048076
+      ]
+    },
+    {
+      "panel": "wt_delay_sigma",
+      "model": "condition_gamma_omega",
+      "color": "#000000",
+      "marker": "o",
+      "ABL": [
+        20,
+        40,
+        60
+      ],
+      "x": [
+        -0.07,
+        0.9299999999999999,
+        1.93
+      ],
+      "mean_ms": [
+        14.734261225118043,
+        17.09511892024012,
+        19.28268357909197
+      ],
+      "lower95_ms": [
+        13.482739287197704,
+        16.230202069003305,
+        18.22133732818456
+      ],
+      "upper95_ms": [
+        16.093815096446107,
+        17.98666306472606,
+        20.400341024554617
+      ]
+    },
+    {
+      "panel": "wt_delay_sigma",
+      "model": "npl_alpha",
+      "color": "#1f77b4",
+      "marker": "s",
+      "ABL": [
+        20,
+        40,
+        60
+      ],
+      "x": [
+        0.07,
+        1.07,
+        2.07
+      ],
+      "mean_ms": [
+        15.853282665865384,
+        17.22664078708944,
+        19.88528815346894
+      ],
+      "lower95_ms": [
+        14.56373958843425,
+        16.399005633724244,
+        19.13461256682738
+      ],
+      "upper95_ms": [
+        17.281059587659698,
+        18.101680903741354,
+        20.67891897671067
+      ]
+    },
+    {
+      "panel": "hom_delay_mu",
+      "model": "condition_gamma_omega",
+      "color": "#000000",
+      "marker": "o",
+      "ABL": [
+        20,
+        40,
+        60
+      ],
+      "x": [
+        -0.07,
+        0.9299999999999999,
+        1.93
+      ],
+      "mean_ms": [
+        99.41141670261044,
+        103.31804569735878,
+        99.35399202744554
+      ],
+      "lower95_ms": [
+        97.00547574171956,
+        101.60833139651551,
+        97.72700115763065
+      ],
+      "upper95_ms": [
+        101.7985447404898,
+        105.02131398249563,
+        100.96816344552647
+      ]
+    },
+    {
+      "panel": "hom_delay_mu",
+      "model": "npl_alpha",
+      "color": "#1f77b4",
+      "marker": "s",
+      "ABL": [
+        20,
+        40,
+        60
+      ],
+      "x": [
+        0.07,
+        1.07,
+        2.07
+      ],
+      "mean_ms": [
+        100.47079682181355,
+        106.80112502983134,
+        99.96921230304855
+      ],
+      "lower95_ms": [
+        97.91771380686416,
+        105.22728367411176,
+        98.19935426704868
+      ],
+      "upper95_ms": [
+        103.00939108385799,
+        108.41294181171736,
+        101.73475976837777
+      ]
+    },
+    {
+      "panel": "hom_delay_sigma",
+      "model": "condition_gamma_omega",
+      "color": "#000000",
+      "marker": "o",
+      "ABL": [
+        20,
+        40,
+        60
+      ],
+      "x": [
+        -0.07,
+        0.9299999999999999,
+        1.93
+      ],
+      "mean_ms": [
+        17.385491445138555,
+        17.318004958649556,
+        24.229577723799338
+      ],
+      "lower95_ms": [
+        15.574819919669734,
+        16.1146989509922,
+        23.184617016643138
+      ],
+      "upper95_ms": [
+        19.321138233580697,
+        18.562068786527256,
+        25.2944922794855
+      ]
+    },
+    {
+      "panel": "hom_delay_sigma",
+      "model": "npl_alpha",
+      "color": "#1f77b4",
+      "marker": "s",
+      "ABL": [
+        20,
+        40,
+        60
+      ],
+      "x": [
+        0.07,
+        1.07,
+        2.07
+      ],
+      "mean_ms": [
+        16.002421361471765,
+        17.73380398567066,
+        21.979819093957886
+      ],
+      "lower95_ms": [
+        14.108520998180204,
+        16.564640801196425,
+        21.008905502911496
+      ],
+      "upper95_ms": [
+        18.192843779333344,
+        18.996675487498074,
+        23.015782332387683
+      ]
+    }
+  ],
+  "units": "ms",
+  "interval": "central 2.5th\u201397.5th percentiles of variational posterior draws",
+  "interpretation": "underlying Gaussian mu/sigma; no truncation or RT-window moment transformation",
+  "artifacts": {
+    "SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_2x2.png": "f62e6f279d5c3716278b524f916bddb141471cdb6016496d50e8b2c4f28f29c6",
+    "SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_2x2.pdf": "dab03f9b10f3b8151d4e0b66f322894df7fc17330a31bc458bdb2a5bb6115a30"
+  },
+  "source_sha256": "8368e67897e7db4f54fee7da9a4fa9b61ef8d3ccc5f4c9efdd25c144f4af153e"
+}

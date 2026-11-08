@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "updates": 15,
+  "interruption_after": 5,
+  "restored_best_step": 10,
+  "exact_losses": true,
+  "exact_posterior_draws": true,
+  "parameter_count": 68,
+  "omega_hard_upper": 25,
+  "maximum_limit_classification": "inconclusive without confirmation",
+  "folders": [
+    "wt/validation_smoke_resume",
+    "wt/validation_smoke_straight"
+  ]
+}

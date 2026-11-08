@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "panels": 4,
+  "direct_posterior_points": 120,
+  "credible_intervals": 120,
+  "continuous_curve_rows": 1926,
+  "independent_mapped_values": 3852,
+  "plotted_curves": 8,
+  "maximum_independent_mapping_error": 1.4210854715202004e-14,
+  "formula_agrees_at_all_60_fitted_conditions": true,
+  "Gamma_ABL_invariance_verified": true,
+  "exact_trial_populations_and_frozen_values_match": true,
+  "source_hashes_unchanged": 28,
+  "units_and_display_offsets_verified": true,
+  "all_points_intervals_and_curves_unclipped": true,
+  "artifacts": {
+    "SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_2x2.png": "67e2a252d571c6db35ba19f77f93b066e242962557488fd68d96394c0ffe5c29",
+    "SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_2x2.pdf": "5ca470e88f70fc0b5eea5a596e9a9ceaaec6a4f054d5817ef29177171123b6e9"
+  }
+}

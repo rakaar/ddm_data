@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "only_prior_change": {
+    "omega_hard_upper": [
+      15,
+      25
+    ]
+  },
+  "omega_flat_interval": [
+    0.1,
+    12
+  ],
+  "identical_physical_initialization_and_rng": true,
+  "identical_trials_and_fixed_parameters": true,
+  "parameter_count": 68
+}

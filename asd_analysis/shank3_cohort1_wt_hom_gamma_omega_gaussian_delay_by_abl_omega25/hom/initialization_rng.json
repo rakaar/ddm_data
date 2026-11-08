@@ -1,0 +1,22 @@
+{
+  "generator": "numpy.default_rng/PCG64",
+  "seed": 0,
+  "before": {
+    "bit_generator": "PCG64",
+    "state": {
+      "state": 35399562948360463058890781895381311971,
+      "inc": 87136372517582989555478159403783844777
+    },
+    "has_uint32": 0,
+    "uinteger": 0
+  },
+  "after": {
+    "bit_generator": "PCG64",
+    "state": {
+      "state": 231945483103967136464297967145845145967,
+      "inc": 87136372517582989555478159403783844777
+    },
+    "has_uint32": 0,
+    "uinteger": 0
+  }
+}

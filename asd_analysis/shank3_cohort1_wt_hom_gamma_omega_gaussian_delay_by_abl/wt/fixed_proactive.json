@@ -1,0 +1,19 @@
+{
+  "parameter_order": [
+    "V_A",
+    "theta_A",
+    "t_nd",
+    "lapse_prob",
+    "beta_lapse"
+  ],
+  "values": [
+    1.4484797928707815,
+    2.250058912562228,
+    0.02194949665860899,
+    0.07067394825050298,
+    3.3231470537844783
+  ],
+  "selected_seed": 0,
+  "source": "asd_analysis/shank3_cohort1_proactive_lapse/wt/seed_0/posterior_summary.csv",
+  "uncertainty": "Fixed physical posterior means; no propagation of abort-fit uncertainty"
+}

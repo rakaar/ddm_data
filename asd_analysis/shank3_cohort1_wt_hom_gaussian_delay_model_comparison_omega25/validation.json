@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "panels": 4,
+  "posterior_estimates": 24,
+  "credible_intervals": 24,
+  "posterior_draws_per_fit": 10000,
+  "means_quantiles_units_verified": true,
+  "exact_trial_populations_match": true,
+  "fixed_proactive_lapse_values_match": true,
+  "source_hashes_unchanged": 52,
+  "equal_square_axes_verified": true,
+  "shared_column_scales": true,
+  "all_intervals_unclipped": true,
+  "artifacts": {
+    "SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_omega25_2x2.png": "83bbb47edcf7824b50fbd0eb76c715c8dbd12b49b4fc0eae1c428e1c777c6a14",
+    "SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_omega25_2x2.pdf": "12cd13086c07a70e4baaa463895e83d3778c6c822ccc55f10031bc3e3bd58b09"
+  }
+}

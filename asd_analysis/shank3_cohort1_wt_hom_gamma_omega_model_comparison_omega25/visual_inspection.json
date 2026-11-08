@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "inspection": "Full PNG and independently rendered single-page PDF visually inspected.",
+  "checked": [
+    "WT/HOM rows, correct parameter columns, colors and intervals/curves.",
+    "Equal square panels, full uncertainty ranges, readable axes, no clipping or grids."
+  ],
+  "artifacts": {
+    "SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_omega25_2x2.png": "639bd1d3f88fe57f6bc3125a8fa44ded3fb5fd1cb8120ba8189866e4bd06e1d9",
+    "SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_omega25_2x2.pdf": "7f8bd75f5688cc90dfa2b4d94eca14d28389474596f180c343ba249c6af6fa72"
+  },
+  "inspected_utc": "2026-11-08T13:54:21.954918+00:00"
+}

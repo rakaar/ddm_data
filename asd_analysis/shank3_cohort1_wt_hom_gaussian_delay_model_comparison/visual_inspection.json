@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "inspected_utc": "2026-11-08T13:01:28.932704+00:00",
+  "artifacts": {
+    "SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_2x2.png": "f62e6f279d5c3716278b524f916bddb141471cdb6016496d50e8b2c4f28f29c6",
+    "SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_2x2.pdf": "dab03f9b10f3b8151d4e0b66f322894df7fc17330a31bc458bdb2a5bb6115a30"
+  },
+  "checks": [
+    "WT top / HOM bottom",
+    "mu left / sigma right",
+    "model-specific colors and markers",
+    "four equal square axes",
+    "95% credible intervals unclipped",
+    "shared y-scale within parameter columns",
+    "no grids or connecting lines",
+    "readable non-overlapping labels and legends",
+    "single-page PDF rendered and inspected"
+  ]
+}

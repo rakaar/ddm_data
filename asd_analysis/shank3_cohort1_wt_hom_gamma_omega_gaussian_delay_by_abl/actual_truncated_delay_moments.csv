@@ -1,0 +1,13 @@
+group,abl_index,ABL,quantity,posterior_mean_s,lower95_s,upper95_s,population
+wt,0,20,truncated_mean,0.090937554814029417,0.088946771611628436,0.092933205566782431,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs
+wt,0,20,truncated_sd,0.014734260944929139,0.013482739285168174,0.016093813125564731,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs
+wt,1,40,truncated_mean,0.10018216319863515,0.098737059633100199,0.10161603044568478,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs
+wt,1,40,truncated_sd,0.017095117983983815,0.01623020194860263,0.017986659911256236,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs
+wt,2,60,truncated_mean,0.089891338653593805,0.088487695139818662,0.091300029472980992,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs
+wt,2,60,truncated_sd,0.019282294480890458,0.018221204543724379,0.02039940847817049,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs
+hom,0,20,truncated_mean,0.099411418463023302,0.097005475801137706,0.10179855185032197,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs
+hom,0,20,truncated_sd,0.017385486777258749,0.015574819865898272,0.019321123692708709,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs
+hom,1,40,truncated_mean,0.10331804593708034,0.10160833153552147,0.10502131486756465,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs
+hom,1,40,truncated_sd,0.017318004268899137,0.016114698909669819,0.018562065335996726,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs
+hom,2,60,truncated_mean,0.099356259093793489,0.097729146456770041,0.10097134357369032,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs
+hom,2,60,truncated_sd,0.024224957853721502,0.023182247846384431,0.025286331224768314,zero-truncated sensory delay before RT-window selection; shared across ten signed ILDs

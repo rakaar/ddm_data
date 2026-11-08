@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "page": "http://127.0.0.1:8000/results/2026-11-08/#shank3-cohort-1-wthom-condition-specific-gammaomega-versus-continuous-nplalpha",
+  "direct_png_embed": true,
+  "http_200_downloads": 9,
+  "numerical_validation": "passed",
+  "visual_inspection": "passed",
+  "strict_mkdocs_build": "passed",
+  "source_hashes_unchanged": 28
+}

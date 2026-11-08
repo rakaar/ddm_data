@@ -1,0 +1,56 @@
+{
+  "status": "verified",
+  "machine": "lavos",
+  "remote": "raga:ddm_fit_backups_20261108_shank3_wt_hom_gaussian_omega25_lavos/20261108_141011",
+  "local_snapshot": "/home/rlab/raghavendra/ddm_data/backup_staging/shank3_gaussian_omega25_20261108_141011",
+  "drive_url": "https://drive.google.com/drive/folders/1_Bjnht1qsA9FAP8qIj-STSozuR7rBxoK",
+  "files": 566,
+  "bytes": 385769807,
+  "source_files_unchanged": 564,
+  "exact_paths_sizes_md5": true,
+  "rclone_check": "passed",
+  "source_sha256_check": "passed",
+  "finished_utc": "2026-11-08T14:17:23.502475+00:00",
+  "per_directory": {
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl_omega25": {
+      "files": 141,
+      "bytes": 115167360
+    },
+    "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25": {
+      "files": 7,
+      "bytes": 227748
+    },
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25": {
+      "files": 8,
+      "bytes": 623837
+    },
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_gaussian_delay_by_abl": {
+      "files": 122,
+      "bytes": 115114003
+    },
+    "asd_analysis/shank3_cohort1_wt_hom_gaussian_delay_model_comparison": {
+      "files": 9,
+      "bytes": 238274
+    },
+    "asd_analysis/shank3_cohort1_wt_hom_gamma_omega_model_comparison": {
+      "files": 10,
+      "bytes": 685232
+    },
+    "asd_analysis/shank3_cohort1_wt_hom_npl_alpha_gaussian_delay_by_abl": {
+      "files": 135,
+      "bytes": 91108628
+    },
+    "asd_analysis/shank3_cohort1_proactive_lapse/wt": {
+      "files": 16,
+      "bytes": 3194648
+    },
+    "asd_analysis/shank3_cohort1_proactive_lapse/hom": {
+      "files": 16,
+      "bytes": 3429234
+    },
+    "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25": {
+      "files": 46,
+      "bytes": 55262560
+    }
+  }
+}

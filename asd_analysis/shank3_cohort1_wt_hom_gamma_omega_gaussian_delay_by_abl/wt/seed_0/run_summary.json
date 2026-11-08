@@ -1,0 +1,20 @@
+{
+  "status": "converged",
+  "parameter_count": 68,
+  "seed": 0,
+  "stop_reason": "confirmed_minimum_and_loss_patience",
+  "final_checked_step": 153000,
+  "restored_best_step": 128000,
+  "best_window_negative_elbo": -71221.89761569585,
+  "confirmation_windows": 25,
+  "parameter_stability_required": false,
+  "terminal_parameter_stable": false,
+  "restored_parameter_stable": false,
+  "valid_trials": 68184,
+  "animals": 5,
+  "posterior_draws": 10000,
+  "posterior_mean_joint_log_likelihood": 71592.24673100412,
+  "posterior_mean_rt_log_likelihood": 100581.15341788394,
+  "elapsed_seconds_this_invocation": 1104.4284357998986,
+  "initializations": 1
+}

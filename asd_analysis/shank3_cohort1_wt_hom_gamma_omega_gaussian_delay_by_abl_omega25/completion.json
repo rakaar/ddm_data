@@ -1,0 +1,12 @@
+{
+  "status": "published",
+  "png_embeds": 7,
+  "page": "docs/results/2026-11-08.md",
+  "title": "SHANK3 cohort 1 WT/HOM: Gamma/Omega refits with Omega upper bound 25",
+  "comparisons": [
+    "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gaussian_delay_model_comparison_omega25/SHANK3_cohort1_WT_HOM_gaussian_ABL_delay_model_comparison_omega25_2x2.png",
+    "docs/assets/results/2026-11-08/shank3_gamma_omega_gaussian_abl_delay_omega25/shank3_cohort1_wt_hom_gamma_omega_model_comparison_omega25/SHANK3_cohort1_WT_HOM_Gamma_Omega_direct_vs_NPL_alpha_omega25_2x2.png"
+  ],
+  "strict_mkdocs_build": "passed",
+  "previous_fits_preserved": true
+}

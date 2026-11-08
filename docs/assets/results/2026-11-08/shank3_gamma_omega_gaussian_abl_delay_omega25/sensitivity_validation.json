@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "previous_files_preserved": 286,
+  "parameter_comparisons": 136,
+  "only_changed_prior": "Omega hard upper 15 to 25; flat interval remains 0.1 to 12",
+  "identical_initialization": true,
+  "identical_trials_and_fixed_values": true,
+  "identical_other_settings": true,
+  "empirical_arrays_unchanged": true,
+  "comparison": "in-sample posterior-mean plug-in; one initialization per fit"
+}

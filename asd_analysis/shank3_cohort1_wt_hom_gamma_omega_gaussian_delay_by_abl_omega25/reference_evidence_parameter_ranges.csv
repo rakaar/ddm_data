@@ -1,0 +1,5 @@
+group,reference_model,parameter,minimum,maximum,conditions_above_direct_omega_upper
+wt,NPL+alpha; Gaussian delays by ABL,gamma,-1.8871134908493443,1.8871134908493443,0
+wt,NPL+alpha; Gaussian delays by ABL,omega,6.0171893044198148,22.676294647508641,0
+hom,NPL+alpha; Gaussian delays by ABL,gamma,-1.4227434647813828,1.4227434647813828,0
+hom,NPL+alpha; Gaussian delays by ABL,omega,5.0748698085650128,20.857485853644903,0

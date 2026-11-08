@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "page": "http://127.0.0.1:8000/results/2026-11-08/#shank3-cohort-1-wthom-gaussian-delay-comparison-between-gammaomega-and-nplalpha",
+  "direct_png_embed": true,
+  "http_200_downloads": 8,
+  "strict_mkdocs_build": "passed",
+  "source_hashes_unchanged": 52,
+  "visual_inspection": "passed"
+}
