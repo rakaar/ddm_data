@@ -1,5 +1,9 @@
 # %%
-"""Proactive LED step-jump with fixation-time Uniform(0, 2.2 s) lapses."""
+"""Fixation-time uniform lapses; default width remains fixed at 2.2 s.
+
+The likelihood accepts an explicit width_lapse for gradient-free cutoff fits.
+The historical NumPyro SVI model below still fits only its original six parameters.
+"""
 
 # %%
 from collections import OrderedDict
@@ -25,20 +29,21 @@ DEFAULT_INIT_VALUES = {
 
 # %%
 # Both density and survival use fixation time, not time relative to LED onset.
-def uniform_lapse_logpdf_jax(t):
+def uniform_lapse_logpdf_jax(t, width=UNIFORM_END_S):
     t = jnp.asarray(t, dtype=jnp.float64)
-    return jnp.where((t >= 0.0) & (t < UNIFORM_END_S), -jnp.log(UNIFORM_END_S), -jnp.inf)
+    return jnp.where((t >= 0.0) & (t < width), -jnp.log(width), -jnp.inf)
 
 
-def uniform_lapse_logsurvival_jax(t):
+def uniform_lapse_logsurvival_jax(t, width=UNIFORM_END_S):
     t = jnp.asarray(t, dtype=jnp.float64)
-    inside = (t > 0.0) & (t < UNIFORM_END_S)
-    safe_fraction = jnp.where(inside, t / UNIFORM_END_S, 0.0)
-    return jnp.where(t >= UNIFORM_END_S, -jnp.inf, jnp.log1p(-safe_fraction))
+    inside = (t > 0.0) & (t < width)
+    safe_fraction = jnp.where(inside, t / width, 0.0)
+    return jnp.where(t >= width, -jnp.inf, jnp.log1p(-safe_fraction))
 
 
 def proactive_led_step_jump_no_trunc_lapse_loglike_jax(params, data, n_quad=64):
     p = params["lapse_prob"]
+    width = params.get("width_lapse", UNIFORM_END_S)
     common = (
         params["V_A_base"], params["V_A_post_LED"], params["theta_A"],
         params["del_a_minus_del_LED"], params["del_m_plus_del_LED"],
@@ -51,10 +56,10 @@ def proactive_led_step_jump_no_trunc_lapse_loglike_jax(params, data, n_quad=64):
     off_pdf = exponential.led_off_pdf_jax(data["off_abort_t"], *off_common)
     off_survival = 1.0 - exponential.led_off_cdf_jax(data["off_censored_t_stim"], *off_common)
     terms = (
-        (on_pdf, uniform_lapse_logpdf_jax(data["on_abort_t"])),
-        (on_survival, uniform_lapse_logsurvival_jax(data["on_censored_t_stim"])),
-        (off_pdf, uniform_lapse_logpdf_jax(data["off_abort_t"])),
-        (off_survival, uniform_lapse_logsurvival_jax(data["off_censored_t_stim"])),
+        (on_pdf, uniform_lapse_logpdf_jax(data["on_abort_t"], width)),
+        (on_survival, uniform_lapse_logsurvival_jax(data["on_censored_t_stim"], width)),
+        (off_pdf, uniform_lapse_logpdf_jax(data["off_abort_t"], width)),
+        (off_survival, uniform_lapse_logsurvival_jax(data["off_censored_t_stim"], width)),
     )
     return sum(
         jnp.sum(exponential.log_probability_mixture_jax(exponential._log_positive(proactive), lapse, p))

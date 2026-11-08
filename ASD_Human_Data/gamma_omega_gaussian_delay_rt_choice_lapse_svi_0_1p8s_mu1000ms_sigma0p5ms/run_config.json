@@ -1,0 +1,292 @@
+{
+  "model": "reactive-only condition-wise Gamma/Omega/Gaussian mu/sigma, shared w and uniform lapse",
+  "mode": "gaussian_delay_lapse",
+  "free_parameters_per_group": 83,
+  "parameter_names": [
+    "gamma_00",
+    "gamma_01",
+    "gamma_02",
+    "gamma_03",
+    "gamma_04",
+    "gamma_05",
+    "gamma_06",
+    "gamma_07",
+    "gamma_08",
+    "gamma_09",
+    "gamma_10",
+    "gamma_11",
+    "gamma_12",
+    "gamma_13",
+    "gamma_14",
+    "gamma_15",
+    "gamma_16",
+    "gamma_17",
+    "gamma_18",
+    "gamma_19",
+    "omega_00",
+    "omega_01",
+    "omega_02",
+    "omega_03",
+    "omega_04",
+    "omega_05",
+    "omega_06",
+    "omega_07",
+    "omega_08",
+    "omega_09",
+    "omega_10",
+    "omega_11",
+    "omega_12",
+    "omega_13",
+    "omega_14",
+    "omega_15",
+    "omega_16",
+    "omega_17",
+    "omega_18",
+    "omega_19",
+    "delay_mu_00",
+    "delay_mu_01",
+    "delay_mu_02",
+    "delay_mu_03",
+    "delay_mu_04",
+    "delay_mu_05",
+    "delay_mu_06",
+    "delay_mu_07",
+    "delay_mu_08",
+    "delay_mu_09",
+    "delay_mu_10",
+    "delay_mu_11",
+    "delay_mu_12",
+    "delay_mu_13",
+    "delay_mu_14",
+    "delay_mu_15",
+    "delay_mu_16",
+    "delay_mu_17",
+    "delay_mu_18",
+    "delay_mu_19",
+    "delay_sigma_00",
+    "delay_sigma_01",
+    "delay_sigma_02",
+    "delay_sigma_03",
+    "delay_sigma_04",
+    "delay_sigma_05",
+    "delay_sigma_06",
+    "delay_sigma_07",
+    "delay_sigma_08",
+    "delay_sigma_09",
+    "delay_sigma_10",
+    "delay_sigma_11",
+    "delay_sigma_12",
+    "delay_sigma_13",
+    "delay_sigma_14",
+    "delay_sigma_15",
+    "delay_sigma_16",
+    "delay_sigma_17",
+    "delay_sigma_18",
+    "delay_sigma_19",
+    "w",
+    "lapse_prob",
+    "lapse_prob_right"
+  ],
+  "parameter_blocks": [
+    "gamma",
+    "omega",
+    "delay_mu",
+    "delay_sigma",
+    "w",
+    "lapse_prob",
+    "lapse_prob_right"
+  ],
+  "priors": {
+    "gamma_positive": {
+      "hard": [
+        -1.0,
+        20.0
+      ],
+      "plausible": [
+        0.0,
+        12.0
+      ]
+    },
+    "gamma_negative": {
+      "hard": [
+        -20.0,
+        1.0
+      ],
+      "plausible": [
+        -12.0,
+        0.0
+      ]
+    },
+    "omega": {
+      "hard": [
+        0.01,
+        15.0
+      ],
+      "plausible": [
+        0.1,
+        12.0
+      ]
+    },
+    "w": {
+      "hard": [
+        0.0,
+        1.0
+      ],
+      "plausible": [
+        0.4,
+        0.6
+      ]
+    },
+    "lapse_prob": {
+      "hard": [
+        0.0001,
+        0.4
+      ],
+      "plausible": [
+        0.001,
+        0.1
+      ]
+    },
+    "lapse_prob_right": {
+      "hard": [
+        0.001,
+        0.999
+      ],
+      "plausible": [
+        0.4,
+        0.6
+      ]
+    },
+    "delay_mu": {
+      "hard": [
+        0.0,
+        1.0
+      ],
+      "plausible": [
+        0.01,
+        0.2
+      ]
+    },
+    "delay_sigma": {
+      "hard": [
+        0.0005,
+        0.3
+      ],
+      "plausible": [
+        0.01,
+        0.15
+      ]
+    }
+  },
+  "rt_window_s": [
+    0.0,
+    1.8
+  ],
+  "group_order": [
+    "Control",
+    "ASD"
+  ],
+  "seed": 0,
+  "min_steps": 50000,
+  "max_steps": 1000000,
+  "checkpoint_steps": 1000,
+  "confirmation_windows": 25,
+  "stability": "last three posterior-mean ranges / minimum SD across those checkpoints < 0.1 for all free parameters",
+  "stopping": "Any strictly lower 1000-step mean resets patience; require follow-up windows AND terminal parameter stability; restore best",
+  "guide": "AutoMultivariateNormal",
+  "guide_init_scale": 0.1,
+  "learning_rate": 0.0002,
+  "gradient_clip": 1.0,
+  "elbo_particles": 1,
+  "full_batch": true,
+  "dtype": "float64",
+  "platform": "cpu",
+  "K_max": 8,
+  "grid_dt_s": 0.0005,
+  "quadrature_order": 24,
+  "posterior_draws": 10000,
+  "initial_root": "/home/rlab/raghavendra/ddm_data/ASD_Human_Data/gamma_omega_rt_choice_lapse_svi_0_1p8s_delay500ms",
+  "initializations_per_group": 1,
+  "initialization": "Original saved Gamma/Omega/w; mu from original delay; sigma=.05 s; p=.02 and q=.5",
+  "likelihood": "(1-p)*Gaussian-delay observed-choice density / retained mass + p*choice_prob/1.8",
+  "lapse_probability_semantics": "fraction among retained trials",
+  "delay_guide": "full mu and sigma priors; delay draws truncated at zero and unbounded above",
+  "source_hashes": {
+    "ASD_Human_Data/human_gaussian_delay_svi_utils_wide.py": "00c64db925f8256e89ca7ffddf45e8643679879fb2cc9267425f952eefc8d325",
+    "ASD_Human_Data/fit_human_gaussian_delay_svi_wide.py": "c1837e6edd1cf4e7cb172c3efb87012f7dbaf7352af41964bc6cf0f7554c1c60",
+    "ASD_Human_Data/gaussian_delay_likelihood_wide.py": "c43bf4039ac37f450d424a023fe69568af60c31a4158a486d3ad3eaec0885ec1",
+    "ASD_Human_Data/human_gamma_omega_variants_svi_utils.py": "24da300ef7ba2bbb828d10e8eea68f00fd900606390887108605ecd4168439be",
+    "ASD_Human_Data/human_gamma_omega_delay500_svi_utils.py": "9fd771c70618f7bc7c7e7d3b7af9f49715884adae885384d02e23abaccd296ed",
+    "ASD_Human_Data/human_plain_ddm_diagnostics_utils.py": "23c25445918eb7249a3c9040255686d5675e584bab2c6c10ae555bd9d6ef75ab",
+    "ASD_Human_Data/human_reactive_tied_svi_utils.py": "f52ec899347d73bcdd378faa8eafedfb42ac1aaad2a24d89f3af0ef42f4029bd",
+    "fit_animal_by_animal/numpyro_vanilla_condition_delay_svi_utils.py": "9a98c22f8e91735dec2701ca2ecc926bff6a0ac217d1b29d22dfe770cd73dd5b"
+  },
+  "data": {
+    "source": "table_visualTask_15nov2026.mat",
+    "source_sha256": "4d83b8024d3927eb4e57daffbba7a4ff8bb32b8db50c7b94e3cf098f62095961",
+    "source_rows": 28880,
+    "source_columns": [
+      "Participant",
+      "GroupID",
+      "Group",
+      "Trial",
+      "Condition",
+      "Session",
+      "Block",
+      "FirstSide",
+      "ASL_cd",
+      "Stim_left_dB",
+      "Stim_right_dB",
+      "Delta_dB",
+      "Stim_left_cdm2",
+      "Stim_right_cdm2",
+      "Delta_cdm2",
+      "Stim_duration_s",
+      "Choice",
+      "ChoseRight",
+      "Correct",
+      "RT_s",
+      "Valid",
+      "Stim_first_dB",
+      "Stim_second_dB",
+      "Delta_SecondMinusFirst_dB",
+      "Stim_first_cdm2",
+      "Stim_second_cdm2",
+      "ChoseSecond"
+    ],
+    "condition_counts": {
+      "RT": 11400,
+      "CB": 11400,
+      "SD": 6080
+    },
+    "selection": "Condition == RT, Valid == 1, 0 <= RT_s <= 1.8",
+    "selected_rows": 11400,
+    "selected_participants": 19,
+    "mean_brightness": "Mean_dB = (Stim_left_dB + Stim_right_dB) / 2",
+    "difference": "Delta_dB is the stored Stim_right_dB - Stim_left_dB",
+    "observed_luminance_mapping": "Stim_side_cdm2 = offset + 10^(Stim_side_dB / 10)",
+    "observed_luminance_offset_cdm2": 7.719999999999999,
+    "conversion_max_abs_error_cdm2": 7.105427357601002e-15,
+    "output": "simultaneous_rt_trials.csv",
+    "output_sha256": "d5042c4fc4bb7b47b1ac0267938a21150c096827c11f9a81ec90fd0064b63967",
+    "rt_s_min": 0.11118979984894395,
+    "rt_s_max": 2.499536400020588,
+    "rt_ge_2_49_s": 1,
+    "rt_ge_2_4999_s": 0,
+    "rt_ge_2_5_s": 0,
+    "csv_sha256": "d5042c4fc4bb7b47b1ac0267938a21150c096827c11f9a81ec90fd0064b63967",
+    "selected_source_rows_sha256": "6157633d9826ed946df5a3f41f8ea004a8684194d2def0cf39d95ccff2d4f7f7",
+    "pooling": "raw trials within group across participants and sessions",
+    "retention_window_s": [
+      0.0,
+      1.8
+    ],
+    "original_trials": 11400,
+    "retained_trials": 11344,
+    "excluded_trials": 56,
+    "retained_source_rows_sha256": "efe40b25c6bbc9692bc5916231a69e4d25b05af5ee15c1d2ecbd0b74fa754885",
+    "objective": "gaussian_delay_lapse",
+    "choice_use": "observed choice with lapse mixture",
+    "delay": "independent Normal(mu,sigma) per trial, truncated below zero; unbounded above"
+  }
+}

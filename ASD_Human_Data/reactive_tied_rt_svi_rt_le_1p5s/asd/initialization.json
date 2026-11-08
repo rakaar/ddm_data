@@ -1,0 +1,8 @@
+{
+  "source_guide": "/home/rlab/raghavendra/ddm_data/ASD_Human_Data/reactive_tied_rt_svi_confirm25/asd/guide_parameters.npz",
+  "source_guide_sha256": "c85f6acca8641a7ad6ce41a9b28a7e39248d69aa64cc558a34da08b2651fbbad",
+  "optimizer_iteration": 0,
+  "fresh_loss_history": true,
+  "delay_upper_s": 0.1816100000945627,
+  "seed": 0
+}

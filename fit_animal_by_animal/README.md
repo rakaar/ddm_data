@@ -65,6 +65,26 @@
 
 - `aggregate_psychometric_by_abl_for_paper_fig1.py` : Psychometric 1 x 4
 - `animal_specific_chronometric_for_paper_fig1.py`: Chronometric 1 x 4
+- `plot_fig1_tachometric_by_abl_abs_ild.py`: Figure 1 cohort tachometric curves in a 3 x 5 grid: ABL 20/40/60 dB down rows and |ILD| 1/2/4/8/16 dB across columns, pooling both ILD signs within each animal.
+  Reads the six existing `../raw_data/batch_csvs/batch_{batch}_valid_and_aborts.csv` files for SD, LED34, LED6, LED8, LED7, and LED34_even, and verifies the exact 30 `(batch_name, animal)` pairs against `../all_30_fit_consolidation_manifest.md`.
+  Keeps `success` 1/-1 and inclusive `0 <= RTwrtStim <= 1` s (348,323 trials in the current snapshot). In each nonoverlapping 20 ms bin, computes each animal's accuracy from `success == 1`, then the equal-animal mean and sample SEM (`ddof=1`).
+  Uses every nonempty animal/bin; empty bins remain gaps and singleton bins have no SEM. The six SD animals lack |ILD| = 16 dB, so that column has at most 24 animals; the other columns have at most 30, with counts varying by time bin.
+  Run from the repository root with `.venv/bin/python fit_animal_by_animal/plot_fig1_tachometric_by_abl_abs_ild.py`.
+  Saves PNG/PDF, `animal_bin_accuracy.csv` (including zero-count missing observations), `group_bin_summary.csv`, and `run_summary.json` (source paths/hashes, cohort, filters, counts, and aggregation rules) under `fig1_tachometric_by_abl_abs_ild/` beside the script.
+  The current output folder also includes `verification.json`, recording independent checks of all animal/group bins and exact/adjacent bin-edge cases.
+- `plot_fig1_tachometric_overlays.py`: Layout-only overlays of the saved Figure 1 tachometric curves, reading `fig1_tachometric_by_abl_abs_ild/group_bin_summary.csv` without pooling trials or averaging across conditions.
+  Saves `fig1_tachometric_abl_overlay_by_abs_ild.png` (1 x 5: one panel per |ILD|, three colored ABL curves) and `fig1_tachometric_abs_ild_overlay_by_abl.png` (3 x 1: one panel per ABL, five colored |ILD| curves) in the same output directory, plus `overlay_run_summary.json` recording input hashes and layout definitions.
+  Copies all original 20 ms bin centers, equal-animal means, SEM shading, gaps, and cohort limitations. Run from the repository root with `.venv/bin/python fit_animal_by_animal/plot_fig1_tachometric_overlays.py` after generating the original grid.
+- `plot_fig1_tachometric_with_cumulative_rtd.py`: Pairs the original tachometric curves with condition-specific cumulative RTDs from the same verified `animal_bin_accuracy.csv` counts.
+  Saves `fig1_cdf_tachometric_abl_overlay_by_abs_ild.png` (2 x 5: CDF above accuracy, one column per |ILD|, ABL colors) and `fig1_cdf_tachometric_abs_ild_overlay_by_abl.png` (3 x 2: CDF beside accuracy, one row per ABL, |ILD| colors) in `fig1_tachometric_by_abl_abs_ild/`.
+  The 3 x 2 figure displays 0–600 ms; the 2 x 5 figure displays 0–1000 ms. These are display limits only: both retain the full 0–1 s dataset and CDF normalization.
+  The CDF denominator is each animal's full valid 0–1 s trial count in that condition; cumulative counts are evaluated at 20 ms bin right edges and averaged with equal animal weight and sample SEM. Each CDF ends at 1, with 30 contributors for |ILD| 1–8 dB and 24 for 16 dB throughout the time window. Accuracy keeps its original per-bin denominator, varying contributor counts, means, SEMs and gaps. No conditions are pooled.
+  Also saves `animal_cumulative_rtd.csv`, `group_cumulative_rtd.csv`, and `cumulative_rtd_run_summary.json` with source hashes and normalization details. Run from the repository root with `.venv/bin/python fit_animal_by_animal/plot_fig1_tachometric_with_cumulative_rtd.py` after generating the original grid.
+- `plot_fig1_cdf_tachometric_with_negative_rts.py`: Two negative-RT versions of the paired 3 x 2 CDF/accuracy figure, using the same 30-animal cohort and existing batch preprocessing. Selects valid choices (`success` 1/-1) plus fixation aborts (`abort_event == 3`) over inclusive −1 to 1 s: 419,558 trials in the current snapshot (348,323 valid choices and 71,235 aborts).
+  Assigns each abort one independent simulated left/right choice with probability 0.5 each using `np.random.default_rng(42)`; correctness is `ILD * simulated_choice > 0`. Valid-choice correctness remains `success == 1`. The CSV's existing randomized `accuracy` field is not used. Simulated abort choices are labeled in both figures and saved with source CSV row identifiers.
+  Uses 100 bins of 20 ms, preserving the original positive-time boundaries. Accuracy is computed within each animal/bin using all selected trials, then averaged equally across animals with sample SEM. Each animal's CDF denominator includes all valid + abort trials in that condition over the full −1 to 1 s window. Conditions remain separate; missing bins/conditions and the 30/24-animal availability policy are preserved.
+  Saves two PNGs in `fig1_tachometric_with_negative_rts/`, displaying −1000 to 600 ms and −100 to 600 ms, plus `abort_random_choices.csv`, animal/group bin and cumulative tables, and `run_summary.json` with source hashes, seed and denominator definitions. Both views use the same simulated choices and calculated curves; previous figures are preserved.
+  Run from the repository root with `.venv/bin/python fit_animal_by_animal/plot_fig1_cdf_tachometric_with_negative_rts.py` after generating the original positive-RT analysis.
 
 - `scaling_quantiles_not_RTD_for_paper_fig1.py` : Scaling quantiles not RTD
 - `animal_specific_rtd_plots_for_paper_for_fig1.py` : RTD plots, Q-Q plots, rescaled RTD for each animal, average, KDE
@@ -326,3 +346,23 @@ These scripts compare theoretical RT quantiles (from model fits) against empiric
 - `npl_alpha_uniform_delay/numpyro_svi_npl_alpha_uniform_delay_single_animal.py` - Fits the 67-parameter NPL+alpha RT+choice model with one Uniform delay center and width per condition, using a full-rank NumPyro guide and patience-12/minimum-50k restore-best stopping.
 - `npl_alpha_uniform_delay/run_numpyro_svi_npl_alpha_uniform_delay_led7.py` - Resumable LED7 runner that fits missing animals, writes a run ledger, and regenerates the RTD and posterior-parameter diagnostics.
 - `npl_alpha_uniform_delay/plot_npl_alpha_uniform_delay_led7_all_animal_diagnostics.py` - Summarizes the completed LED7 fits with a 1 x 6 loss grid, animal-wise delay supports, and an across-animal delay-center/support comparison. See `npl_alpha_uniform_delay/README.md` for the full pipeline and rerun commands.
+
+
+## Figure 1 shared negative-RT tachometrics (2026-10-22)
+
+`plot_fig1_tachometric_shared_negative_rts.py` adds eight PNGs: accuracy bin widths 10/15/20/25 ms, each displayed over −1000–600 ms and −100–600 ms. The three ABL rows pair condition-specific CDFs on the left with tachometric accuracy on the right. Outputs are saved separately in `fig1_tachometric_shared_negative_rts/`; every previous figure/export is preserved.
+
+Select the identical 30-animal Figure 1 cohort and the original six preprocessed `raw_data/batch_csvs/` sources: valid choices (`success` 1/−1) plus fixation aborts (`abort_event == 3`), inclusive `RTwrtStim` [−1,1] s, ABL 20/40/60 and |ILD| 1/2/4/8/16. Current totals are 419,558 trials, including 348,323 valid choices and 71,235 negative-RT fixation aborts. Copy the exact existing seed-42 simulated abort choices from `fig1_tachometric_with_negative_rts/abort_random_choices.csv`; do not draw new outcomes per binning or view.
+
+For RT<0, combine all selected ABL/ILD trials within animal and time bin, then take the equal-animal accuracy mean and sample SEM. Repeat this black mean/gray SEM curve in all accuracy panels. For RT≥0, retain separate |ILD| curves within each ABL, pooling actual signs within animal and bin before equal-animal averaging. Empty bins remain gaps; singleton means have unavailable SEM. Six SD animals have no |ILD|=16 observations. CDF values/SEMs remain byte-identical copies of the original condition-specific 20 ms CDF tables, normalized over the full [−1,1] s window within each animal/condition.
+
+Zero is an exact bin edge and RT=0 enters the positive side. The final bin includes +1 s. Bin counts are 200/134/100/80. The 15 ms variant has 10 ms outermost bins at −1/+1 s; all interior bins remain 15 ms. The 20 ms variant preserves the original positive edge bit patterns and positive accuracy estimates. Display zooms only crop the same arrays.
+
+Run from the repository root:
+
+```bash
+MPLCONFIGDIR=/tmp/fig1_shared_negative_mpl .venv/bin/python fit_animal_by_animal/plot_fig1_tachometric_shared_negative_rts.py
+.venv/bin/python fit_animal_by_animal/verify_fig1_tachometric_shared_negative_rts.py
+```
+
+The independent verifier reconstructs raw selection/identities and seed-42 choices, histograms, per-animal statistics, equal-animal means/SEMs and missing bins. It also tests exact/adjacent boundaries, actual plotted lines and SEM polygons, 20 ms positive compatibility, fixed CDFs and all protected source/prior-export hashes. Audits include `selected_trials.csv.gz`, `bin_definitions.csv`, animal negative/positive bin tables, `shared_negative_accuracy.csv`, `positive_condition_accuracy.csv`, unchanged CDF/abort-choice tables, artist arrays, `run_summary.json`, and `verification.json`. Local PDF copies support text-bound validation; the eight PNGs are directly embedded in [the October 22 result book](../docs/results/2026-10-22.md#figure-1-shared-negative-rt-tachometrics), with source and audit downloads.

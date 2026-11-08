@@ -17,3 +17,9 @@ Do not over-abstract.
 - If choosing between two small helpers and one slightly longer helper, prefer the single helper.
 - Use only necessary checks: include checks for realistic failure modes in research workflows, but do not add defensive branches for unlikely edge cases that do not matter here.
 - Optimize for easy modification and visibility of logic in one place.
+
+## Communicate interpretation changes
+
+- If a brief request or formula is implemented with a materially more specific or corrected interpretation, say so explicitly to the user before proceeding: "You wrote X; I am using Y because Z." Do not silently make the right calculation while leaving the user with the wrong description.
+- In analysis, call out changes to trial selection, condition groups, denominators, normalization, timing coordinates, and whether results are pooled or equal-animal averages. State what is included and excluded, preferably with a small concrete example or counts.
+- If two plausible interpretations would materially change the result and the repository does not settle the choice, ask before implementing. If the context settles it, proceed but still flag the interpretation and repeat the distinction in the final handoff and any result-book caption.

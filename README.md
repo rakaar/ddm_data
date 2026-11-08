@@ -32,3 +32,18 @@
 - `pyddm_play.py`: Experimental script for testing PyDDM library functionality and comparing single-bound vs two-bound models.
 - `pyddm_play_bound_drop.py`: PyDDM script testing time-dependent bound drop (linear decrease from theta_A0 to theta_A_min).
 - `pyddm_play_drift_up_bound_drop.py`: PyDDM script testing combined drift increase and bound drop dynamics over time.
+
+## Source-code backup and sharing
+
+- [ASD_Human_Data/FINAL_HUMAN_MODEL.md](ASD_Human_Data/FINAL_HUMAN_MODEL.md):
+  reading/running guide for the final pooled-ASL human model with 16 parameters
+  per group, shared Omega, shared Gaussian delays, joint RT/choice and lapses.
+- [SOURCE_BACKUP_2026-11-08.md](SOURCE_BACKUP_2026-11-08.md): source inventory
+  for the 8 November 2026 repository backup. Code, READMEs and required fit
+  configuration are versioned here; data and fit outputs are backed up
+  separately to Google Drive. `test_temporal_exp/` is excluded from this commit.
+- `scripts/backup_fixed_condition_teaff_all30_to_drive_20260618.sh`,
+  `scripts/backup_ganon_led34_fit_results_to_drive.sh` and
+  `scripts/backup_human_rt_choice_lapse_svi_to_drive_20261022.sh`: existing
+  Google Drive backup wrappers, now tracked as source; this source backup
+  does not execute those upload scripts.

@@ -2,7 +2,8 @@
 """LED7 conditional abort probabilities across the s7→s8 training transition.
 
 Columns 1–2 condition their denominators on the preceding trial's outcome/LED.
-Column 3 reproduces the existing isolated-abort / all-trials fraction exactly.
+Only event-3 aborts and success ±1 trials are eligible outcomes in denominators.
+Column 3 uses isolated aborts / all eligible-outcome trials.
 """
 
 from pathlib import Path
@@ -20,7 +21,7 @@ SESSION_TYPES = (7, 8)
 METRICS = ("previous_abort", "previous_same_LED_abort", "isolated")
 TITLES = ("Abort given previous abort", "Abort given previous same-LED abort", "Isolated: valid–abort–valid")
 WINDOW_SESSIONS = 3
-Y_LIMITS = ((0, 0.70), (0, 0.70), (0, 0.20))
+Y_LIMITS = ((0, 1.0), (0, 1.0), (0, 0.20))
 MEAN_Y_LIMITS = (0, 0.35)
 LED_COLORS = {0: "tab:blue", 1: "tab:red"}
 TYPE_STYLES = {7: "-", 8: "--"}
@@ -32,12 +33,24 @@ EXPECTED_SOURCE_ROWS = {7: 138_440, 8: 148_428}
 EXPECTED_COHORT_ROWS = {7: 100_251, 8: 113_941}
 EXPECTED_LED_COUNTS = {7: {0: 66_226, 1: 34_025}, 8: {0: 70_892, 1: 43_049}}
 EXPECTED_ABORTS = {7: 16_389, 8: 17_725}
+EXPECTED_ELIGIBLE_OUTCOMES = {7: 94_435, 8: 107_070}
+EXPECTED_OTHER_OUTCOMES = {7: 5_816, 8: 6_871}
+EXPECTED_ABORT_EVENT_CODES = {
+    7: {-2.0: 63_730, -1.0: 14_323, 2.0: 4_368, 3.0: 16_389,
+        4.0: 443, 4.5: 9, 5.0: 989},
+    8: {-2.0: 72_670, -1.0: 16_679, 2.0: 4_977, 3.0: 17_725,
+        4.0: 682, 4.5: 132, 5.0: 1_074, 6.0: 2},
+}
+EXPECTED_SUCCESS_CODES = {
+    7: {-1.0: 14_322, 0.0: 22_205, 1.0: 63_724},
+    8: {-1.0: 16_677, 0.0: 24_596, 1.0: 72_668},
+}
 # Tuples are (current aborts, eligible current trials), independently by LED.
 EXPECTED_CONDITIONAL = {
-    7: {"previous_abort": {0: (1_528, 9_020), 1: (1_569, 7_348)},
-        "previous_same_LED_abort": {0: (1_528, 9_020), 1: (1_361, 6_329)}},
-    8: {"previous_abort": {0: (963, 6_450), 1: (2_463, 11_251)},
-        "previous_same_LED_abort": {0: (963, 6_450), 1: (1_936, 8_532)}},
+    7: {"previous_abort": {0: (1_528, 8_630), 1: (1_569, 6_988)},
+        "previous_same_LED_abort": {0: (1_528, 8_630), 1: (1_361, 6_013)}},
+    8: {"previous_abort": {0: (963, 6_181), 1: (2_463, 10_671)},
+        "previous_same_LED_abort": {0: (963, 6_181), 1: (1_936, 8_081)}},
 }
 EXPECTED_ISOLATED = {7: 9_863, 8: 10_511}
 
@@ -80,6 +93,15 @@ for session_type in SESSION_TYPES:
     assert len(data) == EXPECTED_COHORT_ROWS[session_type]
     assert tuple(sorted(data["animal"].astype(int).unique())) == ANIMALS
     assert data["LED_trial"].value_counts().to_dict() == EXPECTED_LED_COUNTS[session_type]
+    assert data["abort_event"].value_counts(dropna=False).to_dict() == EXPECTED_ABORT_EVENT_CODES[session_type]
+    assert data["success"].value_counts(dropna=False).to_dict() == EXPECTED_SUCCESS_CODES[session_type]
+    current_abort = data["abort_event"].eq(3)
+    valid_outcome = data["success"].isin([-1, 1])
+    current_eligible = current_abort | valid_outcome
+    assert not (current_abort & valid_outcome).any()
+    assert int(current_eligible.sum()) == EXPECTED_ELIGIBLE_OUTCOMES[session_type]
+    assert int((~current_eligible).sum()) == EXPECTED_OTHER_OUTCOMES[session_type]
+    assert current_eligible.sum() + int((~current_eligible).sum()) == len(data)
     for column in [*trial_keys, "LED_trial"]:
         assert data[column].notna().all() and data[column].eq(np.floor(data[column])).all()
         data[column] = data[column].astype(int)
@@ -97,9 +119,10 @@ for session_type in SESSION_TYPES:
     following = grouped[["trial", "success"]].shift(-1)
     adjacent_previous = previous["trial"].eq(data["trial"] - 1)
     adjacent_next = following["trial"].eq(data["trial"] + 1)
-    current_abort = data["abort_event"].eq(3)
     previous_abort = adjacent_previous & previous["abort_event"].eq(3)
     same_LED = previous_abort & previous["LED_trial"].eq(data["LED_trial"])
+    previous_abort_eligible = previous_abort & current_eligible
+    same_LED_eligible = same_LED & current_eligible
 
     # Independent keyed lookup verifies that filtered-out trials and session
     # boundaries cannot accidentally turn adjacent CSV rows into trial pairs.
@@ -129,8 +152,9 @@ for session_type in SESSION_TYPES:
     # No timed_fix restriction: a coded abort is a count observation even if
     # its timestamp is missing, and all eligible current outcomes enter N.
     for metric in METRICS:
-        eligible = {"previous_abort": previous_abort, "previous_same_LED_abort": same_LED,
-                    "isolated": pd.Series(True, index=data.index)}[metric]
+        eligible = {"previous_abort": previous_abort_eligible,
+                    "previous_same_LED_abort": same_LED_eligible,
+                    "isolated": current_eligible}[metric]
         numerator = is_isolated if metric == "isolated" else eligible & current_abort
         data["eligible"] = eligible
         data["counted_abort"] = numerator
@@ -152,7 +176,7 @@ for session_type in SESSION_TYPES:
                 cell = audit.loc[audit["LED_trial"].eq(led)]
                 assert (int(cell["aborts"].sum()), int(cell["eligible_trials"].sum())) == expected
         session_parts.append(audit)
-    print(f"s{session_type}: source, keyed trial adjacency, conditional counts, and isolated selections verified.", flush=True)
+    print(f"s{session_type}: source, outcome eligibility, keyed adjacency, conditional counts, and isolated selections verified.", flush=True)
 
 session_audit = pd.concat(session_parts, ignore_index=True)
 assert len(session_audit) == 611 * 3 and not session_audit.duplicated(metric_keys).any()
@@ -289,7 +313,7 @@ for metric, limits in zip(METRICS, Y_LIMITS):
 
 
 # %%
-############ Exact regression checks: OFF columns identical, isolated column unchanged ############
+############ Exact regression checks: OFF columns identical, isolated selections unchanged ############
 for table, keys, fields in (
     (session_audit, condition_keys, ["aborts", "eligible_trials", "fraction"]),
     (windows, condition_keys, ["window_aborts", "window_eligible_trials", "fraction", "n_sessions_used"]),
@@ -305,15 +329,9 @@ if WINDOW_SESSIONS == 3:
     # These prior CSVs are reference inputs; do not rerun the older plotting
     # script or overwrite its figures to perform this comparison.
     comparisons = (
-        (session_audit, "session_audit", condition_keys,
-         {"aborts": "isolated_count", "eligible_trials": "all_condition_trials", "fraction": "isolated_fraction"}),
-        (windows, "animal_windows_audit", condition_keys,
-         {"window_aborts": "isolated_count", "window_eligible_trials": "window_condition_trials",
-          "fraction": "isolated_fraction", "raw_fraction": "raw_isolated_fraction",
-          "n_sessions_used": "n_sessions_used", "window_first_session": "window_first_session",
-          "window_last_session": "window_last_session"}),
-        (means, "equal_animal_mean_sem_audit", mean_keys,
-         {"mean_fraction": "mean_isolated_fraction", "sem_fraction": "sem_isolated_fraction", "n_animals": "n_animals"}),
+        (session_audit, "session_audit", condition_keys, {"aborts": "isolated_count"}),
+        (windows, "animal_windows_audit", condition_keys, {"window_aborts": "isolated_count"}),
+        (means, "equal_animal_mean_sem_audit", mean_keys, {"n_animals": "n_animals"}),
     )
     for table, suffix, keys, fields in comparisons:
         reference = pd.read_csv(SCRIPT_DIR / f"{REFERENCE_STEM}_{suffix}.csv", float_precision="round_trip")
@@ -321,7 +339,7 @@ if WINDOW_SESSIONS == 3:
         new = table.loc[table["metric"].eq("isolated")].set_index(keys).sort_index()
         assert new.index.equals(old.index)
         np.testing.assert_allclose(new[list(fields)], old[list(fields.values())], rtol=0, atol=0, equal_nan=True)
-    print("Exact regression checks passed: OFF columns 1/2 identical; isolated session/rolling/mean/SEM values unchanged.", flush=True)
+    print("Regression checks passed: OFF columns 1/2 identical; isolated-abort numerators/selections unchanged (eligible denominators are now narrower).", flush=True)
 
 for table, suffix in ((session_audit, "session_audit"), (windows, "animal_windows_audit"), (means, "equal_animal_mean_sem_audit")):
     path = SCRIPT_DIR / f"{OUTPUT_STEM}_{suffix}.csv"
@@ -329,6 +347,14 @@ for table, suffix in ((session_audit, "session_audit"), (windows, "animal_window
     print(f"Saved {path} ({len(table):,} rows)", flush=True)
 print("\nNumerators and eligible denominators before rolling:")
 print(session_audit.groupby(["session_type", "metric", "LED_trial"])[["aborts", "eligible_trials"]].sum().to_string())
+print("\nOutcome eligibility audit:")
+for session_type in SESSION_TYPES:
+    source = pd.read_csv(RAW_DATA_DIR / f"LED7_s{session_type}.csv", usecols=["animal", "abort_event", "success"])
+    source = source.loc[source["animal"].isin(ANIMALS)]
+    print(f"s{session_type}: abort_event codes={source['abort_event'].value_counts(dropna=False).sort_index().to_dict()}; "
+          f"success codes={source['success'].value_counts(dropna=False).sort_index().to_dict()}; "
+          f"eligible event-3 or success±1={int((source['abort_event'].eq(3) | source['success'].isin([-1, 1])).sum()):,}; "
+          f"excluded other={int((~(source['abort_event'].eq(3) | source['success'].isin([-1, 1]))).sum()):,}")
 print("\nUndefined groups (retained as gaps):")
 print(session_audit.loc[~session_audit["defined"], metric_keys + ["all_condition_trials", "eligible_trials"]].to_string(index=False))
 
@@ -399,7 +425,8 @@ fig.text(
     0.5, 0.011,
     "Faint dots: raw session fractions. Curves: summed aborts / summed eligible trials; centered windows, one-session stride.\n"
     "Columns 1–2 condition on an adjacent previous abort (actual trial IDs differ by 1); column 2 also requires the same LED flag.\n"
-    "Column 3 retains isolated aborts / all condition trials. Windows do not cross type switches, session gaps, or zero-denominator groups.\n"
+    "Denominators exclude rows other than event-3 aborts or success ±1. Column 3 is isolated aborts / all eligible-outcome trials.\n"
+    "Windows do not cross type switches, session gaps, or zero-denominator groups.\n"
     "Bottom row: equal-animal mean ± SEM; hollow points indicate one animal. Zero marks the first type-8 session.",
     ha="center", fontsize=8.8, linespacing=1.4,
 )
@@ -407,4 +434,4 @@ fig.tight_layout(rect=(0.02, 0.055, 0.99, 0.949), h_pad=1.6, w_pad=0.9)
 fig.savefig(FIGURE_PATH, dpi=FIGURE_DPI, bbox_inches="tight")
 plt.close(fig)
 print(f"\nFigure: {FIGURE_PATH}", flush=True)
-print("All source, adjacency, conditional-denominator, rolling, SEM, and regression checks passed.", flush=True)
+print("All source, outcome-eligibility, adjacency, conditional-denominator, rolling, SEM, and regression checks passed.", flush=True)

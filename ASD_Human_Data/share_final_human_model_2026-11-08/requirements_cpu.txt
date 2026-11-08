@@ -1,0 +1,8 @@
+# CPU-compatible versions from the fitting environment.
+# For GPU use an appropriately installed GPU-enabled JAX build.
+jax==0.4.38
+jaxlib==0.4.38
+numpyro==0.15.3
+numpy==1.26.4
+scipy==1.12.0
+pandas==2.2.3

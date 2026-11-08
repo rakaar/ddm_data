@@ -138,6 +138,12 @@
 - `plot_led7_npl_alpha_patience12_t_E_aff_posterior_histograms.py` - **NEW: Displays the direct paper-source patience-12 37-parameter NPL+alpha condition-delay posterior as a `10 x 6` grid of raw 1 ms histograms. Rows are signed ILDs, columns are the six LED7 animals, and every panel overlays the 10,000-sample `t_E_aff` marginals for ABL 20/40/60. It also saves detailed and three-row summary tables for the requested uncorrected two-sample KS classifications (`p < 0.05`) across the 60 animal-by-ILD cases for ABL pairs 20/40, 40/60, and 20/60.**
 - `plot_led7_s9_fixation_abort_distributions.py` - **NEW: Builds a `4 x 9` fixation-abort grid from the MAT-derived `raw_data/LED7_s9.csv`: eight animals plus a trial-pooled aggregate. Rows show LED-OFF and LED-ON fixation-time histograms, the two conditions aligned directly to the raw fixation-referenced `LED_onset_time`, and an identical `-0.1..0.5 s` LED-aligned zoom. All panels use 20 ms unfilled-step histograms scaled so area equals finite plotted aborts divided by every trial in that LED condition.**
 - `plot_led7_s7_s8_s9_animal_timing_abort_rates.py` - Builds eight animal-specific figures, the original eight-animal aggregate, and a six-animal trial-pooled aggregate excluding controls 90 and 102, each in a `3 x 4` grid, from the standardized LED7 session-type-7/8/9 all-trial and event-3 abort CSVs. Each session row compares unit-area all-trial versus abort timing distributions in `intended_fix` and fixation-referenced `LED_onset_time`, then shows LED-OFF/ON abort rates aligned to that onset in regular and x-limit-only zoom views. Abort-rate area is finite plotted aborts divided by all trials in the cohort/session/LED group; LED-OFF onset is scheduled/counterfactual. The script exports a per-group count, area, and KS audit CSV and never reloads the MAT file or transforms onset again.
+- `plot_led7_s7_abort_rates_by_training_segments.py` - Splits each of the six non-control animals' session-type-7 trials chronologically by `(session, trial)` into 3, 4, or 5 nearly equal-sized groups, including mid-session boundaries. Set `LED7_SESSION_TYPE=8` for session type 8; `LED7_BIN_WIDTH_MS=20 LED7_N_GROUPS=3 LED7_INCLUDE_POOLED_ROW=1` makes the published 20 ms tercile figure with a seventh, trial-pooled aggregate row (the defaults are 40 ms, groups 3, 4, 5, and no aggregate row). The rightmost column pools all sessions; the aggregate row pools corresponding within-animal groups, not global session IDs. An audit CSV records exact boundary IDs, condition denominators, missing times, and full histogram areas; the script verifies the all-session and aggregate trial-count weighting. The three pooled group totals are nearly, not exactly, equal because each animal is split separately.
+- `plot_led7_s7_s8_fixation_abort_fraction_by_session_onset_windows.py` - Creates separate `6 x 3` s7 and s8 figures for animals 92, 93, 98, 99, 100, and 103, plotting event-3 abort fractions against each animal's actual session IDs. Columns show all event-3 aborts, 0–100 ms after scheduled LED onset, and at least 100 ms after onset; OFF and ON use their own all-trial session denominators. The standardized CSV onset is used directly. Missing event-3 times contribute only to the overall fraction, and pre-onset aborts are audited separately. Lines break at missing IDs or absent LED conditions; hollow markers flag condition groups with fewer than 100 trials. Saves a combined session/condition count and fraction audit CSV.
+- `plot_led7_s7_s8_fixation_abort_transition_rolling.py` - Combines session types 7 and 8 in three `7 x 3` figures: raw, centered three-session rolling, and centered five-session rolling. Six animal rows use session numbers relative to each animal's first type-8 session (`0`), followed by an equal-animal mean ± across-animal SEM row. Each rolling fraction pools event-3 counts and all-condition trial counts within uninterrupted runs of one type and LED condition; it never crosses the type switch or filtered session gaps. The figures retain faint raw points, color-code LED OFF/ON, use solid/dashed lines for types 7/8, and save both per-animal window and mean/SEM count audits. The existing separate-type figures remain unchanged.
+- `plot_led7_s7_s8_abort_rates_by_sequence_position.py` - Creates separate `8 x 3` s7/s8 figures: six non-control animals, an equal-animal mean with SEM, and a trial-pooled row. Columns select the first and last event-3 aborts from complete runs of length at least two, or isolated valid–abort–valid trials (`success` ±1). Consecutiveness requires actual `trial` IDs differing by one within the same animal/session; runs touching session edges or trial-ID gaps are excluded, and LED changes do not split a run. Uses the standardized CSV onset directly, with 20 ms step histograms divided by all eligible condition trials and displayed over −0.4 to +0.5 s. Saves `led7_s{7,8}_abort_rates_by_sequence_position_8x3.png` and four combined CSVs (`sequence_manifest`, `run_audit`, `panel_audit`, `curve_audit`) containing source row/trial IDs, all event-3 run positions including exclusions, exact lengths, denominators, full areas, and plotted means/SEMs. The source CSV row index is zero-based provenance only. Missing-timing aborts retain their sequence positions and denominator contributions. This is a descriptive sequence comparison, not a statistical test of dependence against an independent-trial null.
+- `plot_led7_s7_s8_abort_sequence_fractions_transition_rolling.py` - Reuses the sequence-position manifest above and independently verifies every event-3 row and sequence label against the standardized all-trial CSVs. Saves a combined `7 x 3` figure with first-in-run, last-in-run, and valid–abort–valid fractions across sessions: six animal rows plus equal-animal mean ± SEM, without a pooled row. Each centered three-session window divides summed selected counts by all condition trials, moves one session, stays within consecutive session IDs and one type/LED condition, and shortens at edges. Types 7/8 are solid/dashed, zero is each animal's first s8 session, faint dots are raw session fractions, and all panels use 0–0.20. Missing timing does not remove count observations. The three `led7_s7_s8_abort_sequence_fractions_transition_roll3_*audit.csv` files contain 611 source session groups, 611 windows, and 130 mean/SEM groups with contributing animal IDs. Run the sequence-position exporter first if its saved manifest is unavailable; it is read as an input and not regenerated by this script.
+- `plot_led7_s7_s8_conditional_abort_fractions_transition_rolling.py` - Creates a combined `7 x 3` s7/s8 session figure with six animals and an equal-animal mean ± SEM row. Columns 1/2 estimate current event-3 abort probability given an adjacent previous abort, with column 2 additionally requiring matching previous/current LED flags; each uses all current outcomes meeting its history condition as the denominator. Column 3 exactly retains isolated valid–abort–valid / all-condition-trials fractions from the sequence-fraction plot. Previous trials are checked by actual `trial - 1` keys within animal/session. Centered three-session windows sum numerators and eligible denominators, advance one session, and break at missing sessions or zero eligible denominators (animal 98, s8 session 68, ON in columns 1/2). Animal rows use 0–0.70 axes for conditional probabilities and 0–0.20 for isolated fractions; all three equal-animal bottom panels use 0–0.35. No timing filter applies. Saves a new PNG plus long-form session/window/mean audits under `led7_s7_s8_conditional_abort_fractions_transition_roll3_*`. Verifies exact conditional counts, identical OFF curves/SEMs between columns 1/2, and unchanged isolated session/rolling/mean/SEM values against the existing sequence manifest and three reference audit CSVs.
 - `plot_led7_s9_pre_dec_two_onset_coordinates.py` - For LED7 session type 9 before 2 Dec 2024, compares raw `LED_onset_time` with `intended_fix - LED_onset_time` in a unit-area timing histogram and compares LED-OFF/ON event-3 abort rates under both candidate alignments. It uses Juan's date field to select the six-animal cohort, uses end date for six rows with missing start date, and saves audit counts and full histogram areas.
 - `plot_led7_s9_pre_post_abort_rate_two_alignments.py` - Builds a `3 x 2` LED7 session-type-9 abort-rate figure: candidate raw/subtracted onset alignments before and from 2 Dec 2024, plus Juan's `LED_onset` split by date. It reads the raw standardized onset from our CSV, joins Juan's dates and onset field by `(animal, session, trial)`, assigns the six missing-start-date trials by end date, and saves an area/count audit.
 - `plot_juan_led7_s9_abort_rate_aligned_to_led_onset.py` - Plots pooled six-animal session-type-9 fixation-abort rates directly from Juan's `LED_onset` column, across all dates. It uses all condition trials in each LED OFF/ON denominator and saves a count and area audit.
@@ -267,4 +273,106 @@ This is a display-only `4 x 4` rendering: type-8 lapse PDF, type-8 data/model, t
 
 Version control includes the model/validation scripts, per-fit JSON summaries, provenance and source snapshots, result pages, and their linked PNG/PDF/CSV assets. Large posterior arrays, guide states, source-row manifests, loss traces, and cached comparison payloads remain local under the repository's existing ignore rules.
 
+## Session-type-7/8 timing of aborts following aborts and isolated aborts
+
+`plot_led7_s7_abort_after_abort_timing.py` reads the standardized `raw_data/LED7_s7.csv` and, by default, selects the current event-3 abort when the immediately preceding trial is also event 3. Adjacency requires actual trial IDs differing by one within animal/session; neighboring LED flags are unrestricted. It creates `led7_s7_abort_after_abort_timing_7x3.png`: six non-control animals and an equal-animal mean ± SEM, with intended-fixation density, scheduled-onset density, and conditional LED-aligned abort rate. Timing columns use 40 ms bins; the abort-rate column uses 20 ms bins. Each abort-rate denominator includes current event-3 or success ±1 trials immediately following an abort, separately for the current LED condition. The two selected OFF aborts missing timing remain in the timing distributions and denominators. The full abort bins span −2 to +2 s, while the displayed window is −0.4 to +0.5 s; area labels describe the full bins.
+
+Run with `.venv/bin/python fitting_aborts/plot_led7_s7_abort_after_abort_timing.py`. Set `LED7_ABORT_SELECTION=isolated` before this command to create `led7_s7_isolated_abort_timing_7x3.png`, selecting event-3 aborts with immediately adjacent success ±1 neighbors on both sides. Its denominator is all event-3 or success ±1 trials in each animal/current-LED group, matching the previous session plot's isolated-abort column. It selects 6,498 OFF and 3,365 ON isolated aborts, all with finite timing. Both versions save three CSVs under their own output prefix, recording selected source/neighbor trial IDs, per-panel counts and full areas, and every animal/mean/SEM histogram bin. Count audits explicitly name `eligible_denominator` and describe its definition for the selected mode. Counts summed in the mean-row audit are provenance only; the plotted curves average six individually normalized histograms equally.
+
+Set `LED7_SESSION_TYPE=8` for the same two plots from `raw_data/LED7_s8.csv`; the onset column is again used directly. The s8 abort→abort selection has 963 OFF and 2,463 ON aborts, with eligible denominators 6,181 and 10,671. Two selected ON aborts from animal 93 lack timing and are omitted only from the aligned histogram. The isolated selection has 6,406 OFF and 4,105 ON aborts, all with timing, divided by 68,584 OFF and 38,486 ON eligible trials. Outputs use `led7_s8_abort_after_abort_timing` or `led7_s8_isolated_abort_timing` as their prefix. All four figures are published on the 2026-09-30 result page with their distinct denominator definitions.
+
+## Session-type-7/8 average sequence timing with first-abort rows
+
+`plot_led7_s7_s8_sequence_abort_pre_onset_matched_summary.py` creates the average-only `6 × 4` comparison: first aborts in complete runs for s7/s8, aborts following aborts for s7/s8, then isolated valid→abort→valid for s7/s8. The top two rows select one first event-3 trial per complete run of length ≥2, verified against the original sequence manifest using actual trial IDs and observed non-event-3 boundaries. Their denominators include all event-3-or-valid trials, as for the isolated rows; the after-abort rows retain their conditional denominators. All curves are equal-animal means ± SEM across animals 92, 93, 98, 99, 100, and 103.
+
+The first three columns retain original selections. Column 4 matches pre-onset rates within the existing 0.005 s⁻¹/bin and 0.001 fraction tolerances. First-abort matching retains 1,901/2,381 s7 and 2,198/2,593 s8 selected aborts. The existing four cases reuse their exact matched row identities, and their curve/SEM arrays are checked against the earlier output. The default `INCLUDE_FIRST_ROWS=True` writes the figure and all audits under `led7_s7_s8_sequence_abort_pre_onset_matched_summary_with_first_*`; setting it to `False` reproduces the earlier four-row layout. The six-row figure is published on the [2026-10-01 result page](../docs/results/2026-10-01.md).
+
+## Session-type-8 isolated aborts: descriptive pre-onset rate matching
+
+`plot_led7_s8_isolated_abort_pre_onset_matched_timing.py` extends the original s8 isolated-abort figure to `7 × 4`. It reads `raw_data/LED7_s8.csv` plus the existing isolated-trial manifest and original curve/count audits, uses the standardized fixation-referenced onset directly, and preserves the original first three columns. The fourth column removes only pre-onset isolated aborts, independently per animal, while keeping all valid and post-onset rows. Sequence labels are frozen before selection; adjacency uses actual `trial ± 1` within animal/session.
+
+SciPy `milp`/HiGHS maximizes retained integer bin counts under the documented conservative linear matching rule, followed by seed-`20261001` within-bin sampling without replacement. All six solutions are certified optimal under that rule. The default limits are 0.005 s⁻¹ per 20 ms bin and 0.001 for total pre-onset fraction; they are checked again using recomputed event-3-or-valid denominators. It retains 8,805 of 10,511 isolated aborts and 105,364 of 107,070 eligible trials. Timing bins remain 40 ms; rate bins remain 20 ms, with full support −2 to +2 s and display −0.4 to +0.5 s. The bottom row remains an equal-animal mean ± SEM, not trial pooling.
+
+Run `.venv/bin/python fitting_aborts/plot_led7_s8_isolated_abort_pre_onset_matched_timing.py`. Outputs use `led7_s8_isolated_abort_pre_onset_matched_timing`: `_7x4.png`, `_eligible_trial_selection_manifest.csv`, `_bin_quotas.csv`, `_optimizer_diagnostics.csv`, `_count_area_audit.csv`, `_curve_audit.csv`, `_curves.npz`, and `_run_summary.json`. The [2026-10-01 result page](../docs/results/2026-10-01.md) documents the objective, constraints, counts, and interpretation. Pre-onset overlap is enforced using observed abort outcomes, so this is descriptive matching, not evidence of a causal LED effect. Post-onset counts are unchanged but their rate heights change with the denominator. Original figures and raw CSVs remain unchanged.
+
+## Intended fixation versus stimulus-gap selection experiments
+
+`plot_led7_s7_s8_first_last_abort_intended_gap_matching.py` creates two new figures using the standardized s7/s8 CSVs and frozen complete-run first/last and isolated VAV selections. It matches `intended_fix` against `intended_fix - LED_onset_time` **within each animal and LED group**, not OFF against ON, with unbinned KS ≤ 0.20. The pure matcher in `led7_intended_gap_matching_utils.py` maximizes retained intact rows through interval-capacity selection. No abort times enter the optimization. Run the independent tests first with `.venv/bin/python fitting_aborts/validate_led7_intended_gap_matching.py`, then run the plotting script with `.venv/bin/python`.
+
+The selected-abort `12 × 4` figure interleaves original and matched rows. Only rejected selected aborts leave each category's event-3-or-valid denominator. The all-eligible `6 × 4` figure matches that whole population once per animal/session-type/LED, then intersects it with the frozen categories, using identical retained denominators across categories. Its selected-abort timing distributions need not meet the population's KS bound. Both figures show intended fixation, fixation-referenced onset, stimulus gap and LED-aligned rate, with equal-animal mean ± SEM, 40 ms timing bins, 20 ms rate bins, and shared column scales across both figures.
+
+Outputs use `led7_s7_s8_first_last_abort_intended_gap_matching_*`: two PNGs, eight kept/removed source-row manifests, optimization and retention audits, population-versus-selected KS comparisons, count/area and curve/SEM CSVs, an NPZ and a run summary. The [2026-10-04 result page](../docs/results/2026-10-04.md) reports retention and sparse groups. These are descriptive selection experiments; they do not enforce pre-onset OFF/ON agreement. Existing artifacts remain unchanged.
+
 `plot_led7_s7_s8_sequence_abort_conditional_denominators.py` renders a focused four-row view from the validated conditional sequence analysis: s7/s8 AA/(AA+AV), then s7/s8 VAV/(VAV+VVV). It checks the saved original and matched identities against the standardized CSVs, reconstructs the 40 ms timing densities and 20 ms onset-aligned rates, and verifies the per-animal matching tolerances and equal-animal mean/SEM. The figure and count/area audit use the `led7_s7_s8_sequence_abort_conditional_denominators` prefix and are documented on the [2026-10-05 result page](../docs/results/2026-10-05.md).
+
+
+## LED7 uniform lapse timing with fitted width (session types 8 and 9)
+
+`fit_led7_s8_s9_uniform_fitted_width.py` initializes a posterior pilot for
+`Uniform(0, width_lapse)` from fixation start separately for session types 8 and 9;
+`sample_led7_uniform_width_joint_posterior.py` produces the final fit. Both width and lapse
+probability are fitted alongside the five proactive parameters. Selection reuses
+the exact original eight-animal manifests: 139,547 and 93,381 abort/censored rows;
+OFF and all ON are jointly fitted, trial pooled, with early aborts retained.
+The original fixed `Uniform(0, 2.2 s)` outputs remain unchanged.
+
+A moving sharp uniform cutoff has a likelihood jump at each observed abort RT.
+Ordinary pathwise SVI therefore cannot differentiate the width likelihood
+correctly. Pilot calibration uses NUTS for the six smooth parameters and 32
+Metropolis updates of log-width per transition, caching proactive terms for those
+updates. The log-width target includes its `+log(width)` Jacobian. Width has a
+trapezoidal prior with hard support `(0, 5) s` and plateau `[0.02, 2.2] s`; shared
+parameter priors and the continuous abort-density/censored-survival likelihood
+match the earlier comparison. Width may precede individual stimulus times.
+A conditional width profile supplies initialization. Pilot NUTS-within-Metropolis
+draws then calibrate a fixed Gaussian-mixture proposal with a 10% heavy-tailed
+multivariate Student-t component for
+`sample_led7_uniform_width_joint_posterior.py`. Production inference updates all
+seven parameters jointly with the exact target/proposal-density Hastings ratio
+in physical coordinates. Proposal likelihoods are evaluated in GPU batches; the
+Metropolis decisions remain sequential within each of four independent chains.
+The proposal may be recalibrated from an initial production attempt when sharp
+width peaks cause slow mixing. Each production run keeps its proposal fixed.
+The pilot and calibration draws supply a proposal, not the reported fit.
+
+```bash
+.venv/bin/python fitting_aborts/validate_led7_uniform_width_sampler.py
+.venv/bin/python fitting_aborts/fit_led7_s8_s9_uniform_fitted_width.py
+.venv/bin/python fitting_aborts/sample_led7_uniform_width_joint_posterior.py
+.venv/bin/python fitting_aborts/plot_led7_s8_s9_uniform_fitted_width.py
+```
+
+Outputs are in
+`numpyro_mcmc_led7_s8_s9_aggregate_no_trunc_uniform_lapse_fitted_width_outputs/`.
+The pilot driver defaults to its `pilot_runs/` subdirectory; production defaults
+to reading that pilot directory. `LED7_UNIFORM_WIDTH_PILOT_ROOT` selects another
+pilot source and `LED7_UNIFORM_WIDTH_CALIBRATION_ROOT` selects production draws
+for proposal refinement. `LED7_UNIFORM_WIDTH_JOINT_DRAWS` controls retained draws
+per production chain (default 30,000).
+Per-session outputs include exact source manifests, full per-chain posterior
+draws, exact proposal/target log densities, Metropolis decisions, pilot sampler
+states/diagnostics, posterior means and 95% intervals, R-hat/ESS, width
+initialization profiles and source snapshots.
+The plotter requires convergence review to pass (`max R-hat < 1.01`, minimum
+ESS 400, independent-proposal importance ESS at least 1,000). Its 1 x 4 layout is s8 lapse PDF,
+s8 abort data/model, s9 lapse PDF, s9 abort data/model. Curves use **MCMC posterior
+means**, replacing the earlier variational posterior estimator. Conditional lapse
+PDFs have full-support unit area, and titles state fitted width and mixture lapse
+probability. Abort denominators and LED-aligned coordinates match earlier plots.
+In-sample likelihood comparisons at these point estimates also differ in fitting
+algorithm; they do not establish held-out predictive improvement.
+
+`validate_led7_uniform_width_sampler.py` checks the actual width-update kernel
+against independent one-dimensional posterior quadrature split at every density
+jump and survival kink. The production joint Metropolis transition is separately
+checked on a known Normal posterior using a broad Student-t proposal.
+The driver also checks density/survival against SciPy,
+fixed-width likelihood equality, and cached/direct likelihood equality.
+
+Final saved runs retain four chains of 15,000 draws after 2,000 burn-in draws.
+Type-8/type-9 fitted widths are 0.137038/0.152493 s and lapse probabilities are
+1.8815%/3.8305%. Max R-hat is 1.00053/1.00126; min ESS is 7,929/5,566.
+In-sample log likelihood improves by 136.0/301.1 vs fixed uniform, while remaining
+below the other families. The 1 x 4 figure, exact fit roots, metrics, trial
+selection, inference change, type-9 bound proximity and audits are documented
+on the [2026-11-02 result page](../docs/results/2026-11-02.md#led7-uniform-lapses-with-fitted-width).

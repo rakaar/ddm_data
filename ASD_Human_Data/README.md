@@ -784,3 +784,285 @@ result-book assets, including linked PDFs, CSV tables and audit ZIPs. Raw
 MAT/trial exports and local optimizer/posterior files remain in their
 analysis output folders under the repository's existing ignore policy;
 the published audit bundles contain the corresponding fit evidence.
+
+## Gamma–Omega RT-only and joint-with-lapse experiments
+
+`human_gamma_omega_variants_svi_utils.py` and
+`fit_human_gamma_omega_variants_svi.py` add two separate variants of the
+completed 500 ms-delay joint fit. `--mode rt_only` fits 61 parameters per
+group; `--mode rt_choice_lapse` fits 63. Both retain exactly the same
+6,574 Control and 4,770 ASD trials: simultaneous `Condition == "RT"`,
+`Valid == 1`, and `0 <= RT_s <= 1.8`, including all four RTs below 200 ms.
+All 20 signed conditions remain distinct during fitting.
+
+The RT-only objective sums the two observed-side densities before taking
+the logarithm, and divides by the either-bound mass in 0–1.8 s. Choices
+are omitted from this objective. The lapse objective is the retained-window
+mixture `(1-p)*f_DDM(RT, choice)/Z + p*q_choice/1.8`. Both `p` and
+`q_right` are shared across stimuli within each group. Lapse RTs are uniform
+in stored RT, without an afferent-delay shift; `p` is the fraction of lapses
+among retained trials. The mixture is formed after conditioning the DDM.
+
+Gamma, Omega, delay and bias priors match the 500 ms joint baseline.
+`lapse_prob` has trapezoidal hard limits **0.0001–0.40** and flat region
+**0.001–0.10**; `lapse_prob_right` has hard limits **0.001–0.999** and flat
+region **0.4–0.6**. RT-only delay guides remain below each condition's
+fastest RT. Lapse-model delay guides span the complete **0–500 ms** prior,
+because early observed trials may be lapses. The original saved baseline
+`initialization.json` supplies the 61 physical starting values; lapse
+starts at `p=0.02`, `q_right=0.5`.
+
+The SVI settings and confirmation rule match the preceding joint run:
+float64 CPU, full-batch AutoMultivariateNormal, seed 0, one initialization
+and one ELBO particle, learning rate 0.0002, clip 1, guide scale 0.1,
+50k–1M updates, 1k windows, 25 windows after the latest lower mean and
+terminal three-checkpoint stability below 0.1 SD. The selected best
+checkpoint is restored and 10,000 constrained posterior draws are saved.
+
+Outputs are isolated in `gamma_omega_rt_only_svi_0_1p8s_delay500ms/` and
+`gamma_omega_rt_choice_lapse_svi_0_1p8s_delay500ms/`. This execution runs
+all four group/variant combinations concurrently on disjoint CPU sets
+0–7, 8–15, 16–23 and 24–31, with BLAS/OMP threads limited to one.
+`execution_schedule.json` records these allocations and original starts.
+The fitter exposes group, seed, output/initialization roots, step limits,
+confirmation windows, preflight-only checks and resume controls.
+
+`verify_human_gamma_omega_variants_svi.py --mode MODE --preflight-only`
+independently checks MAT identities, priors, likelihoods, integrated mass,
+K=40/80 agreement and finite gradients before optimization. Its full run
+also reconstructs posteriors, histograms, psychometrics, condition mixtures,
+convergence and optional baseline/variant comparison tables.
+`plot_human_gamma_omega_variants_svi.py --mode MODE` renders each variant;
+`--mode rt_choice_lapse --comparison-only` compares both completed variants
+with the original joint fit. Empirical psychometrics remain dots without
+error bars. RT-only psychometrics are explicitly marked as predictions
+whose choice observations were not fitted by the objective.
+
+After both groups finish in each variant, the rendering and audit sequence is:
+
+```bash
+.venv/bin/python ASD_Human_Data/plot_human_gamma_omega_variants_svi.py --mode rt_only
+.venv/bin/python ASD_Human_Data/plot_human_gamma_omega_variants_svi.py --mode rt_choice_lapse
+.venv/bin/python ASD_Human_Data/plot_human_gamma_omega_variants_svi.py --mode rt_choice_lapse --comparison-only
+.venv/bin/python ASD_Human_Data/verify_human_gamma_omega_variants_svi.py --mode rt_only
+.venv/bin/python ASD_Human_Data/verify_human_gamma_omega_variants_svi.py --mode rt_choice_lapse
+```
+
+`publish_human_gamma_omega_variants_svi.py --mode all` publishes the checked
+figures, tables, source snapshots and posterior/checkpoint audit bundles on
+21 October, after visual-inspection manifests have been recorded. Each mode
+has its own Control/ASD RTD-plus-psychometric figures, parameter comparison
+and convergence/correlation diagnostic. The shared comparison uses the
+identical retained rows and actual condition frequencies for all three
+models. It reports common marginal RT log likelihoods, condition CDF gaps
+and psychometric errors; joint likelihoods are shown for joint models.
+Objective-specific ELBO values are used for convergence, not model ranking.
+
+The four runs completed the confirmation and terminal stability checks:
+RT-only Control 119k/restored 94k, RT-only ASD 105k/restored 80k;
+joint-with-lapse Control 85k/restored 54k and ASD 79k/restored 54k.
+The restored lapse checkpoints' own local stability checks are false;
+the prescribed stopping gate uses the terminal checkpoints instead.
+
+| Mean signed-condition CDF gap (lower is better) | Joint baseline | RT-only | Joint with lapses |
+|---|---:|---:|---:|
+| Control | 0.1379 | 0.0816 | 0.0658 |
+| ASD | 0.1128 | 0.0822 | 0.0774 |
+
+RT-only has higher marginal RT likelihood but poor diagnostic choice
+predictions (psychometric RMSE 0.2003 Control, 0.1931 ASD). It also pushes
+Gamma toward the allowed +1 reversal limit at Delta_dB=-0.1 in three
+group/ASL conditions. The lapse fit improves both CDF gaps and psychometric
+errors relative to the joint baseline. Its model-inferred retained-trial
+lapse fractions are 0.0503 Control and 0.0483 ASD, far below the 0.40 cap;
+neither group has delay accumulation at 500 ms. Gamma–Omega posterior
+correlations remain strong (absolute correlations up to 0.889 RT-only and
+0.829 with lapses). These are pooled-trial variational approximations,
+not estimates of participant-to-participant variability or guarantees of a
+global optimum. See the [21 October result-book entry](../docs/results/2026-10-21.md)
+for figures, intervals, condition-specific scores and complete audit links.
+
+### Google Drive backup of the joint lapse fits — 2026-10-22
+
+The full `gamma_omega_rt_choice_lapse_svi_0_1p8s_delay500ms/` root is backed
+up in [this verified Drive folder](https://drive.google.com/drive/folders/12rLEzjWJa9v57TLphzOxwnUE29YB8OAg):
+`raga:ddm_fit_backups_20261022_human_rt_choice_lapse_svi_lavos/`.
+The backup contains both Control/ASD fits, posterior samples, best/latest
+checkpoints, selected trial tables, diagnostics and figures: 83 fit files,
+34,428,097 bytes. Source/config snapshots bring the total to 96 files and
+34,664,146 bytes. Exact paths, sizes and MD5s were independently verified;
+the original fits remain unchanged.
+
+Transfer script: `scripts/backup_human_rt_choice_lapse_svi_to_drive_20261022.sh`.
+Local snapshot: `backup_staging/human_rt_choice_lapse_svi_20261022_011519/`.
+Verification: `logs/gdrive_human_rt_choice_lapse_20261022_011519.verification.json`.
+See `FIT_BACKUP_LEDGER.md` for full provenance. The date uses Asia/Kolkata;
+machine logs retain their recorded host/UTC timestamps. This used `rclone copy`.
+
+### Data/model chronometrics — 2026-10-22
+
+Run `.venv/bin/python ASD_Human_Data/plot_human_lapse_chronometric.py` to
+plot separate Control/ASD mean-RT comparisons from the completed joint
+RT+choice+lapse fit. Outputs are under
+`gamma_omega_rt_choice_lapse_chronometrics/`; both PNG/PDF pairs are embedded
+on the 22 October result-book page. The human data has two ASLs (20/40
+cd/m²), colored blue/orange. Markers show pooled raw-trial mean RTs, and
+lines join predictions at the five measured |Delta_dB| values.
+Data error bars are SEM across participant condition mean RTs:
+sample SD (`ddof=1`) divided by sqrt(participant count), using 11 Control
+and 8 ASD participants in every condition. Pool signs/sessions within each
+participant first. The bars are centered on the unchanged pooled-trial
+dots; participants have equal weight in the SEM calculation.
+
+Use the same 6,574 Control and 4,770 ASD trials (`Condition == "RT"`,
+`Valid == 1`, `0 <= RT_s <= 1.8`), including both choices. Evaluate each
+signed-condition density at arithmetic physical posterior means and
+integrate RT over the full retained window, including the uniform lapse
+component. Pool opposite signs by their actual retained trial counts.
+Independent adaptive SciPy quadrature checks all 40 signed means against
+the saved density/CDF curves; `chronometric_points.csv` records all 20
+plotted data/model pairs. Prior fit artifacts remain hash-identical.
+`participant_condition_means.csv` records the 190 individual means, and
+`participant_sem_verification.json` independently reconstructs all 20 SEMs.
+`before_participant_sem/` preserves the earlier figures and calculations.
+
+### Gaussian trial-varying delay: synthetic validation — 2026-10-22
+
+`gaussian_delay_likelihood.py` adds an independent Gaussian delay draw on every
+trial, truncated at zero with no upper cutoff. It convolves the reactive
+Gamma/Omega first-passage density with that delay distribution and provides
+both joint RT+choice and marginal RT objectives. This is trial variability;
+the Gaussian does not describe a variational posterior. That synthetic stage did not fit human data; the later human-fit section below uses the validated likelihood with additional numerical safeguards.
+
+`validate_gaussian_delay_likelihood.py` checks three broad-delay parameter
+sets using independent diffusion simulations, adaptive integration, gradients,
+series/grid refinement and a 6,600-trial timing benchmark. The reusable JAX
+calculation uses float64 and FFT convolution, with positive quadrature for
+near-empty tails. Details, reproduction instructions, PNG/PDF, simulated
+trials and numerical audit are in
+[`gaussian_delay_validation/README.md`](gaussian_delay_validation/README.md).
+
+## Human Gamma/Omega with Gaussian trial delays and uniform lapses
+
+Implemented under `gamma_omega_gaussian_delay_rt_choice_lapse_svi_0_1p8s/`. The same 11,344 retained simultaneous RT trials are fitted with independent condition-wise Gamma, Omega, zero-truncated Gaussian μ and σ, plus shared bias and lapse probabilities (83 parameters per group). Lapse RT remains Uniform(0,1.8 s). Original saved initial centers are retained; σ starts at 50 ms. Both groups ran in parallel. See the [22 October result-book entry](../docs/results/2026-10-22.md#human-rt-trial-varying-gaussian-delay-choice-and-uniform-lapses) for the three inline figures, priors, convergence status, fixed-delay comparison, source links and full posterior audit.
+
+## Wider Gaussian delay bounds: μ up to 1 s and σ down to 0.5 ms
+
+Implemented under `gamma_omega_gaussian_delay_rt_choice_lapse_svi_0_1p8s_mu1000ms_sigma0p5ms/`. The same 11,344 retained simultaneous RT trials are fitted with independent condition-wise Gamma, Omega, zero-truncated Gaussian μ and σ, plus shared bias and lapse probabilities (83 parameters per group). Lapse RT remains Uniform(0,1.8 s). Original saved initial centers are retained; σ starts at 50 ms. Both groups ran in parallel. See the [22 October result-book entry](../docs/results/2026-10-22.md#human-rt-wider-gaussian-delay-bounds-choice-and-uniform-lapses) for the three inline figures, priors, convergence status, fixed-delay comparison, source links and full posterior audit.
+
+
+## Human Gaussian-delay fits with one shared Omega per group
+
+`shared_omega_gaussian_delay_rt_choice_lapse_svi_0_1p8s_mu1000ms_sigma0p5ms/`
+contains a separate 64-parameter model for Control and ASD. Each group has one
+Omega shared across both ASLs and all signed differences, with 20 independent
+Gamma, Gaussian delay μ and Gaussian delay σ values, plus shared bias and the
+two lapse probabilities. All parameters are re-estimated; the Omega prior is
+applied once. The retained 6,574 Control and 4,770 ASD trial identities,
+zero-truncated Gaussian delay normalization, 0–1.8 s retention normalization,
+uniform lapses and all priors match the preceding 83-parameter fit.
+
+The source scripts are `fit_human_shared_omega_gaussian_delay_svi.py`,
+`human_shared_omega_gaussian_delay_svi_utils.py`,
+`plot_human_shared_omega_gaussian_delay_svi.py`,
+`verify_human_shared_omega_gaussian_delay_svi.py`, and
+`publish_human_shared_omega_gaussian_delay_svi.py`. The output README documents
+CLI options, posterior array ordering and the user-approved CPU-to-GPU
+checkpoint continuation. Both groups ran concurrently on the RTX 4090
+with float64 and preserved optimizer/RNG histories. ASD completed the original
+stopping rule at 83,000 updates and restored its 52,000-update best checkpoint.
+At the user's request, Control stopped at its loss plateau after 289,000 updates
+and restored its 95,000-update minimum-average-loss checkpoint; Control's
+stricter parameter-stability gate remains unconfirmed. The separate finalizer
+and user-request record preserve this distinction without altering fit settings.
+
+The [result-book section](../docs/results/2026-10-22.md#human-rt-one-shared-omega-per-group)
+contains the pooled seven-panel data/model figure, parameter comparison,
+83-versus-64 parameter fit-quality table and source/audit links after validation.
+Posterior intervals describe pooled-trial variational uncertainty, not
+participant-to-participant variation. Terminal stability and local stability
+at the restored best checkpoint are reported separately.
+
+## Human fits with ASLs pooled during fitting
+
+`pooled_asl_shared_omega_gaussian_delay_rt_choice_lapse_svi_0_1p8s_mu1000ms_sigma0p5ms/`
+fits Control and ASD separately with **34 parameters per group**: ten Gamma,
+ten underlying Gaussian delay means, ten delay SDs, and shared Omega, starting
+bias and two lapse probabilities. Matching signed differences share parameters
+across ASL 20 and 40 during fitting. The same 6,574 Control and 4,770 ASD raw
+RT+choice trials are retained, including both choices and all RTs below 200 ms.
+
+The user selected the original starting values: average matching ASL pairs from
+the preceding 64-parameter run's original initialization, and copy its scalar
+initial values. All 34 parameters are re-estimated, with the same trapezoidal
+priors, zero-truncated Gaussian delay and 0–1.8 s uniform lapse likelihood.
+Each prior is applied once per free parameter.
+
+Both groups run concurrently on GPU. Stopping uses only nonoverlapping
+1,000-update average losses: minimum 50,000, maximum 1,000,000 updates; every
+strict improvement resets patience; require 25 subsequent windows without an
+improvement and restore the lowest-loss checkpoint. The posterior-mean/SD
+stability gate is removed. A cap stop without loss confirmation is flagged.
+
+Sources: `human_pooled_asl_shared_omega_svi_utils.py`,
+`fit_human_pooled_asl_shared_omega_svi.py`,
+`plot_human_pooled_asl_shared_omega_svi.py`,
+`verify_human_pooled_asl_shared_omega_svi.py` and
+`publish_human_pooled_asl_shared_omega_svi.py`. The output README documents CLI
+controls, ten-condition ordering and 10,000 aligned joint posterior draws.
+The [23 October result-book section](../docs/results/2026-10-23.md#human-rt-asls-pooled-during-fitting)
+contains the single-row RTD/psychometric/chronometric comparison, parameter
+figure, matched-trial comparison with the 64-parameter model and source/audit
+links after validation. Intervals describe pooled-trial variational uncertainty,
+not participant-to-participant variation. Loss confirmation does not establish
+a global optimum.
+
+## Human RT with one shared Gaussian delay per group
+
+`pooled_asl_shared_omega_shared_gaussian_delay_rt_choice_lapse_svi_0_1p8s_mu1000ms_sigma0p5ms/`
+fits Control and ASD independently with **16 parameters per group**: ten Gamma
+values by signed difference and scalar Omega, Gaussian delay mean, Gaussian
+delay SD, bias and both lapse probabilities. ASLs remain pooled during fitting.
+Each trial draws an independent delay from the group's same Gaussian,
+truncated below zero without an upper cutoff. Each signed condition retains
+its own 0–1.8 s normalization. The same 6,574 Control and 4,770 ASD trials are used.
+
+Original Gamma and shared scalar centers are copied from the completed
+34-parameter run's saved original initialization, with the original ten delay
+means and SDs averaged to initialize each group's scalar mean and SD. All
+parameters are re-estimated. Priors are unchanged, including mean hard bounds
+0–1 s and SD hard bounds 0.5–300 ms; each shared prior contributes only once.
+Both groups run concurrently on GPU with the same full-rank SVI settings.
+Loss-only stopping requires >=50,000 updates and 25 subsequent 1,000-update
+windows without a lower average loss; cap 1,000,000 and restore the minimum.
+There is no posterior-mean/SD stability stopping gate.
+
+Sources: `human_shared_gaussian_delay_svi_utils.py`,
+`fit_human_shared_gaussian_delay_svi.py`,
+`plot_human_shared_gaussian_delay_svi.py`,
+`verify_human_shared_gaussian_delay_svi.py` and
+`publish_human_shared_gaussian_delay_svi.py`. The output README describes the
+10,000 aligned joint posterior draws, scalar delay arrays and 16-dimensional
+parameter ordering. See [Human RT: one shared Gaussian delay per group](../docs/results/2026-10-23.md#human-rt-one-shared-gaussian-delay-per-group)
+for the inline RTD/psychometric/chronometric and parameter figures, comparison
+with the 34-parameter model, and source/posterior audits after verification.
+Uncertainty is a pooled-trial variational approximation, not participant variability.
+
+## Final human fitting code and display exports
+
+For the exact final 16-parameter model, reading order, likelihood, priors,
+required external data and run commands, see [FINAL_HUMAN_MODEL.md](FINAL_HUMAN_MODEL.md).
+`requirements_human_shared_delay_cpu.txt` records the CPU-compatible package
+versions from the fitting environment; GPU runs use GPU-enabled JAX.
+
+The display-only scripts `export_human_shared_gaussian_delay_gray_magenta.py`,
+`export_human_shared_gaussian_delay_square_gamma.py` and
+`export_human_shared_gaussian_delay_equal_square_panels.py` reuse saved fits.
+They provide Control dark gray / ASD pink figures with grids disabled, a
+square Gamma alternative and equal-sized square parameter panels. The pooled
+comparison export adds participant SEM to data psychometrics and chronometrics,
+centered on the unchanged pooled-trial data dots. These scripts do not refit.
+
+The `share_final_human_model_2026-11-08/` folder is a local handoff snapshot;
+its archive and example outputs belong to the separate output backup. The
+canonical source links and guide above are the GitHub reading entry points.

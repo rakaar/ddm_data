@@ -630,6 +630,546 @@ colored PDF dots/287 bars and missing bars, checks zero-lapse/invalid-fit
 handling, and verifies unchanged data and prior-result hashes.
 
 
+## SHANK3 cohort 1 WT RTDs by |ILD| (2026-10-22)
+
+`plot_shank3_cohort1_wt_rtds.py` pools the five WT animals' actual trials from the cleaned session-type-1 CSV into a 1×5 |ILD|=1/2/4/8/16 figure. Each panel overlays ABL 20/40/60 (blue/orange/green; 59→60). Retain valid choices (`success` 1/−1) plus `abort_type=Fixation`, finite recorded RT in inclusive [−1,1] s. The 83,089 selected trials comprise 68,184 valid choices and 14,905 fixation aborts, with 14,820 negative RTs. No repeat eligibility is recalculated. Each 20 ms histogram is normalized by its ABL/|ILD| window count and bin width, area 1. Original signed trials and animals are pooled by their counts. All five animals contribute to every curve.
+
+Run `.venv/bin/python asd_analysis/plot_shank3_cohort1_wt_rtds.py`. PNG/PDF, condition counts, membership, selected trial identities, histogram bins and independent cell-parse/count verification are in `shank3_cohort1_wt_rtds/`. The source CSV hash is unchanged. The PNG is directly embedded in the October 22 result book with source/audit downloads.
+
+
+## SHANK3 cohort 1 fixation-abort durations by genotype (2026-10-22)
+
+`plot_shank3_cohort1_fixation_abort_durations.py` plots recorded fixation duration (`fix_time` in milliseconds / 1000) for fixation aborts (`abort_type=Fixation`, ASD equivalent of abort_event 3) whose finite `timed_rt<0`, without a lower RT cutoff. The 1×3 panels are WT/HOM/HET (blue/green/orange). Retain ABL 20/40/60 after 59→60 and signed ILDs ±1/2/4/8/16, pooling actual trials across conditions, animals and sessions. The cleaned session-type-1 CSV already applies preparation exclusions; no repeat filter is reapplied.
+
+Counts: WT 15,279 (5 animals), HOM 13,580 (6), HET 10,547 (3), total 39,406. Of these, 1,093 have timed_rt<−1 s and are retained. All recorded fixation durations are finite and nonnegative. Each 20 ms step histogram covers 0–2.1 s, includes every selected duration, and has area 1 using genotype-window count × 0.020 s as denominator. The x-axis is fixation duration; stimulus-relative RT is used only for selection.
+
+Run `.venv/bin/python asd_analysis/plot_shank3_cohort1_fixation_abort_durations.py`. PNG/PDF and audits are in `shank3_cohort1_fixation_abort_durations/`; validation independently parses source cells, trial identities, fixation-duration conversion, bin counts and densities and checks an unchanged input hash. The PNG is directly embedded in the October 22 result book with source/audit downloads.
+
+
+## SHANK3 cohort 1 proactive + exponential-lapse fits (2026-10-22)
+
+The cleaned session-type-1 CSV is the sole fit input. Original documentation
+identifies type 1 as standard RT; original SHANK3 cohort 1 contains types 1/2/23.
+Retain training 16, ABL 20/40/60 after 59→60, and signed ILDs ±1/2/4/8/16.
+Pool raw trials within WT/HOM/HET; do not reapply preparation/repeat exclusions
+or restrict measured RT. There are 225,245 trials from 14 animals: WT 83,921
+(5 animals), HOM 81,721 (6), HET 59,603 (3).
+
+Use fixation-time coordinates, `fix_time/1000` and `intended_fix_time/1000` in
+seconds. The 38,224 fixation aborts strictly before planned onset contribute
+mixture density. All valid choices and the 1,381 late fixation-labelled rows
+contribute mixture survival at planned onset: 187,021 censored observations.
+The 26 valid choices with logged fixation duration slightly below onset stay
+censored by outcome label. Post-stimulus response times are unused. This is
+not the negative-RT selection used in the earlier fixation-duration histogram.
+
+Five free parameters per genotype: drift, bound, combined delay, lapse
+probability and exponential rate. Diffusion is one; no LED/reactive parameters.
+Only the proactive process is delayed; exponential lapses start at fixation.
+Use untruncated density/survival mixtures and the specified trapezoidal priors.
+
+Readable cell-based scripts, with parameters at the top:
+
+- `fit_shank3_cohort1_proactive_lapse.py`: preparation, two SVI starts per genotype,
+  complete losses/checkpoints, 10,000 posterior draws and reproducible selection.
+- `proactive_lapse_no_led_utils.py`: reusable float64 density/survival likelihood
+  and priors; stable log survival and exact pure-component limits.
+- `verify_shank3_cohort1_proactive_lapse.py`: independent CSV-cell reconstruction,
+  SciPy/gradient/normalization checks, posterior and restoration verification.
+- `plot_shank3_cohort1_proactive_lapse.py`: abort data/model, convergence, and five
+  posterior-parameter panels; three PNGs with single-page PDFs.
+- `publish_shank3_cohort1_proactive_lapse.py`: direct embeds and downloadable
+  sources/audits in the October 22 result book, without replacing prior sections.
+
+Run from the repository root:
+
+```bash
+.venv/bin/python asd_analysis/fit_shank3_cohort1_proactive_lapse.py --prepare-only
+.venv/bin/python asd_analysis/verify_shank3_cohort1_proactive_lapse.py --pre-fit
+.venv/bin/python asd_analysis/fit_shank3_cohort1_proactive_lapse.py
+.venv/bin/python asd_analysis/plot_shank3_cohort1_proactive_lapse.py
+.venv/bin/python asd_analysis/verify_shank3_cohort1_proactive_lapse.py
+.venv/bin/python asd_analysis/publish_shank3_cohort1_proactive_lapse.py
+.venv/bin/python -m mkdocs build --strict
+```
+
+For independent workers, specify `--genotype wt --seed 0` (and the other five
+combinations); after all finish, use `--select-only`. Existing completed runs
+are preserved; interrupted runs resume their saved complete window. Use a new
+output folder when changing model or optimization parameters.
+
+Outputs are in `shank3_cohort1_proactive_lapse/`. Float64 full-rank SVI uses
+clipped Adam (0.0002; clip 1), init scale 0.1, 1,000-step windows, minimum
+50,000 steps, patience 12, and absolute-best restoration. Budget is initially
+150,000 steps with a 250,000 upper limit for the patience tail. Limit hits are
+inconclusive. Lowest restored negative ELBO selects the start, with posterior-
+mean likelihood resolving a 0.1% tie on identical trials.
+
+Abort data bins are 20 ms, divided by all eligible genotype trials × width;
+the area is the observed abort fraction, not one. Predictions apply every
+trial's exact planned onset: density × fraction still exposed, and exact bin
+mass `mean[F(min(b,c))-F(min(a,c))]`. Parameters use posterior means and central
+95% variational intervals, which do not describe across-animal variability.
+The fit root retains full optimizer/guide states; the result-book archive
+includes trial IDs, classifications, timing discrepancies, memberships,
+posterior draws, complete loss traces, convergence/selection tables and audits.
+
+## SHANK3 cohort 1 WT: direct Gamma/Omega fits (2026-10-22)
+
+`shank3_cohort1_wt_gamma_omega/` compares shared and condition-specific
+reactive delays with the proactive and exponential-lapse components frozen
+at the unrounded means of the selected WT seed-0 abort fit above.
+
+Both objectives contain the same **68,184 valid choices from five animals**:
+37,482 right and 30,702 left. Use cleaned session type 1, training 16, SHANK3
+cohort 1 WT, `success in {1,-1}`, recorded `timed_rt` in inclusive [0,1] s,
+ABL 20/40/60 after 59→60 and signed ILDs ±1/2/4/8/16. The 373 valid choices
+above one second are excluded. Preserve preparation exclusions without
+reapplying repeat filtering. Pool observed trials; do not average animals.
+
+Each signed ABL–ILD condition has its own Gamma and Omega, with no ±ILD
+symmetry. Both models fit global `w` and evidence-readout interval `del_go`.
+One shared `t_E_aff` gives 63 free parameters; 30 condition delays give 92.
+The complete ordinary-race/exponential-lapse choice density is divided by
+its complete either-choice mass in `[c,c+1]`, where
+`c=intended_fix_time/1000`. Response time is `c+timed_rt`; valid RT is not
+reconstructed from `fix_time`. No aborts or censored observations enter these
+new objectives. Half the fixed exponential-lapse density enters each choice.
+Reactive delays are not capped at the minimum RT.
+
+Scripts (readable `# %%` sections and editable parameters at the top):
+
+- `fit_shank3_wt_gamma_omega.py`: immutable selection/provenance and two
+  independently resumable full-batch, full-rank NumPyro fits.
+- `shank3_wt_gamma_omega_utils.py`: stable direct Gamma/Omega evidence kernels,
+  fixed proactive/lapse race, shared readout and joint-window normalizer.
+- `plot_shank3_wt_gamma_omega.py`: four primary PNG/PDF figures, convergence,
+  exact-parent-onset averages and in-sample numerical comparisons.
+- `verify_shank3_wt_gamma_omega.py`: independent data/SciPy likelihood and
+  posterior checks, exact signed pooling, RTD/CDF and psychometric audits.
+- `publish_shank3_wt_gamma_omega.py`: verified-only October 22 direct image
+  embeds, PDF/source downloads and an audit archive.
+- `finish_shank3_wt_gamma_omega.py`: one-off continuation that waits for both
+  running fits, then performs plotting, independent verification, publication
+  and the strict build, stopping and recording any failed stage.
+
+Preparation and preflight (the current prepared inputs already exist):
+
+```bash
+.venv/bin/python asd_analysis/fit_shank3_wt_gamma_omega.py --prepare-only
+.venv/bin/python asd_analysis/verify_shank3_wt_gamma_omega.py --pre-fit
+```
+
+Run the following in separate workers for concurrent fitting. `ASDFIT_CPUS`
+can specify disjoint comma-separated CPU sets. One initialization per model,
+seed 0; full-batch float64 SVI, clipped Adam 0.0002/clip 1, guide scale 0.1.
+
+```bash
+.venv/bin/python asd_analysis/fit_shank3_wt_gamma_omega.py --variant shared_delay
+.venv/bin/python asd_analysis/fit_shank3_wt_gamma_omega.py --variant condition_delay
+```
+
+Check 1,000-step windows, minimum 50,000 updates, and 25 windows after the best
+loss. The user removed the parameter-mean movement below 0.1 SD as a stopping
+requirement; retain it only as a diagnostic. `stopping_rule_change.json` records
+the authorization, old/new rules and hashes of the archived configurations,
+sources and states under `before_loss_only_stop/`. Both existing runs already
+passed the revised rule: restore the best checkpoints at 49,000/141,000 updates
+without taking more updates. Status `converged` refers to the revised loss rule,
+not a passed parameter-stability test. The minimum step count applies to the
+checked run rather than the restored best step.
+Restore the absolute-best state. Maximum 1,000,000 updates; limit
+hits are inconclusive. Save 10,000 posterior draws, complete losses and both
+best/latest guide/optimizer states. Completed runs are preserved. Interrupted
+runs resume only with identical source hashes and configuration.
+
+The current runs migrated from CPU to the NVIDIA RTX 4090 after 28,000
+shared-delay and 19,000 condition-delay updates. `gpu_migration.json` records
+the exact optimizer/guide/RNG transfer and archived CPU files under
+`cpu_before_gpu/`; only the configuration backend changed. Both continue in
+float64 with the same source code, trials, optimization and convergence rules.
+GPU launches use `JAX_PLATFORMS=cuda XLA_PYTHON_CLIENT_PREALLOCATE=false`
+before the commands above. The two processes share one GPU. CPU/GPU likelihood,
+gradient and update timings are recorded in `gpu_benchmark.json`; final
+posterior reproduction across devices allows only float64 rounding differences.
+
+After both complete:
+
+```bash
+.venv/bin/python asd_analysis/plot_shank3_wt_gamma_omega.py
+.venv/bin/python asd_analysis/verify_shank3_wt_gamma_omega.py
+.venv/bin/python asd_analysis/publish_shank3_wt_gamma_omega.py
+.venv/bin/python -m mkdocs build --strict
+```
+
+Alternatively, start `.venv/bin/python asd_analysis/finish_shank3_wt_gamma_omega.py`
+alongside the fits to execute those four final steps automatically. Read
+`completion.json`, the stage logs and each model's `run_summary.json` for
+actual completion/convergence status; publication and final visual inspection
+are recorded separately.
+
+The RTD grids contain 81,934 observations: the 68,184 fitted choices plus
+13,750 strict pre-onset fixation aborts within [−1,0), timed as
+`fix_time/1000 - intended_fix_time/1000`. The negative observations are only
+displayed. Late fixation-labelled rows are excluded from observed aborts.
+Data use 20 ms bins; models use 1 ms evaluation. Pool signed conditions with
+actual counts and normalize each data/model panel separately to area one
+over [−1,1]. Full-model predictions average all 83,921 eligible parent
+onset times and signed-condition frequencies; audits retain window masses.
+Psychometric predictions integrate each trial's right density over [0,1],
+divide by its complete window mass, then average the fitted valid onsets.
+Lines connect only the ten fitted ILDs; no sigmoid is added.
+
+Posterior intervals are conditional on frozen abort parameters, and the
+single starts do not test initialization sensitivity. Likelihood/CDF/choice
+comparisons are in-sample. The optional `--preview-initial` plotting and
+verification modes use an isolated `initial_preview/` folder; those are
+pipeline dry runs, not fitted results, and are never published.
+
+## SHANK3 cohort 1 HOM: condition-specific Gamma/Omega/delay (2026-10-23)
+
+`shank3_cohort1_hom_gamma_omega/` is a separate HOM analysis, preserving the
+WT scripts/results and all source CSVs. Pool six cohort-1 HOM animals:
+ASD0023, ASD0024, ASD0043, ASD0045, ASD0046, ASD0048. The cleaned session-type-1
+selection uses training level 16, success ±1, finite recorded RT in [0,1] s,
+ABL 20/40/60 after 59→60, and ten signed ILDs ±1/2/4/8/16. There are 67,715
+fitted choices (35,320 right, 32,395 left); 357 valid choices above 1 s are
+excluded. Prepared repeat and short-sound exclusions are retained.
+
+Freeze the five unrounded HOM seed-0 proactive/exponential-lapse posterior
+means. Reuse the unchanged `shank3_wt_gamma_omega_utils.py` likelihood and
+priors, with 30 Gamma, 30 Omega, 30 delays, shared w and shared del_go:
+92 parameters and no shared-delay fit. Use exact planned onset and normalize
+the complete joint mixture over the valid [0,1] s window.
+
+The independent, readable `# %%` scripts are `fit_shank3_hom_gamma_omega.py`,
+`plot_shank3_hom_gamma_omega.py`, `verify_shank3_hom_gamma_omega.py`,
+`publish_shank3_hom_gamma_omega.py`, and `finish_shank3_hom_gamma_omega.py`.
+Parameters and source roots are near the top. Use `.venv/bin/python`.
+
+Preparation and numerical preflight:
+
+```bash
+.venv/bin/python asd_analysis/fit_shank3_hom_gamma_omega.py --prepare-only
+.venv/bin/python asd_analysis/verify_shank3_hom_gamma_omega.py --pre-fit
+```
+
+Run one seed-0, full-batch, float64 full-rank fit on the RTX 4090:
+
+```bash
+JAX_PLATFORMS=cuda XLA_PYTHON_CLIENT_PREALLOCATE=false .venv/bin/python asd_analysis/fit_shank3_hom_gamma_omega.py
+```
+
+Clipped Adam uses learning rate 0.0002, clip norm 1 and initial guide scale
+0.1. Every strictly lower 1,000-update mean loss resets confirmation; after
+at least 50,000 updates, stop following 25 windows without improvement and
+restore the absolute-best checkpoint. The minimum applies to the checked
+run, not its restored best step. Parameter stability is diagnostic only, at
+both terminal and restored checkpoints. A 1,000,000-update limit without
+confirmation is inconclusive. Save 10,000 posterior draws and 95% intervals;
+uncertainty is conditional on frozen abort parameters. One initialization
+does not assess start sensitivity.
+
+The `--checkpoint-only-after 2000` execution option saves an unfinished
+state without posterior finalization. Relaunch without it to continue the
+same optimizer/guide/RNG state with identical mathematical configuration.
+The initial controlled continuation is documented in `resume_validation.json`
+and `condition_delay/before_resume_check/`; completed fits cannot be overwritten.
+
+The RTD grid uses 80,989 observations: 67,715 fitted choices and 13,274
+strict pre-onset fixation aborts in [-1,0), displayed only. It pools actual
+signed trials, averages exact onset times across 81,721 parent trials, and
+normalizes each pooled data/model panel separately over [-1,1] s. Empirical
+steps use 20 ms bins and 1.4 pt width above the thinner 0.8 pt model evaluated
+at 1 ms. Psychometrics use data scatter and 1.0 pt model lines at the measured
+signed ILDs, with exact per-trial valid-window normalization before averaging.
+
+The finishing script generates figures, independently verifies them, then
+waits for a manually recorded `visual_inspection.json` before publishing and
+running the strict MkDocs build. Read `completion.json` and stage logs for
+actual status. The two primary PNGs/PDFs, supplementary convergence figure,
+source files and audits are published in the October 23 result book.
+
+Completed at 187,000 checked updates, restoring the 162,000-update best
+checkpoint after exactly 25 confirmation windows. Mean negative ELBO at the
+best window is -48617.280308. Both terminal and restored parameter-stability
+diagnostics are false, as permitted by the requested loss-only rule. All
+67,715 fitted trials, 15 RTD panels and 30 psychometric probabilities passed
+independent checks; CPU/GPU reproduction of 10,000 posterior draws differed
+by at most 6.44e-15. The two primary PNGs/PDFs and supplementary convergence
+figure passed visual inspection and are embedded/linked in the
+[October 23 entry](../docs/results/2026-10-23.md#shank3-cohort-1-hom-condition-specific-reactive-delays).
+
+## SHANK3 cohort 1 WT/HOM parameter and chronometric comparisons (2026-10-23)
+
+`shank3_cohort1_wt_hom_comparison/` contains seven PNGs and matching
+single-page PDFs derived from the saved condition-delay fits, without
+refitting. The three 1x3 Gamma/Omega/reactive-delay figures have ABL columns
+and separate signed ILD categories; the 1x2 shared-parameter figure shows w
+and del_go. WT is blue and HOM red. All 184 group/parameter estimates use
+saved posterior means and 2.5th/97.5th percentiles of 10,000 draws. Delay
+parameters are shown in milliseconds; Omega in inverse seconds. Intervals
+are conditional variational uncertainty with proactive/lapse means frozen,
+not animal-to-animal variability. Frozen parameters are excluded.
+
+Three compact square chronometrics show WT ABL-separated, HOM ABL-separated,
+and WT/HOM with ABLs pooled. The original fitted valid [0,1] s populations
+are preserved: 68,184 WT choices / five animals and 67,715 HOM choices / six
+animals. Data dots pool actual trials; bars use sample SD across animal
+means / sqrt(animal count), centered on those pooled dots. For the pooled
+ABL view, pool within each animal first, then calculate SEM. Positive and
+negative ILDs are combined by observed trial counts. Models integrate the
+complete density conditional on each trial's exact valid-window mass before
+averaging; ABL/sign mixture weights use fitted valid-trial counts. The
+earlier abort-plus-valid RTDs are not used to obtain chronometric means.
+Model lines are 1.0 pt, all three panels use 0-0.30 s, and ABL-separated
+colors are blue/orange/green for 20/40/60.
+
+Sources and reproducible steps:
+
+```bash
+.venv/bin/python asd_analysis/plot_shank3_cohort1_wt_hom_comparison.py
+.venv/bin/python asd_analysis/verify_shank3_cohort1_wt_hom_comparison.py
+```
+
+After visually inspecting all seven images and recording their hashes in
+`visual_inspection.json`, publish and build:
+
+```bash
+.venv/bin/python asd_analysis/publish_shank3_cohort1_wt_hom_comparison.py
+.venv/bin/python -m mkdocs build --strict
+```
+
+The independent verifier reconstructs original source trial identities,
+all 184 posterior summaries, 60 signed model means, 40 plotted data/model
+pairs and 40 SEMs, 165 animal/ABL/absolute-ILD means and 55 ABL-pooled animal
+means. Primary density quadrature is checked against independent adaptive
+SciPy conditional-survival integration and the saved CDF integral; the
+largest density-versus-saved-CDF difference is 4.32e-8 s (tolerance 1e-6 s).
+All source CSVs and saved fit files retain their baseline hashes. Audits
+include condition mappings, pooling weights, memberships, means, intervals,
+SEMs, integration checks and preserved source snapshots.
+
+The two composite overview images are now directly embedded in the
+[October 23 result book](../docs/results/2026-10-23.md#shank3-cohort-1-wt-vs-hom-parameters-and-chronometrics),
+with PDF, source and audit downloads. The seven original individual PNGs/PDFs
+remain unchanged and available as downloads; previous fit entries remain available.
+
+### Combined WT/HOM overview figures
+
+`plot_shank3_cohort1_wt_hom_composites.py` rearranges the verified numerical
+tables without refitting or repeating model integration. New exports live
+under `shank3_cohort1_wt_hom_comparison/composites/`:
+
+- `SHANK3_cohort1_WT_HOM_all_parameters.png` / `.pdf`: 11 panels, with three
+  Gamma/Omega/reactive-delay rows and ABL columns, then shared w and del_go.
+  The 184 posterior means and central 95% credible intervals are unchanged.
+- `SHANK3_cohort1_WT_HOM_behavior_comparison.png` / `.pdf`: four rows containing
+  WT's five |ILD| RTDs, HOM's five RTDs, three compact square chronometrics,
+  and separate WT/HOM psychometrics (15 panels). The requested "HET" row
+  refers to HOM in these completed-fit comparisons.
+
+RTDs overlay ABL 20/40/60 in blue/orange/green, with solid 1.4 pt empirical
+steps and matching-color 0.8 pt dashed model curves. Each retains its own
+normalization over [-1,1] s (20 ms data bins; 1 ms model sampling), with one
+shared density scale. They include 81,934 WT observations (68,184 valid +
+13,750 pre-onset aborts) and 80,989 HOM observations (67,715 valid + 13,274
+aborts). Exact parent-trial onset/sign weights are retained for RTD models.
+Chronometric/psychometric values instead use fitted valid choices in [0,1] s,
+and the chronometric model normalizes at each valid trial's exact onset.
+All prior means, equal-animal SEMs, probabilities, curves and fit files are
+preserved. Model densities retain exact CDF window-mass normalization; the
+1 ms trapezoid approximation differs from unit area by at most 1.58e-6.
+
+Reproduce the composites, then independently check the actual plotted artists:
+
+```bash
+.venv/bin/python asd_analysis/plot_shank3_cohort1_wt_hom_composites.py
+.venv/bin/python asd_analysis/verify_shank3_cohort1_wt_hom_composites.py
+```
+
+After inspecting both PNGs and recording their hashes in the composites'
+`visual_inspection.json`, publish the two main embeds and build:
+
+```bash
+.venv/bin/python asd_analysis/publish_shank3_cohort1_wt_hom_composites.py
+.venv/bin/python -m mkdocs build --strict
+```
+
+The verifier reconstructs posterior summaries from all 10,000 draws and
+rebuilds RTD counts, valid-choice probabilities, pooled RT means and animal
+SEMs directly from the saved trial populations. It checks every plotted
+array, 11/15 panel layouts, square lower panels, limits, colors, both
+single-page PDFs, and 285 preserved input/fit/previous-output/asset hashes.
+The publisher edits only the existing WT/HOM section, retaining original
+download links and all other October 23 entries. Its audit ZIP includes the
+source scripts, original section, input tables, plotted arrays and checks.
+
+### WT/HOM RTD display zoom: 0–0.6 s
+
+`plot_shank3_cohort1_wt_hom_rtd_zoom.py` creates separate WT and HOM 3×5
+ABL-by-|ILD| PNG/PDF grids under `shank3_cohort1_wt_hom_comparison/rtd_zoom_0_0p6/`.
+It reuses the saved condition-delay RTD arrays and the combined figure's
+common y-scale, changing the display to 0–0.6 s without filtering or
+renormalizing. Normalization remains over [-1,1] s. Colored 1.4 pt data
+steps are drawn above thin 0.7 pt black model lines. All 3,000 data bins
+and 60,030 model samples in the new artists are checked exactly against
+the previous composite's artists; prior fits, source data and figures are
+preserved. Both images and PDF downloads are in the October 23 section
+**WT and HOM: RTDs zoomed to 0–0.6 s**.
+
+## SHANK3 cohort 1 WT/HOM: tied Omega and one reactive delay (2026-10-23)
+
+`shank3_cohort1_wt_hom_tied_omega/` is a separate four-run analysis. Each
+genotype has 30 independent signed-condition Gammas, one reactive delay,
+shared w and del_go. `omega_by_abl` has three Omegas (36 free parameters);
+`omega_global` has one (34 parameters). WT and HOM fit independently, using
+the exact original 68,184 WT / 67,715 HOM valid choices in [0,1] s, their
+recorded RTs and exact planned onsets, and the same frozen five proactive/
+exponential-lapse posterior means. Priors apply once per free parameter;
+deterministic expansion to 30 conditions is not additional sampling.
+
+All four fits completed on the RTX 4090 after the restart restored matching
+NVIDIA driver 595.91.07. Each satisfied the loss-confirmation stopping rule
+and restored its absolute-best checkpoint. Parameter stability remained a
+diagnostic, as requested; it was not a stopping requirement.
+
+| Genotype | Variant | Restored-best update | Final checked update |
+|---|---|---:|---:|
+| WT | Omega by ABL | 52,000 | 77,000 |
+| HOM | Omega by ABL | 52,000 | 77,000 |
+| WT | Global Omega | 129,000 | 154,000 |
+| HOM | Global Omega | 70,000 | 95,000 |
+
+Each run has 10,000 posterior draws. Independent posterior/checkpoint and
+diagnostic checks passed, all four final PNGs were visually inspected,
+and the matching PNG/PDF composites are published. For both genotypes,
+Omega by ABL has higher joint log likelihood and smaller psychometric and
+RT-CDF discrepancies than global Omega on the fitted trials. This is an
+in-sample comparison with one initialization per fit; see
+`in_sample_comparison.csv` for all four rows.
+
+Scripts use editable `# %%` blocks. Preparation copies original inputs
+byte-for-byte and records preserved hashes. The independent prefit verifier
+rebuilds selection from the cleaned CSV, checks 36/34 free parameters,
+prior multiplicities, initializations, SciPy likelihood agreement, finite
+gradients and full-mixture normalization. Small 30-trial/15-update tests
+validate interrupted/resumed states against uninterrupted updates, including
+recovery from a corrupted derived history export. Those tests and the
+separate `initial_preview/` figures are not scientific fit results.
+
+```bash
+.venv/bin/python asd_analysis/prepare_shank3_tied_omega.py
+.venv/bin/python asd_analysis/verify_shank3_tied_omega.py --pre-fit
+# Launch or resume the GPU pipeline:
+.venv/bin/python asd_analysis/run_shank3_tied_omega_pipeline.py
+```
+
+The launcher verifies CUDA access, benchmarks disposable fresh states, then
+runs four fits concurrently with GPU preallocation disabled (two at a time
+if measured memory requires it). Benchmark states never seed the real fits.
+Each fit uses seed 0, float64 full-batch full-rank SVI, clipped Adam 0.0002,
+clip norm 1 and initial scale 0.1. Minimum 50,000 updates, 1,000-update loss
+windows and 25 windows without a strictly lower loss determine stopping;
+the best checkpoint is restored, and the cap is 1,000,000 updates.
+Parameter stability is diagnostic only. Atomic checkpoints contain both
+current/best optimizer/guide states and full histories for exact resume.
+
+After all four fits, the pipeline verifies posterior draws/checkpoints,
+generates predictions and four PNG/PDF composites, then independently checks
+SciPy survival-integral means, choices, parent pooling, empirical statistics,
+actual plotted artists, limits and download files. Each variant gets one
+seven-panel parameter figure and one 15-panel behavior figure. RTDs display
+[-0.1,0.6] s with 20 ms data bins and thin 0.7 pt model curves, retaining
+[-1,1] s normalization; no empirical values are changed. Chronometric dots
+pool trials; SEM weights animal means equally. Shared parameters are shown
+once, and corresponding axes are common across variants.
+
+The pipeline leaves completed figures at `figures_ready_for_visual_inspection`
+until the four final PNG hashes have been visually checked and recorded in
+`figures/visual_inspection.json`. Then publish and build:
+
+```bash
+.venv/bin/python asd_analysis/publish_shank3_tied_omega.py
+.venv/bin/python -m mkdocs build --strict
+```
+
+The October 23 section **SHANK3 cohort 1 WT vs HOM: tied-Omega and shared-delay
+refits** embeds all four final PNGs and provides matching PDFs, sources and
+audit downloads. Publication requires real 10,000-draw posteriors, numerical
+checks and visual inspection. Initial-value previews cannot be published
+by the publisher.
+
+
+## SHANK3 cohort 1 WT/HOM: Gamma shared across ABLs (2026-10-23)
+
+`shank3_cohort1_wt_hom_gamma_by_ild/` contains a separate two-run analysis:
+10 independent signed-ILD Gammas shared across ABLs, three ABL Omegas,
+one reactive delay, shared w and del_go. These are **16 free parameters
+per genotype**, expanded deterministically to the existing 30 stimulus
+conditions, with each prior applied once per free parameter. WT and HOM
+fit independently. Positive and negative ILDs are not constrained to be
+symmetric.
+
+Use exactly the previous 68,184 WT choices from five animals and 67,715 HOM
+choices from six animals, valid success ±1 and finite recorded RT in [0,1] s.
+Keep session type 1, training 16, ABL 59→60, existing signed ILDs and the same
+frozen proactive/exponential-lapse parameters. The prepared filters are not
+reapplied. All original inputs and previous fits/figures are protected by
+hashes. Gamma initializes from half the pooled right-choice logit per signed
+ILD; Omega initializes from trial-weighted condition initials per ABL.
+Delay starts at 0.05 s, w at 0.5 and del_go at 0.08 s.
+
+Both fresh seed-0 runs execute concurrently on GPU, with float64 full-batch
+full-rank SVI, clipped Adam 0.0002, clip norm 1 and initial guide scale 0.1.
+Use 1,000-update loss windows, minimum 50,000 updates, 25 windows without a
+strictly lower loss, and restore the absolute best checkpoint. Parameter
+stability is diagnostic only; an unconfirmed 1,000,000-update limit hit is
+inconclusive. Save 10,000 posterior draws and complete resumable histories.
+
+```bash
+.venv/bin/python asd_analysis/prepare_shank3_gamma_by_ild.py
+.venv/bin/python asd_analysis/verify_shank3_gamma_by_ild.py --pre-fit
+.venv/bin/python asd_analysis/verify_shank3_gamma_by_ild_smoke.py
+.venv/bin/python asd_analysis/run_shank3_gamma_by_ild_pipeline.py
+```
+
+The Gamma panel uses 50% of its original width (4.55 inches), preserving
+height, axis limits and all estimates. `GAMMA_WIDTH_FRACTION` controls its width.
+
+The five-panel parameter composite shows shared Gamma once, Omega by ABL,
+reactive delay, w and del_go: WT blue/HOM red, posterior means and central
+95% credible intervals, delays in ms. The 15-panel behavior composite retains
+five WT RTDs, five HOM RTDs, three compact chronometrics and separate WT/HOM
+psychometrics. RTD model curves are **solid, opaque, 1.2 pt above data steps
+at alpha 0.5 and 1.4 pt**. ABL 20/40/60 use blue/orange/green. Display
+[-0.1,0.6] s without changing 20 ms empirical bins, 1 ms model evaluation
+or full [-1,1] s normalization.
+
+Empirical values and pooling weights are unchanged. Valid-trial predictions
+normalize each exact onset before averaging. Chronometric dots pool trials;
+SEM weights animal means equally. Independent SciPy checks cover likelihoods,
+normalization, means/choices and actual plotted arrays/styles. The new fits
+are compared with the earlier 36-parameter Omega-by-ABL model on identical
+trials; these are in-sample comparisons with one initialization per fit.
+
+Both GPU fits completed at 74,000 updates, restoring their absolute-best
+49,000-update checkpoints after 25 confirmation windows. Each has 10,000
+saved posterior draws. Independent verification passed for all 32 parameter
+summaries, 60 signed predictions and 40 chronometric pairs; maximum independent
+mean-RT error was 8.1e-12 s. Both final fitted composites were visually inspected.
+
+The 16-parameter fits preserve RT predictions closely while psychometric RMSE
+increases compared with the 36-parameter reference: WT 0.01263 → 0.02687 and
+HOM 0.01515 → 0.01925. Joint log likelihood decreases by 164.62 (WT) and
+43.44 (HOM), evaluated on identical trials at the physical posterior means.
+These are in-sample diagnostics, not held-out model selection.
+
+The October 23 section **SHANK3 cohort 1 WT vs HOM: Gamma shared across ABLs**
+embeds the two final PNGs with PDF/source/audit downloads. Posterior, numerical
+and visual checks passed; initial previews remain isolated.
+
+
 ## SHANK3 cohort 1 WT: NPL+alpha with condition-specific delays (2026-11-04)
 
 37-parameter fit using the exact 68,184 WT choices from the existing condition-delay reference, with five proactive/exponential-lapse parameters frozen. No prepared filters are reapplied. Full-rank GPU SVI uses minimum 50k updates and a strict-improvement 25-window confirmation tail, without a parameter-stability gate. Output: `shank3_cohort1_wt_npl_alpha_condition_delay/`.

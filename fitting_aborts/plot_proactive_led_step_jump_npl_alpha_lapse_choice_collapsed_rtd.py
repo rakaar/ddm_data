@@ -159,17 +159,6 @@ for category in ["off", "on"]:
             panel_title += " (control)"
         ax.set_title(panel_title, fontsize=10)
         ax.set_xlabel("RT relative to stimulus (s)")
-        ax.text(
-            0.98,
-            0.96,
-            "Area in [-1, 2] s\n"
-            f"simulation={cell['simulation_area']:.3f}\n"
-            f"likelihood={cell['theory_area']:.3f}",
-            transform=ax.transAxes,
-            ha="right",
-            va="top",
-            fontsize=7.5,
-        )
         if panel_index == 0:
             ax.set_ylabel("Choice-collapsed RT density")
 
