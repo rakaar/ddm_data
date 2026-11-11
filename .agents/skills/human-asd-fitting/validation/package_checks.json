@@ -1,0 +1,26 @@
+{
+  "skill_validation": "passed",
+  "source_snapshot_files": 16,
+  "source_hashes_match": true,
+  "python_syntax": "passed",
+  "markdown_links": "passed",
+  "copied_fitter_import_and_help": "passed on CPU from bundled project root",
+  "independent_simulation": "passed",
+  "simulated_trials": 18000,
+  "max_simulation_cdf_gap": 0.02075077537493039,
+  "simulation_limits": [
+    "Illustrative reference-model conditions only; not a fit or parameter recovery.",
+    "Discrete crossings have finite-step bias; refine dt for tighter comparisons.",
+    "The conservative CDF allowance combines Monte Carlo error and a discretization heuristic.",
+    "New likelihood families, priors or windows require corresponding validation."
+  ],
+  "real_human_fit_started": false,
+  "synthetic_parameter_recovery_run": false,
+  "no_user_edited_yaml_or_requirements": true,
+  "content_review": [
+    "Prior session decisions take precedence; only unresolved modeling choices are asked.",
+    "Technical SVI defaults are agent-managed; priors and model sharing remain human-facing.",
+    "Reference model is explicitly one example, not forced defaults for new filters/sharing.",
+    "RT-only psychometrics, causal delays, boundary pressure and pooled uncertainty are distinguished."
+  ]
+}

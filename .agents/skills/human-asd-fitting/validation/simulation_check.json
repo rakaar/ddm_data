@@ -1,0 +1,87 @@
+{
+  "status": "passed",
+  "independent_simulator": "Euler-Maruyama Brownian increments",
+  "seed": 0,
+  "dt_s": 0.0002,
+  "rt_window_s": [
+    0.0,
+    1.8
+  ],
+  "cases": [
+    {
+      "parameters": {
+        "gamma": -1.2,
+        "omega": 2.0,
+        "w": 0.45,
+        "mu": 0.25,
+        "sigma": 0.06,
+        "p": 0.06,
+        "q": 0.55
+      },
+      "trials": 6000,
+      "retained_ddm_mass": 0.9969292056983187,
+      "theory_p_right": 0.09277955691896708,
+      "empirical_p_right": 0.09266666666666666,
+      "choice_error": 0.00011289025230042105,
+      "choice_monte_carlo_se": 0.0037454752866378036,
+      "marginal_cdf_gap": 0.018450450913554017,
+      "joint_cdf_gap": 0.018819899760446568,
+      "diagnostic_allowance": 0.055167608910962784,
+      "monte_carlo_allowance": 0.02516760891096279,
+      "time_step_allowance": 0.03,
+      "conditional_density_mass": 0.9999999079012007
+    },
+    {
+      "parameters": {
+        "gamma": 0.0,
+        "omega": 2.0,
+        "w": 0.5,
+        "mu": 0.25,
+        "sigma": 0.06,
+        "p": 0.06,
+        "q": 0.55
+      },
+      "trials": 6000,
+      "retained_ddm_mass": 0.9718987506739745,
+      "theory_p_right": 0.503,
+      "empirical_p_right": 0.5018333333333334,
+      "choice_error": 0.0011666666666666492,
+      "choice_monte_carlo_se": 0.0064548560531329175,
+      "marginal_cdf_gap": 0.02075077537493039,
+      "joint_cdf_gap": 0.01308061129176838,
+      "diagnostic_allowance": 0.055167608910962784,
+      "monte_carlo_allowance": 0.02516760891096279,
+      "time_step_allowance": 0.03,
+      "conditional_density_mass": 0.9999996552774517
+    },
+    {
+      "parameters": {
+        "gamma": 1.2,
+        "omega": 2.0,
+        "w": 0.55,
+        "mu": 0.25,
+        "sigma": 0.06,
+        "p": 0.06,
+        "q": 0.55
+      },
+      "trials": 6000,
+      "retained_ddm_mass": 0.9969292056983187,
+      "theory_p_right": 0.9132204430810329,
+      "empirical_p_right": 0.9133333333333333,
+      "choice_error": 0.00011289025230043492,
+      "choice_monte_carlo_se": 0.0036343010657693834,
+      "marginal_cdf_gap": 0.013423335956652238,
+      "joint_cdf_gap": 0.01319926062986676,
+      "diagnostic_allowance": 0.055167608910962784,
+      "monte_carlo_allowance": 0.02516760891096279,
+      "time_step_allowance": 0.03,
+      "conditional_density_mass": 0.9999999079012009
+    }
+  ],
+  "limitations": [
+    "Illustrative reference-model conditions only; not a fit or parameter recovery.",
+    "Discrete crossings have finite-step bias; refine dt for tighter comparisons.",
+    "The conservative CDF allowance combines Monte Carlo error and a discretization heuristic.",
+    "New likelihood families, priors or windows require corresponding validation."
+  ]
+}

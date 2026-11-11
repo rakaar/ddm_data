@@ -1,0 +1,71 @@
+{
+  "purpose": "Reference sources for a conversation-led human ASD fitting skill; no participant trials or saved posterior included",
+  "source_git_head": "71477a8e969df271259da3d980a281290372290a",
+  "snapshot_date": "2026-11-11",
+  "files": {
+    "ASD_Human_Data/fit_human_shared_gaussian_delay_svi.py": {
+      "sha256": "caebcf8b7ee69de2fb5a530b1aaa44d1553cb2390b7ac44fbee288f003f07f57",
+      "bytes": 15145
+    },
+    "ASD_Human_Data/gaussian_delay_likelihood_wide.py": {
+      "sha256": "c43bf4039ac37f450d424a023fe69568af60c31a4158a486d3ad3eaec0885ec1",
+      "bytes": 14056
+    },
+    "ASD_Human_Data/human_gamma_omega_delay500_svi_utils.py": {
+      "sha256": "9fd771c70618f7bc7c7e7d3b7af9f49715884adae885384d02e23abaccd296ed",
+      "bytes": 6668
+    },
+    "ASD_Human_Data/human_gamma_omega_variants_svi_utils.py": {
+      "sha256": "24da300ef7ba2bbb828d10e8eea68f00fd900606390887108605ecd4168439be",
+      "bytes": 7952
+    },
+    "ASD_Human_Data/human_gaussian_delay_svi_utils_wide.py": {
+      "sha256": "00c64db925f8256e89ca7ffddf45e8643679879fb2cc9267425f952eefc8d325",
+      "bytes": 7238
+    },
+    "ASD_Human_Data/human_plain_ddm_diagnostics_utils.py": {
+      "sha256": "23c25445918eb7249a3c9040255686d5675e584bab2c6c10ae555bd9d6ef75ab",
+      "bytes": 6314
+    },
+    "ASD_Human_Data/human_pooled_asl_shared_omega_svi_utils.py": {
+      "sha256": "147527bb8c59fd941fcdc60c9a6275e92ce8f359a8433328bc8673a0d3f13e11",
+      "bytes": 5430
+    },
+    "ASD_Human_Data/human_reactive_tied_svi_utils.py": {
+      "sha256": "f52ec899347d73bcdd378faa8eafedfb42ac1aaad2a24d89f3af0ef42f4029bd",
+      "bytes": 5325
+    },
+    "ASD_Human_Data/human_shared_gaussian_delay_svi_utils.py": {
+      "sha256": "b687a10da00bc00aed85100b5d2defca7dfac47065df16fb1f32539c129bcdc9",
+      "bytes": 5808
+    },
+    "ASD_Human_Data/plot_human_shared_gaussian_delay_svi.py": {
+      "sha256": "29fd1a080afd822120564e68905c6e8423da6b64284e9a36b29eb554e93a759a",
+      "bytes": 19550
+    },
+    "ASD_Human_Data/pooled_asl_shared_omega_gaussian_delay_rt_choice_lapse_svi_0_1p8s_mu1000ms_sigma0p5ms/asd/initialization.json": {
+      "sha256": "4abe5e89cce80f8784d296d5e8a93d953e8f7461624bdc161e0a1eb3402c3d62",
+      "bytes": 751
+    },
+    "ASD_Human_Data/pooled_asl_shared_omega_gaussian_delay_rt_choice_lapse_svi_0_1p8s_mu1000ms_sigma0p5ms/control/initialization.json": {
+      "sha256": "55bcdf0d7c88b4080d82611681be91af7f28af3a0c8fa235fc2272286812e0fd",
+      "bytes": 759
+    },
+    "ASD_Human_Data/simultaneous_rt_extraction.json": {
+      "sha256": "447e61778d96dd26d008f920024d22ae3d092c98f648dc9a6ed4d96bd5549e07",
+      "bytes": 1448
+    },
+    "ASD_Human_Data/verify_human_shared_gaussian_delay_svi.py": {
+      "sha256": "2195f4e62794378c0362d6b714a43a9b07dce05eaf0f2d8170e8c89daf451f12",
+      "bytes": 25853
+    },
+    "fit_animal_by_animal/numpyro_vanilla_condition_delay_svi_utils.py": {
+      "sha256": "9a98c22f8e91735dec2701ca2ecc926bff6a0ac217d1b29d22dfe770cd73dd5b",
+      "bytes": 16956
+    },
+    "fit_each_condn/svi_gamma_omega_likelihood_utils.py": {
+      "sha256": "e8fd7b8a91245bfc569a4b4fe756949d9022d86c76ae74a6e0a3cd311a1de247",
+      "bytes": 9018
+    }
+  }
+}
