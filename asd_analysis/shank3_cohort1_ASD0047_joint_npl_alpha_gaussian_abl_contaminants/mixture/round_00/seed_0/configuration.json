@@ -1,0 +1,222 @@
+{
+  "model": "ASD0047 joint proactive/NPL+alpha/Gaussian-ABL/mixture",
+  "seed": 0,
+  "bounds_round": 0,
+  "parameters": 20,
+  "parameter_order": [
+    "V_A",
+    "theta_A",
+    "t_nd",
+    "rate_lambda",
+    "T_0",
+    "theta_E",
+    "rate_norm_l",
+    "alpha",
+    "w",
+    "del_go",
+    "delay_mu_ABL20",
+    "delay_mu_ABL40",
+    "delay_mu_ABL60",
+    "delay_sigma_ABL20",
+    "delay_sigma_ABL40",
+    "delay_sigma_ABL60",
+    "lapse_prob",
+    "lapse_prob_right",
+    "lapse_exp_weight",
+    "beta_lapse"
+  ],
+  "blocks": [
+    "V_A",
+    "theta_A",
+    "t_nd",
+    "rate_lambda",
+    "T_0",
+    "theta_E",
+    "rate_norm_l",
+    "alpha",
+    "w",
+    "del_go",
+    "delay_mu",
+    "delay_sigma",
+    "lapse_prob",
+    "lapse_prob_right",
+    "lapse_exp_weight",
+    "beta_lapse"
+  ],
+  "priors": {
+    "V_A": [
+      0.001,
+      0.01,
+      6.0,
+      8.0
+    ],
+    "theta_A": [
+      0.1,
+      0.5,
+      15.0,
+      25.0
+    ],
+    "t_nd": [
+      -3.0,
+      -2.0,
+      0.2,
+      0.3
+    ],
+    "rate_lambda": [
+      0.5,
+      1.0,
+      3.0,
+      5.0
+    ],
+    "T_0": [
+      0.001,
+      0.005,
+      0.4,
+      0.8
+    ],
+    "theta_E": [
+      0.1,
+      0.5,
+      10.0,
+      15.0
+    ],
+    "rate_norm_l": [
+      0.0,
+      0.5,
+      1.05,
+      2.0
+    ],
+    "alpha": [
+      0.0,
+      0.1,
+      8.0,
+      12.0
+    ],
+    "w": [
+      0.0,
+      0.1,
+      0.9,
+      1.0
+    ],
+    "del_go": [
+      0.0,
+      0.01,
+      0.4,
+      0.5
+    ],
+    "delay_mu": [
+      0.0,
+      0.01,
+      0.2,
+      0.5
+    ],
+    "delay_sigma": [
+      0.0005,
+      0.002,
+      0.15,
+      0.3
+    ],
+    "lapse_prob": [
+      0.0,
+      0.01,
+      0.3,
+      1.0
+    ],
+    "lapse_prob_right": [
+      0.0,
+      1e-06,
+      0.999999,
+      1.0
+    ],
+    "lapse_exp_weight": [
+      0.0,
+      1e-06,
+      0.999999,
+      1.0
+    ],
+    "beta_lapse": [
+      0.001,
+      0.5,
+      12.0,
+      20.0
+    ]
+  },
+  "initial": {
+    "V_A": 2.6128186900522716,
+    "beta_lapse": 7.517306536363563,
+    "lapse_prob": 0.030397130763168894,
+    "t_nd": -0.7155462084115602,
+    "theta_A": 5.515602060765134,
+    "T_0": 0.08206475160147841,
+    "alpha": 0.9922689864149116,
+    "del_go": 0.11604918729420251,
+    "delay_mu": [
+      0.0922870062425137,
+      0.10393789737677087,
+      0.1023270992575478
+    ],
+    "delay_sigma": [
+      0.00814220589751845,
+      0.011544098380693788,
+      0.014717250408490121
+    ],
+    "rate_lambda": 1.9426559604368263,
+    "rate_norm_l": 0.8529603682957387,
+    "theta_E": 2.392071480371237,
+    "w": 0.5428193588522203,
+    "lapse_prob_right": 0.5,
+    "lapse_exp_weight": 0.8
+  },
+  "frozen_parameters": [],
+  "fixed_parameters": {},
+  "policy": {
+    "status": "confirmed",
+    "exclude_valid_RT_above_1": true,
+    "joint_retained_window_normalization": true,
+    "condition_on_survival_to_fixation": true,
+    "include_long_RT_as_right_censored": false,
+    "retained_window": "fixation-time [0,onset+1] seconds",
+    "normalizer": "S(0)-S(onset+1), complete mixture",
+    "contaminant_cutoff_s": 3.3,
+    "contaminant_model": "truncated exponential/uniform mixture, biased right choices",
+    "user_authorization": "Single-stage ASD0047 fit with exponential/uniform contaminants; pure exponential refit allowed if mixture tends towards exponential. Inherit the previously confirmed joint no-response-before-fixation rule."
+  },
+  "backend": "gpu",
+  "device": "NVIDIA GeForce RTX 4090",
+  "float64": true,
+  "full_batch": true,
+  "guide": "AutoMultivariateNormal",
+  "learning_rate": 0.0002,
+  "clip_norm": 1.0,
+  "guide_scale": 0.1,
+  "window": 1000,
+  "min_steps": 50000,
+  "confirmation_windows": 25,
+  "max_steps": 1000000,
+  "parameter_stability_required": false,
+  "posterior_draws": 10000,
+  "diagnostic_draws": 2048,
+  "grid_end": 1.5,
+  "jax": "0.4.38",
+  "numpyro": "0.15.3",
+  "smoke_test": false,
+  "numerical_kernel": "Unmodified corrected adaptive-bound Gaussian race,0.5ms grid with5x/25x/direct safeguards.",
+  "source_hashes": {
+    "asd_analysis/fit_shank3_asd0047_joint.py": "a7067200e365c9ffb435f1abeda66c376f9e55c99d1a4a8b80ea9598d2ced073",
+    "asd_analysis/shank3_asd0047_joint_utils.py": "763b704a93715b663ef214d092571b8d6124e5fc4050db05e71f5aa7480ca7a4",
+    "asd_analysis/shank3_wt_joint_contaminant_utils.py": "043d9fedeecc1c4b5347c28bdb2cd22a7e1aabc25ac83e18f75b25903fe7b182",
+    "asd_analysis/shank3_individual_adaptive_bounds_utils.py": "37046b92e5bf16939bc70da84e014a3efbb7731c3d073f88e59558e592d2fba3",
+    "asd_analysis/shank3_npl_alpha_gaussian_abl_delay_utils.py": "317f3cb86cadfbe266634fe7b502135ffc086a6cb85897d2a637a87387ac0122",
+    "asd_analysis/shank3_npl_alpha_gaussian_utils.py": "3ff4c45f1c56b2aee7a2cddb505c99f9dd5ffdcef770836066be195531f42da2",
+    "asd_analysis/shank3_wt_npl_alpha_utils.py": "8fb24f87b224f1c0d965a3d1ef228e524d63479a428aa2b6b659aefe2efba313",
+    "asd_analysis/shank3_wt_gamma_omega_utils.py": "97dd8485781126a558b8b5c48d7a8aea4157e28bec54227e3492f76d82fdf96a",
+    "asd_analysis/proactive_lapse_no_led_utils.py": "494fa090d9f0b12fa9d0e97618bf039c0e3ebb43ae0f5bbae4f1768dd8a754bd",
+    "ASD_Human_Data/gaussian_delay_likelihood.py": "82d4e9974ef5b1ce19db6a00cd6cea9453c654b98637e14dadc5566b2a46dffe",
+    "fit_animal_by_animal/numpyro_npl_alpha_svi_utils.py": "034cf84b1e4ec6c8189d00553ca4be917480176757ea1553724b733676dc5db0",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/preparation.json": "ae88415e17fe433a53768841a524a00d91b7e61cc24ed3edbf048185bd99a198",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/likelihood_policy.json": "afdff79f83fba756f67866000584d19bd79a77322c65cc6bce607eafa0636acb",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/observations.npz": "86078788780a1fff0bae6f7c970a1380152d00aedd62b93dace816ad867de172",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/round_00/bounds.json": "9bbfd0e7cc6b5b87bdde18ebfebce690dd95b826f79e3b2b84a85f05fd8cb4d6",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/round_00/initialization.json": "cb89fca9e2c1a2d9f6025370de319dd6e3dd4d254a00c6cb354a9e98eefe07e7"
+  }
+}

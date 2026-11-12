@@ -1,0 +1,33 @@
+{
+  "status": "prepared_ASD0047_joint_mixture",
+  "source": "/home/rlab/raghavendra/ddm_data/asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/parent_trials.csv.gz",
+  "source_sha256": "5ade69ffc22608b924ac5a786a69adf73e267e443fe89a059a7e33a0213b941b",
+  "parent": 21786,
+  "original_parent": 21947,
+  "valid": 18771,
+  "right": 9592,
+  "left": 9179,
+  "abort_events": 3004,
+  "late_fixation_censored": 11,
+  "long_RT_excluded": 161,
+  "display_abort": 2923,
+  "display_rows": 21694,
+  "animals": [
+    "ASD0047"
+  ],
+  "conditions": 30,
+  "free_parameters": 20,
+  "contaminant_cutoff_s": 3.3,
+  "repeat_filter_reapplied": false,
+  "exact_reference_trial_identities": true,
+  "input_hashes": {
+    "parent_trials.csv.gz": "3a139fed96c5928b4662b0c4f07fb58d9c68a174dd0b2b990281733240370a27",
+    "all_eligible_parent_trials_before_RT_exclusion.csv.gz": "f97a2c5adc5e22e7b0f522c0e38d41e46288301de12782e9909f622f7ee02de9",
+    "excluded_valid_RT_above_1.csv.gz": "96d78fd134646dd9a29364cc70317bece3801539331c25c94014bfa70caee811",
+    "fit_trials.csv.gz": "f506ae86dce08e7361f4682617a15d78c0bb495a67a970f9c36e16480cd91258",
+    "abort_and_censor_trials.csv.gz": "9aebe0f0cfcb3d32197333ac92cffc86699d07852aef7aa889f6e64cb6f17919",
+    "observations.npz": "86078788780a1fff0bae6f7c970a1380152d00aedd62b93dace816ad867de172",
+    "conditions.csv": "d6ac34b5e457b792771c43ab0958887251ec1a94cca76dabf2da602a1c441429",
+    "memberships.csv": "56a5ff12da3bc9e2afb99f3914a02df9f31fb1c23a688d33ebba8c7bd1ddd2f1"
+  }
+}

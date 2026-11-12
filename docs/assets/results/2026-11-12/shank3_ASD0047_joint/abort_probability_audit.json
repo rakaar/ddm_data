@@ -1,0 +1,9 @@
+{
+  "observed_abort_fraction": 0.13788671623978702,
+  "predicted_abort_fraction": 0.14106519707562837,
+  "denominator_retained_trials": 21786,
+  "all_pre_onset_aborts": 3004,
+  "exact_onset_censoring": true,
+  "entry_conditioned": true,
+  "model_bin_mass_calculation": "Analytic proactive/contaminant CDF at min(bin edge, exact trial onset), minus entry CDF, divided by retained-window mass."
+}

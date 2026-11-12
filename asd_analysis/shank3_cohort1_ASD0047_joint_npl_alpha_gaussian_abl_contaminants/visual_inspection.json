@@ -1,0 +1,52 @@
+{
+  "status": "passed",
+  "inspected_at_utc": "2026-11-12T21:46:03.742586+00:00",
+  "inspected_pngs": [
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/report/SHANK3_cohort1_ASD0047_joint_NPL_alpha_Gaussian_ABL_exponential_only_RTDs.png",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/report/SHANK3_cohort1_ASD0047_joint_NPL_alpha_Gaussian_ABL_exponential_only_psychometric.png",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/joint_vs_two_stage_parameters/SHANK3_cohort1_ASD0047_joint_vs_two_stage_reactive_parameters.png",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/joint_vs_two_stage_parameters/SHANK3_cohort1_ASD0047_joint_vs_two_stage_proactive_lapse_parameters.png",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/SHANK3_cohort1_ASD0047_joint_corner_all_parameters.png",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/SHANK3_cohort1_ASD0047_joint_corner_proactive_and_contaminants.png",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/SHANK3_cohort1_ASD0047_joint_abort_and_convergence.png"
+  ],
+  "inspected_pdf_pages": {
+    "SHANK3_cohort1_ASD0047_joint_diagnostics.pdf": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "SHANK3_cohort1_ASD0047_joint_posterior_corners.pdf": [
+      1,
+      2
+    ]
+  },
+  "artifact_hashes": {
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/report/SHANK3_cohort1_ASD0047_joint_NPL_alpha_Gaussian_ABL_exponential_only_RTDs.png": "18e0702d324514db05e402f8de94adb1ca275b723e7d9ac6cc2134e041c7612a",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/report/SHANK3_cohort1_ASD0047_joint_NPL_alpha_Gaussian_ABL_exponential_only_psychometric.png": "668fc96d4dfcbd1dcaf8afa93fabeb816dc62113bd49c5d76951ef5e0e76f7b9",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/joint_vs_two_stage_parameters/SHANK3_cohort1_ASD0047_joint_vs_two_stage_reactive_parameters.png": "228b23abd0a6281152f97442d353ed72b1093a47b793126bdd1ed4fcdf004e67",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/joint_vs_two_stage_parameters/SHANK3_cohort1_ASD0047_joint_vs_two_stage_proactive_lapse_parameters.png": "8fc5089df1e5281e09b0fa935b3a38d3bb40e65492d4d7c4a0a22551579c5378",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/SHANK3_cohort1_ASD0047_joint_corner_all_parameters.png": "7e3babb0bc308527e36ad70f4e5312f53e035de3561a11cf0a894e3b0eca94ef",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/SHANK3_cohort1_ASD0047_joint_corner_proactive_and_contaminants.png": "a66df0c7feb82aa6b9abf90f45451f30f516378f3de97efbad757990aa84b801",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/SHANK3_cohort1_ASD0047_joint_abort_and_convergence.png": "f24cab4ca6caadbe3c95d28810f2bc31c6ef275a2ad7d2ed7b859ed5b118ce11",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/SHANK3_cohort1_ASD0047_joint_posterior_corners.pdf": "fb7e089431495bdad00e1c36bc2dcce26bd4477b611d33f829908da3a7d2b57e",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/SHANK3_cohort1_ASD0047_joint_diagnostics.pdf": "e071077bbca8178869ff6ec08162faa50fb439ac10823698fe71721b7682d602",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/pdf_previews/corners_page_01.png": "1ad2a5c404af0bc26fd232ca591cda712783c59c021bfd12f90f39866328ba18",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/pdf_previews/corners_page_02.png": "229455d985fcc35e4da4261e7b5f762779a53d8bd5dbbe0fb5a2049dbce25157",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/pdf_previews/diagnostics_page_01.png": "b50201878775df092e0fd13630baf3852038360788a60ee58591992ba6a1e31b",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/pdf_previews/diagnostics_page_02.png": "5d64f4e80ba56279c72854bdcbfbc9dd8e1f9129e15f6a503ef6325abe6fed1b",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/pdf_previews/diagnostics_page_03.png": "ddad74294efccdcbfd31e2b410f91461cab71a183edc1e19d548acd5ff3947ed",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/pdf_previews/diagnostics_page_04.png": "229455d985fcc35e4da4261e7b5f762779a53d8bd5dbbe0fb5a2049dbce25157",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/pdf_previews/full_corner_diagonal_panels.png": "98f70f2e87dcbf05d304c1ba6fe0da2b27597d224277b6da304aae58e762ec22"
+  },
+  "observations": [
+    "Actual PDF pages rendered and reviewed individually after focused corner title and footer spacing correction.",
+    "Full nineteen-parameter PDF corner reviewed globally and at the diagonal-title contact-sheet zoom; parameter names and means are visible.",
+    "All fifteen RTD panels retain visible data steps above thin model curves; signed numerical stimulus positions on psychometric.",
+    "All parameter comparisons inspected: thirteen reactive and six proactive/lapse; credible intervals fit within axes and fixed right-choice 0.5 has no interval.",
+    "No cropped titles, overlapping focused-corner subtitles or footer/axis overlaps in delivered PDFs.",
+    "Abort panel shows a visible early-time shape residual; publication documents this rather than claiming exact shape agreement.",
+    "Both completed starts have materially different negative proactive delays; reported selected posterior is not represented as a unique solution."
+  ]
+}

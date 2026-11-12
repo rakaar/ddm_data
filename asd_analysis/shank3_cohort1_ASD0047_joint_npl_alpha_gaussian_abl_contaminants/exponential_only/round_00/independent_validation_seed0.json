@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "runs": [
+    {
+      "seed": 0,
+      "status": "passed",
+      "mean_log_likelihood_error": 3.6551166830199156e-10,
+      "independent_log_likelihood": 14903.990608471924,
+      "entry_survival_at_means": 0.9999990374266878,
+      "posterior_draws_reproduced": true,
+      "posterior_reproduction_bitwise": false,
+      "posterior_reproduction_max_absolute_error": 3.552713678800501e-15,
+      "posterior_reproduction_tolerance": {
+        "rtol": 1e-12,
+        "atol": 1e-12
+      },
+      "checkpoint_restoration_verified": true,
+      "loss_confirmation_replayed": true,
+      "source_hashes_verified": true
+    }
+  ],
+  "contaminant_tests": [
+    {
+      "beta": 0.0,
+      "exponential_weight": 1.0,
+      "integral": 1.0000000000000002
+    },
+    {
+      "beta": 1e-10,
+      "exponential_weight": 1.0,
+      "integral": 1.0000000000000002
+    },
+    {
+      "beta": 0.5,
+      "exponential_weight": 1.0,
+      "integral": 0.9999999999999998
+    },
+    {
+      "beta": 5.0,
+      "exponential_weight": 1.0,
+      "integral": 1.0000000000000004
+    },
+    {
+      "beta": 50.0,
+      "exponential_weight": 1.0,
+      "integral": 1.0000000000000002
+    }
+  ]
+}

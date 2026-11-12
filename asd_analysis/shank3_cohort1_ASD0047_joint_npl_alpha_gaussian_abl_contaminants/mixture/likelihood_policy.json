@@ -1,0 +1,12 @@
+{
+  "status": "confirmed",
+  "exclude_valid_RT_above_1": true,
+  "joint_retained_window_normalization": true,
+  "condition_on_survival_to_fixation": true,
+  "include_long_RT_as_right_censored": false,
+  "retained_window": "fixation-time [0,onset+1] seconds",
+  "normalizer": "S(0)-S(onset+1), complete mixture",
+  "contaminant_cutoff_s": 3.3,
+  "contaminant_model": "truncated exponential/uniform mixture, biased right choices",
+  "user_authorization": "Single-stage ASD0047 fit with exponential/uniform contaminants; pure exponential refit allowed if mixture tends towards exponential. Inherit the previously confirmed joint no-response-before-fixation rule."
+}

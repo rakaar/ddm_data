@@ -1,0 +1,1050 @@
+{
+  "status": "generated_pending_independent_verification",
+  "joint_run": "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/round_00/seed_0",
+  "two_stage_reactive_run": "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/reactive/round_00/seed_0",
+  "two_stage_abort_run": "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/abort/round_05/seed_1",
+  "figures": [
+    "SHANK3_cohort1_ASD0047_joint_vs_two_stage_reactive_parameters.png",
+    "SHANK3_cohort1_ASD0047_joint_vs_two_stage_proactive_lapse_parameters.png"
+  ],
+  "colors": {
+    "two_stage": "#4D4D4D",
+    "joint": "#0072B2"
+  },
+  "posterior_estimates": 37,
+  "fixed_constants": 1,
+  "total_displayed_estimates": 38,
+  "reactive_panels": 9,
+  "proactive_lapse_panels": 6,
+  "draws_per_posterior": 10000,
+  "abl_offsets_db": {
+    "two_stage": -1.0,
+    "joint": 1.0
+  },
+  "geometry": [
+    {
+      "part": "reactive",
+      "block": "rate_lambda",
+      "width_inches": 2.65,
+      "height_inches": 2.6499999999999995,
+      "ylim": [
+        1.7548909845201692,
+        2.1982020006777954
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "reactive",
+      "block": "T_0",
+      "width_inches": 2.6500000000000004,
+      "height_inches": 2.6499999999999995,
+      "ylim": [
+        47.303352475621615,
+        100.65032804376506
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "reactive",
+      "block": "theta_E",
+      "width_inches": 2.65,
+      "height_inches": 2.6499999999999995,
+      "ylim": [
+        2.0788860262793043,
+        3.053883939461339
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "reactive",
+      "block": "rate_norm_l",
+      "width_inches": 2.65,
+      "height_inches": 2.65,
+      "ylim": [
+        0.8363949280300982,
+        0.8753011844763496
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "reactive",
+      "block": "alpha",
+      "width_inches": 2.6500000000000004,
+      "height_inches": 2.65,
+      "ylim": [
+        0.5446992462678855,
+        1.3348393934930982
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "reactive",
+      "block": "w",
+      "width_inches": 2.65,
+      "height_inches": 2.65,
+      "ylim": [
+        0.5330869898960183,
+        0.557734262651482
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "reactive",
+      "block": "del_go",
+      "width_inches": 2.65,
+      "height_inches": 2.65,
+      "ylim": [
+        95.92944321684104,
+        148.1979439263971
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "reactive",
+      "block": "delay_mu",
+      "width_inches": 2.6500000000000004,
+      "height_inches": 2.65,
+      "ylim": [
+        85.04754704622626,
+        113.0887613276609
+      ],
+      "grid": false,
+      "x_ticks": [
+        20,
+        40,
+        60
+      ],
+      "x_limits": [
+        12.0,
+        68.0
+      ]
+    },
+    {
+      "part": "reactive",
+      "block": "delay_sigma",
+      "width_inches": 2.65,
+      "height_inches": 2.65,
+      "ylim": [
+        3.5078842380488844,
+        18.672074596739588
+      ],
+      "grid": false,
+      "x_ticks": [
+        20,
+        40,
+        60
+      ],
+      "x_limits": [
+        12.0,
+        68.0
+      ]
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "V_A",
+      "width_inches": 2.65,
+      "height_inches": 2.65,
+      "ylim": [
+        2.18210516804367,
+        3.5020423302857586
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "theta_A",
+      "width_inches": 2.6500000000000004,
+      "height_inches": 2.65,
+      "ylim": [
+        4.321385855147166,
+        7.5579261628588235
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "t_nd",
+      "width_inches": 2.65,
+      "height_inches": 2.65,
+      "ylim": [
+        -959.3150738079523,
+        -478.8357435752118
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "lapse_prob",
+      "width_inches": 2.65,
+      "height_inches": 2.65,
+      "ylim": [
+        0.013158475658505277,
+        0.10165598839936514
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "beta_lapse",
+      "width_inches": 2.6500000000000004,
+      "height_inches": 2.65,
+      "ylim": [
+        -0.04421230058467529,
+        12.044269316576514
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "lapse_prob_right",
+      "width_inches": 2.65,
+      "height_inches": 2.65,
+      "ylim": [
+        0.17139570110115088,
+        0.5453247308825999
+      ],
+      "grid": false,
+      "x_ticks": [
+        0,
+        1
+      ],
+      "x_limits": [
+        -0.55,
+        1.55
+      ]
+    }
+  ],
+  "artists": [
+    {
+      "part": "reactive",
+      "block": "rate_lambda",
+      "method": "two_stage",
+      "parameters": [
+        "rate_lambda"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        1.9426559604368263
+      ],
+      "q025": [
+        1.808625653145336
+      ],
+      "q975": [
+        2.084216661654718
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "reactive",
+      "block": "rate_lambda",
+      "method": "joint",
+      "parameters": [
+        "rate_lambda"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        1.9740467770072792
+      ],
+      "q025": [
+        1.8116105306143577
+      ],
+      "q975": [
+        2.1444673320526286
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "reactive",
+      "block": "T_0",
+      "method": "two_stage",
+      "parameters": [
+        "T_0"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        82.06475160147842
+      ],
+      "q025": [
+        70.69911630830599
+      ],
+      "q975": [
+        94.18402797489918
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "reactive",
+      "block": "T_0",
+      "method": "joint",
+      "parameters": [
+        "T_0"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        64.33494513665732
+      ],
+      "q025": [
+        53.769652544487485
+      ],
+      "q975": [
+        75.90007745628066
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "reactive",
+      "block": "theta_E",
+      "method": "two_stage",
+      "parameters": [
+        "theta_E"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        2.392071480371237
+      ],
+      "q025": [
+        2.1970675915134903
+      ],
+      "q975": [
+        2.5965088769424023
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "reactive",
+      "block": "theta_E",
+      "method": "joint",
+      "parameters": [
+        "theta_E"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        2.6515320004658904
+      ],
+      "q025": [
+        2.3854780845839536
+      ],
+      "q975": [
+        2.935702374227153
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "reactive",
+      "block": "rate_norm_l",
+      "method": "two_stage",
+      "parameters": [
+        "rate_norm_l"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        0.8529603682957387
+      ],
+      "q025": [
+        0.8411108379023711
+      ],
+      "q975": [
+        0.8651721735835306
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "reactive",
+      "block": "rate_norm_l",
+      "method": "joint",
+      "parameters": [
+        "rate_norm_l"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        0.8565216638520349
+      ],
+      "q025": [
+        0.8423828585322988
+      ],
+      "q975": [
+        0.8705852746040768
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "reactive",
+      "block": "alpha",
+      "method": "two_stage",
+      "parameters": [
+        "alpha"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        0.9922689864149116
+      ],
+      "q025": [
+        0.78268372172578
+      ],
+      "q975": [
+        1.2390648301930725
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "reactive",
+      "block": "alpha",
+      "method": "joint",
+      "parameters": [
+        "alpha"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        0.8632497590411209
+      ],
+      "q025": [
+        0.6404738095679112
+      ],
+      "q975": [
+        1.1349338809775606
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "reactive",
+      "block": "w",
+      "method": "two_stage",
+      "parameters": [
+        "w"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        0.5428193588522203
+      ],
+      "q025": [
+        0.5360745381088018
+      ],
+      "q975": [
+        0.5495544105079587
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "reactive",
+      "block": "w",
+      "method": "joint",
+      "parameters": [
+        "w"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        0.5473571311962045
+      ],
+      "q025": [
+        0.5402607839698778
+      ],
+      "q975": [
+        0.5547467144386985
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "reactive",
+      "block": "del_go",
+      "method": "two_stage",
+      "parameters": [
+        "del_go"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        116.04918729420251
+      ],
+      "q025": [
+        102.2650190604236
+      ],
+      "q975": [
+        131.06047991109128
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "reactive",
+      "block": "del_go",
+      "method": "joint",
+      "parameters": [
+        "del_go"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        123.73733510776393
+      ],
+      "q025": [
+        106.7550653141269
+      ],
+      "q975": [
+        141.86236808281456
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "reactive",
+      "block": "delay_mu",
+      "method": "two_stage",
+      "parameters": [
+        "delay_mu_ABL20",
+        "delay_mu_ABL40",
+        "delay_mu_ABL60"
+      ],
+      "x": [
+        19.0,
+        39.0,
+        59.0
+      ],
+      "mean": [
+        92.2870062425133,
+        103.93789737677119,
+        102.32709925754746
+      ],
+      "q025": [
+        88.44648211064258,
+        101.75058787759986,
+        100.13951673965711
+      ],
+      "q975": [
+        96.16769104294247,
+        106.19904256783425,
+        104.52346829255812
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "reactive",
+      "block": "delay_mu",
+      "method": "joint",
+      "parameters": [
+        "delay_mu_ABL20",
+        "delay_mu_ABL40",
+        "delay_mu_ABL60"
+      ],
+      "x": [
+        21.0,
+        41.0,
+        61.0
+      ],
+      "mean": [
+        97.26200525891703,
+        107.22442660053441,
+        104.52084245325572
+      ],
+      "q025": [
+        93.08181770347376,
+        104.83940050195582,
+        102.11944470684811
+      ],
+      "q975": [
+        101.57221671282238,
+        109.68982626324458,
+        106.9444454839109
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "reactive",
+      "block": "delay_sigma",
+      "method": "two_stage",
+      "parameters": [
+        "delay_sigma_ABL20",
+        "delay_sigma_ABL40",
+        "delay_sigma_ABL60"
+      ],
+      "x": [
+        19.0,
+        39.0,
+        59.0
+      ],
+      "mean": [
+        8.142205897518469,
+        11.544098380693773,
+        14.717250408490067
+      ],
+      "q025": [
+        5.3459679178901816,
+        10.134677359943268,
+        13.557196323375248
+      ],
+      "q975": [
+        11.980004097466304,
+        13.082484584757639,
+        15.971702884352322
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "reactive",
+      "block": "delay_sigma",
+      "method": "joint",
+      "parameters": [
+        "delay_sigma_ABL20",
+        "delay_sigma_ABL40",
+        "delay_sigma_ABL60"
+      ],
+      "x": [
+        21.0,
+        41.0,
+        61.0
+      ],
+      "mean": [
+        10.628611143539482,
+        12.699583414110403,
+        15.545258139258168
+      ],
+      "q025": [
+        7.840091874488474,
+        11.20647241181555,
+        14.332253304812044
+      ],
+      "q975": [
+        14.199494574674675,
+        14.294475502384916,
+        16.83399091689829
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "V_A",
+      "method": "two_stage",
+      "parameters": [
+        "V_A"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        2.6128186900522716
+      ],
+      "q025": [
+        2.3420975513457414
+      ],
+      "q975": [
+        2.8972550116928573
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "V_A",
+      "method": "joint",
+      "parameters": [
+        "V_A"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        3.1334945691799603
+      ],
+      "q025": [
+        2.9309685050096173
+      ],
+      "q975": [
+        3.3420499469836873
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "theta_A",
+      "method": "two_stage",
+      "parameters": [
+        "theta_A"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        5.515602060765134
+      ],
+      "q025": [
+        4.7136937712334275
+      ],
+      "q975": [
+        6.374007473360729
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "theta_A",
+      "method": "joint",
+      "parameters": [
+        "theta_A"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        6.692565386019664
+      ],
+      "q025": [
+        6.2442473774556095
+      ],
+      "q975": [
+        7.165618246772562
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "t_nd",
+      "method": "two_stage",
+      "parameters": [
+        "t_nd"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        -715.5462084115602
+      ],
+      "q025": [
+        -901.0751549918625
+      ],
+      "q975": [
+        -537.0756623913015
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "t_nd",
+      "method": "joint",
+      "parameters": [
+        "t_nd"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        -778.0505952542982
+      ],
+      "q025": [
+        -872.4037430636713
+      ],
+      "q975": [
+        -685.2712591370391
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "lapse_prob",
+      "method": "two_stage",
+      "parameters": [
+        "lapse_prob"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        0.030397130763168894
+      ],
+      "q025": [
+        0.023885446899821625
+      ],
+      "q975": [
+        0.03830542292489789
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "lapse_prob",
+      "method": "joint",
+      "parameters": [
+        "lapse_prob"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        0.07861597793583067
+      ],
+      "q025": [
+        0.0671644240051902
+      ],
+      "q975": [
+        0.0909290171580488
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "beta_lapse",
+      "method": "two_stage",
+      "parameters": [
+        "beta_lapse"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        7.517306536363563
+      ],
+      "q025": [
+        4.765460365827628
+      ],
+      "q975": [
+        10.578998817526672
+      ],
+      "fixed": false,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "beta_lapse",
+      "method": "joint",
+      "parameters": [
+        "beta_lapse"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        1.6706198434877007
+      ],
+      "q025": [
+        1.4210581984651658
+      ],
+      "q975": [
+        1.9561976485338175
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "lapse_prob_right",
+      "method": "two_stage",
+      "parameters": [
+        "lapse_prob_right"
+      ],
+      "x": [
+        0
+      ],
+      "mean": [
+        0.5
+      ],
+      "q025": null,
+      "q975": null,
+      "fixed": true,
+      "color": "#4D4D4D"
+    },
+    {
+      "part": "proactive_lapse",
+      "block": "lapse_prob_right",
+      "method": "joint",
+      "parameters": [
+        "lapse_prob_right"
+      ],
+      "x": [
+        1
+      ],
+      "mean": [
+        0.29190572340973486
+      ],
+      "q025": [
+        0.21672043198375077
+      ],
+      "q975": [
+        0.3779539101670647
+      ],
+      "fixed": false,
+      "color": "#0072B2"
+    }
+  ],
+  "comparison_notes": [
+    "Both fits use only WT animal ASD0047, with no cross-animal pooling or hierarchical model.",
+    "The reactive data are the same 18,771 valid choices, with measured RT in inclusive [0,1] s.",
+    "The two-stage proactive fit uses 21,947 event-or-onset-censored trials, including 3,004 abort events.",
+    "The joint fit uses 21,786 retained observations: 18,771 valid choices, 3,004 aborts and 11 late fixation-labelled onset-censored rows; 161 long valid responses are excluded.",
+    "The initial common priors match the final two-stage animal priors, including proactive delay [-3,0.3] s. Adaptive changes, if needed, remain explicit in the exported endpoints.",
+    "All actual hard/flat endpoints are included in the parameter table; compare them before attributing changes only to estimation order.",
+    "Two-stage exponential lapses are untruncated with fixed right-choice probability 0.5; joint contaminants use fixation-time [0,3.3] s with a fitted right-choice probability and the selected exponential/uniform weight.",
+    "Two-stage reactive inference conditions on valid-window response [onset,onset+1]; joint inference conditions on survival to fixation and the retained [0,onset+1] window.",
+    "The two-stage reactive intervals omit uncertainty in the frozen proactive/lapse means. Joint intervals are marginal variational intervals with these parameters estimated together.",
+    "Differences cannot be attributed exclusively to fitting jointly versus fitting in two stages.",
+    "Underlying Gaussian mu/sigma are plotted, not derived moments after zero truncation."
+  ],
+  "source_hashes": {
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/selected_fit.json": "e5a2c829d1dc3838eca44a49e8ab3cf4fda8aef016308337e75ed55a03848623",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/fixed_proactive.json": "26c05b086331f8d607f46764b7dfc81b3952ab758b8c5a9701e339147645d344",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/likelihood_policy.json": "8c770b85a359af144bee2852500bff8da6f1e3d703fee579a29631c9fd3bc34d",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/preparation.json": "3170c489812e77caa5f8082d632c5a8506caa98265e715c880c25620a6944fa0",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/preparation.json": "3f7dc552409c328e0fff728066a34099216bd2f1d417e37fa529f2b3fb5593f5",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/fit_trials.csv.gz": "f506ae86dce08e7361f4682617a15d78c0bb495a67a970f9c36e16480cd91258",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/fit_trials.csv.gz": "5b77461e0e2c64256d2d735dadae53a9257b4575a332f2806f31f7ecea256fc5",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/parent_trials.csv.gz": "3a139fed96c5928b4662b0c4f07fb58d9c68a174dd0b2b990281733240370a27",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/parent_trials.csv.gz": "5ade69ffc22608b924ac5a786a69adf73e267e443fe89a059a7e33a0213b941b",
+    "asd_analysis/session_type_csvs/ASD_session_type_1.csv": "db95fc66fc434c81832cb460ed5fe28857b1aa25c639b6a31fbb1859d2ba4408",
+    "asd_analysis/plot_shank3_asd0047_joint_comparison.py": "5329638075ba26db2edcedd60cb12bc9691d8bcdeb3a878ae38281c7d6f98bb9",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/round_00/seed_0/posterior_samples.npz": "a1045313061dc04a4d5b1c9241e7eff85e57adc1e79246af810eaeb348e8a3cc",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/round_00/seed_0/posterior_summary.csv": "6ce982944c9d83dacb1341aa68fc6404d4a2634955f4dade9d70c2e3791f48ca",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/round_00/seed_0/configuration.json": "888e1f67f1c0e06e3c10cf8b2149f14f579b1ea4f50fe9f24e5f8fc9f35d5179",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/reactive/round_00/seed_0/posterior_samples.npz": "7010f6b75d1e96561835fcf2b4c77a4caddc69fd46ef9f8e3977212db3e75c76",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/reactive/round_00/seed_0/posterior_summary.csv": "e51d914c01074b9f68774afd6755473964247e91b3d3904595f3360cb5a13bbe",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/reactive/round_00/seed_0/configuration.json": "0d88a3e2697539a4987d83a26447e48650b4663a9f6f72b935f4bfb16342a2bf",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/abort/round_05/seed_1/posterior_samples.npz": "adb673a914a48ec3488c3c07db9dd4daa08f12359bbfe1bb6da65924a744ba56",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/abort/round_05/seed_1/posterior_summary.csv": "404b758c61a31b95dc85f824a9514bcc6bfa4b6b324c0c66087adfbcb1175394",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/abort/round_05/seed_1/configuration.json": "975662bc143e85dc79e45dddcc6d474bc164ef8b65f2323e764ad7d556b786d5"
+  },
+  "figure_hashes": {
+    "SHANK3_cohort1_ASD0047_joint_vs_two_stage_reactive_parameters.png": "228b23abd0a6281152f97442d353ed72b1093a47b793126bdd1ed4fcdf004e67",
+    "SHANK3_cohort1_ASD0047_joint_vs_two_stage_proactive_lapse_parameters.png": "8fc5089df1e5281e09b0fa935b3a38d3bb40e65492d4d7c4a0a22551579c5378"
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "status": "passed",
+  "full_data": true,
+  "observations": 21786,
+  "parameters": 19,
+  "uninterrupted_updates": 10,
+  "serialized_after": 5,
+  "exact_losses": true,
+  "exact_optimizer_guide_rng_states": false,
+  "optimizer_guide_agreement_tolerance": {
+    "atol": 1e-12,
+    "rtol": 1e-12
+  },
+  "state_leaf_differences": [
+    {
+      "leaf": 0,
+      "exact": true,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "leaf": 1,
+      "exact": true,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "leaf": 2,
+      "exact": true,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "leaf": 3,
+      "exact": true,
+      "max_absolute_difference": 0.0
+    },
+    {
+      "leaf": 4,
+      "exact": false,
+      "max_absolute_difference": 2.7755575615628914e-17
+    },
+    {
+      "leaf": 5,
+      "exact": false,
+      "max_absolute_difference": 3.164135620181696e-15
+    },
+    {
+      "leaf": 6,
+      "exact": false,
+      "max_absolute_difference": 1.1102230246251565e-16
+    },
+    {
+      "leaf": 7,
+      "exact": true,
+      "max_absolute_difference": 0.0
+    }
+  ],
+  "production_states_unchanged": true,
+  "stop_reset_minimum_confirmation_tests": [
+    {
+      "loss": 9.0,
+      "best": 10.0,
+      "step": 49000,
+      "prior_tail": 24,
+      "result": [
+        true,
+        0,
+        false
+      ]
+    },
+    {
+      "loss": 10.0,
+      "best": 10.0,
+      "step": 49000,
+      "prior_tail": 24,
+      "result": [
+        false,
+        25,
+        false
+      ]
+    },
+    {
+      "loss": 10.0,
+      "best": 10.0,
+      "step": 50000,
+      "prior_tail": 24,
+      "result": [
+        false,
+        25,
+        true
+      ]
+    },
+    {
+      "loss": 9.0,
+      "best": 10.0,
+      "step": 50000,
+      "prior_tail": 24,
+      "result": [
+        true,
+        0,
+        false
+      ]
+    },
+    {
+      "loss": 10.0,
+      "best": 10.0,
+      "step": 50000,
+      "prior_tail": 23,
+      "result": [
+        false,
+        24,
+        false
+      ]
+    }
+  ]
+}

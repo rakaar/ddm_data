@@ -59,3 +59,5 @@ Daily result pages:
 - [2026-11-05](2026-11-05.md) — SHANK3 cohort 1 WT/HOM NPL+alpha Gaussian condition-delay fits and diagnostics.
 - [2026-11-07](2026-11-07.md) — WT NPL+alpha model-only sensory-delay overlays: three ABL rows × ten signed ILDs, 1 ms resolution. WT/HOM NPL+alpha refits with Gaussian delays shared across ILDs.
 - [2026-11-08](2026-11-08.md) — SHANK3 WT/HOM current Gamma/Omega fits (Omega upper 25 s⁻¹): RTDs, psychometrics, posterior parameters and both NPL+alpha comparisons. Superseded 15-bound figures are retired.
+- [2026-11-12](2026-11-12.md)
+- [ASD0047 only: joint fit, posterior corners and two-stage comparisons](2026-11-12.md#shank3-cohort-1-asd0047-joint-proactive-nplalpha-and-contaminants)

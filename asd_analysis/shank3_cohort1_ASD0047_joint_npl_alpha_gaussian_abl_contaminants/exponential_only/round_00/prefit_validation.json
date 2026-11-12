@@ -1,0 +1,223 @@
+{
+  "status": "passed",
+  "parameter_count": 19,
+  "full_parent_count": 21786,
+  "original_parent_count": 21947,
+  "valid_choices": 18771,
+  "pre_onset_aborts": 3004,
+  "late_censors": 11,
+  "long_RT_excluded": 161,
+  "long_RT_censors": 0,
+  "tested_entry_options": [
+    true
+  ],
+  "tested_long_RT_policy": "excluded_with_joint_retained_window_normalization",
+  "probes": [
+    {
+      "probe": 0,
+      "entry_conditioned": true,
+      "upper_truncated": true,
+      "jax_log_likelihood": 14893.146176709239,
+      "independent_log_likelihood": 14893.146117561833,
+      "mean_absolute_error": 2.714927265630281e-09,
+      "independent_dt": 0.000125,
+      "entry_survival": 0.9999990280486801,
+      "all_parameter_gradients_finite": true,
+      "retained_window_normalization": [
+        {
+          "condition": 0,
+          "onset": 0.2086220337,
+          "area": 0.9999999996918753
+        },
+        {
+          "condition": 0,
+          "onset": 1.0,
+          "area": 1.0
+        },
+        {
+          "condition": 0,
+          "onset": 2.3,
+          "area": 0.9999999999999999
+        },
+        {
+          "condition": 14,
+          "onset": 0.2086220337,
+          "area": 0.9999999996895397
+        },
+        {
+          "condition": 14,
+          "onset": 1.0,
+          "area": 0.99999999999912
+        },
+        {
+          "condition": 14,
+          "onset": 2.3,
+          "area": 0.9999999999999909
+        },
+        {
+          "condition": 29,
+          "onset": 0.2086220337,
+          "area": 0.999999999691397
+        },
+        {
+          "condition": 29,
+          "onset": 1.0,
+          "area": 1.0000000000000007
+        },
+        {
+          "condition": 29,
+          "onset": 2.3,
+          "area": 0.9999999999999998
+        }
+      ]
+    },
+    {
+      "probe": 1,
+      "entry_conditioned": true,
+      "upper_truncated": true,
+      "jax_log_likelihood": 14894.709489707355,
+      "independent_log_likelihood": 14894.709333718161,
+      "mean_absolute_error": 7.1600657966051014e-09,
+      "independent_dt": 0.000125,
+      "entry_survival": 0.9999999793553804,
+      "all_parameter_gradients_finite": true,
+      "retained_window_normalization": [
+        {
+          "condition": 0,
+          "onset": 0.2086220337,
+          "area": 0.999999999691705
+        },
+        {
+          "condition": 0,
+          "onset": 1.0,
+          "area": 1.0000000000000002
+        },
+        {
+          "condition": 0,
+          "onset": 2.3,
+          "area": 0.9999999999999999
+        },
+        {
+          "condition": 14,
+          "onset": 0.2086220337,
+          "area": 0.9999999996892589
+        },
+        {
+          "condition": 14,
+          "onset": 1.0,
+          "area": 0.9999999999989361
+        },
+        {
+          "condition": 14,
+          "onset": 2.3,
+          "area": 0.9999999999999769
+        },
+        {
+          "condition": 29,
+          "onset": 0.2086220337,
+          "area": 0.9999999996913802
+        },
+        {
+          "condition": 29,
+          "onset": 1.0,
+          "area": 1.0000000000000004
+        },
+        {
+          "condition": 29,
+          "onset": 2.3,
+          "area": 0.9999999999999999
+        }
+      ]
+    },
+    {
+      "probe": 2,
+      "entry_conditioned": true,
+      "upper_truncated": true,
+      "jax_log_likelihood": -9456.738805945575,
+      "independent_log_likelihood": -9456.719114672875,
+      "mean_absolute_error": 9.038498439632698e-07,
+      "independent_dt": 0.000125,
+      "entry_survival": 1.0,
+      "all_parameter_gradients_finite": true,
+      "retained_window_normalization": [
+        {
+          "condition": 0,
+          "onset": 0.2086220337,
+          "area": 0.9999999996920881
+        },
+        {
+          "condition": 0,
+          "onset": 1.0,
+          "area": 1.0000000000000007
+        },
+        {
+          "condition": 0,
+          "onset": 2.3,
+          "area": 1.0000000000000002
+        },
+        {
+          "condition": 14,
+          "onset": 0.2086220337,
+          "area": 0.9999999996892696
+        },
+        {
+          "condition": 14,
+          "onset": 1.0,
+          "area": 0.9999999999991672
+        },
+        {
+          "condition": 14,
+          "onset": 2.3,
+          "area": 0.9999999999999776
+        },
+        {
+          "condition": 29,
+          "onset": 0.2086220337,
+          "area": 0.9999999996920729
+        },
+        {
+          "condition": 29,
+          "onset": 1.0,
+          "area": 0.9999999999999863
+        },
+        {
+          "condition": 29,
+          "onset": 2.3,
+          "area": 0.9999999999999982
+        }
+      ]
+    }
+  ],
+  "contaminant_normalization_tests": [
+    {
+      "beta": 0.0,
+      "exponential_weight": 1.0,
+      "integral": 1.0000000000000002
+    },
+    {
+      "beta": 1e-10,
+      "exponential_weight": 1.0,
+      "integral": 1.0000000000000002
+    },
+    {
+      "beta": 0.5,
+      "exponential_weight": 1.0,
+      "integral": 0.9999999999999998
+    },
+    {
+      "beta": 5.0,
+      "exponential_weight": 1.0,
+      "integral": 1.0000000000000004
+    },
+    {
+      "beta": 50.0,
+      "exponential_weight": 1.0,
+      "integral": 1.0000000000000002
+    }
+  ],
+  "prior_multiplicity_verified": true,
+  "source_hashes": {
+    "/home/rlab/raghavendra/ddm_data/asd_analysis/shank3_asd0047_joint_utils.py": "0b2a7ea06e1b42fb2bf79cdf9b52a311a0cb2959475417ee647b478a09983d38",
+    "/home/rlab/raghavendra/ddm_data/asd_analysis/shank3_individual_adaptive_bounds_utils.py": "37046b92e5bf16939bc70da84e014a3efbb7731c3d073f88e59558e592d2fba3"
+  }
+}

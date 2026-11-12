@@ -1,0 +1,7 @@
+{
+  "failure": "CPU/GPU guide draw reproduction had maximum observed difference5.55e-17 at first failed column.",
+  "fix": "Retain exact original samples; compare CPU regenerated constrained samples at atol=rtol=1e-12, recording maximum actual error and whether bitwise equality held.",
+  "training_states_or_draws_modified": false,
+  "completed_runs_will_not_be_restarted": true,
+  "pure_exponential_initialization": "Use corresponding mixture start means for each seed, preserving both discovered delay locations rather than duplicating only the selected mode."
+}

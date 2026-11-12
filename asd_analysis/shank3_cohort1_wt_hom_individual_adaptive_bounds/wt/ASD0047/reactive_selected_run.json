@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "group": "wt",
+  "animal": "ASD0047",
+  "stage": "reactive",
+  "bounds_round": 0,
+  "selected_run": "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/reactive/round_00/seed_0",
+  "starts": null,
+  "artificial_flags": [],
+  "intrinsic_flags": [],
+  "taper_flags": [],
+  "prefixation_mass": null,
+  "policy": "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/acceptance_policy.json",
+  "policy_sha256": "cbe1d680d4feb4953d70e687611ef9d9c828e82b5d31ae5e823ee8567ba51116",
+  "policy_source_sha256": "b64b0739ece938af85abb6c59b03830437ae5a47c15a73074dce2419418d3dc1",
+  "controller_sha256": "f5713c9005c9a02988a970c0b913c0f63207907198e8566cc93d95242bab7b9c",
+  "verifier": "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/reactive/round_00/independent_validation.json"
+}

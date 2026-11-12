@@ -1,0 +1,9 @@
+{
+  "reason": "The first completed posterior has d mean0.881,median0.937,mode0.982 and upper-bound pressure. Mean>=0.95 alone misses a skewed posterior tending toward the exponential edge.",
+  "user_authorization": "Mix exponential and uniform contaminants; if model tends toward exponential, refit with exponential-only lapses.",
+  "revision": "Permit a separate d=1 candidate when upper-bound pressure is present without lower pressure, histogram mode>=0.95 and median>=0.90. Keep all original flags and draws unchanged.",
+  "not_a_relaxation_of_bound_acceptance": true,
+  "not_predeclared_statistical_model_selection": true,
+  "completed_start_examined": "mixture/round_00/seed_1",
+  "live_controller_still_uses_original_loaded_policy_until_its_confirmed_termination": true
+}

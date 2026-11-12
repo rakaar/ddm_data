@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "posterior_marginals_verified": 37,
+  "fixed_constants_verified": 1,
+  "reactive_paired_parameters": 13,
+  "proactive_lapse_comparisons": 6,
+  "panels": 15,
+  "posterior_draws_per_estimate": 10000,
+  "maximum_summary_absolute_error": 0.0,
+  "identical_valid_trial_identities": 18771,
+  "animals": 1,
+  "right": 9592,
+  "left": 9179,
+  "two_stage_proactive_population": 21947,
+  "joint_population": 21786,
+  "long_valid_responses_removed_from_joint_only": 161,
+  "images": {
+    "SHANK3_cohort1_ASD0047_joint_vs_two_stage_reactive_parameters.png": [
+      2280,
+      2470
+    ],
+    "SHANK3_cohort1_ASD0047_joint_vs_two_stage_proactive_lapse_parameters.png": [
+      2280,
+      1767
+    ]
+  },
+  "source_hashes_unchanged": true,
+  "same_statistical_model_claimed": false
+}

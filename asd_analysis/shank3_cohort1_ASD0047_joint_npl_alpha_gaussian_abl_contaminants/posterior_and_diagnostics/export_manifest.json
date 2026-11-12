@@ -1,0 +1,171 @@
+{
+  "status": "generated_pending_verification",
+  "selected_run": "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/round_00/seed_0",
+  "fitted_parameters": 19,
+  "samples": 10000,
+  "fixed_parameters": {
+    "lapse_exp_weight": 1.0
+  },
+  "corners": [
+    {
+      "page": 1,
+      "focus": "all_parameters",
+      "parameters": [
+        "V_A",
+        "theta_A",
+        "t_nd",
+        "rate_lambda",
+        "T_0",
+        "theta_E",
+        "rate_norm_l",
+        "alpha",
+        "w",
+        "del_go",
+        "delay_mu_ABL20",
+        "delay_mu_ABL40",
+        "delay_mu_ABL60",
+        "delay_sigma_ABL20",
+        "delay_sigma_ABL40",
+        "delay_sigma_ABL60",
+        "lapse_prob",
+        "lapse_prob_right",
+        "beta_lapse"
+      ],
+      "png": "SHANK3_cohort1_ASD0047_joint_corner_all_parameters.png",
+      "axes": 361,
+      "diagonal_titles": [
+        "$V_A$ = 3.133",
+        "$\\theta_A$ = 6.693",
+        "$t_{\\rm nd}$ (ms) = -778.051",
+        "$\\lambda$ = 1.974",
+        "$T_0$ (ms) = 64.335",
+        "$\\theta_E$ = 2.652",
+        "$\\ell$ = 0.857",
+        "$\\alpha$ = 0.863",
+        "$w$ = 0.547",
+        "del_go (ms) = 123.737",
+        "$\\mu_{20}$ (ms) = 97.262",
+        "$\\mu_{40}$ (ms) = 107.224",
+        "$\\mu_{60}$ (ms) = 104.521",
+        "$\\sigma_{20}$ (ms) = 10.629",
+        "$\\sigma_{40}$ (ms) = 12.700",
+        "$\\sigma_{60}$ (ms) = 15.545",
+        "$P_{\\rm lapse}$ = 0.079",
+        "$P_{\\rm lapse,right}$ = 0.292",
+        "$\\beta_{\\rm lapse}$ (s$^{-1}$) = 1.671"
+      ]
+    },
+    {
+      "page": 2,
+      "focus": "proactive_and_contaminants",
+      "parameters": [
+        "V_A",
+        "theta_A",
+        "t_nd",
+        "lapse_prob",
+        "lapse_prob_right",
+        "beta_lapse"
+      ],
+      "png": "SHANK3_cohort1_ASD0047_joint_corner_proactive_and_contaminants.png",
+      "axes": 36,
+      "diagonal_titles": [
+        "$V_A$ = 3.133",
+        "$\\theta_A$ = 6.693",
+        "$t_{\\rm nd}$ (ms) = -778.051",
+        "$P_{\\rm lapse}$ = 0.079",
+        "$P_{\\rm lapse,right}$ = 0.292",
+        "$\\beta_{\\rm lapse}$ (s$^{-1}$) = 1.671"
+      ]
+    }
+  ],
+  "corner_pdf": "/home/rlab/raghavendra/ddm_data/asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/SHANK3_cohort1_ASD0047_joint_posterior_corners.pdf",
+  "corner_pages": 2,
+  "diagnostic_pdf": "/home/rlab/raghavendra/ddm_data/asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/posterior_and_diagnostics/SHANK3_cohort1_ASD0047_joint_diagnostics.pdf",
+  "diagnostic_pages": 4,
+  "display_ranges": [
+    [
+      2.720203302923909,
+      3.5546674511329064
+    ],
+    [
+      5.765520113813685,
+      7.779594842433173
+    ],
+    [
+      -982.1976331083596,
+      -565.5070451587686
+    ],
+    [
+      1.5941075633878057,
+      2.3522274813459485
+    ],
+    [
+      42.00041193962626,
+      92.69953918207861
+    ],
+    [
+      2.0980964676088902,
+      3.2377650061467644
+    ],
+    [
+      0.8251872225494539,
+      0.8868293797613671
+    ],
+    [
+      0.4153098360909936,
+      1.5155231623937648
+    ],
+    [
+      0.5313187585930502,
+      0.5634913610442278
+    ],
+    [
+      89.68589561943203,
+      160.46773989597614
+    ],
+    [
+      87.42953829581172,
+      106.8626984673558
+    ],
+    [
+      102.36674198915124,
+      112.3198461429767
+    ],
+    [
+      99.37004546646266,
+      109.43768260748229
+    ],
+    [
+      5.6103487991686745,
+      19.495530034750377
+    ],
+    [
+      9.024760562995029,
+      16.220743012594003
+    ],
+    [
+      12.946525018030421,
+      18.486095142458286
+    ],
+    [
+      0.05605360337004964,
+      0.10644641103891779
+    ],
+    [
+      0.1490920406852653,
+      0.5230457327263641
+    ],
+    [
+      1.1711816841206664,
+      2.4193737013083747
+    ]
+  ],
+  "all_draws_included": true,
+  "contour_masses": [
+    0.68,
+    0.95
+  ],
+  "means_and_intervals_recomputed_from_draws": true,
+  "corner_diagonal_titles_include_names_and_means": true,
+  "source_sha256": "5ea162eb2aabd9ef2c00d934cd67bc7479710580c27492004993d4ce9f42bb3b"
+}

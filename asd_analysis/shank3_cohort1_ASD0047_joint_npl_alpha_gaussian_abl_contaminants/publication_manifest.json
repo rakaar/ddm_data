@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "date": "2026-11-12",
+  "title": "SHANK3 cohort 1 ASD0047: joint proactive, NPL+alpha and contaminants",
+  "page": "docs/results/2026-11-12.md",
+  "assets": "docs/assets/results/2026-11-12/shank3_ASD0047_joint",
+  "primary_image_embeds": 5,
+  "selected_run": "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/round_00/seed_0",
+  "strict_mkdocs_build": "passed",
+  "direct_image_embeds": 5,
+  "verified_rendered_links": 18,
+  "rendered_section_anchor": "shank3-cohort-1-asd0047-joint-proactive-nplalpha-and-contaminants"
+}

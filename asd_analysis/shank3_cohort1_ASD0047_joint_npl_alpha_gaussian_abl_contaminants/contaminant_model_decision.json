@@ -1,0 +1,16 @@
+{
+  "status": "recorded",
+  "selected_mixture_run": "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/round_00/seed_0",
+  "d_mean": 0.8351455206711794,
+  "d_q025": 0.3002849902678001,
+  "d_q975": 0.9956861534057043,
+  "exponential_dominance_mean_threshold": 0.95,
+  "d_median": 0.909700690003014,
+  "d_histogram_mode": 0.9907561364014474,
+  "original_d_upper_hard_pressure": true,
+  "alternative_tendency_rule": "Upper-bound pressure, no lower-bound pressure, histogram mode >=0.95 and median >=0.90",
+  "rule_refinement": "Mode/median rule added after inspecting the first completed start, before either candidate was accepted; not a predeclared model-selection test.",
+  "next_model": "exponential_only",
+  "user_authorized_nested_refit": true,
+  "note": "Dominant exponential weight prompts the authorized d=1 refit; this is not a Bayes-factor test."
+}

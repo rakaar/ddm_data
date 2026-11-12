@@ -1,0 +1,19 @@
+{
+  "status": "converged",
+  "seed": 0,
+  "bounds_round": 0,
+  "parameter_count": 19,
+  "parent_trials": 21786,
+  "valid_trials": 18771,
+  "abort_events": 3004,
+  "animals": 1,
+  "final_checked_step": 125000,
+  "restored_best_step": 100000,
+  "best_window_negative_elbo": -14807.142885496076,
+  "confirmation_windows": 25,
+  "parameter_stability_required": false,
+  "stop_reason": "confirmed_minimum_and_loss_patience",
+  "posterior_draws": 10000,
+  "posterior_mean_joint_log_likelihood": 14903.99061643498,
+  "elapsed_seconds_this_invocation": 1537.1840882468969
+}

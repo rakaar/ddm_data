@@ -1,0 +1,78 @@
+{
+  "objective": "Jointly refit ASD0047, audit all parameter bounds, export posterior corners, diagnostics PDF, and two-stage versus joint parameter images.",
+  "animal": "ASD0047",
+  "previous_proactive_delay_mean_ms": -715.5462084115592,
+  "same_priors_initially_for_common_parameters": true,
+  "trial_counts": {
+    "original_parent": 21947,
+    "retained_joint": 21786,
+    "valid_choices": 18771,
+    "right": 9592,
+    "left": 9179,
+    "abort_events": 3004,
+    "late_onset_censors": 11,
+    "excluded_long_valid": 161,
+    "display_aborts": 2923
+  },
+  "requirements": [
+    {
+      "item": "Exponential/uniform contaminant joint fit with no frozen animal parameters",
+      "evidence": "mixture/selected_fit.json and configuration.json; pending runtime acceptance"
+    },
+    {
+      "item": "Exponential-only nested refit when exponential weight dominates",
+      "evidence": "contaminant_model_decision.json and optional exponential_only/selected_fit.json"
+    },
+    {
+      "item": "No unresolved hard-bound, physical-domain or prior-taper pressure in selected fit",
+      "evidence": "selected_fit.json plus selected_boundary_audit.csv"
+    },
+    {
+      "item": "Independent likelihood, normalization, finite gradients, posterior/checkpoint reproduction",
+      "evidence": "selected round independent_validation.json and exact_resume_validation.json"
+    },
+    {
+      "item": "Corner plot with parameter name and mean in every diagonal title",
+      "evidence": "posterior_and_diagnostics/export_manifest.json and inspected corner PNG/PDF"
+    },
+    {
+      "item": "Four-page diagnostics PDF",
+      "evidence": "posterior_and_diagnostics/SHANK3_cohort1_ASD0047_joint_diagnostics.pdf"
+    },
+    {
+      "item": "Two-stage versus single-stage proactive/lapse and reactive PNGs",
+      "evidence": "joint_vs_two_stage_parameters/ and independent_validation.json"
+    },
+    {
+      "item": "Preserve input CSV and previous two-stage animal fit",
+      "evidence": "protected_previous_files.json and deliverable_validation.json"
+    },
+    {
+      "item": "Visual checks of figures and PDF pages",
+      "evidence": "visual_inspection.json, pending actual inspection"
+    }
+  ],
+  "pipeline_session_id": 78315,
+  "pipeline_pid": 1122607,
+  "postprocessing_session_id": 14160,
+  "completion_not_yet_proven": true,
+  "no_response_before_fixation_conditioning_change_explicit": true,
+  "scientific_limit": "Even with matching initial common priors, the new joint fit changes contaminant choice bias/support and entry/upper-window conditioning; do not attribute parameter differences exclusively to two-stage estimation.",
+  "latest_runtime": {
+    "updated_utc": "2026-11-12T21:09:38.919210+00:00",
+    "stage": "two_exponential_only_joint_refits_running",
+    "controller_pid": 1124972,
+    "controller_session_id": 97279,
+    "postprocessing_session_id": 26205,
+    "mixture_runs_converged_and_independently_verified": true,
+    "mixture_start0_tnd_ms": -752.3958694541839,
+    "mixture_start1_tnd_ms": -441.563,
+    "mixture_only_remaining_bound_flag": "lapse_exp_weight",
+    "mixture_exponential_weight_mean": 0.8351455206711794,
+    "mixture_exponential_weight_mode": 0.9907561364014474,
+    "mode_based_user_authorized_d1_refit": true,
+    "old_completed_fits_not_restarted": true,
+    "roundoff_policy": "CPU/GPU posterior draws compared at1e-12; actual max error3.55e-15; exact original draws retained.",
+    "diagnostic_exports_still_pending": true
+  }
+}

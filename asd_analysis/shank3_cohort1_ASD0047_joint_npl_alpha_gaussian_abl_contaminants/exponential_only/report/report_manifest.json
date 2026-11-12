@@ -1,0 +1,426 @@
+{
+  "status": "generated_pending_independent_and_visual_checks",
+  "selected_run": "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/round_00/seed_0",
+  "pdf": "/home/rlab/raghavendra/ddm_data/asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/report/SHANK3_cohort1_ASD0047_joint_NPL_alpha_Gaussian_ABL_exponential_only_report.pdf",
+  "pngs": [
+    "SHANK3_cohort1_ASD0047_joint_NPL_alpha_Gaussian_ABL_exponential_only_RTDs.png",
+    "SHANK3_cohort1_ASD0047_joint_NPL_alpha_Gaussian_ABL_exponential_only_psychometric.png"
+  ],
+  "pages": 2,
+  "fitted_parameters": 19,
+  "valid_choices": 18771,
+  "aborts_in_likelihood": 3004,
+  "censored": 11,
+  "excluded_above_1": 161,
+  "retained_parent_design": 21786,
+  "displayed": 21694,
+  "rtd_panels": 15,
+  "psychometric_points": 30,
+  "bins_s": 0.02,
+  "model_step_s": 0.001,
+  "calculation_window_s": [
+    -1,
+    1
+  ],
+  "display_xlim_s": [
+    -0.1,
+    0.6
+  ],
+  "density_ylim": [
+    0,
+    18.554084582970077
+  ],
+  "quadrature_checks": [
+    {
+      "condition": 0,
+      "low_order": [
+        0.028595829060863127,
+        0.9999999962975719
+      ],
+      "high_order": [
+        0.028595829780269703,
+        1.0000000067510482
+      ]
+    },
+    {
+      "condition": 1,
+      "low_order": [
+        0.06048685184549914,
+        1.0000000002440115
+      ],
+      "high_order": [
+        0.060486852610924416,
+        0.9999999957940322
+      ]
+    },
+    {
+      "condition": 2,
+      "low_order": [
+        0.16426136367754923,
+        1.0000000002395084
+      ],
+      "high_order": [
+        0.16426136480742876,
+        0.9999999973980395
+      ]
+    },
+    {
+      "condition": 3,
+      "low_order": [
+        0.31185866541926455,
+        0.9999999999191442
+      ],
+      "high_order": [
+        0.31185866700446496,
+        0.9999999989213553
+      ]
+    },
+    {
+      "condition": 4,
+      "low_order": [
+        0.41945814360282185,
+        0.9999999997146634
+      ],
+      "high_order": [
+        0.41945814556442385,
+        0.9999999997021738
+      ]
+    },
+    {
+      "condition": 5,
+      "low_order": [
+        0.6569486910496098,
+        0.999999999192117
+      ],
+      "high_order": [
+        0.656948694322379,
+        1.0000000013977208
+      ]
+    },
+    {
+      "condition": 6,
+      "low_order": [
+        0.7541460978742802,
+        0.9999999988478723
+      ],
+      "high_order": [
+        0.754146102223608,
+        1.0000000024401343
+      ]
+    },
+    {
+      "condition": 7,
+      "low_order": [
+        0.875198260975856,
+        0.9999999978960935
+      ],
+      "high_order": [
+        0.8751982687968991,
+        1.000000005349074
+      ]
+    },
+    {
+      "condition": 8,
+      "low_order": [
+        0.9495210444227298,
+        0.9999999947206931
+      ],
+      "high_order": [
+        0.9495210659587492,
+        1.0000000161970655
+      ]
+    },
+    {
+      "condition": 9,
+      "low_order": [
+        0.9695543239813209,
+        0.9999999869249682
+      ],
+      "high_order": [
+        0.9695543868782047,
+        1.00000004991852
+      ]
+    },
+    {
+      "condition": 10,
+      "low_order": [
+        0.023052961666269658,
+        0.9999999879467735
+      ],
+      "high_order": [
+        0.023052963213846214,
+        1.0000000430447078
+      ]
+    },
+    {
+      "condition": 11,
+      "low_order": [
+        0.050191843562365016,
+        0.999999998561145
+      ],
+      "high_order": [
+        0.05019184550349194,
+        1.0000000028761293
+      ]
+    },
+    {
+      "condition": 12,
+      "low_order": [
+        0.14891069871412338,
+        1.0000000000553984
+      ],
+      "high_order": [
+        0.14891070177664983,
+        0.9999999979177645
+      ]
+    },
+    {
+      "condition": 13,
+      "low_order": [
+        0.29844397365173714,
+        0.9999999996670382
+      ],
+      "high_order": [
+        0.29844397802092065,
+        0.9999999997391299
+      ]
+    },
+    {
+      "condition": 14,
+      "low_order": [
+        0.4124773869471268,
+        0.9999999992885318
+      ],
+      "high_order": [
+        0.4124773923552636,
+        1.0000000012754091
+      ]
+    },
+    {
+      "condition": 15,
+      "low_order": [
+        0.6643913512597552,
+        0.9999999981983869
+      ],
+      "high_order": [
+        0.6643913602736595,
+        1.0000000053697788
+      ]
+    },
+    {
+      "condition": 16,
+      "low_order": [
+        0.7670897845205313,
+        0.9999999974321203
+      ],
+      "high_order": [
+        0.7670897964973278,
+        1.0000000081592635
+      ]
+    },
+    {
+      "condition": 17,
+      "low_order": [
+        0.889089378206438,
+        0.999999995309859
+      ],
+      "high_order": [
+        0.8890893992852366,
+        1.000000015936409
+      ]
+    },
+    {
+      "condition": 18,
+      "low_order": [
+        0.9583499888243304,
+        0.9999999883821422
+      ],
+      "high_order": [
+        0.9583500423975101,
+        1.0000000420859756
+      ]
+    },
+    {
+      "condition": 19,
+      "low_order": [
+        0.9737482984135559,
+        0.9999999728835682
+      ],
+      "high_order": [
+        0.9737484285732513,
+        1.000000103404346
+      ]
+    },
+    {
+      "condition": 20,
+      "low_order": [
+        0.019802195615222572,
+        0.9999999795288737
+      ],
+      "high_order": [
+        0.019802196807975507,
+        1.0000000996919454
+      ]
+    },
+    {
+      "condition": 21,
+      "low_order": [
+        0.04430634637701277,
+        0.9999999858740902
+      ],
+      "high_order": [
+        0.04430634954043381,
+        1.0000000674917962
+      ]
+    },
+    {
+      "condition": 22,
+      "low_order": [
+        0.14091727589337594,
+        0.9999999918518241
+      ],
+      "high_order": [
+        0.14091728385488456,
+        1.0000000387738963
+      ]
+    },
+    {
+      "condition": 23,
+      "low_order": [
+        0.29208282094117366,
+        0.9999999936624779
+      ],
+      "high_order": [
+        0.2920828344812936,
+        1.000000030235947
+      ]
+    },
+    {
+      "condition": 24,
+      "low_order": [
+        0.4081607085638589,
+        0.999999993968762
+      ],
+      "high_order": [
+        0.4081607262622994,
+        1.0000000288532802
+      ]
+    },
+    {
+      "condition": 25,
+      "low_order": [
+        0.6684152306044575,
+        0.9999999933542572
+      ],
+      "high_order": [
+        0.6684152599670602,
+        1.0000000320016715
+      ]
+    },
+    {
+      "condition": 26,
+      "low_order": [
+        0.7729273524264549,
+        0.9999999924845375
+      ],
+      "high_order": [
+        0.7729273894056587,
+        1.0000000362964105
+      ]
+    },
+    {
+      "condition": 27,
+      "low_order": [
+        0.8961732005075655,
+        0.9999999899928123
+      ],
+      "high_order": [
+        0.8961732553031794,
+        1.0000000485936245
+      ]
+    },
+    {
+      "condition": 28,
+      "low_order": [
+        0.9627955287235802,
+        0.9999999850349102
+      ],
+      "high_order": [
+        0.9627956158700076,
+        1.0000000736243613
+      ]
+    },
+    {
+      "condition": 29,
+      "low_order": [
+        0.9762868183748123,
+        0.9999999832473994
+      ],
+      "high_order": [
+        0.9762869201449382,
+        1.0000000855609399
+      ]
+    }
+  ],
+  "bound_acceptance": {
+    "status": "passed",
+    "variant": "exponential_only",
+    "parameter_count": 19,
+    "bounds_round": 0,
+    "selected_seed": 0,
+    "selected_run": "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/round_00/seed_0",
+    "artificial_flags": [],
+    "taper_flags": [],
+    "intrinsic_flags": [],
+    "starts": [
+      {
+        "status": "converged",
+        "seed": 0,
+        "bounds_round": 0,
+        "parameter_count": 19,
+        "parent_trials": 21786,
+        "valid_trials": 18771,
+        "abort_events": 3004,
+        "animals": 1,
+        "final_checked_step": 125000,
+        "restored_best_step": 100000,
+        "best_window_negative_elbo": -14807.142885496076,
+        "confirmation_windows": 25,
+        "parameter_stability_required": false,
+        "stop_reason": "confirmed_minimum_and_loss_patience",
+        "posterior_draws": 10000,
+        "posterior_mean_joint_log_likelihood": 14903.99061643498,
+        "elapsed_seconds_this_invocation": 1537.1840882468969
+      },
+      {
+        "status": "converged",
+        "seed": 1,
+        "bounds_round": 0,
+        "parameter_count": 19,
+        "parent_trials": 21786,
+        "valid_trials": 18771,
+        "abort_events": 3004,
+        "animals": 1,
+        "final_checked_step": 138000,
+        "restored_best_step": 113000,
+        "best_window_negative_elbo": -14805.403326798065,
+        "confirmation_windows": 25,
+        "parameter_stability_required": false,
+        "stop_reason": "confirmed_minimum_and_loss_patience",
+        "posterior_draws": 10000,
+        "posterior_mean_joint_log_likelihood": 14902.48666934333,
+        "elapsed_seconds_this_invocation": 1611.660830563167
+      }
+    ]
+  },
+  "source_hashes": {
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/round_00/seed_0/posterior_samples.npz": "a1045313061dc04a4d5b1c9241e7eff85e57adc1e79246af810eaeb348e8a3cc",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/parent_trials.csv.gz": "3a139fed96c5928b4662b0c4f07fb58d9c68a174dd0b2b990281733240370a27",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/fit_trials.csv.gz": "f506ae86dce08e7361f4682617a15d78c0bb495a67a970f9c36e16480cd91258",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/observations.npz": "86078788780a1fff0bae6f7c970a1380152d00aedd62b93dace816ad867de172",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/likelihood_policy.json": "8c770b85a359af144bee2852500bff8da6f1e3d703fee579a29631c9fd3bc34d",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/selected_fit.json": "e5a2c829d1dc3838eca44a49e8ab3cf4fda8aef016308337e75ed55a03848623",
+    "asd_analysis/plot_shank3_asd0047_joint.py": "3fb850579c5ee4ced3f331b6ef252da475564ad966d7b6fd3b012b0e75664e7b"
+  },
+  "delivery_folder": "/home/rlab/raghavendra/ddm_data/shan3_coh_1_animal_Wise_fitting/ASD0047_joint"
+}

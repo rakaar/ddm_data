@@ -1,0 +1,99 @@
+{
+  "status": "passed",
+  "animal": "ASD0047",
+  "parameters": 19,
+  "fitted_choices": 18771,
+  "likelihood_aborts": 3004,
+  "onset_censored": 11,
+  "excluded_long_choices": 161,
+  "corner_samples": 10000,
+  "all_corner_titles_include_parameter_and_mean": true,
+  "every_draw_inside_padded_corner_axes": true,
+  "correlations_verified": true,
+  "raw_bounds_acceptance_flags_empty": true,
+  "rtd_panels": 15,
+  "panel_areas": [
+    {
+      "ABL": 20,
+      "abs_ILD": 1,
+      "model_area": 1.0
+    },
+    {
+      "ABL": 20,
+      "abs_ILD": 2,
+      "model_area": 1.0
+    },
+    {
+      "ABL": 20,
+      "abs_ILD": 4,
+      "model_area": 1.0
+    },
+    {
+      "ABL": 20,
+      "abs_ILD": 8,
+      "model_area": 0.9999999999999998
+    },
+    {
+      "ABL": 20,
+      "abs_ILD": 16,
+      "model_area": 1.0
+    },
+    {
+      "ABL": 40,
+      "abs_ILD": 1,
+      "model_area": 1.0
+    },
+    {
+      "ABL": 40,
+      "abs_ILD": 2,
+      "model_area": 0.9999999999999998
+    },
+    {
+      "ABL": 40,
+      "abs_ILD": 4,
+      "model_area": 0.9999999999999998
+    },
+    {
+      "ABL": 40,
+      "abs_ILD": 8,
+      "model_area": 1.0
+    },
+    {
+      "ABL": 40,
+      "abs_ILD": 16,
+      "model_area": 1.0
+    },
+    {
+      "ABL": 60,
+      "abs_ILD": 1,
+      "model_area": 1.0
+    },
+    {
+      "ABL": 60,
+      "abs_ILD": 2,
+      "model_area": 1.0
+    },
+    {
+      "ABL": 60,
+      "abs_ILD": 4,
+      "model_area": 1.0000000000000002
+    },
+    {
+      "ABL": 60,
+      "abs_ILD": 8,
+      "model_area": 0.9999999999999999
+    },
+    {
+      "ABL": 60,
+      "abs_ILD": 16,
+      "model_area": 0.9999999999999998
+    }
+  ],
+  "identical_empirical_RTD_rows": 21694,
+  "psychometric_probabilities": 30,
+  "pdf_pages": {
+    "SHANK3_cohort1_ASD0047_joint_posterior_corners.pdf": 2,
+    "SHANK3_cohort1_ASD0047_joint_diagnostics.pdf": 4
+  },
+  "protected_previous_files_verified": 239
+}

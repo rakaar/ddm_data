@@ -1,0 +1,94 @@
+{
+  "group": "wt",
+  "animal": "ASD0047",
+  "stage": "abort",
+  "bounds_round": 5,
+  "seed": 1,
+  "parameter_count": 5,
+  "parameter_order": [
+    "V_A",
+    "theta_A",
+    "t_nd",
+    "lapse_prob",
+    "beta_lapse"
+  ],
+  "priors": {
+    "V_A": [
+      0.001,
+      0.01,
+      6.0,
+      8.0
+    ],
+    "theta_A": [
+      0.1,
+      0.5,
+      15.0,
+      25.0
+    ],
+    "t_nd": [
+      -3.0,
+      -2.0,
+      0.2,
+      0.3
+    ],
+    "lapse_prob": [
+      0.0,
+      0.01,
+      0.3,
+      1.0
+    ],
+    "beta_lapse": [
+      0.001,
+      0.5,
+      12.0,
+      20.0
+    ]
+  },
+  "initial": {
+    "V_A": 3.0,
+    "theta_A": 1.0,
+    "t_nd": 0.04,
+    "lapse_prob": 0.15,
+    "beta_lapse": 2.0
+  },
+  "backend": "gpu",
+  "device": "NVIDIA GeForce RTX 4090",
+  "float64": true,
+  "allocator_fraction": 0.35,
+  "jax": "0.4.38",
+  "numpyro": "0.15.3",
+  "learning_rate": 0.0002,
+  "clip_norm": 1.0,
+  "guide_scale": 0.1,
+  "window": 1000,
+  "min_steps": 50000,
+  "max_steps": 1000000,
+  "confirmation_windows": 25,
+  "parameter_stability_required": false,
+  "draws": 10000,
+  "diagnostic_draws": 2048,
+  "numerics": {
+    "grid_end": 1.5,
+    "dt": 0.0005,
+    "narrow_dt": 0.0001,
+    "narrow_sigma_switch": 0.0025,
+    "gaussian_refinement": "dt at most sigma/20; narrower output grid below2.5ms",
+    "gaussian_zero_endpoint": "Euler-Maclaurin second-order correction; nofinite-windowrenormalization",
+    "K": 12,
+    "quadrature_order": 24
+  },
+  "source_hashes": {
+    "asd_analysis/fit_shank3_individual_adaptive_bounds.py": "63f1f2ee129f9f9d68f8ec89d9e152d5fd1287a5fbf52430bc686e8358ebc750",
+    "asd_analysis/shank3_individual_adaptive_bounds_utils.py": "37046b92e5bf16939bc70da84e014a3efbb7731c3d073f88e59558e592d2fba3",
+    "asd_analysis/shank3_npl_alpha_gaussian_abl_delay_utils.py": "317f3cb86cadfbe266634fe7b502135ffc086a6cb85897d2a637a87387ac0122",
+    "asd_analysis/shank3_npl_alpha_gaussian_utils.py": "3ff4c45f1c56b2aee7a2cddb505c99f9dd5ffdcef770836066be195531f42da2",
+    "asd_analysis/proactive_lapse_no_led_utils.py": "494fa090d9f0b12fa9d0e97618bf039c0e3ebb43ae0f5bbae4f1768dd8a754bd",
+    "asd_analysis/shank3_wt_gamma_omega_utils.py": "97dd8485781126a558b8b5c48d7a8aea4157e28bec54227e3492f76d82fdf96a",
+    "asd_analysis/shank3_wt_npl_alpha_utils.py": "8fb24f87b224f1c0d965a3d1ef228e524d63479a428aa2b6b659aefe2efba313",
+    "ASD_Human_Data/gaussian_delay_likelihood.py": "82d4e9974ef5b1ce19db6a00cd6cea9453c654b98637e14dadc5566b2a46dffe",
+    "fit_animal_by_animal/numpyro_npl_alpha_svi_utils.py": "034cf84b1e4ec6c8189d00553ca4be917480176757ea1553724b733676dc5db0",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/preparation.json": "3f7dc552409c328e0fff728066a34099216bd2f1d417e37fa529f2b3fb5593f5",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/abort_data.npz": "34bdb984e99dc4a9ad1071fb3d3b6c16fa6cf1d79ec5c3388ae12f59f0bc4457",
+    "asd_analysis/shank3_cohort1_wt_hom_individual_adaptive_bounds/wt/ASD0047/abort/round_05/bounds.json": "16602e6dd9c1964a8c28df2c2d0c6ac4dff1afe598b627dd39727ff7351545f4"
+  }
+}

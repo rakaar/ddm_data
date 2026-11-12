@@ -69,6 +69,7 @@ nav:
       - "2026-11-05": results/2026-11-05.md
       - "2026-11-07": results/2026-11-07.md
       - "2026-11-08": results/2026-11-08.md
+      - "2026-11-12": results/2026-11-12.md
 markdown_extensions:
   - toc:
       permalink: true

@@ -1,0 +1,53 @@
+{
+  "status": "exponential_weight_requires_nested_refit",
+  "variant": "mixture",
+  "parameter_count": 20,
+  "bounds_round": 0,
+  "selected_seed": 0,
+  "selected_run": "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/round_00/seed_0",
+  "artificial_flags": [],
+  "taper_flags": [],
+  "intrinsic_flags": [
+    "lapse_exp_weight"
+  ],
+  "starts": [
+    {
+      "status": "converged",
+      "seed": 0,
+      "bounds_round": 0,
+      "parameter_count": 20,
+      "parent_trials": 21786,
+      "valid_trials": 18771,
+      "abort_events": 3004,
+      "animals": 1,
+      "final_checked_step": 183000,
+      "restored_best_step": 158000,
+      "best_window_negative_elbo": -14793.231353615523,
+      "confirmation_windows": 25,
+      "parameter_stability_required": false,
+      "stop_reason": "confirmed_minimum_and_loss_patience",
+      "posterior_draws": 10000,
+      "posterior_mean_joint_log_likelihood": 14898.415008218915,
+      "elapsed_seconds_this_invocation": 2238.79813210899
+    },
+    {
+      "status": "converged",
+      "seed": 1,
+      "bounds_round": 0,
+      "parameter_count": 20,
+      "parent_trials": 21786,
+      "valid_trials": 18771,
+      "abort_events": 3004,
+      "animals": 1,
+      "final_checked_step": 175000,
+      "restored_best_step": 150000,
+      "best_window_negative_elbo": -14793.663771783406,
+      "confirmation_windows": 25,
+      "parameter_stability_required": false,
+      "stop_reason": "confirmed_minimum_and_loss_patience",
+      "posterior_draws": 10000,
+      "posterior_mean_joint_log_likelihood": 14895.503662664287,
+      "elapsed_seconds_this_invocation": 2128.424240557011
+    }
+  ]
+}

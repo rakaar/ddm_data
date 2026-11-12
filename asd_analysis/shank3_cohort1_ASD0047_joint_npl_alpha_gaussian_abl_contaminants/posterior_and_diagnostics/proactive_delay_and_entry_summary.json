@@ -1,0 +1,8 @@
+{
+  "posterior_probability_t_nd_negative": 1.0,
+  "latent_entry_mass_draw_mean": 1.3736934414194127e-06,
+  "latent_entry_mass_q025": 1.2411587030658236e-07,
+  "latent_entry_mass_q975": 5.204924944224719e-06,
+  "observed_model_conditioned_on_no_response_before_fixation": true,
+  "note": "These are latent pre-entry probabilities; the fitted observation model conditions them away. Negative proactive t_nd is an effective timing shift, not a negative reactive sensory delay."
+}

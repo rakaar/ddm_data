@@ -1,0 +1,34 @@
+{
+  "status": "complete",
+  "animal": "ASD0047",
+  "selected_run": "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/round_00/seed_0",
+  "free_parameters": 19,
+  "checks": {
+    "animal_and_old_negative_delay_identified": true,
+    "all_animal_parameters_estimated_in_one_joint_objective": true,
+    "exponential_uniform_mixture_fitted_and_verified": true,
+    "authorized_exponential_only_refit_performed": true,
+    "all_remaining_free_posteriors_clear_hard_domain_and_taper_checks": true,
+    "corner_diagonals_have_parameter_names_and_means": true,
+    "full_and_focused_corners_numerically_and_visually_verified": true,
+    "four_page_diagnostics_pdf_verified_and_inspected": true,
+    "proactive_and_reactive_two_stage_comparison_pngs_verified_and_inspected": true,
+    "original_animal_fit_and_source_csv_hashes_preserved": true,
+    "initialization_sensitivity_reported": true,
+    "changed_lapse_and_conditioning_assumptions_reported": true,
+    "direct_result_book_embeds_and_downloads_verified": true,
+    "strict_mkdocs_build_passed": true
+  },
+  "completion_proven": true,
+  "verified_rendered_links": 18,
+  "embedded_images": 5,
+  "old_proactive_delay_ms": -715.5462084115593,
+  "evidence": [
+    "selected_fit.json",
+    "deliverable_validation.json",
+    "visual_inspection.json",
+    "posterior_and_diagnostics/export_manifest.json",
+    "strict_mkdocs_build.log",
+    "publication_manifest.json"
+  ]
+}

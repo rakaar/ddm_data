@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "compile_seconds": 38.79747723182663,
+  "seconds_per_update": 0.01015288606286049,
+  "physical_memory_bytes": 25249579008,
+  "memory_stats": {
+    "num_allocs": 6413,
+    "bytes_in_use": 1019136,
+    "peak_bytes_in_use": 2335540224,
+    "largest_alloc_size": 2283888640,
+    "bytes_limit": 8837352502,
+    "bytes_reserved": 0,
+    "peak_bytes_reserved": 0,
+    "largest_free_block_bytes": 0,
+    "pool_bytes": 7518289920,
+    "peak_pool_bytes": 7518289920
+  },
+  "initial_loss": -11162.063660299213,
+  "full_batch": true,
+  "states_discarded": true
+}

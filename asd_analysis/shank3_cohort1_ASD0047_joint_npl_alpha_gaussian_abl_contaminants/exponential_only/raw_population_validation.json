@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "animal": "ASD0047",
+  "original_parent": 21947,
+  "valid_choices": 18771,
+  "long_valid_excluded": 161,
+  "exact_trial_ids_and_recorded_values": true,
+  "source_sha256": "db95fc66fc434c81832cb460ed5fe28857b1aa25c639b6a31fbb1859d2ba4408"
+}

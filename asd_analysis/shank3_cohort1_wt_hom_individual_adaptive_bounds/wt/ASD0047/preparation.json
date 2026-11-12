@@ -1,0 +1,43 @@
+{
+  "animal": "ASD0047",
+  "animals": 1,
+  "valid": 18771,
+  "right": 9592,
+  "left": 9179,
+  "parent": 21947,
+  "abort_events": 3004,
+  "censored": 18943,
+  "aborts": 2923,
+  "display": 21694,
+  "conditions": 30,
+  "input_hashes": {
+    "fit_trials.csv.gz": "5b77461e0e2c64256d2d735dadae53a9257b4575a332f2806f31f7ecea256fc5",
+    "parent_trials.csv.gz": "5ade69ffc22608b924ac5a786a69adf73e267e443fe89a059a7e33a0213b941b",
+    "abort_trials.csv.gz": "0635fb2144f7b2e9410bbea868d7c256e4fbab0e8d08a35922939368e7e0d689",
+    "conditions.csv": "8914eff7ed24aa6540b723f94ac869bfb510d32ff84a22bc6237770fa7e310d6",
+    "abort_data.npz": "34bdb984e99dc4a9ad1071fb3d3b6c16fa6cf1d79ec5c3388ae12f59f0bc4457",
+    "initialization.json": "eaf1693aad893794802070531790c05f45d4e9dc87c0e3a9ba8b46200a248103",
+    "initialization_rng.json": "6f96712eef3a8af6afbdf3f5f9a0871bb774e473ec434fd19a2f893dc6c93f6a"
+  },
+  "repeat_filter_reapplied": false,
+  "abort_RT_window": null,
+  "reactive_RT_window": [
+    0,
+    1
+  ],
+  "censoring": "Fixation abort strictly before onset is an event; all valid and late fixation trials are censored.",
+  "delay_sharing": "Three animal-specific mu/sigma pairs, each shared across all signed ILDs within ABL.",
+  "previous_analysis": "asd_analysis/shank3_cohort1_wt_individual_npl_alpha_gaussian_delay_by_abl_proactive_ndm50/ASD0047",
+  "proactive_delay_prior_seconds": [
+    -0.1,
+    -0.08,
+    0.2,
+    0.3
+  ],
+  "reactive_delay_priors_unchanged": true,
+  "reference_trial_files_byte_identical": true,
+  "group": "wt",
+  "stage_order": "Fresh own proactive+lapse fits, audit/widen until accepted, freeze then reactive fits/audit.",
+  "revised_bounds": true,
+  "reactive_delays_nonnegative": true
+}

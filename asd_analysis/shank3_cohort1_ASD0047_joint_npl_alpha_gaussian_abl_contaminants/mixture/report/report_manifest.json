@@ -1,0 +1,428 @@
+{
+  "status": "generated_pending_independent_and_visual_checks",
+  "selected_run": "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/round_00/seed_0",
+  "pdf": "/home/rlab/raghavendra/ddm_data/asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/report/SHANK3_cohort1_ASD0047_joint_NPL_alpha_Gaussian_ABL_mixture_report.pdf",
+  "pngs": [
+    "SHANK3_cohort1_ASD0047_joint_NPL_alpha_Gaussian_ABL_mixture_RTDs.png",
+    "SHANK3_cohort1_ASD0047_joint_NPL_alpha_Gaussian_ABL_mixture_psychometric.png"
+  ],
+  "pages": 2,
+  "fitted_parameters": 20,
+  "valid_choices": 18771,
+  "aborts_in_likelihood": 3004,
+  "censored": 11,
+  "excluded_above_1": 161,
+  "retained_parent_design": 21786,
+  "displayed": 21694,
+  "rtd_panels": 15,
+  "psychometric_points": 30,
+  "bins_s": 0.02,
+  "model_step_s": 0.001,
+  "calculation_window_s": [
+    -1,
+    1
+  ],
+  "display_xlim_s": [
+    -0.1,
+    0.6
+  ],
+  "density_ylim": [
+    0,
+    18.581578743681114
+  ],
+  "quadrature_checks": [
+    {
+      "condition": 0,
+      "low_order": [
+        0.02821779320271009,
+        0.9999999962370182
+      ],
+      "high_order": [
+        0.028217793886685633,
+        1.0000000069640753
+      ]
+    },
+    {
+      "condition": 1,
+      "low_order": [
+        0.06001887711424953,
+        1.0000000002218372
+      ],
+      "high_order": [
+        0.060018877865007654,
+        0.9999999958572139
+      ]
+    },
+    {
+      "condition": 2,
+      "low_order": [
+        0.16357050768539722,
+        1.0000000002344238
+      ],
+      "high_order": [
+        0.16357050880612128,
+        0.9999999974111984
+      ]
+    },
+    {
+      "condition": 3,
+      "low_order": [
+        0.3111965449853086,
+        0.9999999999183691
+      ],
+      "high_order": [
+        0.311196546560361,
+        0.9999999989239786
+      ]
+    },
+    {
+      "condition": 4,
+      "low_order": [
+        0.4189759127891274,
+        0.9999999997154067
+      ],
+      "high_order": [
+        0.4189759147394322,
+        0.9999999997011273
+      ]
+    },
+    {
+      "condition": 5,
+      "low_order": [
+        0.6570861575747327,
+        0.9999999991950377
+      ],
+      "high_order": [
+        0.6570861608340117,
+        1.0000000013912944
+      ]
+    },
+    {
+      "condition": 6,
+      "low_order": [
+        0.7544672377839907,
+        0.9999999988515649
+      ],
+      "high_order": [
+        0.7544672421199415,
+        1.0000000024319524
+      ]
+    },
+    {
+      "condition": 7,
+      "low_order": [
+        0.8756200183068745,
+        0.9999999979001055
+      ],
+      "high_order": [
+        0.87562002612065,
+        1.0000000053417963
+      ]
+    },
+    {
+      "condition": 8,
+      "low_order": [
+        0.9499020680029484,
+        0.9999999947215079
+      ],
+      "high_order": [
+        0.9499020895697325,
+        1.0000000162134146
+      ]
+    },
+    {
+      "condition": 9,
+      "low_order": [
+        0.9699984634527545,
+        0.9999999869362561
+      ],
+      "high_order": [
+        0.9699985263871653,
+        1.0000000499465949
+      ]
+    },
+    {
+      "condition": 10,
+      "low_order": [
+        0.022632861302071226,
+        0.9999999876168617
+      ],
+      "high_order": [
+        0.022632862754200664,
+        1.0000000442630326
+      ]
+    },
+    {
+      "condition": 11,
+      "low_order": [
+        0.04966361349147791,
+        0.9999999983634855
+      ],
+      "high_order": [
+        0.04966361538858392,
+        1.0000000035963876
+      ]
+    },
+    {
+      "condition": 12,
+      "low_order": [
+        0.14811854715896688,
+        0.9999999999586969
+      ],
+      "high_order": [
+        0.14811855024591636,
+        0.9999999982765351
+      ]
+    },
+    {
+      "condition": 13,
+      "low_order": [
+        0.29769273246649486,
+        0.9999999995992641
+      ],
+      "high_order": [
+        0.2976927369132506,
+        0.999999999996443
+      ]
+    },
+    {
+      "condition": 14,
+      "low_order": [
+        0.41193666063404355,
+        0.9999999992282413
+      ],
+      "high_order": [
+        0.4119366661542434,
+        1.0000000015079333
+      ]
+    },
+    {
+      "condition": 15,
+      "low_order": [
+        0.6645437646398509,
+        0.9999999981375614
+      ],
+      "high_order": [
+        0.6645437738661104,
+        1.0000000056102634
+      ]
+    },
+    {
+      "condition": 16,
+      "low_order": [
+        0.7675230090776171,
+        0.9999999973642899
+      ],
+      "high_order": [
+        0.7675230213337492,
+        1.0000000084296474
+      ]
+    },
+    {
+      "condition": 17,
+      "low_order": [
+        0.8895488222644874,
+        0.9999999952206982
+      ],
+      "high_order": [
+        0.8895488437826469,
+        1.0000000162983727
+      ]
+    },
+    {
+      "condition": 18,
+      "low_order": [
+        0.9588559957040097,
+        0.9999999882445064
+      ],
+      "high_order": [
+        0.9588560500472143,
+        1.0000000426831572
+      ]
+    },
+    {
+      "condition": 19,
+      "low_order": [
+        0.9742475496616434,
+        0.9999999728073958
+      ],
+      "high_order": [
+        0.9742476805468856,
+        1.0000001040084603
+      ]
+    },
+    {
+      "condition": 20,
+      "low_order": [
+        0.019329823309903023,
+        0.9999999794159729
+      ],
+      "high_order": [
+        0.019329824492977342,
+        1.000000100451346
+      ]
+    },
+    {
+      "condition": 21,
+      "low_order": [
+        0.043713556124532434,
+        0.9999999857314252
+      ],
+      "high_order": [
+        0.0437135592447873,
+        1.000000068213214
+      ]
+    },
+    {
+      "condition": 22,
+      "low_order": [
+        0.14003087733163294,
+        0.9999999917671532
+      ],
+      "high_order": [
+        0.14003088527756366,
+        1.0000000391858268
+      ]
+    },
+    {
+      "condition": 23,
+      "low_order": [
+        0.29125068464639375,
+        0.9999999936071959
+      ],
+      "high_order": [
+        0.29125069821749644,
+        1.0000000305108983
+      ]
+    },
+    {
+      "condition": 24,
+      "low_order": [
+        0.40758763117992725,
+        0.9999999939221558
+      ],
+      "high_order": [
+        0.40758764894783234,
+        1.0000000290918987
+      ]
+    },
+    {
+      "condition": 25,
+      "low_order": [
+        0.6686439674593125,
+        0.9999999933127086
+      ],
+      "high_order": [
+        0.6686439969980835,
+        1.0000000322329234
+      ]
+    },
+    {
+      "condition": 26,
+      "low_order": [
+        0.7734190664926901,
+        0.9999999924391894
+      ],
+      "high_order": [
+        0.7734191037190126,
+        1.0000000365581379
+      ]
+    },
+    {
+      "condition": 27,
+      "low_order": [
+        0.8968286469366518,
+        0.9999999899343122
+      ],
+      "high_order": [
+        0.8968287021332455,
+        1.0000000489537617
+      ]
+    },
+    {
+      "condition": 28,
+      "low_order": [
+        0.9633337257960755,
+        0.9999999849753517
+      ],
+      "high_order": [
+        0.9633338134826137,
+        1.000000074105541
+      ]
+    },
+    {
+      "condition": 29,
+      "low_order": [
+        0.9767494154956493,
+        0.999999983307835
+      ],
+      "high_order": [
+        0.9767495173350288,
+        1.0000000857264608
+      ]
+    }
+  ],
+  "bound_acceptance": {
+    "status": "exponential_weight_requires_nested_refit",
+    "variant": "mixture",
+    "parameter_count": 20,
+    "bounds_round": 0,
+    "selected_seed": 0,
+    "selected_run": "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/round_00/seed_0",
+    "artificial_flags": [],
+    "taper_flags": [],
+    "intrinsic_flags": [
+      "lapse_exp_weight"
+    ],
+    "starts": [
+      {
+        "status": "converged",
+        "seed": 0,
+        "bounds_round": 0,
+        "parameter_count": 20,
+        "parent_trials": 21786,
+        "valid_trials": 18771,
+        "abort_events": 3004,
+        "animals": 1,
+        "final_checked_step": 183000,
+        "restored_best_step": 158000,
+        "best_window_negative_elbo": -14793.231353615523,
+        "confirmation_windows": 25,
+        "parameter_stability_required": false,
+        "stop_reason": "confirmed_minimum_and_loss_patience",
+        "posterior_draws": 10000,
+        "posterior_mean_joint_log_likelihood": 14898.415008218915,
+        "elapsed_seconds_this_invocation": 2238.79813210899
+      },
+      {
+        "status": "converged",
+        "seed": 1,
+        "bounds_round": 0,
+        "parameter_count": 20,
+        "parent_trials": 21786,
+        "valid_trials": 18771,
+        "abort_events": 3004,
+        "animals": 1,
+        "final_checked_step": 175000,
+        "restored_best_step": 150000,
+        "best_window_negative_elbo": -14793.663771783406,
+        "confirmation_windows": 25,
+        "parameter_stability_required": false,
+        "stop_reason": "confirmed_minimum_and_loss_patience",
+        "posterior_draws": 10000,
+        "posterior_mean_joint_log_likelihood": 14895.503662664287,
+        "elapsed_seconds_this_invocation": 2128.424240557011
+      }
+    ]
+  },
+  "source_hashes": {
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/round_00/seed_0/posterior_samples.npz": "5717b6cfe5b6fdc62f52dd3c23d82a53023795d934332d058cddb8e6fef9b28b",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/parent_trials.csv.gz": "3a139fed96c5928b4662b0c4f07fb58d9c68a174dd0b2b990281733240370a27",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/fit_trials.csv.gz": "f506ae86dce08e7361f4682617a15d78c0bb495a67a970f9c36e16480cd91258",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/observations.npz": "86078788780a1fff0bae6f7c970a1380152d00aedd62b93dace816ad867de172",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/likelihood_policy.json": "afdff79f83fba756f67866000584d19bd79a77322c65cc6bce607eafa0636acb",
+    "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/mixture/selected_fit.json": "572d0e1db72b4b1fe0be6188111eda34b09f8b1a25aa35b248d24cf8593bc129",
+    "asd_analysis/plot_shank3_asd0047_joint.py": "3fb850579c5ee4ced3f331b6ef252da475564ad966d7b6fd3b012b0e75664e7b"
+  },
+  "delivery_folder": "/home/rlab/raghavendra/ddm_data/shan3_coh_1_animal_Wise_fitting/ASD0047_joint"
+}

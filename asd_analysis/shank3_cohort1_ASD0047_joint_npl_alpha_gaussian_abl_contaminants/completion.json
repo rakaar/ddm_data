@@ -1,0 +1,25 @@
+{
+  "status": "complete",
+  "pid": 1124972,
+  "animal": "ASD0047",
+  "started_utc": "2026-11-12T21:04:38.314235+00:00",
+  "stage": "accepted_ready_for_reports",
+  "updated_utc": "2026-11-12T21:37:03.035744+00:00",
+  "variant": "exponential_only",
+  "bounds_round": 0,
+  "concurrent_starts": 2,
+  "seconds_per_update": 0.006797665768923859,
+  "measured_peak_bytes": 2315848448,
+  "selected_run": "asd_analysis/shank3_cohort1_ASD0047_joint_npl_alpha_gaussian_abl_contaminants/exponential_only/round_00/seed_0",
+  "final_variant": "exponential_only",
+  "status_history": [
+    {
+      "status": "fit_accepted_reports_pending",
+      "note": "Prior intermediate status; superseded by the independent completion audit."
+    }
+  ],
+  "completed_at_utc": "2026-11-12T21:46:27.552497+00:00",
+  "completion_audit": "goal_completion_audit.json",
+  "result_book": "docs/results/2026-11-12.md",
+  "strict_mkdocs_build": "passed"
+}
